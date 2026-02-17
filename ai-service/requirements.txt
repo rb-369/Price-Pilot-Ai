@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+numpy
+pandas
+statsmodels
+httpx
+python-dotenv
+google-generativeai
