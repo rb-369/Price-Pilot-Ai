@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
-    HiOutlineLogout, HiOutlineSparkles,
+    HiOutlineLogout,
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 
@@ -45,15 +45,15 @@ export default function Sidebar({ isOpen, onClose }) {
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(99,102,241,0.08)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-[#7c3aed] to-accent flex items-center justify-center shadow-lg shadow-primary/20">
-                                <HiOutlineSparkles className="w-5 h-5 text-white" />
+                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+                                <img src="/FINAL.svg" alt="PricePilot" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <h1 className="font-bold text-text text-lg leading-tight tracking-tight">PricePilot</h1>
                                 <p className="text-[10px] text-primary-light font-medium tracking-widest uppercase">AI Platform</p>
                             </div>
                         </div>
-                        {/* Close button — using native styles for guaranteed click handling */}
+                        {/* Close button */}
                         <button
                             type="button"
                             onClick={onClose}

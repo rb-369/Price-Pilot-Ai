@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { HiOutlineSparkles, HiOutlineMail, HiOutlineLockClosed } from 'react-icons/hi';
+import finalLogo from '../assets/FINAL.svg';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -35,30 +36,34 @@ export default function Login() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-[#7c3aed] to-accent mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
-                        <HiOutlineSparkles className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Welcome Back</h1>
                     <p className="text-text-muted mt-2 text-sm">Sign in to PricePilot AI Intelligence</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Email */}
                     <div>
                         <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Email</label>
-                        <div className="relative group">
-                            <HiOutlineMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted/60 w-5 h-5 group-focus-within:text-primary transition-colors" />
-                            <input type="email" className="input-field pl-11" placeholder="admin@ecom.ai"
-                                value={email} onChange={(e) => setEmail(e.target.value)} required />
-                        </div>
+                        <input type="email" className="input-field" placeholder="admin@ecom.ai"
+                            value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
+
+                    {/* Password */}
                     <div>
                         <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Password</label>
-                        <div className="relative group">
-                            <HiOutlineLockClosed className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted/60 w-5 h-5 group-focus-within:text-primary transition-colors" />
-                            <input type="password" className="input-field pl-11" placeholder="••••••••"
+                        <div className="relative">
+                            <input type={showPassword ? 'text' : 'password'} className="input-field pr-12" placeholder="••••••••"
                                 value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted/60 hover:text-primary transition-colors text-xs font-medium">
+                                {showPassword ? 'HIDE' : 'SHOW'}
+                            </button>
                         </div>
                     </div>
+
                     <button type="submit" disabled={loading}
                         className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm disabled:opacity-50">
                         {loading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Sign In'}
