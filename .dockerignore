@@ -1,0 +1,13 @@
+node_modules
+.git
+.env
+*.log
+client/node_modules
+server/node_modules
+ai-service/__pycache__
+ai-service/.venv
+.DS_Store
+Thumbs.db
+*.md
+!README.md
+client/dist

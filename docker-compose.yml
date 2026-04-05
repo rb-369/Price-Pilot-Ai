@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ── MongoDB ──
+  mongodb:
+    image: mongo:7
+    container_name: pricepilot-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: pricepilot
+
+  # ── Node.js Backend + React Client ──
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pricepilot-server
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/pricepilot
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - mongodb
+      - ai-service
+
+  # ── Python AI Service ──
+  ai-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    container_name: pricepilot-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+
+volumes:
+  mongo_data:

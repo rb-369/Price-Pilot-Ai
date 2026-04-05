@@ -1,4 +1,35 @@
-.env
-.logs
-node_modules
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
 
+# Environment
+.env
+.env.local
+.env.production
+
+# Logs
+.logs/
+*.log
+npm-debug.log*
+
+# Build outputs
+client/dist/
+client/build/
+client/build_log.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.tgz
+coverage/
+.nyc_output/

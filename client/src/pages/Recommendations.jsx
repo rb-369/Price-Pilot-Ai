@@ -66,14 +66,18 @@ export default function Recommendations() {
         toast.success('PDF exported');
     };
 
-    if (loading) return <div className="flex items-center justify-center h-96"><div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
+    if (loading) return (
+        <div className="flex items-center justify-center h-96">
+            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+    );
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between animate-slide-up">
                 <div>
                     <h1 className="page-header text-3xl">AI Recommendations</h1>
-                    <p className="text-text-muted mt-1">Explainable pricing decisions powered by AI</p>
+                    <p className="text-text-muted mt-1 text-sm">Explainable pricing decisions powered by AI</p>
                 </div>
                 <button onClick={exportPDF} className="btn-secondary flex items-center gap-2">
                     📄 Export PDF
@@ -81,18 +85,21 @@ export default function Recommendations() {
             </div>
 
             {/* Generate Section */}
-            <div className="glass-card p-6">
-                <h2 className="text-lg font-semibold text-text mb-4 flex items-center gap-2">
-                    <HiOutlineRefresh className="w-5 h-5 text-accent" /> Generate New Recommendation
+            <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                <h2 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <HiOutlineRefresh className="w-4 h-4 text-accent" />
+                    </div>
+                    Generate New Recommendation
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                     {products.slice(0, 10).map(p => (
                         <button key={p._id} onClick={() => handleGenerate(p._id)}
                             disabled={generating === p._id}
-                            className="p-3 bg-surface/50 border border-border/30 rounded-xl text-left hover:border-primary/30 transition-all disabled:opacity-50">
-                            <p className="text-sm font-medium text-text truncate">{p.name}</p>
-                            <p className="text-xs text-text-muted">₹{p.currentPrice}</p>
-                            {generating === p._id && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mt-1" />}
+                            className="p-3.5 bg-[rgba(10,15,30,0.5)] border border-[rgba(99,102,241,0.06)] rounded-xl text-left hover:border-primary/25 hover:bg-[rgba(99,102,241,0.03)] transition-all disabled:opacity-50 group">
+                            <p className="text-sm font-medium text-text truncate group-hover:text-primary-light transition-colors">{p.name}</p>
+                            <p className="text-[11px] text-text-muted">₹{p.currentPrice}</p>
+                            {generating === p._id && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mt-1.5" />}
                         </button>
                     ))}
                 </div>
@@ -105,53 +112,50 @@ export default function Recommendations() {
                     const changePct = rec.currentPrice > 0 ? ((rec.recommendedPrice - rec.currentPrice) / rec.currentPrice * 100).toFixed(1) : 0;
 
                     return (
-                        <div key={i} className={`glass-card p-6 border-l-4 ${rec.status === 'accepted' ? 'border-l-success' :
+                        <div key={i} className={`glass-card p-6 border-l-[3px] animate-slide-up ${rec.status === 'accepted' ? 'border-l-success' :
                                 isIncrease ? 'border-l-primary' : 'border-l-accent'
-                            }`}>
+                            }`} style={{ animationDelay: `${0.15 + i * 0.06}s` }}>
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isIncrease ? 'bg-primary/15 text-primary' : 'bg-accent/15 text-accent'
-                                        }`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform ${isIncrease ? 'bg-primary/12 text-primary' : 'bg-accent/12 text-accent'}`}>
                                         {isIncrease ? <HiOutlineArrowUp className="w-5 h-5" /> : <HiOutlineArrowDown className="w-5 h-5" />}
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-text">{rec.productId?.name || 'Product'}</h3>
-                                        <p className="text-xs text-text-muted">SKU: {rec.productId?.sku || '—'}</p>
+                                        <p className="text-[11px] text-text-muted uppercase tracking-wider">SKU: {rec.productId?.sku || '—'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className={
+                                    <span className={`badge ${
                                         rec.status === 'accepted' ? 'badge-success' :
                                             rec.status === 'rejected' ? 'badge-danger' : 'badge-warning'
-                                    }>{rec.status}</span>
+                                    } ${rec.status === 'accepted' ? 'animate-shimmer' : ''}`}>{rec.status}</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-4 gap-4 mb-4">
-                                <div className="text-center p-3 bg-surface/50 rounded-xl">
-                                    <p className="text-sm text-text-muted">Current</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                    <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Current</p>
                                     <p className="text-lg font-bold text-text">₹{rec.currentPrice}</p>
                                 </div>
-                                <div className="text-center p-3 bg-surface/50 rounded-xl">
-                                    <p className="text-sm text-text-muted">Recommended</p>
-                                    <p className={`text-lg font-bold ${isIncrease ? 'text-primary' : 'text-accent'}`}>₹{rec.recommendedPrice}</p>
+                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                    <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Recommended</p>
+                                    <p className={`text-lg font-bold ${isIncrease ? 'text-primary-light' : 'text-accent'}`}>₹{rec.recommendedPrice}</p>
                                 </div>
-                                <div className="text-center p-3 bg-surface/50 rounded-xl">
-                                    <p className="text-sm text-text-muted">Revenue Impact</p>
+                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                    <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Revenue</p>
                                     <p className={`text-lg font-bold ${rec.expectedRevenueImpact > 0 ? 'text-success' : 'text-danger'}`}>
                                         {rec.expectedRevenueImpact > 0 ? '+' : ''}{rec.expectedRevenueImpact}%
                                     </p>
                                 </div>
-                                <div className="text-center p-3 bg-surface/50 rounded-xl">
-                                    <p className="text-sm text-text-muted">Confidence</p>
-                                    <div className="flex items-center justify-center gap-2">
-                                        <p className="text-lg font-bold text-text">{(rec.confidenceScore * 100).toFixed(0)}%</p>
-                                    </div>
+                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                    <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Confidence</p>
+                                    <p className="text-lg font-bold text-text">{(rec.confidenceScore * 100).toFixed(0)}%</p>
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-surface/30 rounded-xl mb-4">
-                                <p className="text-sm text-text-muted flex items-start gap-2">
+                            <div className="p-4 bg-[rgba(10,15,30,0.4)] rounded-xl mb-4 border border-[rgba(99,102,241,0.04)]">
+                                <p className="text-sm text-text-muted flex items-start gap-2 leading-relaxed">
                                     <HiOutlineLightBulb className="w-4 h-4 text-warning mt-0.5 shrink-0" />
                                     {rec.reason}
                                 </p>
@@ -170,9 +174,10 @@ export default function Recommendations() {
             </div>
 
             {recommendations.length === 0 && (
-                <div className="glass-card p-12 text-center">
-                    <HiOutlineLightBulb className="w-12 h-12 text-text-muted mx-auto mb-4" />
-                    <p className="text-text-muted">No recommendations yet. Click on a product above to generate one.</p>
+                <div className="glass-card empty-state">
+                    <HiOutlineLightBulb className="empty-state-icon w-16 h-16" />
+                    <h3 className="text-lg font-semibold text-text mb-1">No recommendations yet</h3>
+                    <p className="text-text-muted text-sm">Click on a product above to generate one</p>
                 </div>
             )}
         </div>

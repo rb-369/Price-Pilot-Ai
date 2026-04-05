@@ -5,6 +5,7 @@ import {
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineSparkles,
 } from 'react-icons/hi';
+import { FiX } from 'react-icons/fi';
 
 const links = [
     { to: '/', icon: HiOutlineChartBar, label: 'Dashboard' },
@@ -16,7 +17,7 @@ const links = [
     { to: '/alerts', icon: HiOutlineBell, label: 'Alerts' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -25,46 +26,120 @@ export default function Sidebar() {
         navigate('/login');
     };
 
+    if (!isOpen) return null;
+
     return (
-        <aside className="w-64 min-h-screen bg-surface-light/50 backdrop-blur-xl border-r border-border/50 flex flex-col">
-            <div className="p-6 border-b border-border/50">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                        <HiOutlineSparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="font-bold text-text text-lg leading-tight">PricePilot AI</h1>
-                        <p className="text-xs text-text-muted">Intelligence Platform</p>
+        <div className="sidebar-wrapper" style={{ position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 9999, display: 'flex' }}>
+            {/* Sidebar panel */}
+            <aside style={{
+                width: '260px',
+                height: '100vh',
+                background: 'linear-gradient(to bottom, #0d1326, #0a0f1e)',
+                borderRight: '1px solid rgba(99,102,241,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                zIndex: 2,
+            }}>
+                {/* Logo + Close button */}
+                <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(99,102,241,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-[#7c3aed] to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                                <HiOutlineSparkles className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="font-bold text-text text-lg leading-tight tracking-tight">PricePilot</h1>
+                                <p className="text-[10px] text-primary-light font-medium tracking-widest uppercase">AI Platform</p>
+                            </div>
+                        </div>
+                        {/* Close button — using native styles for guaranteed click handling */}
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '8px',
+                                background: 'rgba(30,41,59,0.7)',
+                                border: '1px solid rgba(99,102,241,0.15)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#94a3b8',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(239,68,68,0.15)';
+                                e.currentTarget.style.color = '#f87171';
+                                e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(30,41,59,0.7)';
+                                e.currentTarget.style.color = '#94a3b8';
+                                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.15)';
+                            }}
+                            aria-label="Close sidebar"
+                            title="Close sidebar"
+                        >
+                            <FiX size={16} />
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <nav className="flex-1 p-4 space-y-1">
-                {links.map(({ to, icon: Icon, label }) => (
-                    <NavLink key={to} to={to} end={to === '/'}
-                        className={({ isActive }) => isActive ? 'sidebar-link-active' : 'sidebar-link'}>
-                        <Icon className="w-5 h-5" />
-                        <span className="text-sm">{label}</span>
-                    </NavLink>
-                ))}
-            </nav>
+                {/* Navigation */}
+                <nav className="flex-1 p-4 space-y-1 mt-2 overflow-y-auto">
+                    <p className="text-[10px] text-text-muted/50 font-semibold uppercase tracking-widest px-3 mb-3">Navigation</p>
+                    {links.map(({ to, icon: Icon, label }) => (
+                        <NavLink key={to} to={to} end={to === '/'}
+                            className={({ isActive }) => isActive ? 'sidebar-link-active' : 'sidebar-link'}>
+                            <Icon className="w-[18px] h-[18px] transition-transform duration-200" />
+                            <span className="text-[13px] font-medium">{label}</span>
+                        </NavLink>
+                    ))}
+                </nav>
 
-            <div className="p-4 border-t border-border/50">
-                <div className="flex items-center gap-3 mb-3 px-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">
-                        {user?.name?.charAt(0) || 'U'}
+                {/* User section */}
+                <div className="p-4 border-t border-[rgba(99,102,241,0.08)]">
+                    <div className="flex items-center gap-3 mb-3 px-2">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary-light text-sm font-bold ring-2 ring-primary/10">
+                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm text-text truncate font-medium">{user?.name || 'User'}</p>
+                            <p className="text-[10px] text-text-muted truncate uppercase tracking-wider">{user?.role || 'user'}</p>
+                        </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text truncate">{user?.name || 'User'}</p>
-                        <p className="text-xs text-text-muted truncate">{user?.role || 'user'}</p>
-                    </div>
+                    <button onClick={handleLogout}
+                        className="sidebar-link w-full text-danger/70 hover:bg-danger/8 hover:text-danger group">
+                        <HiOutlineLogout className="w-[18px] h-[18px] group-hover:translate-x-[-2px] transition-transform" />
+                        <span className="text-[13px] font-medium">Sign Out</span>
+                    </button>
                 </div>
-                <button onClick={handleLogout}
-                    className="sidebar-link w-full text-danger hover:bg-danger/10 hover:text-danger">
-                    <HiOutlineLogout className="w-5 h-5" />
-                    <span className="text-sm">Sign Out</span>
-                </button>
-            </div>
-        </aside>
+
+                {/* Version */}
+                <div className="px-6 pb-4">
+                    <div className="text-[10px] text-text-muted/30 text-center">v2.0 • AI-Powered</div>
+                </div>
+            </aside>
+
+            {/* Click-away backdrop overlay */}
+            <div
+                onClick={onClose}
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: '260px',
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 1,
+                    cursor: 'pointer',
+                }}
+            />
+        </div>
     );
 }

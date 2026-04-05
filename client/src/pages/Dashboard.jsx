@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDashboardStats, getRecommendations, getAlerts } from '../api';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HiOutlineCube, HiOutlineCurrencyRupee, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
 
 const mockRevenueData = Array.from({ length: 30 }, (_, i) => ({
@@ -28,41 +28,42 @@ export default function Dashboard() {
 
     if (loading) return (
         <div className="flex items-center justify-center h-96">
-            <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
     );
 
     const statCards = [
-        { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, color: 'from-green-500 to-emerald-600', change: '+12.5%' },
-        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, color: 'from-primary to-primary-dark', change: null },
-        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, color: 'from-accent to-cyan-600', change: '+2.1%' },
-        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, color: 'from-warning to-orange-600', change: null },
-        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, color: 'from-purple-500 to-violet-600', change: 'pending' },
+        { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: '+12.5%' },
+        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, gradient: 'from-primary to-primary-dark', borderColor: 'border-l-primary', change: null },
+        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', borderColor: 'border-l-accent', change: '+2.1%' },
+        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, gradient: 'from-warning to-orange-600', borderColor: 'border-l-warning', change: null },
+        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, gradient: 'from-purple-500 to-violet-600', borderColor: 'border-l-purple-500', change: 'pending' },
     ];
 
     return (
         <div className="space-y-8">
-            <div>
+            <div className="animate-slide-up">
                 <h1 className="page-header text-3xl">Dashboard</h1>
-                <p className="text-text-muted mt-1">AI-Powered Pricing & Inventory Intelligence</p>
+                <p className="text-text-muted mt-1 text-sm">AI-Powered Pricing & Inventory Intelligence</p>
             </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {statCards.map((card, i) => (
-                    <div key={i} className="glass-card-hover p-5">
+                    <div key={i} className={`glass-card-hover p-5 border-l-[3px] ${card.borderColor} animate-slide-up`}
+                        style={{ animationDelay: `${i * 0.08}s` }}>
                         <div className="flex items-start justify-between mb-3">
-                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center`}>
+                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg`}>
                                 <card.icon className="w-5 h-5 text-white" />
                             </div>
                             {card.change && (
-                                <span className={`text-xs font-medium ${card.change.startsWith('+') ? 'text-success' : 'text-text-muted'}`}>
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${card.change.startsWith('+') ? 'text-success bg-success/10' : 'text-text-muted bg-surface-lighter/50'}`}>
                                     {card.change}
                                 </span>
                             )}
                         </div>
-                        <p className="text-2xl font-bold text-text">{card.value}</p>
-                        <p className="text-sm text-text-muted">{card.label}</p>
+                        <p className="text-2xl font-bold text-text tracking-tight">{card.value}</p>
+                        <p className="text-xs text-text-muted mt-0.5 uppercase tracking-wider">{card.label}</p>
                     </div>
                 ))}
             </div>
@@ -70,83 +71,101 @@ export default function Dashboard() {
             {/* Charts Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Revenue Trend */}
-                <div className="glass-card p-6">
+                <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                     <div className="flex items-center gap-2 mb-6">
-                        <HiOutlineChartBar className="w-5 h-5 text-primary" />
-                        <h2 className="text-lg font-semibold text-text">Revenue Trend (30 Days)</h2>
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <HiOutlineChartBar className="w-4 h-4 text-primary" />
+                        </div>
+                        <h2 className="text-base font-semibold text-text">Revenue Trend (30 Days)</h2>
                     </div>
-                    <ResponsiveContainer width="100%" height={280}>
-                        <AreaChart data={mockRevenueData}>
-                            <defs>
-                                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                            <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', color: '#f1f5f9' }} />
-                            <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGrad)" strokeWidth={2} />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    <div className="chart-container">
+                        <ResponsiveContainer width="100%" height={280}>
+                            <AreaChart data={mockRevenueData}>
+                                <defs>
+                                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
+                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+                                <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGrad)" strokeWidth={2} />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Orders Chart */}
-                <div className="glass-card p-6">
+                <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
                     <div className="flex items-center gap-2 mb-6">
-                        <HiOutlineTrendingUp className="w-5 h-5 text-accent" />
-                        <h2 className="text-lg font-semibold text-text">Daily Orders</h2>
+                        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                            <HiOutlineTrendingUp className="w-4 h-4 text-accent" />
+                        </div>
+                        <h2 className="text-base font-semibold text-text">Daily Orders</h2>
                     </div>
-                    <ResponsiveContainer width="100%" height={280}>
-                        <BarChart data={mockRevenueData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                            <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                            <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', color: '#f1f5f9' }} />
-                            <Bar dataKey="orders" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    <div className="chart-container">
+                        <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={mockRevenueData}>
+                                <defs>
+                                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.9} />
+                                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.4} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
+                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+                                <Bar dataKey="orders" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
 
             {/* Recommendations & Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass-card p-6">
+                <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.35s' }}>
                     <div className="flex items-center gap-2 mb-4">
-                        <HiOutlineLightBulb className="w-5 h-5 text-warning" />
-                        <h2 className="text-lg font-semibold text-text">Latest AI Recommendations</h2>
+                        <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                            <HiOutlineLightBulb className="w-4 h-4 text-warning" />
+                        </div>
+                        <h2 className="text-base font-semibold text-text">Latest AI Recommendations</h2>
                     </div>
                     <div className="space-y-3">
                         {recommendations.length ? recommendations.map((rec, i) => (
-                            <div key={i} className="p-3 bg-surface/50 rounded-xl border border-border/30">
+                            <div key={i} className="p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.06)] hover:border-[rgba(99,102,241,0.15)] transition-all">
                                 <div className="flex items-start justify-between mb-1">
                                     <p className="text-sm font-medium text-text">{rec.productId?.name || 'Product'}</p>
-                                    <span className="badge-info">{(rec.confidenceScore * 100).toFixed(0)}%</span>
+                                    <span className="badge-info text-[10px]">{(rec.confidenceScore * 100).toFixed(0)}%</span>
                                 </div>
                                 <p className="text-xs text-text-muted line-clamp-2">{rec.reason}</p>
                                 <div className="flex items-center gap-3 mt-2 text-xs">
                                     <span className="text-text-muted">Current: ₹{rec.currentPrice}</span>
-                                    <span className="text-primary font-medium">→ ₹{rec.recommendedPrice}</span>
+                                    <span className="text-primary font-semibold">→ ₹{rec.recommendedPrice}</span>
                                     <span className={rec.expectedRevenueImpact > 0 ? 'text-success' : 'text-danger'}>
                                         {rec.expectedRevenueImpact > 0 ? '+' : ''}{rec.expectedRevenueImpact}% revenue
                                     </span>
                                 </div>
                             </div>
-                        )) : <p className="text-text-muted text-sm">No recommendations yet</p>}
+                        )) : <p className="text-text-muted text-sm text-center py-8">No recommendations yet</p>}
                     </div>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                     <div className="flex items-center gap-2 mb-4">
-                        <HiOutlineExclamation className="w-5 h-5 text-danger" />
-                        <h2 className="text-lg font-semibold text-text">Recent Alerts</h2>
+                        <div className="w-8 h-8 rounded-lg bg-danger/10 flex items-center justify-center">
+                            <HiOutlineExclamation className="w-4 h-4 text-danger" />
+                        </div>
+                        <h2 className="text-base font-semibold text-text">Recent Alerts</h2>
                     </div>
                     <div className="space-y-3">
                         {alerts.length ? alerts.map((alert, i) => (
-                            <div key={i} className={`p-3 rounded-xl border ${alert.severity === 'critical' ? 'bg-danger/5 border-danger/30' :
-                                    alert.severity === 'high' ? 'bg-warning/5 border-warning/30' :
-                                        'bg-surface/50 border-border/30'
+                            <div key={i} className={`p-3.5 rounded-xl border transition-all ${alert.severity === 'critical' ? 'bg-danger/[0.03] border-danger/20' :
+                                    alert.severity === 'high' ? 'bg-warning/[0.03] border-warning/20' :
+                                        'bg-[rgba(10,15,30,0.5)] border-[rgba(99,102,241,0.06)]'
                                 }`}>
                                 <div className="flex items-start justify-between mb-1">
                                     <p className="text-sm font-medium text-text">{alert.title}</p>
@@ -157,7 +176,7 @@ export default function Dashboard() {
                                 </div>
                                 <p className="text-xs text-text-muted">{alert.message}</p>
                             </div>
-                        )) : <p className="text-text-muted text-sm">No alerts</p>}
+                        )) : <p className="text-text-muted text-sm text-center py-8">No alerts</p>}
                     </div>
                 </div>
             </div>
