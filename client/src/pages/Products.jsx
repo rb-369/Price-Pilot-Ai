@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react';
-import { getProducts, createProduct, deleteProduct } from '../api';
+import { getProducts, createProduct, deleteProduct, updateProduct } from '../api';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil } from 'react-icons/hi';
+
+const STANDARD_CATEGORIES = [
+    "General", "Electronics", "Footwear", "Apparel", "Groceries", 
+    "Fitness", "Beauty & Personal Care", "Home & Kitchen", 
+    "Toys & Games", "Automotive", "Sports & Outdoors", 
+    "Books & Media", "Health & Wellness", "Jewelry & Accessories"
+];
+
+const DEFAULT_FORM_STATE = { 
+    name: '', sku: '', category: 'General', 
+    baseCost: '', currentPrice: '', minMargin: '0.1', 
+    stockLevel: '', reorderThreshold: '10' 
+};
 
 export default function Products() {
     const [products, setProducts] = useState([]);
     const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ name: '', sku: '', category: 'general', baseCost: '', currentPrice: '', minMargin: '0.1', stockLevel: '', reorderThreshold: '10' });
+    const [form, setForm] = useState(DEFAULT_FORM_STATE);
+    const [customCategory, setCustomCategory] = useState('');
+    const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const fetchProducts = () => {
@@ -15,13 +30,63 @@ export default function Products() {
 
     useEffect(() => { fetchProducts(); }, []);
 
-    const handleCreate = async (e) => {
+    const openAddForm = () => {
+        setForm(DEFAULT_FORM_STATE);
+        setCustomCategory('');
+        setEditId(null);
+        setShowForm(!showForm);
+    };
+
+    const handleEditClick = (p) => {
+        setEditId(p._id);
+        const isStandard = STANDARD_CATEGORIES.includes(p.category);
+        
+        setForm({
+            name: p.name || '',
+            sku: p.sku || '',
+            category: isStandard ? p.category : 'Other',
+            baseCost: p.baseCost || '',
+            currentPrice: p.currentPrice || '',
+            minMargin: p.minMargin || '0.1',
+            stockLevel: p.stockLevel || '',
+            reorderThreshold: p.reorderThreshold || '10'
+        });
+        
+        if (!isStandard) {
+            setCustomCategory(p.category);
+        } else {
+            setCustomCategory('');
+        }
+        
+        setShowForm(true);
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await createProduct({ ...form, baseCost: +form.baseCost, currentPrice: +form.currentPrice, minMargin: +form.minMargin, stockLevel: +form.stockLevel, reorderThreshold: +form.reorderThreshold });
-            toast.success('Product created');
+            const finalCategory = form.category === 'Other' ? customCategory : form.category;
+            const payload = { 
+                ...form, 
+                category: finalCategory,
+                baseCost: +form.baseCost, 
+                currentPrice: +form.currentPrice, 
+                minMargin: +form.minMargin, 
+                stockLevel: +form.stockLevel, 
+                reorderThreshold: +form.reorderThreshold 
+            };
+
+            if (editId) {
+                await updateProduct(editId, payload);
+                toast.success('Product updated');
+            } else {
+                await createProduct(payload);
+                toast.success('Product created');
+            }
+
             setShowForm(false);
-            setForm({ name: '', sku: '', category: 'general', baseCost: '', currentPrice: '', minMargin: '0.1', stockLevel: '', reorderThreshold: '10' });
+            setEditId(null);
+            setForm(DEFAULT_FORM_STATE);
+            setCustomCategory('');
             fetchProducts();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed');
@@ -58,33 +123,51 @@ export default function Products() {
                     <h1 className="page-header text-3xl">Products</h1>
                     <p className="text-text-muted mt-1 text-sm">{products.length} products in inventory</p>
                 </div>
-                <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2">
-                    {showForm ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
-                    {showForm ? 'Close' : 'Add Product'}
+                <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
+                    {showForm && !editId ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
+                    {showForm && !editId ? 'Close' : 'Add Product'}
                 </button>
             </div>
 
             {showForm && (
                 <div className="glass-card p-6 animate-slide-up">
-                    <h3 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
-                        <HiOutlineCube className="w-5 h-5 text-primary" /> New Product
-                    </h3>
-                    <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-base font-semibold text-text flex items-center gap-2">
+                            <HiOutlineCube className="w-5 h-5 text-primary" /> {editId ? 'Edit Product' : 'New Product'}
+                        </h3>
+                        <button onClick={() => { setShowForm(false); setEditId(null); }} className="text-text-muted hover:text-text transition-colors">
+                            <HiOutlineX className="w-5 h-5" />
+                        </button>
+                    </div>
+                    
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input className="input-field" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
                         <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
-                        <select className="input-field" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                            <option value="general">General</option><option value="Electronics">Electronics</option>
-                            <option value="Footwear">Footwear</option><option value="Apparel">Apparel</option>
-                            <option value="Groceries">Groceries</option><option value="Fitness">Fitness</option>
-                        </select>
+                        
+                        <div className="relative">
+                            <select className="input-field" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                                {STANDARD_CATEGORIES.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                                <option value="Other">Other (Custom)</option>
+                            </select>
+                        </div>
+                        {form.category === 'Other' && (
+                            <input className="input-field" placeholder="Type your custom category..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
+                        )}
+
                         <input className="input-field" type="number" placeholder="Base Cost (₹)" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required />
                         <input className="input-field" type="number" placeholder="Current Price (₹)" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required />
                         <input className="input-field" type="number" step="0.01" placeholder="Min Margin (0.1 = 10%)" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} />
                         <input className="input-field" type="number" placeholder="Stock Level" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required />
                         <input className="input-field" type="number" placeholder="Reorder Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} />
-                        <div className="flex gap-2 items-end">
-                            <button type="submit" className="btn-primary">Create</button>
-                            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
+                        <div className="flex gap-2 items-end md:col-start-1 md:col-end-4 mt-2">
+                            <button type="submit" className="btn-primary flex-[0.5] flex justify-center">
+                                {editId ? 'Save Changes' : 'Create Product'}
+                            </button>
+                            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary flex-[0.5] flex justify-center">
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -139,9 +222,14 @@ export default function Products() {
                                             <td className="px-6 py-4 text-sm text-text text-right font-medium">{p.stockLevel}</td>
                                             <td className="px-6 py-4 text-center"><span className={`badge ${status.cls}`}>{status.text}</span></td>
                                             <td className="px-6 py-4 text-center">
-                                                <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all">
-                                                    <HiOutlineTrash className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <button onClick={() => handleEditClick(p)} className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all" title="Edit">
+                                                        <HiOutlinePencil className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all" title="Delete">
+                                                        <HiOutlineTrash className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     );

@@ -29,6 +29,8 @@ client/build_log.txt
 Thumbs.db
 desktop.ini
 
+production_plan.md
+
 # Misc
 *.tgz
 coverage/
