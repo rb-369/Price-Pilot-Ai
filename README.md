@@ -75,22 +75,21 @@ PricePilot AI solves these challenges with automated, intelligent pricing that a
 ## ✨ Key Features
 
 ### 🤖 AI-Powered Pricing Engine
-- Multi-factor price optimization algorithm considering cost, competition, demand, and inventory
-- Confidence-scored recommendations with expected revenue impact
-- LLM-generated natural language explanations (Google Gemini integration)
-- Automated promotion suggestions based on demand signals
+- **Binary Search Margin Optimization**: Dynamically finds the exact price point that mathematically maximizes total gross profit.
+- **Dynamic Price Elasticity Estimation**: Adjusts theoretical volume shifts based on composite demand trend metrics.
+- **LLM-Powered Explainability**: Google Gemini directly translates complex matrix math into plain-English "Insights" for merchants.
+- Automated promotion suggestions based on stock ratios and weakened demand signals.
 
 ### 📊 Demand Forecasting
-- Time-series forecasting using ARIMA/Exponential Smoothing (ETS)
-- 30-day demand prediction with confidence intervals
-- Composite demand scoring (search trends, weather, events, social sentiment)
-- Inventory reorder alerts based on forecasted demand
+- **Facebook Prophet Integration**: Advanced Bayesian time-series model decomposing weekly/yearly seasonality and non-linear trend curves.
+- **Graceful Fallbacks**: Automatically relies on Holt-Winters Exponential Smoothing or Moving Averages if data volume is inadequate.
+- 30-day forward demand prediction with statistical confidence scores.
+- Inventory reorder calculations derived directly from expected future depletion rates.
 
 ### 🏷️ Competitor Intelligence
-- Real-time competitor price tracking and monitoring
-- Automated price position analysis (cheapest, average, premium)
-- Market share impact assessment
-- Price undercutting and gap detection
+- **Rainforest API Integration**: Real-time distributed web scraping for live Amazon marketplace ASIN telemetry.
+- **Weighted Analysis**: Adjusts internal pricing gravity based on competitors' actual stock availability and review ratings.
+- Automated price position analysis (cheapest, average, premium).
 
 ### 📈 Interactive Dashboard
 - Real-time KPI cards with revenue, margins, and stock metrics
@@ -114,27 +113,7 @@ PricePilot AI solves these challenges with automated, intelligent pricing that a
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENT (React + Vite)                 │
-│          Dashboard │ Products │ Forecasts │ Alerts       │
-└─────────────────────────┬───────────────────────────────┘
-                          │ REST API (axios)
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│                 SERVER (Node.js + Express)                │
-│   Auth │ Products │ Competitors │ Demand │ AI │ Alerts   │
-│                          │                               │
-│                    Cron Scheduler                         │
-└─────────────┬───────────┴──────────────┬────────────────┘
-              │                          │
-              ▼                          ▼
-┌──────────────────────┐   ┌──────────────────────────────┐
-│   MongoDB Atlas       │   │   AI SERVICE (FastAPI)        │
-│   (Data Storage)      │   │   Forecasting │ Optimization  │
-│                       │   │   LLM Insights (Gemini)       │
-└───────────────────────┘   └──────────────────────────────┘
-```
+![Architecture Diagram](client/public/Architecture.png)
 
 The system follows a **microservices architecture** with three main components:
 1. **React Client** — Single-page application with responsive UI
@@ -171,12 +150,12 @@ The system follows a **microservices architecture** with three main components:
 ### AI Service
 | Technology | Purpose |
 |-----------|---------|
-| Python 3.11 | Runtime |
+| Python 3.12 | Runtime |
 | FastAPI | API framework |
-| NumPy / Pandas | Numerical computation |
-| statsmodels | Time-series forecasting (ARIMA/ETS) |
+| Facebook Prophet | Bayesian Time-Series Forecasting |
+| Rainforest API | Distributed Web Scraping (Amazon) |
 | Google Generative AI | LLM-powered insights (Gemini) |
-| Pydantic | Data validation |
+| Pydantic / Pandas | Data validation & computation |
 
 ### DevOps
 | Technology | Purpose |
@@ -406,13 +385,29 @@ The server will serve the built React app and the API from a single port (5000).
 > _Run the application locally to see the premium glassmorphism UI with dark mode, animated dashboard, and interactive charts._
 
 ### Pages Overview
-- **Dashboard** — KPI cards, revenue trends, order charts, AI recommendations feed
-- **Products** — CRUD table with inline editing and stock management
-- **Competitors** — Track competitor prices with automated scraping
-- **Demand Signals** — Composite demand scoring with trend visualization
-- **Forecasts** — 30-day demand predictions with confidence intervals
-- **AI Recommendations** — Accept/reject pricing suggestions with LLM explanations
-- **Alerts** — Severity-based alert inbox with mark-as-read functionality
+
+**Dashboard** — KPI cards, revenue trends, order charts, AI recommendations feed
+![Dashboard](screenshots/dashboard.png)
+
+**Products** — CRUD table with inline editing and stock management
+![Products Page](screenshots/Products%20Page.png)
+
+**Competitors** — Track competitor prices with automated scraping
+![Competitors View 1](screenshots/Competitors1.png)
+![Competitors View 2](screenshots/Competitors2.png)
+
+**Demand Signals** — Composite demand scoring with trend visualization
+![Demand Signals 1](screenshots/Demand%20Signals1.png)
+![Demand Signals 2](screenshots/Demand%20Signals2.png)
+
+**Forecasts** — 30-day demand predictions with confidence intervals
+![Inventory Forecasts](screenshots/Inventory%20Forecasts.png)
+
+**AI Recommendations** — Accept/reject pricing suggestions with LLM explanations
+![AI Recommendations](screenshots/AI%20Recommendations.png)
+
+**Alerts** — Severity-based alert inbox with mark-as-read functionality
+![Alerts](screenshots/Alerts.png)
 
 ---
 

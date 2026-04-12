@@ -11,6 +11,10 @@ const pricingRecommendationSchema = new mongoose.Schema({
     appliedAt: { type: Date },
     revenueBeforeChange: { type: Number },
     revenueAfterChange: { type: Number },
+    insight: { type: String },
+    elasticityUsed: { type: Number },
+    competitorsUsed: [{ type: mongoose.Schema.Types.Mixed }],
+    factors: { type: mongoose.Schema.Types.Mixed },
     timestamp: { type: Date, default: Date.now },
 }, { timestamps: true });
 

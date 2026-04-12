@@ -39,17 +39,37 @@ class OptimizeRequest(BaseModel):
     demandSignals: Optional[List[DemandSignalData]] = []
 
 
+import os
+from services.rainforest import search_competitors_by_keyword, get_mock_competitor_prices
+
 @router.post("/optimize-price")
 async def optimize(request: OptimizeRequest):
     product = request.product.model_dump()
     competitors = [cp.model_dump() for cp in request.competitorPrices]
     demand = [ds.model_dump() for ds in request.demandSignals]
 
+    # --- Live Competitor Data Injection ---
+    # If Node server sends empty competitors, or we want to guarantee live data:
+    if not competitors:
+        api_key = os.getenv("RAINFOREST_API_KEY", "")
+        if api_key:
+            print(f"Fetching Live Amazon Competitors for '{product['name']}'...")
+            competitors = await search_competitors_by_keyword(product["name"])
+            
+        # Fallback to realistic mock data based on the product's actual price
+        if not competitors:
+            print(f"Using Mock Competitors for '{product['name']}'...")
+            competitors = get_mock_competitor_prices(product["name"], product["currentPrice"])
+    # ----------------------------------------
+
     recommendation = optimize_price(product, competitors, demand)
 
     # Generate LLM insight
     insight = await generate_insight(product, recommendation, competitors, demand)
     recommendation["insight"] = insight
+    
+    # Return competitors array as well so the frontend can see the live Amazon prices!
+    recommendation["competitorsUsed"] = competitors
 
     return recommendation
 

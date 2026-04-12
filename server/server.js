@@ -63,6 +63,19 @@ app.use((err, req, res, next) => {
     });
 });
 
+app.get('/', (req, res) => {
+    res.send('🚀 PricePilot Server is LIVE');
+});
+
+app.get("/health", (req, res) => {
+    res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || "development",
+    });
+});
+
 // ── 404 Handler for unknown API routes ──
 app.use('/api/*', (req, res) => {
     res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
@@ -74,7 +87,7 @@ const startServer = async () => {
     try {
         await connectDB();
         initCronJobs();
-        app.listen(PORT, () => {
+        app.listen(PORT, "0.0.0.0", () => {
             console.log(`🚀 PricePilot Server running on port ${PORT}`);
             console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
         });

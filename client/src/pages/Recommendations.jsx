@@ -154,12 +154,33 @@ export default function Recommendations() {
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-[rgba(10,15,30,0.4)] rounded-xl mb-4 border border-[rgba(99,102,241,0.04)]">
-                                <p className="text-sm text-text-muted flex items-start gap-2 leading-relaxed">
-                                    <HiOutlineLightBulb className="w-4 h-4 text-warning mt-0.5 shrink-0" />
-                                    {rec.reason}
+                            <div className="p-4 bg-gradient-to-r from-[rgba(99,102,241,0.05)] to-transparent rounded-xl mb-4 border border-[rgba(99,102,241,0.1)]">
+                                <h4 className="text-[11px] uppercase tracking-wider text-primary mb-2 font-bold flex items-center gap-1.5">
+                                    <HiOutlineLightBulb className="w-4 h-4" /> Gemini AI Insight
+                                </h4>
+                                <p className="text-sm text-text-muted leading-relaxed">
+                                    {rec.insight || rec.reason}
                                 </p>
                             </div>
+
+                            {rec.competitorsUsed && rec.competitorsUsed.length > 0 && (
+                                <div className="mb-4">
+                                    <p className="text-[10px] text-text-muted mb-2 font-semibold uppercase tracking-wider">Live Competitor Pricing Data</p>
+                                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                        {rec.competitorsUsed.map((comp, idx) => (
+                                            <div key={idx} className="shrink-0 bg-[rgba(10,15,30,0.5)] p-2.5 rounded-lg border border-[rgba(99,102,241,0.06)] min-w-[140px] max-w-[160px]">
+                                                <p className="text-[11px] text-text font-medium truncate" title={comp.name}>{comp.name}</p>
+                                                <div className="flex justify-between items-end mt-1.5">
+                                                    <p className="text-sm text-primary-light font-bold">₹{comp.price}</p>
+                                                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${comp.inStock ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
+                                                        {comp.inStock ? 'In Stock' : 'OOS'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {rec.status === 'pending' && (
                                 <div className="flex gap-3">

@@ -59,6 +59,10 @@ exports.generateRecommendation = async (req, res) => {
             recommendedPrice: recommendation.recommendedPrice,
             currentPrice: product.currentPrice,
             reason: recommendation.reason,
+            insight: recommendation.insight,
+            elasticityUsed: recommendation.elasticityUsed,
+            competitorsUsed: recommendation.competitorsUsed,
+            factors: recommendation.factors,
             expectedRevenueImpact: recommendation.revenueImpact,
             confidenceScore: recommendation.confidenceScore,
         });

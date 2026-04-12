@@ -63,10 +63,9 @@ async def _generate_with_gemini(
     demand_signals: list,
 ) -> str:
     """Generate insight using Google Gemini API."""
-    import google.generativeai as genai
+    from google import genai
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-pro")
+    client = genai.Client(api_key=api_key)
 
     # Build competitor summary
     comp_summary = "No competitor data available."
@@ -97,7 +96,12 @@ async def _generate_with_gemini(
         confidence=recommendation.get("confidenceScore", 0),
     )
 
-    response = await model.generate_content_async(prompt)
+    # We must use async client from google.genai
+    # gemini-2.5-flash is officially supported by your specific API key/region!
+    response = await client.aio.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
     return response.text.strip()
 
 

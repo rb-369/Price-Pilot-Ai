@@ -35,3 +35,5 @@ production_plan.md
 *.tgz
 coverage/
 .nyc_output/
+
+client/build_log.txt

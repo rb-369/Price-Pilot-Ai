@@ -6,4 +6,6 @@ pandas
 statsmodels
 httpx
 python-dotenv
-google-generativeai
+google-genai>=0.1.0
+prophet==1.1.5
+cmdstanpy==1.2.4
