@@ -4,6 +4,7 @@ const CompetitorPrice = require('../models/CompetitorPrice');
 const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
+const Alert = require('../models/Alert');
 
 const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -238,6 +239,50 @@ exports.getDashboardStats = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Chatbot endpoint — proxies chat requests to the AI service.
+ */
+exports.chat = async (req, res) => {
+    try {
+        const { messages } = req.body;
+        
+        // Gather context for the chatbot (RAG)
+        const products = await Product.find({}).limit(20);
+        // Only active/critical alerts
+        const alerts = await Alert.find({ status: 'active' }).limit(10);
+        
+        const payload = {
+            messages,
+            context: {
+                products: products.map(p => ({ name: p.name, currentPrice: p.currentPrice, stockLevel: p.stockLevel })),
+                alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
+            }
+        };
+
+        const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload);
+        res.json(aiResponse.data);
+    } catch (error) {
+        console.error('Chat error:', error.message);
+        res.status(500).json({ message: 'Failed to communicate with AI Chatbot', error: error.message });
+    }
+};
+
+/**
+ * Generate Product Description endpoint — calls AI service.
+ */
+exports.generateProductDescription = async (req, res) => {
+    try {
+        const { productName, category } = req.body;
+        if (!productName) return res.status(400).json({ message: 'Product name is required' });
+        
+        const aiResponse = await axios.post(`${AI_URL}/api/generate-description`, { product_name: productName, category: category || "" });
+        res.json(aiResponse.data);
+    } catch (error) {
+        console.error('Generate Description error:', error.message);
+        res.status(500).json({ message: 'Failed to generate product description', error: error.message });
     }
 };
 

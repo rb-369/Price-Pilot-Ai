@@ -12,6 +12,7 @@ const competitorRoutes = require('./routes/competitorRoutes');
 const demandRoutes = require('./routes/demandRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/competitor-prices', competitorRoutes);
 app.use('/api/demand-signals', demandRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/chats', chatRoutes);
 
 // ── Health check ──
 app.get('/api/health', (req, res) => {

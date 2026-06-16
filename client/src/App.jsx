@@ -12,6 +12,7 @@ import DemandSignals from './pages/DemandSignals';
 import Forecasts from './pages/Forecasts';
 import Recommendations from './pages/Recommendations';
 import Alerts from './pages/Alerts';
+import ChatWidget from './components/ChatWidget';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -36,7 +37,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route path="/" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="competitors" element={<Competitors />} />

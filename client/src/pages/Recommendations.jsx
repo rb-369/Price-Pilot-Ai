@@ -158,9 +158,38 @@ export default function Recommendations() {
                                 <h4 className="text-[11px] uppercase tracking-wider text-primary mb-2 font-bold flex items-center gap-1.5">
                                     <HiOutlineLightBulb className="w-4 h-4" /> Gemini AI Insight
                                 </h4>
-                                <p className="text-sm text-text-muted leading-relaxed">
-                                    {rec.insight || rec.reason}
-                                </p>
+                                {(() => {
+                                    try {
+                                        const parsed = JSON.parse(rec.insight);
+                                        return (
+                                            <div className="space-y-3">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <p className="text-sm font-semibold text-slate-200">{parsed.summary}</p>
+                                                    {parsed.risk_level && (
+                                                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                                            parsed.risk_level === 'low' ? 'bg-success/20 text-success' :
+                                                            parsed.risk_level === 'high' ? 'bg-danger/20 text-danger' :
+                                                            'bg-warning/20 text-warning'
+                                                        }`}>{parsed.risk_level} Risk</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-text-muted leading-relaxed">{parsed.detailed_analysis}</p>
+                                                {parsed.action_items && parsed.action_items.length > 0 && (
+                                                    <div className="mt-2">
+                                                        <p className="text-[11px] text-text-muted uppercase font-semibold mb-1">Action Items:</p>
+                                                        <ul className="list-disc pl-4 space-y-1">
+                                                            {parsed.action_items.map((item, idx) => (
+                                                                <li key={idx} className="text-sm text-slate-300">{item}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    } catch (e) {
+                                        return <p className="text-sm text-text-muted leading-relaxed">{rec.insight || rec.reason}</p>;
+                                    }
+                                })()}
                             </div>
 
                             {rec.competitorsUsed && rec.competitorsUsed.length > 0 && (

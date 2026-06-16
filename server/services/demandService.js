@@ -13,6 +13,9 @@
 const DemandSignal = require('../models/DemandSignal');
 const Product = require('../models/Product');
 const Alert = require('../models/Alert');
+const axios = require('axios');
+
+const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
 /**
  * Simple seeded pseudo-random number generator (Mulberry32).
@@ -37,7 +40,6 @@ function generateDemandSignals(productSeed) {
     const r1 = seededRandom(seed);
     const r2 = seededRandom(seed + 1);
     const r3 = seededRandom(seed + 2);
-    const r4 = seededRandom(seed + 3);
 
     // Weekend boost for search trends
     const weekendBoost = (day === 0 || day === 6) ? 10 : 0;
@@ -48,7 +50,6 @@ function generateDemandSignals(productSeed) {
         searchTrendScore: Math.round(30 + r1 * 60 + weekendBoost),
         weatherFactor: parseFloat(((r2 - 0.5) * 1.5).toFixed(2)),
         eventFactor: parseFloat((festiveBoost || ((r3 - 0.3) * 0.6)).toFixed(2)),
-        socialSentimentScore: parseFloat(((r4 - 0.3) * 1.2).toFixed(2)),
     };
 }
 
@@ -63,6 +64,23 @@ async function collectDemandSignals() {
             const productSeed = parseInt(product._id.toString().substring(0, 8), 16);
 
             const signalData = generateDemandSignals(productSeed);
+
+            // Fetch actual AI Sentiment Score
+            let sentimentResult = 50;
+            try {
+                const aiRes = await axios.post(`${AI_URL}/api/analyze-sentiment`, {
+                    product_name: product.name,
+                    category: product.category || 'General',
+                    feedback: 'Recent social media chatter, product reviews, and unboxing videos.'
+                });
+                sentimentResult = aiRes.data.sentiment_score || 50;
+            } catch (err) {
+                console.warn(`[Demand] Sentiment AI failed for ${product.name}, using fallback.`);
+            }
+
+            // Map 0-100 score to -0.5 to 1.5 range to match existing logic
+            signalData.socialSentimentScore = parseFloat(((sentimentResult / 100) * 2 - 0.5).toFixed(2));
+
             await DemandSignal.create({
                 productId: product._id,
                 ...signalData,

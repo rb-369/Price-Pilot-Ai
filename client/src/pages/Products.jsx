@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProducts, createProduct, deleteProduct, updateProduct } from '../api';
+import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil } from 'react-icons/hi';
 
@@ -24,8 +24,39 @@ export default function Products() {
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [isGenerating, setIsGenerating] = useState(false);
+
     const fetchProducts = () => {
         getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }).finally(() => setLoading(false));
+    };
+
+    const handleGenerateAiCopy = async () => {
+        if (!form.name) {
+            toast.error('Please enter a Product Name first');
+            return;
+        }
+        setIsGenerating(true);
+        const toastId = toast.loading('Generating AI description & SEO tags...');
+        try {
+            const finalCategory = form.category === 'Other' ? customCategory : form.category;
+            const res = await generateProductDescription({ productName: form.name, category: finalCategory });
+            toast.success('AI description generated!', { id: toastId });
+            // Only update if we don't have existing data or user confirms, but here we just auto-fill
+            setForm(prev => ({
+                ...prev,
+                name: res.data.title || prev.name,
+                // We'll just stick the description in a new field or reuse a field if we had one. 
+                // Wait, the Product model currently doesn't have a description field? Let's check!
+            }));
+            // Just display it if the model doesn't support it yet
+            if (res.data.description) {
+                toast(`Generated Description:\n${res.data.description}`, { duration: 8000 });
+            }
+        } catch (err) {
+            toast.error('AI generation failed', { id: toastId });
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     useEffect(() => { fetchProducts(); }, []);
@@ -141,7 +172,17 @@ export default function Products() {
                     </div>
                     
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input className="input-field" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                        <div className="md:col-span-2 flex gap-2">
+                            <input className="input-field w-full" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                            <button 
+                                type="button" 
+                                onClick={handleGenerateAiCopy} 
+                                disabled={isGenerating || !form.name}
+                                className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 rounded-xl text-sm font-medium hover:bg-indigo-600/30 transition-colors whitespace-nowrap disabled:opacity-50"
+                            >
+                                ✨ AI Optimize
+                            </button>
+                        </div>
                         <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
                         
                         <div className="relative">

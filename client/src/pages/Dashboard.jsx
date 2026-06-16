@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getDashboardStats, getRecommendations, getAlerts, getChartData } from '../api';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HiOutlineCube, HiOutlineCurrencyRupee, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
+import ExplainabilityPanel from '../components/ExplainabilityPanel';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -134,6 +135,11 @@ export default function Dashboard() {
                         )}
                     </div>
                 </div>
+            </div>
+
+            {/* Explainability Panel */}
+            <div className="grid grid-cols-1 gap-6">
+                <ExplainabilityPanel />
             </div>
 
             {/* Recommendations & Alerts */}

@@ -43,6 +43,17 @@ export const acceptRecommendation = (id) => api.put(`/ai/recommendations/${id}/a
 export const rejectRecommendation = (id, reason = '') => api.put(`/ai/recommendations/${id}/reject`, { reason });
 export const getForecasts = (page = 1, limit = 20) => api.get(`/ai/forecasts?page=${page}&limit=${limit}`);
 export const generateForecast = (productId, days) => api.post(`/ai/forecasts/${productId}`, { forecastDays: days });
+export const generateProductDescription = (data) => api.post('/ai/generate-description', data);
+
+// Chats (New feature)
+export const getChats = () => api.get('/chats');
+export const getChat = (id) => api.get(`/chats/${id}`);
+export const createChat = (data) => api.post('/chats', data);
+export const deleteChat = (id) => api.delete(`/chats/${id}`);
+export const sendChatMessage = (id, data) => api.post(`/chats/${id}/message`, data);
+export const uploadChatContext = (formData) => api.post('/chats/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+});
 
 // Alerts
 export const getAlerts = () => api.get('/alerts');

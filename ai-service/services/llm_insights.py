@@ -26,12 +26,14 @@ Demand Signals:
 Revenue Impact: {revenue_impact}%
 Confidence Score: {confidence}
 
-Generate a 2-3 sentence plain-English explanation of:
-1. WHY this price change is recommended
-2. WHAT factors are driving the recommendation
-3. WHAT the expected outcome will be
-
-Be specific with numbers. Use a professional but accessible tone. Do not use bullet points."""
+You must return ONLY a JSON object with the following schema:
+{{
+  "summary": "1-sentence summary of the recommendation",
+  "detailed_analysis": "2-3 sentences explaining WHY and WHAT factors drove it",
+  "action_items": ["List of 1 to 3 specific actions the merchant should take"],
+  "risk_level": "low" | "medium" | "high"
+}}
+"""
 
 
 async def generate_insight(
@@ -64,6 +66,7 @@ async def _generate_with_gemini(
 ) -> str:
     """Generate insight using Google Gemini API."""
     from google import genai
+    from google.genai import types
 
     client = genai.Client(api_key=api_key)
 
@@ -100,7 +103,11 @@ async def _generate_with_gemini(
     # gemini-2.5-flash is officially supported by your specific API key/region!
     response = await client.aio.models.generate_content(
         model="gemini-2.5-flash",
-        contents=prompt
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.4
+        )
     )
     return response.text.strip()
 
@@ -160,4 +167,10 @@ def _generate_template_insight(
     if abs(revenue_impact) > 0.5:
         parts.append(f"Expected revenue impact: {revenue_impact:+.1f}% based on demand elasticity analysis.")
 
-    return " ".join(parts)
+    import json
+    return json.dumps({
+        "summary": " ".join(parts),
+        "detailed_analysis": "Fallback insight generated due to API unavailability.",
+        "action_items": ["Review pricing manually", "Check competitor stock"],
+        "risk_level": "medium"
+    })
