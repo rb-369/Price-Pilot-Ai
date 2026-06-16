@@ -1,28 +1,27 @@
 import { useState, useEffect } from 'react';
-import { getDashboardStats, getRecommendations, getAlerts } from '../api';
+import { getDashboardStats, getRecommendations, getAlerts, getChartData } from '../api';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HiOutlineCube, HiOutlineCurrencyRupee, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
-
-const mockRevenueData = Array.from({ length: 30 }, (_, i) => ({
-    day: `Day ${i + 1}`,
-    revenue: Math.round(50000 + Math.random() * 30000 + i * 500),
-    orders: Math.round(50 + Math.random() * 40 + i * 2),
-}));
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
     const [alerts, setAlerts] = useState([]);
+    const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         Promise.all([
             getDashboardStats().then(r => setStats(r.data)).catch(() => setStats({
-                totalProducts: 10, lowStockProducts: 3, pendingRecommendations: 5,
-                totalRevenue: 125000, avgMargin: '28.5',
+                totalProducts: 0, lowStockProducts: 0, pendingRecommendations: 0,
+                inventoryValue: 0, totalRevenue: 0, avgMargin: '0', acceptedRecommendations: 0,
             })),
-            getRecommendations().then(r => setRecommendations(r.data.slice(0, 5))).catch(() => { }),
+            getRecommendations().then(r => {
+                const data = r.data.data || r.data;
+                setRecommendations(Array.isArray(data) ? data.slice(0, 5) : []);
+            }).catch(() => { }),
             getAlerts().then(r => setAlerts(r.data.slice(0, 5))).catch(() => { }),
+            getChartData(30).then(r => setChartData(r.data)).catch(() => setChartData([])),
         ]).finally(() => setLoading(false));
     }, []);
 
@@ -33,11 +32,11 @@ export default function Dashboard() {
     );
 
     const statCards = [
-        { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: '+12.5%' },
+        { label: 'Inventory Value', value: `₹${(stats?.inventoryValue || stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: null },
         { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, gradient: 'from-primary to-primary-dark', borderColor: 'border-l-primary', change: null },
-        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', borderColor: 'border-l-accent', change: '+2.1%' },
+        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', borderColor: 'border-l-accent', change: null },
         { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, gradient: 'from-warning to-orange-600', borderColor: 'border-l-warning', change: null },
-        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, gradient: 'from-purple-500 to-violet-600', borderColor: 'border-l-purple-500', change: 'pending' },
+        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, gradient: 'from-purple-500 to-violet-600', borderColor: 'border-l-purple-500', change: `${stats?.acceptedRecommendations || 0} accepted` },
     ];
 
     return (
@@ -57,7 +56,7 @@ export default function Dashboard() {
                                 <card.icon className="w-5 h-5 text-white" />
                             </div>
                             {card.change && (
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${card.change.startsWith('+') ? 'text-success bg-success/10' : 'text-text-muted bg-surface-lighter/50'}`}>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-text-muted bg-surface-lighter/50">
                                     {card.change}
                                 </span>
                             )}
@@ -68,59 +67,71 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row — now powered by real aggregated data */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Revenue Trend */}
+                {/* Demand Trend (real data) */}
                 <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                     <div className="flex items-center gap-2 mb-6">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <HiOutlineChartBar className="w-4 h-4 text-primary" />
                         </div>
-                        <h2 className="text-base font-semibold text-text">Revenue Trend (30 Days)</h2>
+                        <h2 className="text-base font-semibold text-text">Demand Trend (30 Days)</h2>
                     </div>
                     <div className="chart-container">
-                        <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={mockRevenueData}>
-                                <defs>
-                                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
-                                <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revenueGrad)" strokeWidth={2} />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        {chartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <AreaChart data={chartData}>
+                                    <defs>
+                                        <linearGradient id="demandGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
+                                    <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                    <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} domain={[0, 1]} />
+                                    <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+                                    <Area type="monotone" dataKey="demandScore" stroke="#6366f1" fill="url(#demandGrad)" strokeWidth={2} name="Demand Score" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-[280px] text-text-muted text-sm">
+                                No demand data yet. Add products and generate demand signals.
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Orders Chart */}
+                {/* Search Trend (real data) */}
                 <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
                     <div className="flex items-center gap-2 mb-6">
                         <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
                             <HiOutlineTrendingUp className="w-4 h-4 text-accent" />
                         </div>
-                        <h2 className="text-base font-semibold text-text">Daily Orders</h2>
+                        <h2 className="text-base font-semibold text-text">Search Trend & Signals</h2>
                     </div>
                     <div className="chart-container">
-                        <ResponsiveContainer width="100%" height={280}>
-                            <BarChart data={mockRevenueData}>
-                                <defs>
-                                    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.9} />
-                                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.4} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
-                                <Bar dataKey="orders" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {chartData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart data={chartData}>
+                                    <defs>
+                                        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.9} />
+                                            <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.4} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
+                                    <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                    <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
+                                    <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
+                                    <Bar dataKey="searchTrend" fill="url(#barGrad)" radius={[6, 6, 0, 0]} name="Search Trend Score" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-[280px] text-text-muted text-sm">
+                                No search trend data yet.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

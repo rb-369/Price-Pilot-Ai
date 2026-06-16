@@ -13,7 +13,7 @@ export default function DemandSignals() {
     useEffect(() => {
         Promise.all([
             getAllDemandSignals().then(r => setSignals(r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data)).catch(() => { }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
         ]).finally(() => setLoading(false));
     }, []);
 

@@ -40,6 +40,16 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// ── Root route (dev mode only) (Triggered restart) ──
+app.get('/', (req, res) => {
+    res.send('🚀 PricePilot Server is LIVE');
+});
+
+// ── 404 Handler for unknown API routes (must be before static file catch-all) ──
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
+});
+
 // ── Serve React Client in Production ──
 if (process.env.NODE_ENV === 'production') {
     const clientBuildPath = path.join(__dirname, '..', 'client', 'dist');
@@ -61,24 +71,6 @@ app.use((err, req, res, next) => {
             : err.message,
         ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     });
-});
-
-app.get('/', (req, res) => {
-    res.send('🚀 PricePilot Server is LIVE');
-});
-
-app.get("/health", (req, res) => {
-    res.json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        environment: process.env.NODE_ENV || "development",
-    });
-});
-
-// ── 404 Handler for unknown API routes ──
-app.use('/api/*', (req, res) => {
-    res.status(404).json({ message: `API route not found: ${req.originalUrl}` });
 });
 
 const PORT = process.env.PORT || 5000;

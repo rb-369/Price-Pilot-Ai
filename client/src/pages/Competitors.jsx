@@ -13,7 +13,7 @@ export default function Competitors() {
     useEffect(() => {
         Promise.all([
             getLatestCompetitorPrices().then(r => setPrices(r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data)).catch(() => { }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
         ]).finally(() => setLoading(false));
     }, []);
 

@@ -11,8 +11,8 @@ export default function Forecasts() {
 
     useEffect(() => {
         Promise.all([
-            getForecasts().then(r => setForecasts(r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data)).catch(() => { }),
+            getForecasts().then(r => setForecasts(r.data.data || r.data)).catch(() => { }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
         ]).finally(() => setLoading(false));
     }, []);
 

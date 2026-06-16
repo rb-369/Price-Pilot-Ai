@@ -1,20 +1,54 @@
 /**
- * Demand Signal Simulator
- * Simulates: Google Trends, Weather, Events, Social Sentiment
+ * Demand Signal Service
+ * 
+ * Generates demand signals with deterministic seeding per product per day,
+ * so signals are consistent across runs (not randomly regenerated each time).
+ * 
+ * PRODUCTION NOTE: To integrate real signals, replace the simulated scores below with:
+ *   - Google Trends API (via SerpAPI or official API) → searchTrendScore
+ *   - OpenWeatherMap API → weatherFactor
+ *   - Twitter/Reddit sentiment API or Gemini sentiment analysis → socialSentimentScore
+ *   - Event calendars (Diwali, sales events, etc.) → eventFactor
  */
 const DemandSignal = require('../models/DemandSignal');
 const Product = require('../models/Product');
 const Alert = require('../models/Alert');
 
-function generateDemandSignals() {
+/**
+ * Simple seeded pseudo-random number generator (Mulberry32).
+ * Produces deterministic values for the same seed, so demand signals
+ * are consistent per product per day.
+ */
+function seededRandom(seed) {
+    let t = seed + 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+function generateDemandSignals(productSeed) {
     const day = new Date().getDay();
     const month = new Date().getMonth();
+    const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+
+    // Combine product seed with day-of-year for per-product-per-day determinism
+    const seed = productSeed + dayOfYear * 997;
+
+    const r1 = seededRandom(seed);
+    const r2 = seededRandom(seed + 1);
+    const r3 = seededRandom(seed + 2);
+    const r4 = seededRandom(seed + 3);
+
+    // Weekend boost for search trends
+    const weekendBoost = (day === 0 || day === 6) ? 10 : 0;
+    // Festive season boost (Oct-Dec in India)
+    const festiveBoost = (month >= 9 && month <= 11) ? 0.3 + r3 * 0.5 : 0;
 
     return {
-        searchTrendScore: Math.round(30 + Math.random() * 60 + (day === 0 || day === 6 ? 10 : 0)),
-        weatherFactor: parseFloat(((Math.random() - 0.5) * 1.5).toFixed(2)),
-        eventFactor: parseFloat(((month === 10 || month === 11) ? 0.3 + Math.random() * 0.5 : (Math.random() - 0.3) * 0.6).toFixed(2)),
-        socialSentimentScore: parseFloat(((Math.random() - 0.3) * 1.2).toFixed(2)),
+        searchTrendScore: Math.round(30 + r1 * 60 + weekendBoost),
+        weatherFactor: parseFloat(((r2 - 0.5) * 1.5).toFixed(2)),
+        eventFactor: parseFloat((festiveBoost || ((r3 - 0.3) * 0.6)).toFixed(2)),
+        socialSentimentScore: parseFloat(((r4 - 0.3) * 1.2).toFixed(2)),
     };
 }
 
@@ -25,7 +59,10 @@ async function collectDemandSignals() {
         let signals = 0;
 
         for (const product of products) {
-            const signalData = generateDemandSignals();
+            // Generate a numeric seed from the product's ObjectId
+            const productSeed = parseInt(product._id.toString().substring(0, 8), 16);
+
+            const signalData = generateDemandSignals(productSeed);
             await DemandSignal.create({
                 productId: product._id,
                 ...signalData,

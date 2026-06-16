@@ -3,6 +3,7 @@ uvicorn
 pydantic
 numpy
 pandas
+scipy
 statsmodels
 httpx
 python-dotenv

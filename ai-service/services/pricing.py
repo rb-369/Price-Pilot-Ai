@@ -235,12 +235,14 @@ def _optimize_for_margin(
     elasticity: float,
 ) -> float:
     """
-    Binary search to find the price that maximizes expected gross profit,
-    starting from the heuristically-adjusted price.
+    Find the price that maximizes expected gross profit using scipy optimization.
 
     Revenue = price × volume
     Volume relative to current = (new_price / current_price) ^ elasticity
     Gross profit = (price - base_cost) × volume_index
+
+    Uses scipy's bounded minimization (negated for maximization) on the
+    unimodal profit function. Falls back to heuristic if scipy is unavailable.
     """
     min_price = base_cost * (1 + min_margin)
     max_allowed = current_price * 1.20  # Never raise more than 20% at once
@@ -255,27 +257,26 @@ def _optimize_for_margin(
         gross = (p - base_cost) * volume_ratio
         return gross
 
-    # Binary search between min_price and max_allowed
-    lo, hi = min_price, max_allowed
-    best_price = candidate
-    best_profit = profit_index(candidate)
+    try:
+        from scipy.optimize import minimize_scalar
 
-    for _ in range(20):  # 20 iterations → precision < 0.01%
-        mid = (lo + hi) / 2
-        p_mid = profit_index(mid)
-        p_hi = profit_index(hi)
+        # Minimize the negative profit (= maximize profit) over the bounded interval
+        result = minimize_scalar(
+            lambda p: -profit_index(p),
+            bounds=(min_price, max_allowed),
+            method='bounded',
+            options={'xatol': 0.01},
+        )
 
-        if p_mid > best_profit:
-            best_profit = p_mid
-            best_price = mid
-
-        # Move toward higher profit region
-        if p_hi > p_mid:
-            lo = mid
+        if result.success:
+            return round(result.x)
         else:
-            hi = mid
+            # Optimization didn't converge — use heuristic candidate
+            return round(candidate)
 
-    return round(best_price)
+    except ImportError:
+        # scipy not installed — fall back to candidate from heuristic adjustment
+        return round(candidate)
 
 
 # ── Main optimize function ────────────────────────────────────────────────────

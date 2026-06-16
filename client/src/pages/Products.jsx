@@ -25,7 +25,7 @@ export default function Products() {
     const [loading, setLoading] = useState(true);
 
     const fetchProducts = () => {
-        getProducts().then(r => setProducts(r.data)).catch(() => { }).finally(() => setLoading(false));
+        getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }).finally(() => setLoading(false));
     };
 
     useEffect(() => { fetchProducts(); }, []);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation } from '../api';
+import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation, rejectRecommendation } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlineLightBulb, HiOutlineCheck, HiOutlineRefresh, HiOutlineArrowUp, HiOutlineArrowDown } from 'react-icons/hi';
 import jsPDF from 'jspdf';
@@ -12,8 +12,8 @@ export default function Recommendations() {
 
     const fetchData = () => {
         Promise.all([
-            getRecommendations().then(r => setRecommendations(r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data)).catch(() => { }),
+            getRecommendations().then(r => setRecommendations(r.data.data || r.data)).catch(() => { }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
         ]).finally(() => setLoading(false));
     };
 
@@ -186,6 +186,15 @@ export default function Recommendations() {
                                 <div className="flex gap-3">
                                     <button onClick={() => handleAccept(rec._id)} className="btn-primary flex items-center gap-2">
                                         <HiOutlineCheck className="w-4 h-4" /> Accept & Apply Price
+                                    </button>
+                                    <button onClick={async () => {
+                                        try {
+                                            await rejectRecommendation(rec._id);
+                                            toast.success('Recommendation rejected');
+                                            fetchData();
+                                        } catch { toast.error('Failed to reject'); }
+                                    }} className="btn-secondary flex items-center gap-2 text-danger hover:bg-danger/10 hover:border-danger/30">
+                                        ✕ Reject
                                     </button>
                                 </div>
                             )}

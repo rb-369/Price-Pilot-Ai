@@ -23,6 +23,10 @@ client/build_log.txt
 .idea/
 *.swp
 *.swo
+.antigravity/
+.antigravity-ide/
+
+
 
 # OS
 .DS_Store
@@ -37,3 +41,6 @@ coverage/
 .nyc_output/
 
 client/build_log.txt
+
+PricePilot AI — PSP 2025-2026.pptx
+analysis_results.md

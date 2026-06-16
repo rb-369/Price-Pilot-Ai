@@ -19,8 +19,8 @@ export const login = (data) => api.post('/auth/login', data);
 export const register = (data) => api.post('/auth/register', data);
 export const getProfile = () => api.get('/auth/profile');
 
-// Products
-export const getProducts = () => api.get('/products');
+// Products (paginated)
+export const getProducts = (page = 1, limit = 20) => api.get(`/products?page=${page}&limit=${limit}`);
 export const getProduct = (id) => api.get(`/products/${id}`);
 export const createProduct = (data) => api.post('/products', data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
@@ -36,10 +36,12 @@ export const getAllDemandSignals = () => api.get('/demand-signals');
 
 // AI
 export const getDashboardStats = () => api.get('/ai/dashboard-stats');
-export const getRecommendations = () => api.get('/ai/recommendations');
+export const getChartData = (days = 30) => api.get(`/ai/chart-data?days=${days}`);
+export const getRecommendations = (page = 1, limit = 20) => api.get(`/ai/recommendations?page=${page}&limit=${limit}`);
 export const generateRecommendation = (productId) => api.post(`/ai/recommendations/${productId}`);
 export const acceptRecommendation = (id) => api.put(`/ai/recommendations/${id}/accept`);
-export const getForecasts = () => api.get('/ai/forecasts');
+export const rejectRecommendation = (id, reason = '') => api.put(`/ai/recommendations/${id}/reject`, { reason });
+export const getForecasts = (page = 1, limit = 20) => api.get(`/ai/forecasts?page=${page}&limit=${limit}`);
 export const generateForecast = (productId, days) => api.post(`/ai/forecasts/${productId}`, { forecastDays: days });
 
 // Alerts
