@@ -18,6 +18,7 @@ import ChatWidget from './components/ChatWidget';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
 import About from './pages/About';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -43,6 +44,7 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/docs" element={<Docs />} />
       <Route path="/about" element={<About />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
       
