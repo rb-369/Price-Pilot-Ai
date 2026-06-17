@@ -1,24 +1,26 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
-    HiOutlineLogout,
+    HiOutlineLogout, HiOutlineMoon, HiOutlineSun
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 
 const links = [
-    { to: '/', icon: HiOutlineChartBar, label: 'Dashboard' },
-    { to: '/products', icon: HiOutlineCube, label: 'Products' },
-    { to: '/competitors', icon: HiOutlineScale, label: 'Competitors' },
-    { to: '/demand', icon: HiOutlineTrendingUp, label: 'Demand Signals' },
-    { to: '/forecasts', icon: HiOutlineTrendingUp, label: 'Forecasts' },
-    { to: '/recommendations', icon: HiOutlineLightBulb, label: 'AI Recommendations' },
-    { to: '/alerts', icon: HiOutlineBell, label: 'Alerts' },
+    { to: '/dashboard', icon: HiOutlineChartBar, label: 'Dashboard' },
+    { to: '/dashboard/products', icon: HiOutlineCube, label: 'Products' },
+    { to: '/dashboard/competitors', icon: HiOutlineScale, label: 'Competitors' },
+    { to: '/dashboard/demand', icon: HiOutlineTrendingUp, label: 'Demand Signals' },
+    { to: '/dashboard/forecasts', icon: HiOutlineTrendingUp, label: 'Forecasts' },
+    { to: '/dashboard/recommendations', icon: HiOutlineLightBulb, label: 'AI Recommendations' },
+    { to: '/dashboard/alerts', icon: HiOutlineBell, label: 'Alerts' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -34,7 +36,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <aside style={{
                 width: '260px',
                 height: '100vh',
-                background: 'linear-gradient(to bottom, #0d1326, #0a0f1e)',
+                background: theme === 'light' ? 'linear-gradient(to bottom, #f1f5f9, #f8fafc)' : 'linear-gradient(to bottom, #0d1326, #0a0f1e)',
                 borderRight: '1px solid rgba(99,102,241,0.08)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -45,7 +47,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(99,102,241,0.08)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/20 bg-surface">
                                 <img src="/FINAL.svg" alt="PricePilot" className="w-full h-full object-contain" />
                             </div>
                             <div>
@@ -111,6 +113,9 @@ export default function Sidebar({ isOpen, onClose }) {
                             <p className="text-sm text-text truncate font-medium">{user?.name || 'User'}</p>
                             <p className="text-[10px] text-text-muted truncate uppercase tracking-wider">{user?.role || 'user'}</p>
                         </div>
+                        <button onClick={toggleTheme} className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(99,102,241,0.1)] transition-colors" title="Toggle Theme">
+                            {theme === 'dark' ? <HiOutlineSun className="w-4 h-4" /> : <HiOutlineMoon className="w-4 h-4" />}
+                        </button>
                     </div>
                     <button onClick={handleLogout}
                         className="sidebar-link w-full text-danger/70 hover:bg-danger/8 hover:text-danger group">

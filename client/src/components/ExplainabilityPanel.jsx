@@ -52,7 +52,7 @@ const ExplainabilityPanel = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Feature Importance Chart */}
-                <div className="bg-[rgba(10,15,30,0.5)] border border-[rgba(99,102,241,0.06)] rounded-2xl p-4">
+                <div className="bg-surface/50 border border-primary/10 rounded-2xl p-4">
                     <h3 className="text-sm font-semibold text-slate-300 mb-4 text-center uppercase tracking-widest">Global Feature Impact</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
@@ -71,7 +71,7 @@ const ExplainabilityPanel = () => {
                 </div>
 
                 {/* What-If Simulator */}
-                <div className="bg-[rgba(10,15,30,0.5)] border border-[rgba(99,102,241,0.06)] rounded-2xl p-4 flex flex-col justify-between">
+                <div className="bg-surface/50 border border-primary/10 rounded-2xl p-4 flex flex-col justify-between">
                     <div>
                         <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2 uppercase tracking-widest">
                             <HiOutlineAdjustments className="w-5 h-5 text-indigo-400" /> What-If Simulator

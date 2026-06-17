@@ -3,6 +3,8 @@ import { getDashboardStats, getRecommendations, getAlerts, getChartData } from '
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { HiOutlineCube, HiOutlineCurrencyRupee, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
 import ExplainabilityPanel from '../components/ExplainabilityPanel';
+import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -10,27 +12,50 @@ export default function Dashboard() {
     const [alerts, setAlerts] = useState([]);
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
-    useEffect(() => {
+    const fetchData = () => {
+        setLoading(true);
+        setError(false);
         Promise.all([
-            getDashboardStats().then(r => setStats(r.data)).catch(() => setStats({
-                totalProducts: 0, lowStockProducts: 0, pendingRecommendations: 0,
-                inventoryValue: 0, totalRevenue: 0, avgMargin: '0', acceptedRecommendations: 0,
-            })),
+            getDashboardStats().then(r => setStats(r.data)).catch(() => { throw new Error('Stats failed') }),
             getRecommendations().then(r => {
                 const data = r.data.data || r.data;
                 setRecommendations(Array.isArray(data) ? data.slice(0, 5) : []);
             }).catch(() => { }),
             getAlerts().then(r => setAlerts(r.data.slice(0, 5))).catch(() => { }),
             getChartData(30).then(r => setChartData(r.data)).catch(() => setChartData([])),
-        ]).finally(() => setLoading(false));
+        ]).catch(() => {
+            setError(true);
+        }).finally(() => {
+            setLoading(false);
+        });
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
-        </div>
-    );
+    if (error) {
+        return <ErrorState title="Failed to load Dashboard" onRetry={fetchData} />;
+    }
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-end mb-8">
+                    <div><div className="skeleton h-8 w-48 mb-2 rounded"></div><div className="skeleton h-4 w-64 rounded"></div></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <SkeletonTable rows={5} columns={3} />
+                    <SkeletonTable rows={5} columns={3} />
+                </div>
+            </div>
+        );
+    }
 
     const statCards = [
         { label: 'Inventory Value', value: `₹${(stats?.inventoryValue || stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: null },
@@ -153,7 +178,7 @@ export default function Dashboard() {
                     </div>
                     <div className="space-y-3">
                         {recommendations.length ? recommendations.map((rec, i) => (
-                            <div key={i} className="p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.06)] hover:border-[rgba(99,102,241,0.15)] transition-all">
+                            <div key={i} className="p-3.5 bg-surface/50 rounded-xl border border-primary/10 hover:border-primary/20 transition-all">
                                 <div className="flex items-start justify-between mb-1">
                                     <p className="text-sm font-medium text-text">{rec.productId?.name || 'Product'}</p>
                                     <span className="badge-info text-[10px]">{(rec.confidenceScore * 100).toFixed(0)}%</span>
@@ -182,7 +207,7 @@ export default function Dashboard() {
                         {alerts.length ? alerts.map((alert, i) => (
                             <div key={i} className={`p-3.5 rounded-xl border transition-all ${alert.severity === 'critical' ? 'bg-danger/[0.03] border-danger/20' :
                                     alert.severity === 'high' ? 'bg-warning/[0.03] border-warning/20' :
-                                        'bg-[rgba(10,15,30,0.5)] border-[rgba(99,102,241,0.06)]'
+                                        'bg-surface/50 border-primary/10'
                                 }`}>
                                 <div className="flex items-start justify-between mb-1">
                                     <p className="text-sm font-medium text-text">{alert.title}</p>

@@ -34,7 +34,7 @@ class ErrorBoundary extends Component {
                             </p>
                         </div>
                         {process.env.NODE_ENV !== 'production' && this.state.error && (
-                            <div className="p-3 rounded-xl bg-[rgba(10,15,30,0.6)] border border-danger/10 text-left">
+                            <div className="p-3 rounded-xl bg-surface/60 border border-danger/10 text-left">
                                 <p className="text-xs text-danger/80 font-mono break-all">
                                     {this.state.error.toString()}
                                 </p>

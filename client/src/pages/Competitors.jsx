@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getLatestCompetitorPrices, getProducts, getCompetitorPrices } from '../api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { HiOutlineScale, HiOutlineTrendingDown, HiOutlineTrendingUp } from 'react-icons/hi';
+import { HiOutlineScale, HiOutlineTrendingDown, HiOutlineTrendingUp, HiDownload } from 'react-icons/hi';
+import { SkeletonTable, SkeletonCard } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
+import { exportToCSV } from '../utils/export';
 
 export default function Competitors() {
     const [prices, setPrices] = useState([]);
@@ -9,12 +12,23 @@ export default function Competitors() {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    const fetchData = () => {
+        setLoading(true);
+        setError(false);
+        Promise.all([
+            getLatestCompetitorPrices().then(r => setPrices(r.data)).catch(() => { throw new Error('Failed to fetch prices') }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error('Failed to fetch products') }),
+        ]).catch(() => {
+            setError(true);
+        }).finally(() => {
+            setLoading(false);
+        });
+    };
 
     useEffect(() => {
-        Promise.all([
-            getLatestCompetitorPrices().then(r => setPrices(r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
-        ]).finally(() => setLoading(false));
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -31,13 +45,41 @@ export default function Competitors() {
         }
     }, [selectedProduct]);
 
+    const handleExport = () => {
+        const exportData = [];
+        Object.entries(productPrices).forEach(([pid, data]) => {
+            data.competitors.forEach(comp => {
+                exportData.push({
+                    Product: data.product.name,
+                    SKU: data.product.sku,
+                    Our_Price: data.product.currentPrice,
+                    Competitor_Name: comp.name,
+                    Competitor_Price: comp.price,
+                    In_Stock: comp.inStock ? 'Yes' : 'No',
+                    Difference_Pct: ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1)
+                });
+            });
+        });
+        exportToCSV(exportData, 'competitor-prices');
+    };
+
     const competitorColors = { Amazon: '#FF9900', Flipkart: '#2874F0', Myntra: '#FF3E6C', Snapdeal: '#E40046', Meesho: '#570A57' };
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
-        </div>
-    );
+    if (error) {
+        return <ErrorState title="Failed to load Competitor data" onRetry={fetchData} />;
+    }
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-end mb-8">
+                    <div><div className="skeleton h-8 w-64 mb-2 rounded"></div><div className="skeleton h-4 w-48 rounded"></div></div>
+                </div>
+                <SkeletonCard className="h-[400px]" />
+                <SkeletonTable rows={5} columns={6} />
+            </div>
+        );
+    }
 
     const productPrices = {};
     prices.forEach(p => {
@@ -51,21 +93,26 @@ export default function Competitors() {
 
     return (
         <div className="space-y-6">
-            <div className="animate-slide-up">
-                <h1 className="page-header text-3xl">Competitor Comparison</h1>
-                <p className="text-text-muted mt-1 text-sm">Real-time competitor price monitoring</p>
+            <div className="animate-slide-up flex justify-between items-end">
+                <div>
+                    <h1 className="page-header text-3xl">Competitor Comparison</h1>
+                    <p className="text-text-muted mt-1 text-sm">Real-time competitor price monitoring</p>
+                </div>
+                <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
+                    <HiDownload className="w-5 h-5" /> Export CSV
+                </button>
             </div>
 
             {/* Price History Chart */}
             <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
                     <h2 className="text-base font-semibold text-text flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <HiOutlineScale className="w-4 h-4 text-primary" />
                         </div>
                         Price History
                     </h2>
-                    <select className="input-field w-64" value={selectedProduct || ''}
+                    <select className="input-field w-full md:w-64" value={selectedProduct || ''}
                         onChange={e => setSelectedProduct(e.target.value)}>
                         <option value="">Select a product</option>
                         {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
@@ -99,16 +146,55 @@ export default function Competitors() {
                 <div className="px-6 py-4 border-b border-[rgba(99,102,241,0.08)]">
                     <h2 className="text-base font-semibold text-text">Latest Competitor Prices</h2>
                 </div>
-                <div className="overflow-x-auto">
+                
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-[rgba(99,102,241,0.04)]">
+                    {Object.entries(productPrices).map(([pid, data]) =>
+                        data.competitors.map((comp, i) => {
+                            const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
+                            return (
+                                <div key={`${pid}-${i}`} className="p-4 flex flex-col gap-3">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p className="font-semibold text-text text-sm">{data.product.name}</p>
+                                            <p className="text-xs text-text-muted">Our Price: ₹{data.product.currentPrice}</p>
+                                        </div>
+                                        <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm bg-surface-lighter/30 p-3 rounded-lg">
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Competitor</span>
+                                            <span className="font-medium text-text">{comp.name}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Their Price</span>
+                                            <span className="font-medium text-text">₹{comp.price}</span>
+                                        </div>
+                                        <div className="col-span-2 flex justify-between items-center pt-2 border-t border-[rgba(99,102,241,0.08)]">
+                                            <span className="text-text-muted text-xs">Difference</span>
+                                            <span className={`text-sm font-semibold flex items-center gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
+                                                {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
+                                                {diff > 0 ? '+' : ''}{diff}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-[rgba(99,102,241,0.08)]">
-                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted">Product</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted">Our Price</th>
-                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted">Competitor</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted">Their Price</th>
-                                <th className="text-center px-6 py-3 text-[11px] font-semibold text-text-muted">Stock</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted">Diff</th>
+                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Product</th>
+                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Our Price</th>
+                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Competitor</th>
+                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Their Price</th>
+                                <th className="text-center px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Stock</th>
+                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Diff</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[rgba(99,102,241,0.04)]">

@@ -1,19 +1,29 @@
 import { useState, useEffect } from 'react';
 import { getForecasts, getProducts, generateForecast } from '../api';
 import toast from 'react-hot-toast';
-import { HiOutlineTrendingUp, HiOutlineRefresh, HiOutlineExclamation } from 'react-icons/hi';
+import { HiOutlineTrendingUp, HiOutlineRefresh, HiOutlineExclamation, HiDownload } from 'react-icons/hi';
+import { SkeletonCard } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
+import { exportToCSV } from '../utils/export';
 
 export default function Forecasts() {
     const [forecasts, setForecasts] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [generating, setGenerating] = useState(null);
 
-    useEffect(() => {
+    const fetchData = () => {
+        setLoading(true);
+        setError(false);
         Promise.all([
-            getForecasts().then(r => setForecasts(r.data.data || r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
-        ]).finally(() => setLoading(false));
+            getForecasts().then(r => setForecasts(r.data.data || r.data)).catch(() => { throw new Error() }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error() }),
+        ]).catch(() => setError(true)).finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     const handleGenerate = async (productId) => {
@@ -29,17 +39,45 @@ export default function Forecasts() {
         }
     };
 
+    const handleExport = () => {
+        const exportData = forecasts.map(f => ({
+            Product: f.productId?.name || 'Unknown',
+            Forecast_Range_Days: f.forecastRange,
+            Predicted_Demand: f.predictedDemand,
+            Current_Stock: f.currentStock || f.productId?.stockLevel || 0,
+            Recommended_Increase: f.recommendedStockIncrease,
+            Confidence_Score: f.confidenceScore,
+            Reason: f.reason
+        }));
+        exportToCSV(exportData, 'inventory-forecasts');
+    };
+
+    if (error) return <ErrorState title="Failed to load Forecasts" onRetry={fetchData} />;
+
     if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="space-y-6">
+            <div className="flex justify-between items-end mb-8">
+                <div><div className="skeleton h-8 w-64 mb-2 rounded"></div><div className="skeleton h-4 w-48 rounded"></div></div>
+            </div>
+            <SkeletonCard className="h-32 mb-6" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} className="h-64" />)}
+            </div>
         </div>
     );
 
     return (
         <div className="space-y-6">
-            <div className="animate-slide-up">
-                <h1 className="page-header text-3xl">Inventory Forecasts</h1>
-                <p className="text-text-muted mt-1 text-sm">AI-powered 30–60 day demand prediction</p>
+            <div className="animate-slide-up flex justify-between items-end">
+                <div>
+                    <h1 className="page-header text-3xl">Inventory Forecasts</h1>
+                    <p className="text-text-muted mt-1 text-sm">AI-powered 30–60 day demand prediction</p>
+                </div>
+                {forecasts.length > 0 && (
+                    <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
+                        <HiDownload className="w-5 h-5" /> Export CSV
+                    </button>
+                )}
             </div>
 
             {/* Generate Section */}
@@ -54,7 +92,7 @@ export default function Forecasts() {
                     {products.slice(0, 10).map(p => (
                         <button key={p._id} onClick={() => handleGenerate(p._id)}
                             disabled={generating === p._id}
-                            className="p-3.5 bg-[rgba(10,15,30,0.5)] border border-[rgba(99,102,241,0.06)] rounded-xl text-left hover:border-primary/25 hover:bg-[rgba(99,102,241,0.03)] transition-all disabled:opacity-50 group">
+                            className="p-3.5 bg-surface/50 border border-primary/10 rounded-xl text-left hover:border-primary/25 hover:bg-primary/5 transition-all disabled:opacity-50 group">
                             <p className="text-sm font-medium text-text truncate group-hover:text-primary-light transition-colors">{p.name}</p>
                             <p className="text-[11px] text-text-muted">{p.stockLevel} in stock</p>
                             {generating === p._id && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mt-1.5" />}
@@ -90,15 +128,15 @@ export default function Forecasts() {
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 mb-4">
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-xl font-bold text-text">{f.predictedDemand}</p>
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider">Predicted</p>
                                 </div>
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-xl font-bold text-text">{f.currentStock || f.productId?.stockLevel || '—'}</p>
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider">Stock</p>
                                 </div>
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className={`text-xl font-bold ${f.recommendedStockIncrease > 0 ? 'text-warning' : 'text-success'}`}>
                                         +{f.recommendedStockIncrease}
                                     </p>

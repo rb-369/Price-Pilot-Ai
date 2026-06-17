@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil } from 'react-icons/hi';
+import { SkeletonTable } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -23,11 +25,16 @@ export default function Products() {
     const [customCategory, setCustomCategory] = useState('');
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    const [error, setError] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
     const fetchProducts = () => {
-        getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }).finally(() => setLoading(false));
+        setLoading(true);
+        setError(false);
+        getProducts()
+            .then(r => setProducts(r.data.data || r.data))
+            .catch(() => setError(true))
+            .finally(() => setLoading(false));
     };
 
     const handleGenerateAiCopy = async () => {
@@ -41,14 +48,10 @@ export default function Products() {
             const finalCategory = form.category === 'Other' ? customCategory : form.category;
             const res = await generateProductDescription({ productName: form.name, category: finalCategory });
             toast.success('AI description generated!', { id: toastId });
-            // Only update if we don't have existing data or user confirms, but here we just auto-fill
             setForm(prev => ({
                 ...prev,
                 name: res.data.title || prev.name,
-                // We'll just stick the description in a new field or reuse a field if we had one. 
-                // Wait, the Product model currently doesn't have a description field? Let's check!
             }));
-            // Just display it if the model doesn't support it yet
             if (res.data.description) {
                 toast(`Generated Description:\n${res.data.description}`, { duration: 8000 });
             }
@@ -141,11 +144,20 @@ export default function Products() {
         return { text: 'In Stock', cls: 'badge-success' };
     };
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
-        </div>
-    );
+    if (error) {
+        return <ErrorState title="Failed to load Products" onRetry={fetchProducts} />;
+    }
+
+    if (loading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-end mb-8">
+                    <div><div className="skeleton h-8 w-48 mb-2 rounded"></div><div className="skeleton h-4 w-64 rounded"></div></div>
+                </div>
+                <SkeletonTable rows={8} columns={5} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -222,18 +234,64 @@ export default function Products() {
                 </div>
             ) : (
                 <div className="glass-card overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    <div className="overflow-x-auto">
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y divide-[rgba(99,102,241,0.04)]">
+                        {products.map((p, i) => {
+                            const status = getStockStatus(p);
+                            const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
+                            return (
+                                <div key={p._id} className="p-4 flex flex-col gap-3">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/10 flex items-center justify-center">
+                                                <HiOutlineCube className="w-5 h-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-text">{p.name}</p>
+                                                <p className="text-xs text-text-muted">{p.sku} • {p.category}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`badge ${status.cls}`}>{status.text}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm bg-surface-lighter/30 p-3 rounded-lg">
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Base Cost</span>
+                                            <span className="font-medium text-text">₹{p.baseCost}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Current Price</span>
+                                            <span className="font-medium text-text">₹{p.currentPrice}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Margin</span>
+                                            <span className={`font-semibold ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-text-muted text-xs block">Stock</span>
+                                            <span className="font-medium text-text">{p.stockLevel}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-lg bg-[rgba(99,102,241,0.1)] text-primary hover:bg-primary hover:text-white transition-all text-sm font-medium">Edit</button>
+                                        <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-lg bg-[rgba(239,68,68,0.1)] text-danger hover:bg-danger hover:text-white transition-all text-sm font-medium">Delete</button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-[rgba(99,102,241,0.08)]">
-                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted">Product</th>
-                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted">SKU</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted">Base Cost</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted">Price</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted">Margin</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted">Stock</th>
-                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted">Status</th>
-                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted">Actions</th>
+                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Product</th>
+                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">SKU</th>
+                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Base Cost</th>
+                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Price</th>
+                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Margin</th>
+                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Stock</th>
+                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Status</th>
+                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[rgba(99,102,241,0.04)]">

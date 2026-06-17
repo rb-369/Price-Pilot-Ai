@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
@@ -13,6 +14,10 @@ import Forecasts from './pages/Forecasts';
 import Recommendations from './pages/Recommendations';
 import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
+
+import Landing from './pages/Landing';
+import Docs from './pages/Docs';
+import About from './pages/About';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -35,9 +40,13 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-      <Route path="/" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
+      <Route path="/" element={<Landing />} />
+      <Route path="/docs" element={<Docs />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+      
+      <Route path="/dashboard" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="competitors" element={<Competitors />} />
@@ -46,21 +55,24 @@ function AppRoutes() {
         <Route path="recommendations" element={<Recommendations />} />
         <Route path="alerts" element={<Alerts />} />
       </Route>
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Toaster position="top-right" toastOptions={{
-          style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
-        }} />
-        <ErrorBoundary>
-          <AppRoutes />
-        </ErrorBoundary>
-      </AuthProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster position="top-right" toastOptions={{
+            style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
+          }} />
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

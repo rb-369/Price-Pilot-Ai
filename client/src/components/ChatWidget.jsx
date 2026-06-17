@@ -161,7 +161,7 @@ const ChatWidget = () => {
     }
 
     return (
-        <div className={`fixed bottom-0 right-0 md:bottom-6 md:right-6 bg-[rgba(15,23,42,0.95)] backdrop-blur-xl border border-slate-700 shadow-2xl rounded-t-2xl md:rounded-2xl flex transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] z-50 overflow-hidden
+        <div className={`fixed bottom-0 right-0 md:bottom-6 md:right-6 bg-surface/95 backdrop-blur-xl border border-primary/20 shadow-2xl rounded-t-2xl md:rounded-2xl flex transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] z-50 overflow-hidden
             ${isExpanded ? 'w-full h-full md:w-[90vw] md:h-[90vh] md:max-w-[1200px]' : 'w-full h-[600px] md:w-[380px] md:h-[600px]'}`}>
             
             {/* Sidebar (Only visible when expanded) */}

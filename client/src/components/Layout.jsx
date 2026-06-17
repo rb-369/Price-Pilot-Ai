@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { HiOutlineMenu, HiOutlineSparkles } from 'react-icons/hi';
+import useRealTimeUpdates from '../hooks/useRealTimeUpdates';
 
 export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    useRealTimeUpdates();
 
     return (
         <div className="min-h-screen bg-surface">

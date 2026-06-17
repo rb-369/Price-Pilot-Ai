@@ -469,3 +469,92 @@ tbody tr:hover {
   animation: shimmer 2s infinite;
   background-size: 200% 100%;
 }
+
+/* ─── Light Mode Overrides ─── */
+:root.light {
+  --color-surface: #f8fafc;
+  --color-surface-light: #ffffff;
+  --color-surface-lighter: #f1f5f9;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-border: #e2e8f0;
+}
+
+:root.light body {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+:root.light .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.7));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+:root.light .glass-card-hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.7));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+:root.light .input-field {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #0f172a;
+}
+
+:root.light .input-field:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+:root.light .input-field option,
+:root.light select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+:root.light .sidebar-link:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: #0f172a;
+}
+
+:root.light .sidebar-link-active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.1));
+  color: #4f46e5;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+}
+
+:root.light .stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.7));
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+:root.light thead th {
+  background: rgba(241, 245, 249, 0.8);
+  color: #475569;
+}
+
+:root.light .skeleton {
+  background: linear-gradient(90deg,
+    rgba(226, 232, 240, 0.6) 25%,
+    rgba(241, 245, 249, 0.6) 50%,
+    rgba(226, 232, 240, 0.6) 75%
+  );
+}
+
+:root.light .auth-bg {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    #f8fafc;
+}
+
+:root.light .page-header {
+  background: linear-gradient(135deg, #0f172a 0%, #4f46e5 50%, #0891b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

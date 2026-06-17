@@ -3,18 +3,23 @@ import { getRecommendations, getProducts, generateRecommendation, acceptRecommen
 import toast from 'react-hot-toast';
 import { HiOutlineLightBulb, HiOutlineCheck, HiOutlineRefresh, HiOutlineArrowUp, HiOutlineArrowDown } from 'react-icons/hi';
 import jsPDF from 'jspdf';
+import { SkeletonCard, SkeletonText } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
 
 export default function Recommendations() {
     const [recommendations, setRecommendations] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [generating, setGenerating] = useState(null);
 
     const fetchData = () => {
+        setLoading(true);
+        setError(false);
         Promise.all([
-            getRecommendations().then(r => setRecommendations(r.data.data || r.data)).catch(() => { }),
-            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { }),
-        ]).finally(() => setLoading(false));
+            getRecommendations().then(r => setRecommendations(r.data.data || r.data)).catch(() => { throw new Error('Failed recs') }),
+            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error('Failed prods') }),
+        ]).catch(() => setError(true)).finally(() => setLoading(false));
     };
 
     useEffect(() => { fetchData(); }, []);
@@ -66,9 +71,17 @@ export default function Recommendations() {
         toast.success('PDF exported');
     };
 
+    if (error) return <ErrorState title="Failed to load Recommendations" onRetry={fetchData} />;
+
     if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
+        <div className="space-y-6">
+            <div className="flex justify-between items-end mb-8">
+                <div><div className="skeleton h-8 w-64 mb-2 rounded"></div><div className="skeleton h-4 w-48 rounded"></div></div>
+            </div>
+            <SkeletonCard className="h-32 mb-6" />
+            <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} className="h-48" />)}
+            </div>
         </div>
     );
 
@@ -96,7 +109,7 @@ export default function Recommendations() {
                     {products.slice(0, 10).map(p => (
                         <button key={p._id} onClick={() => handleGenerate(p._id)}
                             disabled={generating === p._id}
-                            className="p-3.5 bg-[rgba(10,15,30,0.5)] border border-[rgba(99,102,241,0.06)] rounded-xl text-left hover:border-primary/25 hover:bg-[rgba(99,102,241,0.03)] transition-all disabled:opacity-50 group">
+                            className="p-3.5 bg-surface/50 border border-primary/10 rounded-xl text-left hover:border-primary/25 hover:bg-primary/5 transition-all disabled:opacity-50 group">
                             <p className="text-sm font-medium text-text truncate group-hover:text-primary-light transition-colors">{p.name}</p>
                             <p className="text-[11px] text-text-muted">₹{p.currentPrice}</p>
                             {generating === p._id && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mt-1.5" />}
@@ -134,21 +147,21 @@ export default function Recommendations() {
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Current</p>
                                     <p className="text-lg font-bold text-text">₹{rec.currentPrice}</p>
                                 </div>
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Recommended</p>
                                     <p className={`text-lg font-bold ${isIncrease ? 'text-primary-light' : 'text-accent'}`}>₹{rec.recommendedPrice}</p>
                                 </div>
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Revenue</p>
                                     <p className={`text-lg font-bold ${rec.expectedRevenueImpact > 0 ? 'text-success' : 'text-danger'}`}>
                                         {rec.expectedRevenueImpact > 0 ? '+' : ''}{rec.expectedRevenueImpact}%
                                     </p>
                                 </div>
-                                <div className="text-center p-3.5 bg-[rgba(10,15,30,0.5)] rounded-xl border border-[rgba(99,102,241,0.04)]">
+                                <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-primary/5">
                                     <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Confidence</p>
                                     <p className="text-lg font-bold text-text">{(rec.confidenceScore * 100).toFixed(0)}%</p>
                                 </div>
@@ -197,7 +210,7 @@ export default function Recommendations() {
                                     <p className="text-[10px] text-text-muted mb-2 font-semibold uppercase tracking-wider">Live Competitor Pricing Data</p>
                                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                         {rec.competitorsUsed.map((comp, idx) => (
-                                            <div key={idx} className="shrink-0 bg-[rgba(10,15,30,0.5)] p-2.5 rounded-lg border border-[rgba(99,102,241,0.06)] min-w-[140px] max-w-[160px]">
+                                            <div key={idx} className="shrink-0 bg-surface/50 p-2.5 rounded-lg border border-primary/10 min-w-[140px] max-w-[160px]">
                                                 <p className="text-[11px] text-text font-medium truncate" title={comp.name}>{comp.name}</p>
                                                 <div className="flex justify-between items-end mt-1.5">
                                                     <p className="text-sm text-primary-light font-bold">₹{comp.price}</p>

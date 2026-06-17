@@ -79,7 +79,7 @@ export default function Alerts() {
                     <button key={f} onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all uppercase tracking-wider ${filter === f
                             ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-[rgba(30,41,59,0.4)] text-text-muted hover:text-text hover:bg-[rgba(99,102,241,0.06)] border border-[rgba(99,102,241,0.06)]'
+                            : 'bg-surface-lighter/40 text-text-muted hover:text-text hover:bg-primary/10 border border-primary/5'
                         }`}>
                         {f === 'all' ? 'All' : f === 'unread' ? 'Unread' : f.replace(/_/g, ' ')}
                     </button>
