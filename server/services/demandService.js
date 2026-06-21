@@ -60,26 +60,32 @@ async function collectDemandSignals() {
         let signals = 0;
 
         for (const product of products) {
-            // Generate a numeric seed from the product's ObjectId
-            const productSeed = parseInt(product._id.toString().substring(0, 8), 16);
-
-            const signalData = generateDemandSignals(productSeed);
-
-            // Fetch actual AI Sentiment Score
-            let sentimentResult = 50;
+            // Call real data pipeline in Python AI service
+            let signalData = null;
             try {
-                const aiRes = await axios.post(`${AI_URL}/api/analyze-sentiment`, {
+                const aiRes = await axios.post(`${AI_URL}/api/collect-signals`, {
                     product_name: product.name,
-                    category: product.category || 'General',
-                    feedback: 'Recent social media chatter, product reviews, and unboxing videos.'
-                });
-                sentimentResult = aiRes.data.sentiment_score || 50;
+                    category: product.category || 'general',
+                    city: 'Mumbai' // Default or could come from user settings
+                }, { timeout: 30000 }); // Longer timeout as it makes external API calls
+                signalData = aiRes.data;
             } catch (err) {
-                console.warn(`[Demand] Sentiment AI failed for ${product.name}, using fallback.`);
+                console.warn(`[Demand] Real pipeline failed for ${product.name}, using simulated fallback. Error: ${err.message}`);
+                // Fallback to simulated data locally if python service fails completely
+                const productSeed = parseInt(product._id.toString().substring(0, 8), 16);
+                signalData = generateDemandSignals(productSeed);
+                signalData.socialSentimentScore = 0; // default
+                signalData.metadata = { dataQuality: 'simulated_fallback' };
             }
 
-            // Map 0-100 score to -0.5 to 1.5 range to match existing logic
-            signalData.socialSentimentScore = parseFloat(((sentimentResult / 100) * 2 - 0.5).toFixed(2));
+            // Calculate composite demand score
+            const composite =
+                (signalData.searchTrendScore / 100) * 0.4 +
+                ((signalData.weatherFactor + 1) / 2) * 0.2 +
+                ((signalData.eventFactor + 1) / 2) * 0.2 +
+                ((signalData.socialSentimentScore + 1) / 2) * 0.2;
+                
+            signalData.compositeDemandScore = composite;
 
             await DemandSignal.create({
                 productId: product._id,
@@ -88,11 +94,6 @@ async function collectDemandSignals() {
             signals++;
 
             // Alert if demand is surging
-            const composite =
-                (signalData.searchTrendScore / 100) * 0.4 +
-                ((signalData.weatherFactor + 1) / 2) * 0.2 +
-                ((signalData.eventFactor + 1) / 2) * 0.2 +
-                ((signalData.socialSentimentScore + 1) / 2) * 0.2;
 
             if (composite > 0.75 && product.stockLevel < product.reorderThreshold * 2) {
                 await Alert.create({

@@ -125,6 +125,35 @@ async def search_competitors_by_keyword(
     if not RAINFOREST_API_KEY:
         raise ValueError("RAINFOREST_API_KEY is not set in environment variables.")
 
+    try:
+        from services.flipkart_scraper import scrape_flipkart_prices
+        
+        # Try to get both Amazon and Flipkart results concurrently if possible
+        import asyncio
+        amazon_task = asyncio.create_task(_fetch_amazon_search(keyword, amazon_domain, max_results))
+        flipkart_task = asyncio.create_task(scrape_flipkart_prices(keyword, max_results=2))
+        
+        amazon_results, flipkart_results = await asyncio.gather(amazon_task, flipkart_task, return_exceptions=True)
+        
+        competitors = []
+        if not isinstance(amazon_results, Exception):
+            competitors.extend(amazon_results)
+        else:
+            print(f"[Rainforest] Amazon fetch failed: {amazon_results}")
+            
+        if not isinstance(flipkart_results, Exception):
+            competitors.extend(flipkart_results)
+        else:
+            print(f"[Rainforest] Flipkart fetch failed: {flipkart_results}")
+
+        return competitors
+
+    except Exception as e:
+        print(f"[Rainforest] Search error for '{keyword}': {e}")
+        return []
+
+async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: int) -> List[Dict]:
+    """Helper to fetch from Rainforest API"""
     params = {
         "api_key": RAINFOREST_API_KEY,
         "type": "search",
@@ -133,7 +162,7 @@ async def search_competitors_by_keyword(
         "sort_by": "featured",
         "exclude_sponsored": "true",
     }
-
+    
     try:
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
             response = await client.get(RAINFOREST_BASE_URL, params=params)
@@ -154,7 +183,7 @@ async def search_competitors_by_keyword(
                 "name": item.get("title", "Unknown")[:80],
                 "asin": item.get("asin", ""),
                 "price": float(price_value),
-                "inStock": True,  # Search results are generally in-stock
+                "inStock": True,
                 "rating": item.get("rating"),
                 "ratingsTotal": item.get("ratings_total"),
                 "timestamp": datetime.utcnow().isoformat(),
@@ -177,6 +206,7 @@ def get_mock_competitor_prices(product_name: str, base_price: float) -> List[Dic
     Simulates realistic price variation around the base price.
     """
     import random
+    from services.flipkart_scraper import get_mock_flipkart_prices
     random.seed(hash(product_name) % 1000)
 
     mock_competitors = [
@@ -187,7 +217,7 @@ def get_mock_competitor_prices(product_name: str, base_price: float) -> List[Dic
         {"name": "Competitor E (Amazon)", "multiplier": 0.87},
     ]
 
-    return [
+    amazon_mocks = [
         {
             "name": c["name"],
             "asin": f"MOCK{i:04d}",
@@ -200,3 +230,7 @@ def get_mock_competitor_prices(product_name: str, base_price: float) -> List[Dic
         }
         for i, c in enumerate(mock_competitors)
     ]
+    
+    flipkart_mocks = get_mock_flipkart_prices(product_name, base_price)
+    
+    return amazon_mocks + flipkart_mocks

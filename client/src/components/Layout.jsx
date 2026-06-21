@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { HiOutlineMenu, HiOutlineSparkles } from 'react-icons/hi';
 import useRealTimeUpdates from '../hooks/useRealTimeUpdates';
 
 export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const location = useLocation();
+    const isChatPage = location.pathname === '/dashboard/chat';
     useRealTimeUpdates();
 
     return (
@@ -27,10 +29,11 @@ export default function Layout() {
                 {/* Hamburger button when sidebar is closed */}
                 {!sidebarOpen && (
                     <div style={{
-                        position: 'sticky',
-                        top: '4px',
-                        zIndex: 30,
-                        padding: '12px 16px 8px',
+                        position: isChatPage ? 'absolute' : 'sticky',
+                        top: isChatPage ? '16px' : '4px',
+                        left: isChatPage ? '16px' : 'auto',
+                        zIndex: 50,
+                        padding: isChatPage ? '0' : '12px 16px 8px',
                     }}>
                         <button
                             type="button"
@@ -66,8 +69,8 @@ export default function Layout() {
                     </div>
                 )}
 
-                <div className="p-8 max-w-[1400px] mx-auto animate-fade-in">
-                    <Outlet />
+                <div className={isChatPage ? 'w-full h-screen overflow-hidden' : 'p-8 max-w-[1400px] mx-auto animate-fade-in'}>
+                    <Outlet context={{ sidebarOpen, setSidebarOpen }} />
                 </div>
             </div>
         </div>

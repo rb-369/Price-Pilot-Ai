@@ -14,6 +14,9 @@ import Forecasts from './pages/Forecasts';
 import Recommendations from './pages/Recommendations';
 import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
+import Chat from './pages/Chat';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -47,6 +50,8 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+      <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
+      <Route path="/reset-password/:token" element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} />
       
       <Route path="/dashboard" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
@@ -55,6 +60,7 @@ function AppRoutes() {
         <Route path="demand" element={<DemandSignals />} />
         <Route path="forecasts" element={<Forecasts />} />
         <Route path="recommendations" element={<Recommendations />} />
+        <Route path="chat" element={<Chat />} />
         <Route path="alerts" element={<Alerts />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />

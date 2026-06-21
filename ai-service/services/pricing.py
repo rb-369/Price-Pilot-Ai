@@ -10,46 +10,61 @@ import numpy as np
 from typing import List, Dict, Optional, Tuple
 
 
-# ── Elasticity estimation ─────────────────────────────────────────────────────
+# ── Elasticity estimation (ML-powered with heuristic fallback) ────────────────
 
-def _estimate_elasticity(demand_signals: List[Dict]) -> float:
+from services.elasticity_model import get_elasticity_model
+
+
+def _estimate_elasticity(
+    demand_signals: List[Dict],
+    product: Optional[Dict] = None,
+    competitor_prices: Optional[List[Dict]] = None,
+) -> Tuple[float, str]:
     """
-    Estimate price elasticity of demand from demand signal trend.
+    Estimate price elasticity using the ML model (preferred) or heuristic fallback.
 
-    Elasticity interpretation:
-      -0.5 to -1.0 : inelastic (premium / necessity product)
-      -1.0 to -1.5 : unit elastic
-      -1.5 to -2.5 : elastic (commodity / highly substitutable)
-
-    In absence of real price-volume pairs, we approximate from demand trend:
-    - Rapidly declining demand → product is more elastic (consumers switching)
-    - Stable/rising demand → product is more inelastic
+    Returns:
+        (elasticity: float, source: str) where source is 'ml_model' or 'heuristic'
     """
-    if not demand_signals or len(demand_signals) < 4:
-        return -1.5  # Conservative default
+    # Build feature vector for the ML model
+    demand_score = 0.5
+    search_trend = 0.5
+    if demand_signals and len(demand_signals) >= 4:
+        scores = [ds.get("compositeDemandScore", 0.5) for ds in demand_signals[:14]]
+        demand_score = float(np.mean(scores))
+        search_scores = [ds.get("searchTrendScore", 50) for ds in demand_signals[:7]]
+        search_trend = float(np.mean(search_scores)) / 100.0
 
-    scores = [ds.get("compositeDemandScore", 0.5) for ds in demand_signals[:14]]
-    scores = np.array(scores, dtype=float)
+    stock_ratio = 3.0
+    price_level = 1000
+    margin_pct = 0.2
+    if product:
+        stock = product.get("stockLevel", 100)
+        reorder = product.get("reorderThreshold", 20)
+        stock_ratio = stock / max(reorder, 1)
+        price_level = product.get("currentPrice", 1000)
+        base_cost = product.get("baseCost", 800)
+        margin_pct = (price_level - base_cost) / max(price_level, 1)
 
-    if len(scores) >= 7:
-        recent = np.mean(scores[:7])
-        older = np.mean(scores[7:]) if len(scores) > 7 else recent
-        trend = (recent - older) / max(older, 0.01)
-    else:
-        trend = 0.0
+    competitor_spread = 0.1
+    if competitor_prices and len(competitor_prices) >= 2:
+        prices = [cp.get("price", 0) for cp in competitor_prices if cp.get("price", 0) > 0]
+        if prices:
+            avg_p = np.mean(prices)
+            competitor_spread = (max(prices) - min(prices)) / max(avg_p, 1)
 
-    # Rising demand → inelastic (people want it regardless of price)
-    # Declining demand → elastic (price-sensitive audience)
-    if trend > 0.15:
-        return -0.8   # Inelastic
-    elif trend > 0.05:
-        return -1.1
-    elif trend > -0.05:
-        return -1.5   # Neutral
-    elif trend > -0.15:
-        return -1.9
-    else:
-        return -2.3   # Elastic — price-sensitive market
+    features = {
+        "demand_score": demand_score,
+        "competitor_spread": float(competitor_spread),
+        "stock_ratio": float(stock_ratio),
+        "price_level": float(price_level),
+        "margin_pct": float(margin_pct),
+        "search_trend_normalized": float(search_trend),
+    }
+
+    model = get_elasticity_model()
+    elasticity, source = model.predict(features)
+    return elasticity, source
 
 
 # ── Competitor analysis ───────────────────────────────────────────────────────
@@ -314,7 +329,7 @@ def optimize_price(
     )
     demand_factor, demand_context = _analyze_demand(demand_signals)
     stock_factor, stock_context = _analyze_stock(stock_level, reorder_threshold)
-    elasticity = _estimate_elasticity(demand_signals)
+    elasticity, elasticity_source = _estimate_elasticity(demand_signals, product, competitor_prices)
 
     # Raw combined adjustment (heuristic signal)
     raw_adjustment = competitor_factor + demand_factor + stock_factor
@@ -358,7 +373,7 @@ def optimize_price(
     if factors:
         reason += f" — {'; '.join(factors)}."
     reason += (
-        f" Estimated elasticity: {elasticity:.1f}. "
+        f" Estimated elasticity: {elasticity:.1f} (source: {elasticity_source}). "
         f"Expected revenue impact: {revenue_impact:+.1f}%."
     )
 
@@ -369,6 +384,7 @@ def optimize_price(
         "confidenceScore": round(confidence, 2),
         "priceChange": round(price_change_pct * 100, 1),
         "elasticityUsed": elasticity,
+        "elasticitySource": elasticity_source,
         "weightedCompetitorAvg": round(weighted_avg_comp, 2),
         "factors": {
             "competitorFactor": round(competitor_factor * 100, 1),
@@ -424,7 +440,7 @@ def suggest_promotion(product: Dict, demand_signals: List[Dict]) -> Dict:
     promo_price = round(current_price * (1 - discount_pct / 100))
 
     # Use dynamic elasticity to estimate volume uplift
-    elasticity = _estimate_elasticity(demand_signals)
+    elasticity, elasticity_source = _estimate_elasticity(demand_signals, product)
     price_change = -discount_pct / 100
     volume_uplift = int(abs(price_change * elasticity) * 100)
 
@@ -441,4 +457,5 @@ def suggest_promotion(product: Dict, demand_signals: List[Dict]) -> Dict:
         ),
         "expectedVolumeIncrease": volume_uplift,
         "elasticityUsed": elasticity,
-    }
+        "elasticitySource": elasticity_source,
+    }

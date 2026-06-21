@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation, rejectRecommendation } from '../api';
+import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation, rejectRecommendation, getJobStatus } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlineLightBulb, HiOutlineCheck, HiOutlineRefresh, HiOutlineArrowUp, HiOutlineArrowDown } from 'react-icons/hi';
 import jsPDF from 'jspdf';
@@ -28,11 +28,36 @@ export default function Recommendations() {
         setGenerating(productId);
         try {
             const res = await generateRecommendation(productId);
-            setRecommendations(prev => [res.data, ...prev]);
-            toast.success('Recommendation generated');
+            if (res.data.status === 'queued') {
+                toast.success('Recommendation job queued...');
+                const jobId = res.data.jobId;
+
+                const poll = setInterval(async () => {
+                    try {
+                        const statusRes = await getJobStatus(jobId);
+                        if (statusRes.data.status === 'completed') {
+                            clearInterval(poll);
+                            setRecommendations(prev => [statusRes.data.result, ...prev]);
+                            toast.success('Recommendation generated!');
+                            setGenerating(null);
+                        } else if (statusRes.data.status === 'failed') {
+                            clearInterval(poll);
+                            toast.error('AI job failed.');
+                            setGenerating(null);
+                        }
+                    } catch (e) {
+                        clearInterval(poll);
+                        toast.error('Error checking job status');
+                        setGenerating(null);
+                    }
+                }, 2000);
+            } else {
+                setRecommendations(prev => [res.data, ...prev]);
+                toast.success('Recommendation generated');
+                setGenerating(null);
+            }
         } catch {
             toast.error('Failed — is the AI service running?');
-        } finally {
             setGenerating(null);
         }
     };

@@ -18,6 +18,8 @@ api.interceptors.request.use((config) => {
 export const login = (data) => api.post('/auth/login', data);
 export const register = (data) => api.post('/auth/register', data);
 export const getProfile = () => api.get('/auth/profile');
+export const forgotPassword = (data) => api.post('/auth/forgot-password', data);
+export const resetPassword = (token, data) => api.post(`/auth/reset-password/${token}`, data);
 
 // Products (paginated)
 export const getProducts = (page = 1, limit = 20) => api.get(`/products?page=${page}&limit=${limit}`);
@@ -44,6 +46,7 @@ export const rejectRecommendation = (id, reason = '') => api.put(`/ai/recommenda
 export const getForecasts = (page = 1, limit = 20) => api.get(`/ai/forecasts?page=${page}&limit=${limit}`);
 export const generateForecast = (productId, days) => api.post(`/ai/forecasts/${productId}`, { forecastDays: days });
 export const generateProductDescription = (data) => api.post('/ai/generate-description', data);
+export const getJobStatus = (jobId) => api.get(`/ai/jobs/${jobId}`);
 
 // Chats (New feature)
 export const getChats = () => api.get('/chats');

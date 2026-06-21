@@ -23,6 +23,17 @@ function initCronJobs() {
         }
     });
 
+    // Weekly ML model retraining (Sunday at 2 AM)
+    const { processRetraining } = require('../services/retrainService');
+    cron.schedule('0 2 * * 0', async () => {
+        console.log('[CRON] Starting weekly ML elasticity retraining...');
+        try {
+            await processRetraining();
+        } catch (err) {
+            console.error('[CRON] Retraining failed:', err.message);
+        }
+    });
+
     console.log('[CRON] Scheduled jobs initialized');
 }
 

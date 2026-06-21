@@ -126,14 +126,26 @@ async function _generateMockHistoricalData(product) {
         }
 
         // Demand Signals
+        const searchTrendScore = Math.round(20 + ((day * 31 + seed * 100) % 70));
+        const weatherFactor = parseFloat((((day * 17 + seed * 50) % 150) / 100 - 0.75).toFixed(2));
+        const eventFactor = parseFloat((((day * 13 + seed * 30) % 80) / 100 - 0.3).toFixed(2));
+        const socialSentimentScore = parseFloat((((day * 23 + seed * 70) % 120) / 100 - 0.3).toFixed(2));
+        
+        const compositeDemandScore = 
+            (searchTrendScore / 100) * 0.4 +
+            ((weatherFactor + 1) / 2) * 0.2 +
+            ((eventFactor + 1) / 2) * 0.2 +
+            ((socialSentimentScore + 1) / 2) * 0.2;
+
         demandOps.push({
             insertOne: {
                 document: {
                     productId: product._id,
-                    searchTrendScore: Math.round(20 + ((day * 31 + seed * 100) % 70)),
-                    weatherFactor: parseFloat((((day * 17 + seed * 50) % 150) / 100 - 0.75).toFixed(2)),
-                    eventFactor: parseFloat((((day * 13 + seed * 30) % 80) / 100 - 0.3).toFixed(2)),
-                    socialSentimentScore: parseFloat((((day * 23 + seed * 70) % 120) / 100 - 0.3).toFixed(2)),
+                    searchTrendScore,
+                    weatherFactor,
+                    eventFactor,
+                    socialSentimentScore,
+                    compositeDemandScore,
                     timestamp: date,
                 },
             },

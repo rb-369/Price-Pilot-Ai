@@ -11,11 +11,13 @@ from routes.scraper import router as scraper_router   # NEW
 from routes.chat import router as chat_router
 from routes.product_gen import router as product_gen_router
 from routes.sentiment import router as sentiment_router
+from routes.data_pipeline import router as data_pipeline_router  # Real data pipeline
+from routes.retrain import router as retrain_router  # ML model retraining
 
 app = FastAPI(
     title="EcomAI Intelligence Service",
     description="AI microservice for demand forecasting, pricing optimization, and insight generation",
-    version="2.0.0",
+    version="2.1.0",
 )
 
 app.add_middleware(
@@ -33,8 +35,10 @@ app.include_router(scraper_router, prefix="/api", tags=["Scraper"])   # NEW
 app.include_router(chat_router, prefix="/api", tags=["Chat"])
 app.include_router(product_gen_router, prefix="/api", tags=["Product Gen"])
 app.include_router(sentiment_router, prefix="/api", tags=["Sentiment"])
+app.include_router(data_pipeline_router, prefix="/api", tags=["Data Pipeline"])
+app.include_router(retrain_router, prefix="/api", tags=["ML Retraining"])
 
 
 @app.get("/")
 def health():
-    return {"status": "ok", "service": "EcomAI Intelligence", "version": "2.0.0"}
+    return {"status": "ok", "service": "EcomAI Intelligence", "version": "2.1.0"}

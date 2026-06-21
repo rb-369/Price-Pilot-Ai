@@ -10,6 +10,13 @@ const productSchema = new mongoose.Schema({
     stockLevel: { type: Number, default: 0 },
     reorderThreshold: { type: Number, default: 10 },
     imageUrl: { type: String, default: '' },
+    description: { type: String, default: '' },
+    productLinks: {
+        amazon: { type: String, default: '' },
+        flipkart: { type: String, default: '' },
+        meesho: { type: String, default: '' },
+        shopify: { type: String, default: '' },
+    },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

@@ -10,3 +10,13 @@ python-dotenv
 google-genai>=0.1.0
 prophet==1.1.5
 cmdstanpy==1.2.4
+scikit-learn
+beautifulsoup4
+pytest
+pytest-asyncio
+pytest-cov
+chromadb
+langchain
+langchain-google-genai
+langchain-openai
+langchain-community

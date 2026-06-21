@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getLatestCompetitorPrices, getProducts, getCompetitorPrices } from '../api';
+import { getLatestCompetitorPrices, getProducts, getCompetitorPrices, deleteProduct } from '../api';
+import toast from 'react-hot-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { HiOutlineScale, HiOutlineTrendingDown, HiOutlineTrendingUp, HiDownload } from 'react-icons/hi';
+import { HiOutlineScale, HiOutlineTrendingDown, HiOutlineTrendingUp, HiDownload, HiOutlineTrash, HiOutlineCube } from 'react-icons/hi';
 import { SkeletonTable, SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
@@ -44,6 +45,18 @@ export default function Competitors() {
             }).catch(() => { });
         }
     }, [selectedProduct]);
+
+    const handleDelete = async (id) => {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        try {
+            await deleteProduct(id);
+            toast.success('Product deleted');
+            fetchData();
+            if (selectedProduct === id) setSelectedProduct(null);
+        } catch (err) {
+            toast.error('Failed to delete product');
+        }
+    };
 
     const handleExport = () => {
         const exportData = [];
@@ -141,91 +154,103 @@ export default function Competitors() {
                 )}
             </div>
 
-            {/* Comparison Table */}
-            <div className="glass-card overflow-hidden animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <div className="px-6 py-4 border-b border-[rgba(99,102,241,0.08)]">
-                    <h2 className="text-base font-semibold text-text">Latest Competitor Prices</h2>
-                </div>
+            {/* Comparison Table Section */}
+            <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <h2 className="text-base font-semibold text-text mb-4 px-1">Latest Competitor Prices</h2>
                 
                 {/* Mobile View */}
-                <div className="md:hidden divide-y divide-[rgba(99,102,241,0.04)]">
-                    {Object.entries(productPrices).map(([pid, data]) =>
-                        data.competitors.map((comp, i) => {
-                            const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
-                            return (
-                                <div key={`${pid}-${i}`} className="p-4 flex flex-col gap-3">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p className="font-semibold text-text text-sm">{data.product.name}</p>
-                                            <p className="text-xs text-text-muted">Our Price: ₹{data.product.currentPrice}</p>
-                                        </div>
-                                        <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 text-sm bg-surface-lighter/30 p-3 rounded-lg">
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Competitor</span>
-                                            <span className="font-medium text-text">{comp.name}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Their Price</span>
-                                            <span className="font-medium text-text">₹{comp.price}</span>
-                                        </div>
-                                        <div className="col-span-2 flex justify-between items-center pt-2 border-t border-[rgba(99,102,241,0.08)]">
-                                            <span className="text-text-muted text-xs">Difference</span>
-                                            <span className={`text-sm font-semibold flex items-center gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
-                                                {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
-                                                {diff > 0 ? '+' : ''}{diff}%
-                                            </span>
-                                        </div>
-                                    </div>
+                <div className="md:hidden flex flex-col gap-6">
+                    {Object.entries(productPrices).map(([pid, data]) => (
+                        <div key={pid} className="glass-card overflow-hidden shadow-sm">
+                            <div className="bg-gradient-to-r from-primary/10 to-transparent p-4 border-b border-[rgba(99,102,241,0.1)] flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-bold text-text text-base">{data.product.name}</h3>
+                                    <p className="text-xs text-text-muted mt-1 font-medium">Our Price: <span className="font-semibold text-text">₹{data.product.currentPrice}</span></p>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
-
-                {/* Desktop View */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="border-b border-[rgba(99,102,241,0.08)]">
-                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Product</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Our Price</th>
-                                <th className="text-left px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Competitor</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Their Price</th>
-                                <th className="text-center px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Stock</th>
-                                <th className="text-right px-6 py-3 text-[11px] font-semibold text-text-muted uppercase">Diff</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[rgba(99,102,241,0.04)]">
-                            {Object.entries(productPrices).map(([pid, data]) =>
-                                data.competitors.map((comp, i) => {
+                                <button onClick={() => handleDelete(pid)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all bg-surface/50 border border-transparent hover:border-danger/20 shadow-sm" title="Delete Product">
+                                    <HiOutlineTrash className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="divide-y divide-[rgba(99,102,241,0.04)]">
+                                {data.competitors.map((comp, i) => {
                                     const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
                                     return (
-                                        <tr key={`${pid}-${i}`} className="hover:bg-[rgba(99,102,241,0.03)] transition-colors">
-                                            {i === 0 && (
-                                                <>
-                                                    <td className="px-6 py-3 text-sm font-medium text-text" rowSpan={data.competitors.length}>{data.product.name}</td>
-                                                    <td className="px-6 py-3 text-sm font-semibold text-text text-right" rowSpan={data.competitors.length}>₹{data.product.currentPrice}</td>
-                                                </>
-                                            )}
-                                            <td className="px-6 py-3 text-sm text-text">{comp.name}</td>
-                                            <td className="px-6 py-3 text-sm font-medium text-text text-right">₹{comp.price}</td>
-                                            <td className="px-6 py-3 text-center">
+                                        <div key={i} className="p-4 flex flex-col gap-3 hover:bg-[rgba(99,102,241,0.02)] transition-colors">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium text-text">{comp.name}</span>
                                                 <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
-                                            </td>
-                                            <td className="px-6 py-3 text-right">
-                                                <span className={`text-sm font-semibold flex items-center justify-end gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-text-muted text-sm block">Their Price: <span className="font-semibold text-text">₹{comp.price}</span></span>
+                                                <span className={`text-sm font-bold flex items-center gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
                                                     {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
                                                     {diff > 0 ? '+' : ''}{diff}%
                                                 </span>
-                                            </td>
-                                        </tr>
+                                            </div>
+                                        </div>
                                     );
-                                })
-                            )}
-                        </tbody>
-                    </table>
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:flex flex-col gap-6">
+                    {/* Header Row */}
+                    <div className="glass-card px-6 py-4 flex w-full">
+                        <div className="w-[40%] text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Competitor</div>
+                        <div className="w-[20%] text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Their Price</div>
+                        <div className="w-[20%] text-center text-xs font-semibold text-text-muted uppercase tracking-wider">Stock</div>
+                        <div className="w-[20%] text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Difference</div>
+                    </div>
+
+                    {/* Product Cards */}
+                    {Object.entries(productPrices).map(([pid, data]) => (
+                        <div key={pid} className="glass-card overflow-hidden shadow-sm">
+                            <div className="bg-gradient-to-r from-[rgba(99,102,241,0.1)] to-transparent border-b border-[rgba(99,102,241,0.15)] px-6 py-4 flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-[rgba(99,102,241,0.15)] flex items-center justify-center text-primary border border-[rgba(99,102,241,0.2)]">
+                                        <HiOutlineCube className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <span className="font-bold text-text text-base tracking-tight">{data.product.name}</span>
+                                        <span className="text-sm text-text-muted ml-4 font-medium">Our Price: <span className="text-text font-semibold">₹{data.product.currentPrice}</span></span>
+                                    </div>
+                                </div>
+                                <button onClick={() => handleDelete(pid)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all border border-transparent hover:border-danger/20 bg-surface/50 shadow-sm" title="Delete Product">
+                                    <HiOutlineTrash className="w-4 h-4" />
+                                </button>
+                            </div>
+                            
+                            <div className="flex flex-col">
+                                {data.competitors.map((comp, i) => {
+                                    const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
+                                    const isLast = i === data.competitors.length - 1;
+                                    return (
+                                        <div key={`${pid}-${i}`} className={`flex items-stretch w-full hover:bg-[rgba(99,102,241,0.03)] transition-colors ${!isLast ? 'border-b border-[rgba(99,102,241,0.03)]' : ''}`}>
+                                            <div className="w-[40%] px-6 py-4 text-sm font-medium text-text pl-16 relative flex items-center">
+                                                {/* Visual tree line connector */}
+                                                <div className={`absolute left-9 top-0 w-px bg-[rgba(99,102,241,0.2)] ${isLast ? 'h-1/2' : 'h-full'}`}></div>
+                                                <div className="absolute left-9 top-1/2 w-4 h-px bg-[rgba(99,102,241,0.2)]"></div>
+                                                {comp.name}
+                                            </div>
+                                            <div className="w-[20%] px-6 py-4 text-sm font-semibold text-text text-right flex items-center justify-end">₹{comp.price}</div>
+                                            <div className="w-[20%] px-6 py-4 text-center flex items-center justify-center">
+                                                <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
+                                            </div>
+                                            <div className="w-[20%] px-6 py-4 text-right flex items-center justify-end">
+                                                <span className={`text-sm font-bold flex items-center justify-end gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
+                                                    {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
+                                                    {diff > 0 ? '+' : ''}{diff}%
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

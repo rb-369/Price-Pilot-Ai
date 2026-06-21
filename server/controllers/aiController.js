@@ -5,6 +5,9 @@ const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
 const Alert = require('../models/Alert');
+const FeedbackLog = require('../models/FeedbackLog');
+const redisClient = require('../config/redis');
+const { recommendationQueue, forecastQueue } = require('../services/queueService');
 
 const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -39,55 +42,11 @@ exports.getRecommendations = async (req, res) => {
 exports.generateRecommendation = async (req, res) => {
     try {
         const { productId } = req.params;
-        const product = await Product.findById(productId);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-
-        // Gather context data
-        const competitorPrices = await CompetitorPrice.find({ productId })
-            .sort({ timestamp: -1 }).limit(10);
-        const demandSignals = await DemandSignal.find({ productId })
-            .sort({ timestamp: -1 }).limit(30);
-
-        const payload = {
-            product: {
-                name: product.name, sku: product.sku,
-                baseCost: product.baseCost, currentPrice: product.currentPrice,
-                minMargin: product.minMargin, stockLevel: product.stockLevel,
-                reorderThreshold: product.reorderThreshold,
-            },
-            competitorPrices: competitorPrices.map(cp => ({
-                name: cp.competitorName, price: cp.competitorPrice,
-                inStock: cp.inStock, timestamp: cp.timestamp,
-            })),
-            demandSignals: demandSignals.map(ds => ({
-                searchTrendScore: ds.searchTrendScore, weatherFactor: ds.weatherFactor,
-                eventFactor: ds.eventFactor, socialSentimentScore: ds.socialSentimentScore,
-                compositeDemandScore: ds.compositeDemandScore, timestamp: ds.timestamp,
-            })),
-        };
-
-        // Call Python AI service
-        const aiResponse = await axios.post(`${AI_URL}/api/optimize-price`, payload);
-        const recommendation = aiResponse.data;
-
-        // Save recommendation to DB
-        const saved = await PricingRecommendation.create({
-            productId,
-            recommendedPrice: recommendation.recommendedPrice,
-            currentPrice: product.currentPrice,
-            reason: recommendation.reason,
-            insight: recommendation.insight,
-            elasticityUsed: recommendation.elasticityUsed,
-            competitorsUsed: recommendation.competitorsUsed,
-            factors: recommendation.factors,
-            expectedRevenueImpact: recommendation.revenueImpact,
-            confidenceScore: recommendation.confidenceScore,
-        });
-
-        res.json(saved);
+        const job = await recommendationQueue.add('generateRecommendation', { productId });
+        res.json({ jobId: job.id, status: 'queued', message: 'Recommendation generation queued.' });
     } catch (error) {
-        console.error('AI recommendation error:', error.message);
-        res.status(500).json({ message: 'Failed to generate recommendation', error: error.message });
+        console.error('AI recommendation queue error:', error.message);
+        res.status(500).json({ message: 'Failed to queue recommendation', error: error.message });
     }
 };
 
@@ -122,40 +81,39 @@ exports.getForecast = async (req, res) => {
 exports.generateForecast = async (req, res) => {
     try {
         const { productId } = req.params;
-        const product = await Product.findById(productId);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-
-        const demandSignals = await DemandSignal.find({ productId })
-            .sort({ timestamp: 1 }).limit(90);
-
-        const payload = {
-            product: {
-                name: product.name, stockLevel: product.stockLevel,
-                reorderThreshold: product.reorderThreshold,
-            },
-            demandHistory: demandSignals.map(ds => ({
-                score: ds.compositeDemandScore, timestamp: ds.timestamp,
-            })),
-            forecastDays: req.body.forecastDays || 30,
-        };
-
-        const aiResponse = await axios.post(`${AI_URL}/api/forecast`, payload);
-        const forecast = aiResponse.data;
-
-        const saved = await InventoryForecast.create({
-            productId,
-            predictedDemand: forecast.predictedDemand,
-            recommendedStockIncrease: forecast.recommendedStockIncrease,
-            currentStock: product.stockLevel,
-            forecastRange: payload.forecastDays,
-            reason: forecast.reason,
-            confidenceScore: forecast.confidenceScore,
-        });
-
-        res.json(saved);
+        const forecastDays = req.body.forecastDays || 30;
+        const job = await forecastQueue.add('generateForecast', { productId, forecastDays });
+        res.json({ jobId: job.id, status: 'queued', message: 'Forecast generation queued.' });
     } catch (error) {
-        console.error('AI forecast error:', error.message);
-        res.status(500).json({ message: 'Failed to generate forecast', error: error.message });
+        console.error('AI forecast queue error:', error.message);
+        res.status(500).json({ message: 'Failed to queue forecast', error: error.message });
+    }
+};
+
+exports.checkJobStatus = async (req, res) => {
+    try {
+        const { jobId } = req.params;
+        
+        let job = await recommendationQueue.getJob(jobId);
+        if (!job) {
+            job = await forecastQueue.getJob(jobId);
+        }
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        const state = await job.getState();
+        
+        if (state === 'completed') {
+            return res.json({ status: state, result: job.returnvalue });
+        } else if (state === 'failed') {
+            return res.json({ status: state, error: job.failedReason });
+        } else {
+            return res.json({ status: state });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -166,7 +124,12 @@ exports.acceptRecommendation = async (req, res) => {
 
         // Apply price change
         const product = await Product.findById(rec.productId);
+        let priceBeforeChange = 0;
+        let stockBefore = 0;
+        
         if (product) {
+            priceBeforeChange = product.currentPrice;
+            stockBefore = product.stockLevel;
             rec.revenueBeforeChange = product.currentPrice;
             product.currentPrice = rec.recommendedPrice;
             await product.save();
@@ -175,6 +138,32 @@ exports.acceptRecommendation = async (req, res) => {
         rec.status = 'accepted';
         rec.appliedAt = new Date();
         await rec.save();
+
+        // Create Feedback Log for ML retraining
+        if (product) {
+            const latestSignal = await DemandSignal.findOne({ productId: product._id }).sort({ date: -1 });
+            const demandScore = latestSignal ? latestSignal.compositeDemandScore : 0.5;
+            const searchTrend = latestSignal ? (latestSignal.searchTrendScore / 100) : 0.5;
+            
+            await FeedbackLog.create({
+                recommendationId: rec._id,
+                productId: product._id,
+                userId: req.user._id,
+                priceBeforeChange: priceBeforeChange,
+                priceAfterChange: rec.recommendedPrice,
+                action: 'accepted',
+                features: {
+                    demand_score: demandScore,
+                    competitor_spread: 0.1, // Approximated
+                    stock_ratio: stockBefore / Math.max(product.reorderThreshold || 1, 1),
+                    price_level: priceBeforeChange,
+                    margin_pct: (priceBeforeChange - product.baseCost) / Math.max(priceBeforeChange, 1),
+                    search_trend_normalized: searchTrend
+                },
+                stockBefore: stockBefore,
+                demandScoreBefore: demandScore
+            });
+        }
 
         res.json({ message: 'Price updated', recommendation: rec, product });
     } catch (error) {
@@ -195,6 +184,33 @@ exports.rejectRecommendation = async (req, res) => {
         rec.rejectionReason = req.body.reason || '';
         await rec.save();
 
+        // Create Feedback Log for ML retraining
+        const product = await Product.findById(rec.productId);
+        if (product) {
+            const latestSignal = await DemandSignal.findOne({ productId: product._id }).sort({ date: -1 });
+            const demandScore = latestSignal ? latestSignal.compositeDemandScore : 0.5;
+            const searchTrend = latestSignal ? (latestSignal.searchTrendScore / 100) : 0.5;
+            
+            await FeedbackLog.create({
+                recommendationId: rec._id,
+                productId: product._id,
+                userId: req.user._id,
+                priceBeforeChange: product.currentPrice,
+                priceAfterChange: product.currentPrice, // Unchanged because rejected
+                action: 'rejected',
+                features: {
+                    demand_score: demandScore,
+                    competitor_spread: 0.1, // Approximated
+                    stock_ratio: product.stockLevel / Math.max(product.reorderThreshold || 1, 1),
+                    price_level: product.currentPrice,
+                    margin_pct: (product.currentPrice - product.baseCost) / Math.max(product.currentPrice, 1),
+                    search_trend_normalized: searchTrend
+                },
+                stockBefore: product.stockLevel,
+                demandScoreBefore: demandScore
+            });
+        }
+
         res.json({ message: 'Recommendation rejected', recommendation: rec });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -203,6 +219,13 @@ exports.rejectRecommendation = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
     try {
+        const cacheKey = 'dashboard_stats';
+        const cachedData = await redisClient.get(cacheKey);
+        
+        if (cachedData) {
+            return res.json(JSON.parse(cachedData));
+        }
+
         const totalProducts = await Product.countDocuments();
         const lowStockProducts = await Product.countDocuments({
             $expr: { $lte: ['$stockLevel', '$reorderThreshold'] },
@@ -211,10 +234,10 @@ exports.getDashboardStats = async (req, res) => {
 
         const products = await Product.find({});
 
-        // Inventory Value (price × stock) — correctly labeled, not "revenue"
+        // Inventory Value (price × stock)
         const inventoryValue = products.reduce((sum, p) => sum + p.currentPrice * (p.stockLevel || 0), 0);
 
-        // Estimated Revenue from accepted recommendations (actual price changes applied)
+        // Estimated Revenue from accepted recommendations
         const acceptedRecs = await PricingRecommendation.find({ status: 'accepted' })
             .sort({ appliedAt: -1 })
             .limit(100);
@@ -226,17 +249,20 @@ exports.getDashboardStats = async (req, res) => {
             ? products.reduce((sum, p) => sum + ((p.currentPrice - p.baseCost) / p.currentPrice) * 100, 0) / products.length
             : 0;
 
-        res.json({
+        const responseData = {
             totalProducts,
             lowStockProducts,
             pendingRecommendations,
             inventoryValue: Math.round(inventoryValue),
             estimatedRevenue: Math.round(estimatedRevenue),
-            // Keep totalRevenue for backward compatibility but now equals inventoryValue
             totalRevenue: Math.round(inventoryValue),
             avgMargin: avgMargin.toFixed(1),
             acceptedRecommendations: acceptedRecs.length,
-        });
+        };
+
+        await redisClient.setex(cacheKey, 300, JSON.stringify(responseData)); // Cache for 5 minutes
+
+        res.json(responseData);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -293,6 +319,14 @@ exports.generateProductDescription = async (req, res) => {
 exports.getChartData = async (req, res) => {
     try {
         const days = Math.min(90, Math.max(7, parseInt(req.query.days) || 30));
+        
+        const cacheKey = `chart_data_${days}`;
+        const cachedData = await redisClient.get(cacheKey);
+        
+        if (cachedData) {
+            return res.json(JSON.parse(cachedData));
+        }
+
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
         startDate.setHours(0, 0, 0, 0);
@@ -391,6 +425,8 @@ exports.getChartData = async (req, res) => {
                 acceptedRecs: entry.acceptedRecs || 0,
                 avgRevenueImpact: entry.avgRevenueImpact || 0,
             }));
+
+        await redisClient.setex(cacheKey, 300, JSON.stringify(chartData)); // Cache for 5 minutes
 
         res.json(chartData);
     } catch (error) {

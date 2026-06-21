@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getForecasts, getProducts, generateForecast } from '../api';
+import { getForecasts, getProducts, generateForecast, getJobStatus } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlineTrendingUp, HiOutlineRefresh, HiOutlineExclamation, HiDownload } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
@@ -30,11 +30,36 @@ export default function Forecasts() {
         setGenerating(productId);
         try {
             const res = await generateForecast(productId, 30);
-            setForecasts(prev => [res.data, ...prev]);
-            toast.success('Forecast generated');
+            if (res.data.status === 'queued') {
+                toast.success('Forecast job queued...');
+                const jobId = res.data.jobId;
+
+                const poll = setInterval(async () => {
+                    try {
+                        const statusRes = await getJobStatus(jobId);
+                        if (statusRes.data.status === 'completed') {
+                            clearInterval(poll);
+                            setForecasts(prev => [statusRes.data.result, ...prev]);
+                            toast.success('Forecast generated!');
+                            setGenerating(null);
+                        } else if (statusRes.data.status === 'failed') {
+                            clearInterval(poll);
+                            toast.error('AI job failed.');
+                            setGenerating(null);
+                        }
+                    } catch (e) {
+                        clearInterval(poll);
+                        toast.error('Error checking job status');
+                        setGenerating(null);
+                    }
+                }, 2000);
+            } else {
+                setForecasts(prev => [res.data, ...prev]);
+                toast.success('Forecast generated');
+                setGenerating(null);
+            }
         } catch (err) {
             toast.error('Forecast generation failed — is the AI service running?');
-        } finally {
             setGenerating(null);
         }
     };

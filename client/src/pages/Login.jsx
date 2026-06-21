@@ -53,7 +53,12 @@ export default function Login() {
 
                     {/* Password */}
                     <div>
-                        <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Password</label>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider">Password</label>
+                            <Link to="/forgot-password" className="text-xs text-primary hover:text-primary-light transition-colors font-medium">
+                                Forgot Password?
+                            </Link>
+                        </div>
                         <div className="relative">
                             <input type={showPassword ? 'text' : 'password'} className="input-field pr-12" placeholder="••••••••"
                                 value={password} onChange={(e) => setPassword(e.target.value)} required />

@@ -15,7 +15,9 @@ const STANDARD_CATEGORIES = [
 const DEFAULT_FORM_STATE = { 
     name: '', sku: '', category: 'General', 
     baseCost: '', currentPrice: '', minMargin: '0.1', 
-    stockLevel: '', reorderThreshold: '10' 
+    stockLevel: '', reorderThreshold: '10',
+    description: '',
+    productLinks: { amazon: '', flipkart: '', meesho: '', shopify: '' }
 };
 
 export default function Products() {
@@ -83,7 +85,9 @@ export default function Products() {
             currentPrice: p.currentPrice || '',
             minMargin: p.minMargin || '0.1',
             stockLevel: p.stockLevel || '',
-            reorderThreshold: p.reorderThreshold || '10'
+            reorderThreshold: p.reorderThreshold || '10',
+            description: p.description || '',
+            productLinks: p.productLinks || { amazon: '', flipkart: '', meesho: '', shopify: '' }
         });
         
         if (!isStandard) {
@@ -183,43 +187,68 @@ export default function Products() {
                         </button>
                     </div>
                     
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2 flex gap-2">
-                            <input className="input-field w-full" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-                            <button 
-                                type="button" 
-                                onClick={handleGenerateAiCopy} 
-                                disabled={isGenerating || !form.name}
-                                className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 rounded-xl text-sm font-medium hover:bg-indigo-600/30 transition-colors whitespace-nowrap disabled:opacity-50"
-                            >
-                                ✨ AI Optimize
-                            </button>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Basic Info */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Basic Info</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex gap-2">
+                                    <input className="input-field w-full" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                                    <button 
+                                        type="button" 
+                                        onClick={handleGenerateAiCopy} 
+                                        disabled={isGenerating || !form.name}
+                                        className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 rounded-xl text-sm font-medium hover:bg-indigo-600/30 transition-colors whitespace-nowrap disabled:opacity-50"
+                                    >
+                                        ✨ AI Optimize
+                                    </button>
+                                </div>
+                                <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
+                                
+                                <div className="relative">
+                                    <select className="input-field w-full" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                                        {STANDARD_CATEGORIES.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                        <option value="Other">Other (Custom)</option>
+                                    </select>
+                                </div>
+                                {form.category === 'Other' && (
+                                    <input className="input-field w-full" placeholder="Type your custom category..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
+                                )}
+                            </div>
+                            <textarea className="input-field w-full min-h-[80px] resize-y" placeholder="Product Description..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                         </div>
-                        <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
-                        
-                        <div className="relative">
-                            <select className="input-field" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                                {STANDARD_CATEGORIES.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                                <option value="Other">Other (Custom)</option>
-                            </select>
-                        </div>
-                        {form.category === 'Other' && (
-                            <input className="input-field" placeholder="Type your custom category..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
-                        )}
 
-                        <input className="input-field" type="number" placeholder="Base Cost (₹)" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required />
-                        <input className="input-field" type="number" placeholder="Current Price (₹)" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required />
-                        <input className="input-field" type="number" step="0.01" placeholder="Min Margin (0.1 = 10%)" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} />
-                        <input className="input-field" type="number" placeholder="Stock Level" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required />
-                        <input className="input-field" type="number" placeholder="Reorder Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} />
-                        <div className="flex gap-2 items-end md:col-start-1 md:col-end-4 mt-2">
-                            <button type="submit" className="btn-primary flex-[0.5] flex justify-center">
-                                {editId ? 'Save Changes' : 'Create Product'}
-                            </button>
-                            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary flex-[0.5] flex justify-center">
+                        {/* Pricing & Stock */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Pricing & Stock</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Base Cost (₹)</label><input className="input-field" type="number" placeholder="Cost" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Current Price (₹)</label><input className="input-field" type="number" placeholder="Price" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Min Margin</label><input className="input-field" type="number" step="0.01" placeholder="0.1 (10%)" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Stock Level</label><input className="input-field" type="number" placeholder="Stock" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Reorder Threshold</label><input className="input-field" type="number" placeholder="Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} /></div>
+                            </div>
+                        </div>
+
+                        {/* Product Links */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Your Product Links</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input className="input-field" placeholder="Amazon Link" value={form.productLinks.amazon} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, amazon: e.target.value } })} />
+                                <input className="input-field" placeholder="Flipkart Link" value={form.productLinks.flipkart} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, flipkart: e.target.value } })} />
+                                <input className="input-field" placeholder="Meesho Link" value={form.productLinks.meesho} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, meesho: e.target.value } })} />
+                                <input className="input-field" placeholder="Shopify Link" value={form.productLinks.shopify} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, shopify: e.target.value } })} />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)]">
+                            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary px-6">
                                 Cancel
+                            </button>
+                            <button type="submit" className="btn-primary px-6">
+                                {editId ? 'Save Changes' : 'Create Product'}
                             </button>
                         </div>
                     </form>

@@ -1,0 +1,15 @@
+{
+  "version": "20260617_215720",
+  "trained_at": "2026-06-17T21:57:20.170415",
+  "samples": 40,
+  "r2_mean": -1.5694,
+  "r2_std": 1.8749,
+  "feature_importances": {
+    "demand_score": 1.0,
+    "competitor_spread": 0.0,
+    "stock_ratio": 0.0,
+    "price_level": 0.0,
+    "margin_pct": 0.0,
+    "search_trend_normalized": 0.0
+  }
+}

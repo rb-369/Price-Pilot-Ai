@@ -14,6 +14,7 @@ const alertRoutes = require('./routes/alertRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const streamRoutes = require('./routes/stream'); // NEW SSE ROUTE
+const abTestRoutes = require('./routes/abTestRoutes');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/stream', streamRoutes); // SSE endpoint
+app.use('/api/ab-tests', abTestRoutes);
 
 // ── Health check ──
 app.get('/api/health', (req, res) => {

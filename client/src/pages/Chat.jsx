@@ -1,0 +1,553 @@
+import { useState, useRef, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { 
+    getChats, getChat, createChat, deleteChat, sendChatMessage, uploadChatContext 
+} from '../api';
+import { 
+    HiOutlineTrash, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineX, 
+    HiOutlinePaperClip, HiOutlineDocumentText 
+} from 'react-icons/hi';
+
+const Chat = () => {
+    const { sidebarOpen } = useOutletContext() || {};
+    
+    const [chats, setChats] = useState([]);
+    const [activeChatId, setActiveChatId] = useState(null);
+    const [messages, setMessages] = useState([]);
+    
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    
+    // Terminal-style input history state
+    const [inputHistory, setInputHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const [currentDraft, setCurrentDraft] = useState('');
+
+    const [attachedFile, setAttachedFile] = useState(null);
+    const [extractedText, setExtractedText] = useState(null);
+    
+    const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const inputRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages, isLoading]);
+
+    // Load chat history on mount
+    useEffect(() => {
+        loadChats();
+    }, []);
+
+    const loadChats = async () => {
+        try {
+            const { data } = await getChats();
+            setChats(data);
+            if (data.length > 0 && !activeChatId) {
+                loadSingleChat(data[0]._id);
+            } else if (data.length === 0) {
+                handleNewChat();
+            }
+        } catch (error) {
+            console.error("Failed to load chats", error);
+        }
+    };
+
+    const loadSingleChat = async (id) => {
+        try {
+            const { data } = await getChat(id);
+            setActiveChatId(id);
+            setMessages(data.messages || []);
+            setAttachedFile(null);
+            setExtractedText(null);
+        } catch (error) {
+            console.error("Failed to load chat", error);
+        }
+    };
+
+    const handleNewChat = async () => {
+        try {
+            const { data } = await createChat({ title: 'New Chat', messages: [] });
+            setChats([data, ...chats]);
+            setActiveChatId(data._id);
+            setMessages([{ role: 'model', content: "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?" }]);
+            setAttachedFile(null);
+            setExtractedText(null);
+            setHistoryIndex(-1);
+            setCurrentDraft('');
+        } catch (error) {
+            console.error("Failed to create chat", error);
+        }
+    };
+
+    const handleDeleteChat = async (e, id) => {
+        e.stopPropagation();
+        try {
+            await deleteChat(id);
+            const filteredChats = chats.filter(c => c._id !== id);
+            setChats(filteredChats);
+            if (activeChatId === id) {
+                setActiveChatId(null);
+                setMessages([]);
+                if (filteredChats.length > 0) {
+                    loadSingleChat(filteredChats[0]._id);
+                } else {
+                    handleNewChat();
+                }
+            }
+        } catch (error) {
+            console.error("Failed to delete chat", error);
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setAttachedFile(file);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const { data } = await uploadChatContext(formData);
+            setExtractedText(data.text);
+        } catch (error) {
+            console.error('File parsing failed', error);
+            setAttachedFile({ name: 'Error uploading file' });
+            setExtractedText(null);
+        }
+    };
+
+    const handleSend = async (e, customInput = null) => {
+        if (e) e.preventDefault();
+        const textToSend = customInput !== null ? customInput : input;
+        if (!textToSend.trim() || isLoading) return;
+
+        setIsLoading(true);
+        let chatId = activeChatId;
+
+        // If there's no active chat, let's create one first
+        if (!chatId) {
+            try {
+                const { data } = await createChat({ title: textToSend.substring(0, 30), messages: [] });
+                chatId = data._id;
+                setActiveChatId(chatId);
+                setChats(prev => [data, ...prev]);
+            } catch (error) {
+                console.error("Failed to create chat on-the-fly", error);
+                setIsLoading(false);
+                return;
+            }
+        }
+
+        // Filter default bot greeting out of active history so we show a clean message flow
+        const userMsg = { role: 'user', content: textToSend };
+        const newMessages = [...messages.filter(m => m.role !== 'model' || m.content !== "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?"), userMsg];
+        setMessages(newMessages);
+        
+        // Add user prompt to history (terminal style)
+        const trimmedText = textToSend.trim();
+        setInputHistory(prev => {
+            const last = prev[prev.length - 1];
+            if (last === trimmedText) return prev;
+            return [...prev, trimmedText];
+        });
+        setHistoryIndex(-1);
+        setCurrentDraft('');
+
+        if (customInput === null) {
+            setInput('');
+        }
+
+        try {
+            const payload = { message: textToSend };
+            if (extractedText) {
+                payload.contextText = extractedText;
+                setAttachedFile(null);
+                setExtractedText(null);
+            }
+
+            const { data } = await sendChatMessage(chatId, payload);
+            setMessages(data.chat.messages);
+            
+            // Refresh chats list to update titles
+            const { data: updatedChats } = await getChats();
+            setChats(updatedChats);
+        } catch (error) {
+            console.error("Failed to send message", error);
+            setMessages([...newMessages, { role: 'model', content: "⚠️ Sorry, I encountered an error. Please try again later." }]);
+        } finally {
+            setIsLoading(false);
+            setTimeout(() => inputRef.current?.focus(), 50);
+        }
+    };
+
+    // Terminal history navigation handler
+    const handleKeyDown = (e) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (inputHistory.length === 0) return;
+            
+            let newIndex;
+            if (historyIndex === -1) {
+                setCurrentDraft(input);
+                newIndex = inputHistory.length - 1;
+            } else {
+                newIndex = Math.max(0, historyIndex - 1);
+            }
+            setHistoryIndex(newIndex);
+            setInput(inputHistory[newIndex]);
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex === -1) return;
+            
+            if (historyIndex === inputHistory.length - 1) {
+                setHistoryIndex(-1);
+                setInput(currentDraft);
+            } else {
+                const newIndex = historyIndex + 1;
+                setHistoryIndex(newIndex);
+                setInput(inputHistory[newIndex]);
+            }
+        }
+    };
+
+    // Helper to format model responses nicely with custom inline styling
+    const formatMessageContent = (content) => {
+        if (!content) return null;
+        
+        const lines = content.split('\n');
+        let currentList = [];
+        const rendered = [];
+
+        const flushList = (key) => {
+            if (currentList.length > 0) {
+                rendered.push(
+                    <ul key={`list-${key}`} className="list-disc pl-5 my-2 space-y-1 text-slate-200">
+                        {currentList}
+                    </ul>
+                );
+                currentList = [];
+            }
+        };
+
+        lines.forEach((line, idx) => {
+            const trimmed = line.trim();
+            
+            // Lists
+            if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                const contentText = trimmed.substring(2);
+                currentList.push(
+                    <li key={`li-${idx}`} className="text-sm leading-relaxed">
+                        {parseInlineMarkdown(contentText)}
+                    </li>
+                );
+            } else {
+                flushList(idx);
+                
+                // Headings
+                if (line.startsWith('### ')) {
+                    rendered.push(
+                        <h4 key={idx} className="text-sm font-semibold text-indigo-300 mt-4 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                            <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full inline-block"></span>
+                            {parseInlineMarkdown(line.substring(4))}
+                        </h4>
+                    );
+                } else if (line.startsWith('## ')) {
+                    rendered.push(
+                        <h3 key={idx} className="text-base font-bold text-indigo-200 mt-5 mb-2 border-b border-white/5 pb-1">
+                            {parseInlineMarkdown(line.substring(3))}
+                        </h3>
+                    );
+                } else if (line.startsWith('# ')) {
+                    rendered.push(
+                        <h2 key={idx} className="text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-purple-300 mt-5 mb-2.5">
+                            {parseInlineMarkdown(line.substring(2))}
+                        </h2>
+                    );
+                } else if (trimmed) {
+                    rendered.push(
+                        <p key={idx} className="text-sm text-slate-200 leading-relaxed my-2">
+                            {parseInlineMarkdown(line)}
+                        </p>
+                    );
+                } else {
+                    rendered.push(<div key={idx} className="h-2"></div>);
+                }
+            }
+        });
+
+        flushList('end');
+        return rendered;
+    };
+
+    const parseInlineMarkdown = (text) => {
+        const parts = [];
+        let currentText = text;
+        const regex = /(\*\*.*?\*\*|`.*?`)/;
+        let index = 0;
+
+        while (currentText) {
+            const match = currentText.match(regex);
+            if (!match) {
+                parts.push(<span key={index}>{currentText}</span>);
+                break;
+            }
+
+            const matchIndex = match.index;
+            if (matchIndex > 0) {
+                parts.push(<span key={index}>{currentText.substring(0, matchIndex)}</span>);
+                index++;
+            }
+
+            const matchedStr = match[0];
+            if (matchedStr.startsWith('**') && matchedStr.endsWith('**')) {
+                parts.push(
+                    <strong key={index} className="font-semibold text-white drop-shadow-[0_0_1px_rgba(255,255,255,0.25)]">
+                        {matchedStr.substring(2, matchedStr.length - 2)}
+                    </strong>
+                );
+            } else if (matchedStr.startsWith('`') && matchedStr.endsWith('`')) {
+                parts.push(
+                    <code key={index} className="bg-slate-950/70 border border-white/10 text-cyan-400 font-mono text-[11px] px-1.5 py-0.5 rounded mx-0.5 font-medium">
+                        {matchedStr.substring(1, matchedStr.length - 1)}
+                    </code>
+                );
+            }
+            index++;
+            currentText = currentText.substring(matchIndex + matchedStr.length);
+        }
+
+        return parts;
+    };
+
+    const suggestions = [
+        {
+            title: "Optimize Stock",
+            desc: "Which products should I discount this week?",
+            prompt: "Can u suggest which products can i put on discount this week?"
+        },
+        {
+            title: "Analyze Competitors",
+            desc: "Compare our prices against market leaders",
+            prompt: "Analyze our competitor pricing trends and show me where we are priced too high or too low."
+        },
+        {
+            title: "Forecast Demand",
+            desc: "What are the demand signals for next month?",
+            prompt: "Show me the key demand signals and sales forecasts for the upcoming month."
+        },
+        {
+            title: "Alert Strategy",
+            desc: "Configure pricing anomaly alerts",
+            prompt: "How should I configure alerts for sudden competitor price drops or high inventory levels?"
+        }
+    ];
+
+    return (
+        <div className="h-full w-full bg-surface flex overflow-hidden relative font-sans">
+            
+            {/* Chat Sidebar */}
+            <div className="flex flex-col bg-surface-light border-r border-white/5 w-64 md:w-80 h-full relative z-10 shrink-0">
+                {/* Sidebar Header - Dynamic Left Padding to Clear Dashboard Menu Toggle Button */}
+                <div className={`p-4 flex items-center justify-between border-b border-white/5 ${!sidebarOpen ? 'pl-[72px]' : ''} h-[68px] transition-all duration-300`}>
+                    <button 
+                        onClick={handleNewChat}
+                        className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary-light border border-primary/20 hover:bg-primary hover:text-white py-2.5 rounded-xl transition-all font-medium text-xs shadow-[0_0_15px_rgba(99,102,241,0.05)] hover:shadow-[0_0_20px_rgba(99,102,241,0.25)]"
+                    >
+                        <HiOutlinePlus className="w-4 h-4" /> New Chat
+                    </button>
+                </div>
+                
+                {/* Chat Sessions list */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
+                    {chats.map(chat => (
+                        <div 
+                            key={chat._id} 
+                            onClick={() => loadSingleChat(chat._id)}
+                            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer group transition-all duration-200 border ${
+                                activeChatId === chat._id 
+                                ? 'bg-primary/10 border-primary/15 text-white font-medium shadow-[0_4px_12px_rgba(99,102,241,0.08)]' 
+                                : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
+                                <HiOutlineChatAlt2 className={`w-4.5 h-4.5 shrink-0 ${activeChatId === chat._id ? 'text-primary-light animate-pulse' : 'text-slate-500'}`} />
+                                <span className="text-xs truncate">{chat.title}</span>
+                            </div>
+                            <button 
+                                onClick={(e) => handleDeleteChat(e, chat._id)}
+                                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-danger/90 hover:scale-105 transition-all p-1 rounded-md hover:bg-white/5"
+                                title="Delete Chat"
+                            >
+                                <HiOutlineTrash className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Main Chat Workspace */}
+            <div className="flex-1 flex flex-col h-full bg-surface relative overflow-hidden">
+                {/* Decorative Glowing Mesh Orbs */}
+                <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] pointer-events-none"></div>
+
+                {/* Workspace Header */}
+                <div className="flex items-center justify-between px-6 h-[68px] border-b border-white/5 bg-surface/30 backdrop-blur-md relative z-10">
+                    <div className="flex items-center space-x-3">
+                        <div className="relative">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.15)]">
+                                <div className="w-full h-full bg-surface-light rounded-xl flex items-center justify-center">
+                                    <HiOutlineChatAlt2 className="w-4.5 h-4.5 text-primary-light" />
+                                </div>
+                            </div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success border-2 border-surface rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-100 text-xs tracking-wider uppercase">PricePilot AI</h3>
+                            <p className="text-[9px] text-success tracking-widest font-semibold flex items-center gap-1 mt-0.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-success inline-block animate-ping"></span> Online
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Messages Panel */}
+                <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 custom-scrollbar bg-transparent relative z-10">
+                    {messages.length === 0 && (
+                        <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto px-4 text-center h-full animate-fade-in py-8">
+                            {/* Glowing Brand Icon */}
+                            <div className="relative mb-6">
+                                <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent blur-xl opacity-30 animate-pulse"></div>
+                                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent p-[1.5px] relative z-10 shadow-[0_8px_32px_rgba(99,102,241,0.35)]">
+                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center">
+                                        <HiOutlineChatAlt2 className="w-10 h-10 text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-accent" />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Welcoming Text */}
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-slate-400 tracking-tight">
+                                Meet PricePilot AI
+                            </h2>
+                            <p className="text-slate-400 text-sm md:text-base mt-2 max-w-lg leading-relaxed">
+                                Your real-time intelligence assistant for pricing optimization, competitor tracking, and smart inventory decisions.
+                            </p>
+                            
+                            {/* Suggestion prompt cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10 w-full">
+                                {suggestions.map((sug, idx) => (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleSend(null, sug.prompt)}
+                                        className="glass-card p-5 rounded-2xl border border-white/5 bg-slate-900/40 hover:bg-slate-900/80 cursor-pointer flex flex-col items-left text-left group transition-all duration-300 hover:border-primary/30"
+                                    >
+                                        <h4 className="text-sm font-semibold text-indigo-300 group-hover:text-white transition-colors duration-200">
+                                            {sug.title}
+                                        </h4>
+                                        <p className="text-xs text-slate-400 mt-1.5 leading-normal group-hover:text-slate-300 transition-colors duration-200">
+                                            {sug.desc}
+                                        </p>
+                                        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-primary-light group-hover:text-primary-light/80 font-medium">
+                                            <span>Try prompt</span>
+                                            <span className="transform translate-x-0 group-hover:translate-x-1 transition-transform duration-200">→</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {messages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                            <div className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-lg border relative ${
+                                msg.role === 'user' 
+                                ? 'bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-sm shadow-primary/10' 
+                                : 'bg-surface-light/55 backdrop-blur-md border-white/5 text-slate-200 rounded-tl-sm'
+                            }`}>
+                                {msg.role === 'user' ? (
+                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                                ) : (
+                                    <div className="space-y-0.5">
+                                        {formatMessageContent(msg.content)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {isLoading && (
+                        <div className="flex justify-start animate-in fade-in duration-300">
+                            <div className="bg-surface-light/55 backdrop-blur-md border border-white/5 rounded-2xl rounded-tl-sm px-5 py-4 flex space-x-2.5">
+                                <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]"></div>
+                                <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]" style={{ animationDelay: '0.15s' }}></div>
+                                <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]" style={{ animationDelay: '0.3s' }}></div>
+                            </div>
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Attached File Toast indicator */}
+                {attachedFile && (
+                    <div className="px-6 pb-2 relative z-10">
+                        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary-light text-xs px-3.5 py-2 rounded-xl">
+                            <HiOutlineDocumentText className="w-4 h-4 text-primary-light" />
+                            <span className="truncate max-w-[200px] font-medium">{attachedFile.name}</span>
+                            <button onClick={() => {setAttachedFile(null); setExtractedText(null);}} className="hover:text-white ml-1 text-slate-400 transition-colors">
+                                <HiOutlineX className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Chat Action Input bar */}
+                <div className="p-6 bg-surface/50 backdrop-blur-lg border-t border-white/5 relative z-20">
+                    <form onSubmit={(e) => handleSend(e)} className="relative flex items-center max-w-4xl mx-auto group">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept=".pdf,.txt,.csv"
+                            onChange={handleFileUpload}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="absolute left-4.5 text-slate-400 hover:text-primary-light transition-colors z-10"
+                            title="Attach PDF or Text file"
+                        >
+                            <HiOutlinePaperClip className="w-5 h-5" />
+                        </button>
+                        
+                        <input
+                            type="text"
+                            ref={inputRef}
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={extractedText ? "Ask about your attached file..." : "Message PricePilot AI..."}
+                            className="w-full bg-surface-light border border-white/5 rounded-2xl pl-13 pr-15 py-4 text-sm text-slate-100 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-all placeholder-slate-500"
+                        />
+                        
+                        <button
+                            type="submit"
+                            disabled={!input.trim() || isLoading}
+                            className="absolute right-2 bg-gradient-to-r from-primary to-primary-dark text-white p-2.5 rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 transform active:scale-95 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                        >
+                            <svg className="w-4 h-4 translate-x-[0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </form>
+                    <p className="text-center text-[10px] text-slate-500 mt-3 font-medium tracking-wide">AI can make mistakes. Consider verifying important information.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Chat;
