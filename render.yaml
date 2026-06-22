@@ -15,7 +15,7 @@ services:
     rootDir: server
     plan: starter           # free tier; upgrade for production traffic
     region: oregon
-    buildCommand: npm ci --include=dev && cd ../client && npm ci && npm run build
+    buildCommand: npm ci --include=dev && cd ../client && npm ci --include=dev && npm run build
     startCommand: node server.js
     healthCheckPath: /api/ready
     autoDeploy: true
