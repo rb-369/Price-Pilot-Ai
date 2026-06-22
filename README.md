@@ -102,6 +102,12 @@ PricePilot AI solves these challenges with automated, intelligent pricing that a
 - Role-based access control (Admin / Manager / User)
 - Password hashing with bcrypt
 - Protected API routes with middleware guards
+- API Rate Limiting to prevent abuse and ensure service stability
+
+### ⚡ Performance & Reliability
+- **Redis Caching**: Instantaneous dashboard metrics by caching heavy aggregations.
+- **Async Job Queue (BullMQ)**: Non-blocking AI recommendations and forecasting processes for reliable generation under heavy loads.
+- **Automated Testing**: Comprehensive unit testing with Jest for robust backend components.
 
 ### 🎨 Premium UI/UX
 - Dark-mode glassmorphism design system
@@ -142,10 +148,13 @@ The system follows a **microservices architecture** with three main components:
 | Node.js 20 | Server runtime |
 | Express 4 | Web framework |
 | MongoDB + Mongoose 8 | Database & ODM |
+| Redis + BullMQ | In-memory caching & Async Job Queues |
 | JWT (jsonwebtoken) | Authentication |
 | bcryptjs | Password hashing |
+| express-rate-limit | API rate limiting |
 | node-cron | Scheduled tasks |
 | Puppeteer | Web scraping (competitor data) |
+| Jest | Automated testing |
 
 ### AI Service
 | Technology | Purpose |
@@ -272,6 +281,7 @@ JWT_SECRET=your_strong_secret_key
 AI_SERVICE_URL=http://localhost:8000
 LLM_API_KEY=your_google_gemini_api_key
 VITE_API_URL=http://localhost:5000/api
+REDIS_URL=redis://localhost:6379
 ```
 
 ### 3. Install Dependencies
@@ -352,6 +362,7 @@ docker-compose down
 
 This starts:
 - **MongoDB** on port 27017
+- **Redis** on port 6379 (Used for Caching & BullMQ)
 - **API Server** on port 5000 (with built React client)
 - **AI Service** on port 8000
 

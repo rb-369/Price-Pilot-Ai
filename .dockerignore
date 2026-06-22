@@ -4,10 +4,15 @@ node_modules
 *.log
 client/node_modules
 server/node_modules
-ai-service/__pycache__
-ai-service/.venv
+**/__pycache__
+**/.venv
+**/.pytest_cache
+**/.coverage
 .DS_Store
 Thumbs.db
 *.md
 !README.md
 client/dist
+ai-service/models/chroma_db
+*.sqlite3
+*.bin

@@ -44,13 +44,14 @@ export default function ForgotPassword() {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Email Address</label>
-                            <input 
-                                type="email" 
-                                className="input-field" 
-                                placeholder="admin@ecom.ai"
-                                value={email} 
-                                onChange={(e) => setEmail(e.target.value)} 
-                                required 
+                            <input
+                                type="email"
+                                className="input-field"
+                                placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                autoComplete="email"
                             />
                         </div>
 
