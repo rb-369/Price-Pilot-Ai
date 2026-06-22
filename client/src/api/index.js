@@ -1,11 +1,43 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// Resolve API base URL.
+// - In production, VITE_API_URL MUST be set (otherwise the SPA rewrite returns
+//   HTML for /api/* and every request appears to 404).
+// - In development, fall back to the Vite dev-server proxy at /api.
+const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : '');
+
+if (!RAW_API_URL) {
+    // Surface a clear, actionable error instead of letting the user chase
+    // confusing 404s from the Vercel rewrite.
+    // eslint-disable-next-line no-console
+    console.error(
+        '[PricePilot] VITE_API_URL is not set. Add it to your Vercel project ' +
+        'environment variables (Settings → Environment Variables) and redeploy. ' +
+        'Example: VITE_API_URL=https://api.your-domain.com/api'
+    );
+}
+
+const API_URL = RAW_API_URL.replace(/\/+$/, ''); // strip trailing slash
 
 const api = axios.create({
     baseURL: API_URL,
     headers: { 'Content-Type': 'application/json' },
+    // Don't accept HTML (the SPA rewrite) as a valid JSON response.
+    responseType: 'json',
 });
+
+// Surface a friendlier error when the backend is unreachable or returns HTML.
+api.interceptors.response.use(
+    (res) => res,
+    (err) => {
+        if (!err.response) {
+            // Network failure / CORS / DNS — backend not reachable.
+            err.message = `Cannot reach the API server at ${API_URL || '(unset)'}. ` +
+                `Set VITE_API_URL to your deployed backend and redeploy.`;
+        }
+        return Promise.reject(err);
+    }
+);
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {

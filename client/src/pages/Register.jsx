@@ -71,14 +71,14 @@ export default function Register() {
                     <div>
                         <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Full Name</label>
                         <input type="text" className="input-field" placeholder="John Doe"
-                            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                            value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoComplete="name" />
                     </div>
 
                     {/* Email */}
                     <div>
                         <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Email</label>
                         <input type="email" className="input-field" placeholder="you@example.com"
-                            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                            value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoComplete="email" />
                     </div>
 
                     {/* Password */}
@@ -86,7 +86,7 @@ export default function Register() {
                         <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Password</label>
                         <div className="relative">
                             <input type={showPassword ? 'text' : 'password'} className="input-field pr-12" placeholder="Min 6 characters"
-                                value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} />
+                                value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} autoComplete="new-password" />
                             <button type="button" onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted/60 hover:text-primary transition-colors text-xs font-medium">
                                 {showPassword ? 'HIDE' : 'SHOW'}

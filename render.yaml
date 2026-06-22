@@ -1,0 +1,49 @@
+# Render Blueprint — one-click deploy for PricePilot AI backend
+# Usage: render.com → New → Blueprint → connect this repo.
+#
+# This file provisions:
+#   1. A Node.js web service for the Express API (with the built React client served statically)
+#   2. A free Redis instance for BullMQ + caching
+#
+# You still need to provision MongoDB yourself (Render offers it as a paid add-on,
+# or use MongoDB Atlas free tier). Set MONGODB_URI in the service's environment.
+
+services:
+  - type: web
+    name: pricepilot-api
+    runtime: node
+    rootDir: server
+    plan: starter           # free tier; upgrade for production traffic
+    region: oregon
+    buildCommand: npm ci --include=dev && cd ../client && npm ci && npm run build
+    startCommand: node server.js
+    healthCheckPath: /api/ready
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false         # set this manually in the Render dashboard
+      - key: JWT_SECRET
+        generateValue: true # Render will create a strong random secret
+      - key: CLIENT_URL
+        value: https://price-pilot-ai.vercel.app   # ← your Vercel frontend URL
+      - key: AI_SERVICE_URL
+        value: ""           # set if you deploy the AI service too
+      - key: LLM_API_KEY
+        sync: false         # Google Gemini API key
+      - key: ENABLE_CRON
+        value: "0"          # set to "1" only on a single instance
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: pricepilot-redis
+          property: connectionString
+
+  - type: redis
+    name: pricepilot-redis
+    plan: free
+    region: oregon
+    ipAllowList: []         # only internal Render services can connect

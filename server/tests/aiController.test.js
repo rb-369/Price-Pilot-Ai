@@ -51,7 +51,8 @@ describe('AI Controller Endpoints', () => {
         const res = await request(app).post(`/api/ai/recommendations/${mockProduct._id}`);
         
         expect(res.statusCode).toEqual(200);
-        expect(res.body.recommendedPrice).toEqual(110);
+        expect(res.body.status).toEqual('queued');
+        expect(res.body.jobId).toBeDefined();
     });
 
     it('should accept recommendation', async () => {

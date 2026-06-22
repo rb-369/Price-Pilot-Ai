@@ -77,14 +77,17 @@ exports.forgotPassword = async (req, res) => {
         const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
 
-        // Write to local file for sandboxed test verification
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            fs.writeFileSync(path.join(__dirname, '..', 'reset-link-debug.txt'), resetUrl);
-            console.log(`[Debug] Reset URL written to reset-link-debug.txt`);
-        } catch (fsErr) {
-            console.error('[Debug Error] Failed to write reset-link-debug.txt', fsErr.message);
+        // Dev convenience: write the reset URL to a local file so it can be
+        // retrieved without an email server. NEVER do this in production.
+        if (process.env.NODE_ENV !== 'production') {
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                fs.writeFileSync(path.join(__dirname, '..', 'reset-link-debug.txt'), resetUrl);
+                console.log(`[Debug] Reset URL written to reset-link-debug.txt`);
+            } catch (fsErr) {
+                console.error('[Debug Error] Failed to write reset-link-debug.txt', fsErr.message);
+            }
         }
 
         let emailSent = false;
