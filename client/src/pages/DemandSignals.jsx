@@ -95,6 +95,21 @@ export default function DemandSignals() {
                 )}
             </div>
 
+            {products.length === 0 ? (
+                <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <HiOutlineFire className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-text mb-3">No Demand Signals Yet</h2>
+                    <p className="text-text-muted max-w-md mx-auto mb-8">
+                        Add a product to start analyzing Google Search Trends, weather impacts, local events, and social media sentiment signals.
+                    </p>
+                    <a href="/products" className="btn-primary">
+                        Add Your First Product
+                    </a>
+                </div>
+            ) : (
+                <>
             {/* Demand Heatmap */}
             <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 <div className="flex items-center gap-2 mb-6">
@@ -175,6 +190,8 @@ export default function DemandSignals() {
                     </div>
                 )}
             </div>
+            </>
+            )}
         </div>
     );
 }

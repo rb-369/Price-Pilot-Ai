@@ -72,7 +72,22 @@ export default function Dashboard() {
                 <p className="text-text-muted mt-1 text-sm">AI-Powered Pricing & Inventory Intelligence</p>
             </div>
 
-            {/* KPI Cards */}
+            {stats?.totalProducts === 0 ? (
+                <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <HiOutlineCube className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-text mb-3">Welcome to PricePilot!</h2>
+                    <p className="text-text-muted max-w-md mx-auto mb-8">
+                        Your dashboard is currently empty. Get started by adding your first product so our AI can begin tracking competitor prices, analyzing demand signals, and generating smart recommendations.
+                    </p>
+                    <a href="/products" className="btn-primary">
+                        Add Your First Product
+                    </a>
+                </div>
+            ) : (
+                <>
+                    {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {statCards.map((card, i) => (
                     <div key={i} className={`glass-card-hover p-5 border-l-[3px] ${card.borderColor} animate-slide-up`}
@@ -222,6 +237,8 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+            </>
+            )}
         </div>
     );
 }

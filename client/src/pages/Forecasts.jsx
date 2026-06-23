@@ -105,6 +105,21 @@ export default function Forecasts() {
                 )}
             </div>
 
+            {products.length === 0 ? (
+                <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <HiOutlineTrendingUp className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-text mb-3">No Products Found</h2>
+                    <p className="text-text-muted max-w-md mx-auto mb-8">
+                        You need to add products to your inventory before we can generate demand forecasts. Add your first product to get started!
+                    </p>
+                    <a href="/products" className="btn-primary">
+                        Add Your First Product
+                    </a>
+                </div>
+            ) : (
+                <>
             {/* Generate Section */}
             <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 <h2 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
@@ -193,6 +208,8 @@ export default function Forecasts() {
                     <h3 className="text-lg font-semibold text-text mb-1">No forecasts yet</h3>
                     <p className="text-text-muted text-sm">Click on a product above to generate one</p>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

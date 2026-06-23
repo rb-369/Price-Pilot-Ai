@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAlerts, markAlertRead, markAllAlertsRead } from '../api';
+import { getAlerts, markAlertRead, markAllAlertsRead, getProducts } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlineBell, HiOutlineCheck, HiOutlineExclamation, HiOutlineTrendingDown, HiOutlineShoppingCart } from 'react-icons/hi';
 
@@ -23,11 +23,15 @@ const typeColors = {
 
 export default function Alerts() {
     const [alerts, setAlerts] = useState([]);
+    const [products, setProducts] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
 
     useEffect(() => {
-        getAlerts().then(r => setAlerts(r.data)).catch(() => { }).finally(() => setLoading(false));
+        Promise.all([
+            getAlerts().then(r => setAlerts(r.data)),
+            getProducts().then(r => setProducts(r.data.data || r.data))
+        ]).catch(() => { }).finally(() => setLoading(false));
     }, []);
 
     const handleMarkRead = async (id) => {
@@ -73,6 +77,21 @@ export default function Alerts() {
                 </button>
             </div>
 
+            {products && products.length === 0 ? (
+                <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                        <HiOutlineBell className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-text mb-3">No Alerts Yet</h2>
+                    <p className="text-text-muted max-w-md mx-auto mb-8">
+                        You haven't added any products yet, so there's nothing to monitor. Add a product and we'll notify you of price drops, stockouts, and competitor actions.
+                    </p>
+                    <a href="/products" className="btn-primary">
+                        Add Your First Product
+                    </a>
+                </div>
+            ) : (
+                <>
             {/* Filters */}
             <div className="flex gap-2 flex-wrap animate-slide-up" style={{ animationDelay: '0.05s' }}>
                 {['all', 'unread', 'competitor_undercut', 'stockout_risk', 'competitor_stockout', 'promotion'].map(f => (
@@ -134,6 +153,8 @@ export default function Alerts() {
                     <h3 className="text-lg font-semibold text-text mb-1">No alerts to show</h3>
                     <p className="text-text-muted text-sm">You're all caught up!</p>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

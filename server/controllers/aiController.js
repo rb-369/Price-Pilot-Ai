@@ -18,13 +18,17 @@ exports.getRecommendations = async (req, res) => {
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
         const skip = (page - 1) * limit;
 
+        const userProducts = await Product.find({ userId: req.user._id }).select('_id');
+        const productIds = userProducts.map(p => p._id);
+        const filter = { productId: { $in: productIds } };
+
         const [recommendations, total] = await Promise.all([
-            PricingRecommendation.find({})
+            PricingRecommendation.find(filter)
                 .populate('productId', 'name sku currentPrice baseCost stockLevel')
                 .sort({ timestamp: -1 })
                 .skip(skip)
                 .limit(limit),
-            PricingRecommendation.countDocuments({}),
+            PricingRecommendation.countDocuments(filter),
         ]);
 
         res.json({
@@ -57,13 +61,17 @@ exports.getForecast = async (req, res) => {
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
         const skip = (page - 1) * limit;
 
+        const userProducts = await Product.find({ userId: req.user._id }).select('_id');
+        const productIds = userProducts.map(p => p._id);
+        const filter = { productId: { $in: productIds } };
+
         const [forecasts, total] = await Promise.all([
-            InventoryForecast.find({})
+            InventoryForecast.find(filter)
                 .populate('productId', 'name sku stockLevel reorderThreshold')
                 .sort({ timestamp: -1 })
                 .skip(skip)
                 .limit(limit),
-            InventoryForecast.countDocuments({}),
+            InventoryForecast.countDocuments(filter),
         ]);
 
         res.json({
@@ -219,26 +227,35 @@ exports.rejectRecommendation = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
     try {
-        const cacheKey = 'dashboard_stats';
+        const cacheKey = `dashboard_stats_${req.user._id}`;
         const cachedData = await redisClient.get(cacheKey);
         
         if (cachedData) {
             return res.json(JSON.parse(cachedData));
         }
 
-        const totalProducts = await Product.countDocuments();
+        const totalProducts = await Product.countDocuments({ userId: req.user._id });
         const lowStockProducts = await Product.countDocuments({
+            userId: req.user._id,
             $expr: { $lte: ['$stockLevel', '$reorderThreshold'] },
         });
-        const pendingRecommendations = await PricingRecommendation.countDocuments({ status: 'pending' });
-
-        const products = await Product.find({});
+        
+        const products = await Product.find({ userId: req.user._id });
+        const productIds = products.map(p => p._id);
+        
+        const pendingRecommendations = await PricingRecommendation.countDocuments({ 
+            productId: { $in: productIds }, 
+            status: 'pending' 
+        });
 
         // Inventory Value (price × stock)
         const inventoryValue = products.reduce((sum, p) => sum + p.currentPrice * (p.stockLevel || 0), 0);
 
         // Estimated Revenue from accepted recommendations
-        const acceptedRecs = await PricingRecommendation.find({ status: 'accepted' })
+        const acceptedRecs = await PricingRecommendation.find({ 
+            productId: { $in: productIds }, 
+            status: 'accepted' 
+        })
             .sort({ appliedAt: -1 })
             .limit(100);
         const estimatedRevenue = acceptedRecs.reduce((sum, rec) => {
@@ -276,9 +293,9 @@ exports.chat = async (req, res) => {
         const { messages } = req.body;
         
         // Gather context for the chatbot (RAG)
-        const products = await Product.find({}).limit(20);
+        const products = await Product.find({ userId: req.user._id }).limit(20);
         // Only active/critical alerts
-        const alerts = await Alert.find({ status: 'active' }).limit(10);
+        const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
         
         const payload = {
             messages,
@@ -320,7 +337,7 @@ exports.getChartData = async (req, res) => {
     try {
         const days = Math.min(90, Math.max(7, parseInt(req.query.days) || 30));
         
-        const cacheKey = `chart_data_${days}`;
+        const cacheKey = `chart_data_${req.user._id}_${days}`;
         const cachedData = await redisClient.get(cacheKey);
         
         if (cachedData) {
@@ -330,10 +347,13 @@ exports.getChartData = async (req, res) => {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
         startDate.setHours(0, 0, 0, 0);
+        
+        const userProducts = await Product.find({ userId: req.user._id }).select('_id');
+        const productIds = userProducts.map(p => p._id);
 
         // Aggregate demand signals per day
         const demandAgg = await DemandSignal.aggregate([
-            { $match: { timestamp: { $gte: startDate } } },
+            { $match: { productId: { $in: productIds }, timestamp: { $gte: startDate } } },
             {
                 $group: {
                     _id: {
@@ -350,7 +370,7 @@ exports.getChartData = async (req, res) => {
 
         // Aggregate competitor prices per day
         const competitorAgg = await CompetitorPrice.aggregate([
-            { $match: { timestamp: { $gte: startDate } } },
+            { $match: { productId: { $in: productIds }, timestamp: { $gte: startDate } } },
             {
                 $group: {
                     _id: {
@@ -365,7 +385,7 @@ exports.getChartData = async (req, res) => {
 
         // Aggregate recommendation activity per day
         const recAgg = await PricingRecommendation.aggregate([
-            { $match: { timestamp: { $gte: startDate } } },
+            { $match: { productId: { $in: productIds }, timestamp: { $gte: startDate } } },
             {
                 $group: {
                     _id: {

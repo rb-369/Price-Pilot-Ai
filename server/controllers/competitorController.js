@@ -5,6 +5,10 @@ const Alert = require('../models/Alert');
 exports.getCompetitorPrices = async (req, res) => {
     try {
         const { productId } = req.params;
+        // Verify product belongs to user
+        const product = await Product.findOne({ _id: productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
         const prices = await CompetitorPrice.find({ productId })
             .sort({ timestamp: -1 })
             .limit(100);
@@ -16,7 +20,11 @@ exports.getCompetitorPrices = async (req, res) => {
 
 exports.getAllLatestPrices = async (req, res) => {
     try {
+        const userProducts = await Product.find({ userId: req.user._id }).select('_id');
+        const productIds = userProducts.map(p => p._id);
+
         const prices = await CompetitorPrice.aggregate([
+            { $match: { productId: { $in: productIds } } },
             { $sort: { timestamp: -1 } },
             {
                 $group: {

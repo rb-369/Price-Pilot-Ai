@@ -3,6 +3,10 @@ const DemandSignal = require('../models/DemandSignal');
 exports.getDemandSignals = async (req, res) => {
     try {
         const { productId } = req.params;
+        // Verify product belongs to user
+        const product = await require('../models/Product').findOne({ _id: productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
         const signals = await DemandSignal.find({ productId })
             .sort({ timestamp: -1 })
             .limit(60);
@@ -14,7 +18,11 @@ exports.getDemandSignals = async (req, res) => {
 
 exports.getAllDemandSignals = async (req, res) => {
     try {
+        const userProducts = await require('../models/Product').find({ userId: req.user._id }).select('_id');
+        const productIds = userProducts.map(p => p._id);
+
         const signals = await DemandSignal.aggregate([
+            { $match: { productId: { $in: productIds } } },
             { $sort: { timestamp: -1 } },
             {
                 $group: {
