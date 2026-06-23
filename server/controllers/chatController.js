@@ -67,8 +67,8 @@ exports.sendMessage = async (req, res) => {
         chat.messages.push(userMsg);
 
         // Gather real context for the chatbot (RAG)
-        const products = await Product.find({}).limit(20);
-        const alerts = await Alert.find({ status: 'active' }).limit(10);
+        const products = await Product.find({ userId: req.user._id }).limit(20);
+        const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
         
         // Prepare context
         let contextContent = {

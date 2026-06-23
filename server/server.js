@@ -38,7 +38,14 @@ app.use(helmet({
 }));
 
 // ── Compression (gzip) ──
-app.use(compression());
+app.use(compression({
+    filter: (req, res) => {
+        if (req.headers['accept'] === 'text/event-stream') {
+            return false;
+        }
+        return compression.filter(req, res);
+    }
+}));
 
 // ── CORS ──
 // Build an explicit allowlist from env (comma-separated). When unset in dev, allow all.
