@@ -29,15 +29,13 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     messages: list of dicts with 'role' ('user' or 'model'/'assistant') and 'content'
     context_data: optional dict with data sent from frontend on-the-fly.
     """
-    # 1. Optionally ingest on-the-fly context (non-blocking)
+    # We receive context directly from the Node backend for this specific user.
+    # To prevent cross-account data leaks, we inject this directly into the prompt
+    # instead of storing and retrieving it from a global vector database.
+    context_str = "No additional context available."
     if context_data:
-        try:
-            if "products" in context_data:
-                ingest_data(context_data["products"], data_type="product")
-            if "alerts" in context_data:
-                ingest_data(context_data["alerts"], data_type="alert")
-        except Exception as e:
-            print(f"Warning: Failed to ingest on-the-fly context into Chroma: {e}")
+        import json
+        context_str = json.dumps(context_data, indent=2)
 
     # Combine API keys for fallback safety
     gemini_key = os.getenv("CHATBOT_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("LLM_API_KEY", "")
@@ -82,15 +80,8 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
             
     latest_query = messages[-1]["content"] if messages else ""
     
-    # 6. Try RAG retrieval, fall back to no-context if embeddings fail
-    context_str = "No additional context available."
-    try:
-        retriever = get_retriever(k=4)
-        docs = await retriever.ainvoke(latest_query)
-        if docs:
-            context_str = "\n\n".join([doc.page_content for doc in docs])
-    except Exception as e:
-        print(f"Warning: Vector retrieval failed (chatbot will answer without RAG context): {e}")
+    # 6. We already set context_str directly from the frontend request above.
+    # No need to query ChromaDB for local user products.
     
     # 7. Invoke Chain (always runs, even if retrieval failed)
     try:
