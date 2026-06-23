@@ -20,3 +20,4 @@ langchain
 langchain-google-genai
 langchain-openai
 langchain-community
+langchain-chroma
