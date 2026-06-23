@@ -99,18 +99,41 @@ async def _generate_with_gemini(
         confidence=recommendation.get("confidenceScore", 0),
     )
 
-    # We must use async client from google.genai
-    # gemini-2.5-flash is officially supported by your specific API key/region!
-    response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.4
+    try:
+        # We must use async client from google.genai
+        # gemini-2.5-flash is officially supported by your specific API key/region!
+        response = await client.aio.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.4
+            )
         )
-    )
-    return response.text.strip()
-
+        return response.text.strip()
+    except Exception as e:
+        print(f"Gemini failed: {e}. Trying OpenRouter fallback...")
+        import httpx
+        import json
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": "meta-llama/llama-3-8b-instruct",
+            "messages": [{"role": "user", "content": prompt + "\n\nCRITICAL: You MUST return ONLY a raw JSON object. Do not wrap in markdown blocks like ```json."}],
+            "temperature": 0.4
+        }
+        async with httpx.AsyncClient(timeout=30) as http_client:
+            resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+            resp.raise_for_status()
+            resp_json = resp.json()
+            content = resp_json["choices"][0]["message"]["content"].strip()
+            if content.startswith("```json"):
+                content = content[7:-3].strip()
+            elif content.startswith("```"):
+                content = content[3:-3].strip()
+            return content
 
 def _generate_template_insight(
     product: Dict,
