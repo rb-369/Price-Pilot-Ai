@@ -51,9 +51,50 @@ async def generate_product_copy(product_name: str, category: str = "") -> dict:
         )
         return json.loads(response.text.strip())
     except Exception as e:
-        print(f"Product generation failed: {e}")
-        return {
-            "title": product_name,
-            "description": "Failed to generate description due to AI service error.",
-            "seo_tags": []
-        }
+        print(f"Gemini generation failed: {e}. Trying OpenRouter fallback...")
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+        if not openrouter_key:
+            print("No OPENROUTER_API_KEY found for fallback.")
+            return {
+                "title": product_name,
+                "description": "Failed to generate description due to AI service error.",
+                "seo_tags": []
+            }
+        
+        try:
+            import httpx
+            async with httpx.AsyncClient() as http_client:
+                headers = {
+                    "Authorization": f"Bearer {openrouter_key}",
+                    "Content-Type": "application/json"
+                }
+                data = {
+                    "model": "google/gemini-2.5-flash", # Fallback to same model via OpenRouter or change if preferred
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.7,
+                }
+                
+                resp = await http_client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers=headers,
+                    json=data,
+                    timeout=30.0
+                )
+                resp.raise_for_status()
+                resp_json = resp.json()
+                content = resp_json["choices"][0]["message"]["content"]
+                
+                # Strip markdown code blocks if the model wrapped the JSON in them
+                if content.startswith("```json"):
+                    content = content[7:-3].strip()
+                elif content.startswith("```"):
+                    content = content[3:-3].strip()
+                    
+                return json.loads(content)
+        except Exception as fallback_err:
+            print(f"OpenRouter fallback also failed: {fallback_err}")
+            return {
+                "title": product_name,
+                "description": "Failed to generate description due to AI service error.",
+                "seo_tags": []
+            }
