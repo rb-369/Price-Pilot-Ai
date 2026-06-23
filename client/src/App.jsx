@@ -15,6 +15,7 @@ import Recommendations from './pages/Recommendations';
 import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
 import Chat from './pages/Chat';
+import Integrations from './pages/Integrations';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
@@ -62,6 +63,7 @@ function AppRoutes() {
         <Route path="recommendations" element={<Recommendations />} />
         <Route path="chat" element={<Chat />} />
         <Route path="alerts" element={<Alerts />} />
+        <Route path="integrations" element={<Integrations />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

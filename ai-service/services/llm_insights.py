@@ -115,8 +115,10 @@ async def _generate_with_gemini(
         print(f"Gemini failed: {e}. Trying OpenRouter fallback...")
         import httpx
         import json
+        import os
+        or_key = os.getenv("OPENROUTER_API_KEY", api_key)
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {or_key}",
             "Content-Type": "application/json"
         }
         data = {

@@ -17,6 +17,12 @@ const productSchema = new mongoose.Schema({
         meesho: { type: String, default: '' },
         shopify: { type: String, default: '' },
     },
+    externalIds: {
+        shopifyId: { type: String, default: null },
+        amazonAsin: { type: String, default: null },
+        flipkartFsn: { type: String, default: null }
+    },
+    source: { type: String, enum: ['manual', 'shopify', 'amazon', 'flipkart'], default: 'manual' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

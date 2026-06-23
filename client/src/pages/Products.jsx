@@ -53,9 +53,10 @@ export default function Products() {
             setForm(prev => ({
                 ...prev,
                 name: res.data.title || prev.name,
+                description: res.data.description || prev.description
             }));
             if (res.data.description) {
-                toast(`Generated Description:\n${res.data.description}`, { duration: 8000 });
+                toast.success('Description filled automatically!', { duration: 3000 });
             }
         } catch (err) {
             toast.error('AI generation failed', { id: toastId });
@@ -170,10 +171,15 @@ export default function Products() {
                     <h1 className="page-header text-3xl">Products</h1>
                     <p className="text-text-muted mt-1 text-sm">{products.length} products in inventory</p>
                 </div>
-                <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
-                    {showForm && !editId ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
-                    {showForm && !editId ? 'Close' : 'Add Product'}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button onClick={() => window.location.href = '/dashboard/integrations'} className="btn-secondary flex items-center gap-2">
+                        <HiOutlineCube className="w-5 h-5" /> Import
+                    </button>
+                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
+                        {showForm && !editId ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
+                        {showForm && !editId ? 'Close' : 'Add Product'}
+                    </button>
+                </div>
             </div>
 
             {showForm && (

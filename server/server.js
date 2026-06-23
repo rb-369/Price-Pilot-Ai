@@ -22,6 +22,7 @@ const aiRoutes = require('./routes/aiRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const streamRoutes = require('./routes/stream');
 const abTestRoutes = require('./routes/abTestRoutes');
+const integrationRoutes = require('./routes/integrations');
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -103,6 +104,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/ab-tests', abTestRoutes);
+app.use('/api/integrations', integrationRoutes);
 
 // ── Health check ──
 app.get('/api/health', (req, res) => {

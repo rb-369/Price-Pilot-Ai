@@ -141,6 +141,30 @@ exports.acceptRecommendation = async (req, res) => {
             rec.revenueBeforeChange = product.currentPrice;
             product.currentPrice = rec.recommendedPrice;
             await product.save();
+
+            // Push to Shopify if integrated
+            if (product.source === 'shopify' && product.externalIds && product.externalIds.shopifyId) {
+                const Integration = require('../models/Integration');
+                const axios = require('axios');
+                const integration = await Integration.findOne({ userId: req.user._id, platform: 'shopify', status: 'active' });
+                if (integration) {
+                    try {
+                        const variantId = product.externalIds.shopifyId;
+                        await axios.put(`https://${integration.shopUrl}/admin/api/2024-01/variants/${variantId}.json`, {
+                            variant: {
+                                id: variantId,
+                                price: rec.recommendedPrice.toString()
+                            }
+                        }, {
+                            headers: { 'X-Shopify-Access-Token': integration.accessToken }
+                        });
+                        console.log(`Successfully pushed price ${rec.recommendedPrice} to Shopify variant ${variantId}`);
+                    } catch (syncErr) {
+                        console.error('Failed to push price to Shopify:', syncErr.message);
+                        // Ideally we'd log this or queue a retry, but for MVP, just catch so we don't break the app
+                    }
+                }
+            }
         }
 
         rec.status = 'accepted';

@@ -96,4 +96,10 @@ export const getUnreadAlertCount = () => api.get('/alerts/unread-count');
 export const markAlertRead = (id) => api.put(`/alerts/${id}/read`);
 export const markAllAlertsRead = () => api.put('/alerts/read-all');
 
+// Integrations
+export const getIntegrations = () => api.get('/integrations');
+export const connectShopify = (data) => api.post('/integrations/shopify', data);
+export const disconnectIntegration = (id) => api.delete(`/integrations/${id}`);
+export const syncShopifyProducts = () => api.post('/integrations/shopify/sync');
+
 export default api;

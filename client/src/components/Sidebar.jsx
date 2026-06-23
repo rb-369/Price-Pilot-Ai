@@ -4,7 +4,8 @@ import { useTheme } from '../context/ThemeContext';
 import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
-    HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2
+    HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
+    HiOutlineLink
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import logoIcon from '../assets/FINAL.png';
@@ -17,6 +18,7 @@ const links = [
     { to: '/dashboard/forecasts', icon: HiOutlineTrendingUp, label: 'Forecasts' },
     { to: '/dashboard/recommendations', icon: HiOutlineLightBulb, label: 'AI Recommendations' },
     { to: '/dashboard/chat', icon: HiOutlineChatAlt2, label: 'PricePilot AI' },
+    { to: '/dashboard/integrations', icon: HiOutlineLink, label: 'Integrations' },
     { to: '/dashboard/alerts', icon: HiOutlineBell, label: 'Alerts' },
 ];
 
