@@ -34,21 +34,47 @@ export default function Landing() {
                             <span className="font-bold text-2xl tracking-tight text-text relative z-10">PricePilot AI</span>
                         </div>
                         <div className="hidden md:flex items-center space-x-6">
-                            <Link to="/docs" className="text-text-muted hover:text-text transition-colors text-sm font-medium">Docs</Link>
-                            <Link to="/about" className="text-text-muted hover:text-text transition-colors text-sm font-medium">About Us</Link>
-                            <Link to="/login" className="text-text-muted hover:text-text transition-colors text-sm font-medium">Sign In</Link>
+    <Link to="/docs" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+        Docs
+    </Link>
 
-                            {/* Theme Toggle Button */}
-                            <button
-                                onClick={toggleTheme}
-                                className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface/50 transition-colors border border-transparent hover:border-primary/10 backdrop-blur-sm"
-                                title="Toggle Theme"
-                            >
-                                {theme === 'dark' ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
-                            </button>
+    <Link to="/about" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+        About Us
+    </Link>
 
-                            <Link to="/register" className="btn-primary py-2.5 px-6 shadow-[0_0_20px_rgba(99,102,241,0.5)]">Get Started</Link>
-                        </div>
+    <Link to="/login" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+        Sign In
+    </Link>
+
+    {/* Theme Toggle Button */}
+    <button
+        onClick={toggleTheme}
+        className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface/50 transition-colors border border-transparent hover:border-primary/10 backdrop-blur-sm"
+        title="Toggle Theme"
+    >
+        {theme === "dark" ? (
+            <HiOutlineSun className="w-5 h-5" />
+        ) : (
+            <HiOutlineMoon className="w-5 h-5" />
+        )}
+    </button>
+
+    {/* Try Demo Button */}
+    <Link
+        to="/demo"
+        className="btn-primary py-2.5 px-6 shadow-[0_0_20px_rgba(99,102,241,0.5)]"
+    >
+        See Demo
+    </Link>
+
+    {/* Get Started Button */}
+    <Link
+        to="/register"
+        className="btn-primary py-2.5 px-6 shadow-[0_0_20px_rgba(99,102,241,0.5)]"
+    >
+        Get Started
+    </Link>
+</div>
                     </div>
                 </div>
             </nav>
@@ -81,7 +107,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute left-12 bottom-1/4 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
+                <div className="hidden lg:block absolute left-12 bottom-[32%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
                             <HiOutlineCubeTransparent className="w-5 h-5 text-cyan-500" />
@@ -93,7 +119,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute right-12 bottom-1/3 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
+                <div className="hidden lg:block absolute right-12 bottom-[38%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
                             <HiOutlineLightningBolt className="w-5 h-5 text-purple-500" />
@@ -173,3 +199,4 @@ export default function Landing() {
         </div>
     );
 }
+
