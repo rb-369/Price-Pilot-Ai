@@ -55,7 +55,11 @@ pricepilot_technical_audit.md
 pricepilot_technical_audit_v2.md
 VERCEL_DEPLOYMENT.md
 RENDER_DEPLOYMENT.md
-
+docs/agents/domain.md
+docs/agents/issue-tracker.md
+docs/agents/triage-labels.md
 Procfile
 
 skills-lock.json
+codebase-analysis-report.md
+.playwright-mcp
