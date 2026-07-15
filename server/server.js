@@ -11,6 +11,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const logger = require('./config/logger');
 const { globalLimiter } = require('./middleware/rateLimiter');
+const mongoose = require('mongoose');
 
 // Route imports
 const authRoutes = require('./routes/authRoutes');
@@ -163,9 +164,6 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-// ── Mongo connection state for health checks ──
-const mongoose = require('mongoose');
 
 const startServer = async () => {
     // Validate required env vars up front (fail fast, not at first request)

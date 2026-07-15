@@ -12,6 +12,10 @@ const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 const recommendationQueue = new Queue('recommendationQueue', { connection: redisClient });
 const forecastQueue = new Queue('forecastQueue', { connection: redisClient });
 
+// Prefix constants to avoid job ID collisions between queues
+const RECOMMENDATION_JOB_PREFIX = 'rec_';
+const FORECAST_JOB_PREFIX = 'fc_';
+
 const recommendationWorker = new Worker('recommendationQueue', async job => {
     const { productId } = job.data;
     const product = await Product.findById(productId);
@@ -101,5 +105,7 @@ forecastWorker.on('failed', (job, err) => {
 
 module.exports = {
     recommendationQueue,
-    forecastQueue
+    forecastQueue,
+    RECOMMENDATION_JOB_PREFIX,
+    FORECAST_JOB_PREFIX
 };
