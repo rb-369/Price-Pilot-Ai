@@ -558,3 +558,7 @@ tbody tr:hover {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+html {
+    scroll-behavior: smooth;
+}
