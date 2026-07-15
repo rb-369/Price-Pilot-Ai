@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getIntegrations, connectShopify, disconnectIntegration, syncShopifyProducts } = require('../controllers/integrationController');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
-router.use(auth);
+router.use(protect);
 
 router.get('/', getIntegrations);
 router.post('/shopify', connectShopify);
