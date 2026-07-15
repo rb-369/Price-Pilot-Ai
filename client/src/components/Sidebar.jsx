@@ -98,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 {/* Navigation */}
                 <nav className="flex-1 p-4 space-y-1 mt-2 overflow-y-auto">
                     <p className="text-[10px] text-text-muted/50 font-semibold uppercase tracking-widest px-3 mb-3">Navigation</p>
-                    {links.map(({ to, icon: Icon, label }) => (
+                    {links.map(({ to, icon: Icon, label }) => ( // eslint-disable-line no-unused-vars
                         <NavLink key={to} to={to} end={to === '/'}
                             className={({ isActive }) => isActive ? 'sidebar-link-active' : 'sidebar-link'}>
                             <Icon className="w-[18px] h-[18px] transition-transform duration-200" />

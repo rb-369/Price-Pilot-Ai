@@ -22,7 +22,10 @@ export default function Recommendations() {
         ]).catch(() => setError(true)).finally(() => setLoading(false));
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchData();
+    }, []);
 
     const handleGenerate = async (productId) => {
         setGenerating(productId);
@@ -45,7 +48,7 @@ export default function Recommendations() {
                             toast.error('AI job failed.');
                             setGenerating(null);
                         }
-                    } catch (e) {
+                    } catch {
                         clearInterval(poll);
                         toast.error('Error checking job status');
                         setGenerating(null);
@@ -147,8 +150,6 @@ export default function Recommendations() {
             <div className="space-y-4">
                 {recommendations.map((rec, i) => {
                     const isIncrease = rec.recommendedPrice > rec.currentPrice;
-                    const changePct = rec.currentPrice > 0 ? ((rec.recommendedPrice - rec.currentPrice) / rec.currentPrice * 100).toFixed(1) : 0;
-
                     return (
                         <div key={i} className={`glass-card p-6 border-l-[3px] animate-slide-up ${rec.status === 'accepted' ? 'border-l-success' :
                                 isIncrease ? 'border-l-primary' : 'border-l-accent'
@@ -224,7 +225,7 @@ export default function Recommendations() {
                                                 )}
                                             </div>
                                         );
-                                    } catch (e) {
+                                    } catch {
                                         return <p className="text-sm text-text-muted leading-relaxed">{rec.insight || rec.reason}</p>;
                                     }
                                 })()}

@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
                 .catch(() => localStorage.removeItem('token'))
                 .finally(() => setLoading(false));
         } else {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false);
         }
     }, []);
@@ -45,4 +46,5 @@ export function AuthProvider({ children }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

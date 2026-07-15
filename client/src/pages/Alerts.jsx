@@ -38,7 +38,7 @@ export default function Alerts() {
         try {
             await markAlertRead(id);
             setAlerts(prev => prev.map(a => a._id === id ? { ...a, read: true } : a));
-        } catch { }
+        } catch { /* intentionally empty */ }
     };
 
     const handleMarkAllRead = async () => {
@@ -46,7 +46,7 @@ export default function Alerts() {
             await markAllAlertsRead();
             setAlerts(prev => prev.map(a => ({ ...a, read: true })));
             toast.success('All alerts marked as read');
-        } catch { }
+        } catch { /* intentionally empty */ }
     };
 
     const filtered = filter === 'all' ? alerts :

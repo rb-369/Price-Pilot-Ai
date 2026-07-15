@@ -9,7 +9,6 @@ const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api
 if (!RAW_API_URL) {
     // Surface a clear, actionable error instead of letting the user chase
     // confusing 404s from the Vercel rewrite.
-    // eslint-disable-next-line no-console
     console.error(
         '[PricePilot] VITE_API_URL is not set. Add it to your Vercel project ' +
         'environment variables (Settings → Environment Variables) and redeploy. ' +

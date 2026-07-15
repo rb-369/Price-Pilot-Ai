@@ -7,7 +7,7 @@ import { HiOutlineTrash, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineX, HiOutline
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -37,6 +37,7 @@ const ChatWidget = () => {
         if (isOpen) {
             loadChats();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const loadChats = async () => {
@@ -145,7 +146,7 @@ const ChatWidget = () => {
             const { data } = await sendChatMessage(activeChatId, payload);
             setMessages(data.chat.messages);
             loadChats(); // Refresh sidebar titles
-        } catch (error) {
+        } catch {
             setMessages([...newMessages, { role: 'model', content: "⚠️ Sorry, I encountered an error. Please try again later." }]);
         } finally {
             setIsLoading(false);

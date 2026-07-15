@@ -2,6 +2,21 @@ import { useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { HiOutlineInformationCircle, HiOutlineAdjustments } from 'react-icons/hi';
 
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div className="bg-slate-800 border border-slate-700 p-3 rounded-xl shadow-xl">
+                <p className="text-sm font-semibold text-slate-200">{data.name}</p>
+                <p className={`text-xs mt-1 ${data.type === 'positive' ? 'text-success' : 'text-danger'}`}>
+                    Impact: {data.type === 'positive' ? '+' : ''}{data.impact}%
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 const ExplainabilityPanel = () => {
     // Simulated SHAP/LIME contribution data
     const [factors] = useState([
@@ -21,21 +36,6 @@ const ExplainabilityPanel = () => {
         if (scenario === 'demand_surge') setSimulatedPrice(135);
         if (scenario === 'competitor_drop') setSimulatedPrice(105);
         if (scenario === 'stock_low') setSimulatedPrice(145);
-    };
-
-    const CustomTooltip = ({ active, payload }) => {
-        if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            return (
-                <div className="bg-slate-800 border border-slate-700 p-3 rounded-xl shadow-xl">
-                    <p className="text-sm font-semibold text-slate-200">{data.name}</p>
-                    <p className={`text-xs mt-1 ${data.type === 'positive' ? 'text-success' : 'text-danger'}`}>
-                        Impact: {data.type === 'positive' ? '+' : ''}{data.impact}%
-                    </p>
-                </div>
-            );
-        }
-        return null;
     };
 
     return (
