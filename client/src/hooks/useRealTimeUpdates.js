@@ -4,7 +4,8 @@ import toast from 'react-hot-toast';
 export default function useRealTimeUpdates() {
     useEffect(() => {
         const rawUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : 'http://localhost:5000/api');
-        const apiUrl = rawUrl.replace(/\/+$/, '');
+        // Ensure the base URL ends with /api so /stream resolves to /api/stream
+        const apiUrl = rawUrl.replace(/\/+$/, '').replace(/\/api\/api$/, '/api') + (rawUrl.endsWith('/api') ? '' : '/api');
         const eventSource = new EventSource(`${apiUrl}/stream`);
 
         eventSource.onmessage = (event) => {
