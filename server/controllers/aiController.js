@@ -7,7 +7,7 @@ const InventoryForecast = require('../models/InventoryForecast');
 const Alert = require('../models/Alert');
 const FeedbackLog = require('../models/FeedbackLog');
 const redisClient = require('../config/redis');
-const { recommendationQueue, forecastQueue } = require('../services/queueService');
+const { recommendationQueue, forecastQueue, RECOMMENDATION_JOB_PREFIX, FORECAST_JOB_PREFIX } = require('../services/queueService');
 
 const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -46,7 +46,8 @@ exports.getRecommendations = async (req, res) => {
 exports.generateRecommendation = async (req, res) => {
     try {
         const { productId } = req.params;
-        const job = await recommendationQueue.add('generateRecommendation', { productId });
+        const jobId = `${RECOMMENDATION_JOB_PREFIX}${productId}_${Date.now()}`;
+        const job = await recommendationQueue.add('generateRecommendation', { productId }, { jobId });
         res.json({ jobId: job.id, status: 'queued', message: 'Recommendation generation queued.' });
     } catch (error) {
         console.error('AI recommendation queue error:', error.message);
@@ -90,7 +91,8 @@ exports.generateForecast = async (req, res) => {
     try {
         const { productId } = req.params;
         const forecastDays = req.body.forecastDays || 30;
-        const job = await forecastQueue.add('generateForecast', { productId, forecastDays });
+        const jobId = `${FORECAST_JOB_PREFIX}${productId}_${Date.now()}`;
+        const job = await forecastQueue.add('generateForecast', { productId, forecastDays }, { jobId });
         res.json({ jobId: job.id, status: 'queued', message: 'Forecast generation queued.' });
     } catch (error) {
         console.error('AI forecast queue error:', error.message);
@@ -101,10 +103,19 @@ exports.generateForecast = async (req, res) => {
 exports.checkJobStatus = async (req, res) => {
     try {
         const { jobId } = req.params;
-        
-        let job = await recommendationQueue.getJob(jobId);
-        if (!job) {
+
+        // Route to correct queue based on job ID prefix
+        let job;
+        if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
             job = await forecastQueue.getJob(jobId);
+        } else if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
+            job = await recommendationQueue.getJob(jobId);
+        } else {
+            // Fallback: try both queues (backward compat with old numeric IDs)
+            job = await recommendationQueue.getJob(jobId);
+            if (!job) {
+                job = await forecastQueue.getJob(jobId);
+            }
         }
 
         if (!job) {
