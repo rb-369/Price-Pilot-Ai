@@ -142,7 +142,9 @@ exports.acceptRecommendation = async (req, res) => {
         if (!rec) return res.status(404).json({ message: 'Recommendation not found' });
 
         // Apply price change
-        const product = await Product.findById(rec.productId);
+        const product = await Product.findOne({ _id: rec.productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Authorized Product not found for this recommendation' });
+
         let priceBeforeChange = 0;
         let stockBefore = 0;
         
@@ -219,6 +221,9 @@ exports.rejectRecommendation = async (req, res) => {
         const rec = await PricingRecommendation.findById(req.params.id);
         if (!rec) return res.status(404).json({ message: 'Recommendation not found' });
 
+        const product = await Product.findOne({ _id: rec.productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Authorized Product not found for this recommendation' });
+
         if (rec.status !== 'pending') {
             return res.status(400).json({ message: `Cannot reject: recommendation is already ${rec.status}` });
         }
@@ -228,7 +233,6 @@ exports.rejectRecommendation = async (req, res) => {
         await rec.save();
 
         // Create Feedback Log for ML retraining
-        const product = await Product.findById(rec.productId);
         if (product) {
             const latestSignal = await DemandSignal.findOne({ productId: product._id }).sort({ date: -1 });
             const demandScore = latestSignal ? latestSignal.compositeDemandScore : 0.5;

@@ -41,7 +41,16 @@ exports.getProduct = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        const product = await Product.create({ ...req.body, userId: req.user._id });
+        const safeBody = { ...req.body };
+        delete safeBody.userId;
+        delete safeBody._id;
+
+        const { name, sku, currentPrice, baseCost } = safeBody;
+        if (!name || !sku || currentPrice === undefined || baseCost === undefined) {
+             return res.status(400).json({ message: 'Name, SKU, currentPrice, and baseCost are required fields.' });
+        }
+
+        const product = await Product.create({ ...safeBody, userId: req.user._id });
 
         // Return immediately — generate mock data in background (non-blocking)
         res.status(201).json(product);
@@ -57,9 +66,15 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     try {
+        // Prevent Object Level Authorization / Mass Assignment
+        // Ensure userId is not maliciously reassigned
+        const safeBody = { ...req.body };
+        delete safeBody.userId;
+        delete safeBody._id;
+
         const product = await Product.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
-            req.body,
+            safeBody,
             { new: true }
         );
         if (!product) return res.status(404).json({ message: 'Product not found' });
