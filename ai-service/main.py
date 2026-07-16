@@ -42,3 +42,15 @@ app.include_router(retrain_router, prefix="/api", tags=["ML Retraining"])
 @app.get("/")
 def health():
     return {"status": "ok", "service": "EcomAI Intelligence", "version": "2.1.0"}
+
+
+@app.get("/api/health")
+def api_health():
+    """Health endpoint consistent with server /api/health pattern."""
+    return {"status": "ok", "service": "EcomAI Intelligence", "version": "2.1.0"}
+
+
+@app.get("/api/ready")
+def readiness():
+    """Readiness probe consistent with server /api/ready pattern."""
+    return {"status": "ready", "service": "EcomAI Intelligence"}

@@ -6,7 +6,7 @@ import ErrorState from '../components/ErrorState';
 
 export default function Integrations() {
     const [integrations, setIntegrations] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
 
@@ -22,7 +22,7 @@ export default function Integrations() {
         try {
             const res = await getIntegrations();
             setIntegrations(res.data);
-        } catch (err) {
+        } catch {
             setError(true);
         } finally {
             setLoading(false);
@@ -56,7 +56,7 @@ export default function Integrations() {
             await disconnectIntegration(id);
             toast.success('Disconnected successfully');
             fetchIntegrations();
-        } catch (err) {
+        } catch {
             toast.error('Failed to disconnect');
         }
     };

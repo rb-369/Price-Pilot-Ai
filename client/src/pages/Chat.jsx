@@ -41,6 +41,7 @@ const Chat = () => {
     // Load chat history on mount
     useEffect(() => {
         loadChats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadChats = async () => {

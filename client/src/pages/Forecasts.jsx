@@ -23,6 +23,7 @@ export default function Forecasts() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchData();
     }, []);
 
@@ -47,7 +48,7 @@ export default function Forecasts() {
                             toast.error('AI job failed.');
                             setGenerating(null);
                         }
-                    } catch (e) {
+                    } catch {
                         clearInterval(poll);
                         toast.error('Error checking job status');
                         setGenerating(null);
@@ -58,7 +59,7 @@ export default function Forecasts() {
                 toast.success('Forecast generated');
                 setGenerating(null);
             }
-        } catch (err) {
+        } catch {
             toast.error('Forecast generation failed — is the AI service running?');
             setGenerating(null);
         }

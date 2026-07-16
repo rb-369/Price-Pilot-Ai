@@ -58,7 +58,7 @@ export default function Products() {
             if (res.data.description) {
                 toast.success('Description filled automatically!', { duration: 3000 });
             }
-        } catch (err) {
+        } catch {
             toast.error('AI generation failed', { id: toastId });
         } finally {
             setIsGenerating(false);
@@ -138,7 +138,7 @@ export default function Products() {
             await deleteProduct(id);
             toast.success('Deleted');
             fetchProducts();
-        } catch (err) {
+        } catch {
             toast.error('Delete failed');
         }
     };
@@ -271,7 +271,7 @@ export default function Products() {
                 <div className="glass-card overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
                     {/* Mobile View */}
                     <div className="md:hidden divide-y divide-[rgba(99,102,241,0.04)]">
-                        {products.map((p, i) => {
+                        {products.map((p) => {
                             const status = getStockStatus(p);
                             const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
                             return (

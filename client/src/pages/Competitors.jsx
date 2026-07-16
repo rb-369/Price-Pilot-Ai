@@ -29,6 +29,7 @@ export default function Competitors() {
     };
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchData();
     }, []);
 
@@ -53,14 +54,14 @@ export default function Competitors() {
             toast.success('Product deleted');
             fetchData();
             if (selectedProduct === id) setSelectedProduct(null);
-        } catch (err) {
+        } catch {
             toast.error('Failed to delete product');
         }
     };
 
     const handleExport = () => {
         const exportData = [];
-        Object.entries(productPrices).forEach(([pid, data]) => {
+        Object.entries(productPrices).forEach(([, data]) => {
             data.competitors.forEach(comp => {
                 exportData.push({
                     Product: data.product.name,

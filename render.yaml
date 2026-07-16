@@ -29,9 +29,9 @@ services:
       - key: JWT_SECRET
         generateValue: true # Render will create a strong random secret
       - key: CLIENT_URL
-        value: https://price-pilot-ai.vercel.app   # ← your Vercel frontend URL
+        value: https://price-pilot-ai-369.vercel.app   # ← your Vercel frontend URL
       - key: AI_SERVICE_URL
-        value: ""           # set if you deploy the AI service too
+        value: https://price-pilot-ai-service.onrender.com   # Python AI microservice
       - key: LLM_API_KEY
         sync: false         # Google Gemini API key
       - key: ENABLE_CRON
