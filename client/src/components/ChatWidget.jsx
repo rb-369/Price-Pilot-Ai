@@ -119,8 +119,20 @@ const ChatWidget = () => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
 
-        if (!activeChatId) {
-            await handleNewChat();
+        let chatId = activeChatId;
+
+        if (!chatId) {
+            try {
+                const { data } = await createChat({ title: input.substring(0, 30), messages: [] });
+                chatId = data._id;
+                setChats([data, ...chats]);
+                setActiveChatId(chatId);
+                setAttachedFile(null);
+                setExtractedText(null);
+            } catch (error) {
+                console.error("Failed to create chat", error);
+                return;
+            }
         }
 
         const userMsg = { role: 'user', content: input };
@@ -132,7 +144,7 @@ const ChatWidget = () => {
         // If this is the first real user message, we might want to update the sidebar title
         if (messages.length <= 1) {
             // Optimistic update of title
-            setChats(chats.map(c => c._id === activeChatId ? { ...c, title: input.substring(0, 30) } : c));
+            setChats(chats.map(c => c._id === chatId ? { ...c, title: input.substring(0, 30) } : c));
         }
 
         try {
@@ -143,7 +155,7 @@ const ChatWidget = () => {
                 setExtractedText(null);
             }
 
-            const { data } = await sendChatMessage(activeChatId, payload);
+            const { data } = await sendChatMessage(chatId, payload);
             setMessages(data.chat.messages);
             loadChats(); // Refresh sidebar titles
         } catch {

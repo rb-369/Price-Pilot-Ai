@@ -63,3 +63,5 @@ Procfile
 skills-lock.json
 codebase-analysis-report.md
 .playwright-mcp
+.gnhf*
+graphify-out/*

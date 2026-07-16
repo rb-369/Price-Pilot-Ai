@@ -27,7 +27,7 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
     const payload = {
         product: {
             name: product.name, sku: product.sku,
-            baseCost: product.baseCost, currentPrice: product.currentPrice,
+            baseCost: product.baseCost || 0, currentPrice: product.currentPrice || 0,
             minMargin: product.minMargin, stockLevel: product.stockLevel,
             reorderThreshold: product.reorderThreshold,
         },
@@ -74,7 +74,7 @@ const forecastWorker = new Worker('forecastQueue', async job => {
             reorderThreshold: product.reorderThreshold,
         },
         demandHistory: demandSignals.map(ds => ({
-            score: ds.compositeDemandScore, timestamp: ds.timestamp,
+            score: ds.compositeDemandScore || 0, timestamp: ds.timestamp,
         })),
         forecastDays: forecastDays || 30,
     };

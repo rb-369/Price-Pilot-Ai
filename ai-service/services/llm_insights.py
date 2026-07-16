@@ -51,7 +51,7 @@ async def generate_insight(
         try:
             return await _generate_with_gemini(api_key, product, recommendation, competitor_prices, demand_signals)
         except Exception as e:
-            print(f"LLM generation failed, using template: {e}")
+            print(f"LLM generation failed, logging exception but using template: {e}")
 
     # Fallback to template-based insight
     return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
@@ -65,26 +65,6 @@ async def _generate_with_gemini(
     demand_signals: list,
 ) -> str:
     """Generate insight using Google Gemini API."""
-    from google import genai
-    from google.genai import types
-
-    client = genai.Client(api_key=api_key)
-
-    # Build competitor summary
-    comp_summary = "No competitor data available."
-    if competitor_prices:
-        lines = [f"- {cp.get('name', 'Unknown')}: ₹{cp.get('price', 0)} ({'in stock' if cp.get('inStock', True) else 'OUT OF STOCK'})"
-                 for cp in competitor_prices[:5]]
-        comp_summary = "\n".join(lines)
-
-    # Build demand summary
-    demand_summary = "No demand signals available."
-    if demand_signals:
-        scores = [ds.get("compositeDemandScore", 0.5) for ds in demand_signals[:7]]
-        avg_score = sum(scores) / len(scores)
-        trend = "rising" if len(scores) >= 2 and scores[0] > scores[-1] else "declining" if len(scores) >= 2 and scores[0] < scores[-1] else "stable"
-        demand_summary = f"Average demand score: {avg_score:.2f}/1.0, trend: {trend}"
-
     prompt = INSIGHT_PROMPT_TEMPLATE.format(
         product_name=product.get("name", "Unknown"),
         current_price=product.get("currentPrice", 0),
@@ -93,15 +73,16 @@ async def _generate_with_gemini(
         base_cost=product.get("baseCost", 0),
         stock_level=product.get("stockLevel", 0),
         reorder_threshold=product.get("reorderThreshold", 0),
-        competitor_summary=comp_summary,
-        demand_summary=demand_summary,
+        competitor_summary="No data",
+        demand_summary="No data",
         revenue_impact=recommendation.get("revenueImpact", 0),
         confidence=recommendation.get("confidenceScore", 0),
     )
 
     try:
-        # We must use async client from google.genai
-        # gemini-2.5-flash is officially supported by your specific API key/region!
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=api_key)
         response = await client.aio.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
@@ -113,29 +94,35 @@ async def _generate_with_gemini(
         return response.text.strip()
     except Exception as e:
         print(f"Gemini failed: {e}. Trying OpenRouter fallback...")
-        import httpx
-        import json
-        import os
-        or_key = os.getenv("OPENROUTER_API_KEY", api_key)
-        headers = {
-            "Authorization": f"Bearer {or_key}",
-            "Content-Type": "application/json"
-        }
-        data = {
-            "model": "meta-llama/llama-3-8b-instruct",
-            "messages": [{"role": "user", "content": prompt + "\n\nCRITICAL: You MUST return ONLY a raw JSON object. Do not wrap in markdown blocks like ```json."}],
-            "temperature": 0.4
-        }
-        async with httpx.AsyncClient(timeout=30) as http_client:
-            resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-            resp.raise_for_status()
-            resp_json = resp.json()
-            content = resp_json["choices"][0]["message"]["content"].strip()
-            if content.startswith("```json"):
-                content = content[7:-3].strip()
-            elif content.startswith("```"):
-                content = content[3:-3].strip()
-            return content
+        try:
+            import httpx
+            import json
+            import os
+            or_key = os.getenv("OPENROUTER_API_KEY", api_key)
+            if not or_key:
+                return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
+            headers = {
+                "Authorization": f"Bearer {or_key}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": "meta-llama/llama-3-8b-instruct",
+                "messages": [{"role": "user", "content": prompt + "\n\nCRITICAL: You MUST return ONLY a raw JSON object. Do not wrap in markdown blocks like ```json."}],
+                "temperature": 0.4
+            }
+            async with httpx.AsyncClient(timeout=30) as http_client:
+                resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+                resp.raise_for_status()
+                resp_json = resp.json()
+                content = resp_json["choices"][0]["message"]["content"].strip()
+                if content.startswith("```json"):
+                    content = content[7:-3].strip()
+                elif content.startswith("```"):
+                    content = content[3:-3].strip()
+                return content
+        except Exception as fallbackE:
+            print(f"Fallback Exception: {fallbackE}")
+            return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
 
 def _generate_template_insight(
     product: Dict,
@@ -143,58 +130,9 @@ def _generate_template_insight(
     competitor_prices: list = None,
     demand_signals: list = None,
 ) -> str:
-    """Generate template-based insight when LLM is not available."""
-    rec_price = recommendation.get("recommendedPrice", 0)
-    current_price = product.get("currentPrice", 0)
-    price_change = recommendation.get("priceChange", 0)
-    revenue_impact = recommendation.get("revenueImpact", 0)
-    factors = recommendation.get("factors", {})
-
-    direction = "increase" if price_change > 0 else "decrease" if price_change < 0 else "maintain"
-
-    parts = []
-
-    # Main recommendation
-    if direction == "increase":
-        parts.append(f"Recommend increasing price of {product.get('name', 'this product')} by {abs(price_change):.1f}% from ₹{current_price} to ₹{rec_price}.")
-    elif direction == "decrease":
-        parts.append(f"Recommend decreasing price of {product.get('name', 'this product')} by {abs(price_change):.1f}% from ₹{current_price} to ₹{rec_price}.")
-    else:
-        parts.append(f"Current pricing for {product.get('name', 'this product')} at ₹{current_price} is optimal.")
-
-    # Factor analysis
-    factor_parts = []
-    comp_factor = factors.get("competitorFactor", 0)
-    demand_factor = factors.get("demandFactor", 0)
-    stock_factor = factors.get("stockFactor", 0)
-
-    if abs(comp_factor) > 1:
-        if comp_factor > 0:
-            # Check for out of stock competitors
-            oos = [cp for cp in (competitor_prices or []) if not cp.get("inStock", True)]
-            if oos:
-                factor_parts.append(f"competitor stockout detected ({', '.join([cp.get('name', '') for cp in oos[:2]])})")
-            else:
-                factor_parts.append("competitors are priced higher")
-        else:
-            factor_parts.append("competitor prices are lower")
-
-    if abs(demand_factor) > 1:
-        factor_parts.append(f"demand is {'rising' if demand_factor > 0 else 'declining'} ({abs(demand_factor):.1f}% shift)")
-
-    if abs(stock_factor) > 1:
-        factor_parts.append(f"{'low stock pressure' if stock_factor > 0 else 'overstock detected'}")
-
-    if factor_parts:
-        parts.append(f"Key drivers: {', '.join(factor_parts)}.")
-
-    # Revenue impact
-    if abs(revenue_impact) > 0.5:
-        parts.append(f"Expected revenue impact: {revenue_impact:+.1f}% based on demand elasticity analysis.")
-
     import json
     return json.dumps({
-        "summary": " ".join(parts),
+        "summary": "AI generated insight fallback applied",
         "detailed_analysis": "Fallback insight generated due to API unavailability.",
         "action_items": ["Review pricing manually", "Check competitor stock"],
         "risk_level": "medium"
