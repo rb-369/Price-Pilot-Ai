@@ -263,6 +263,44 @@ exports.rejectRecommendation = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+exports.revertRecommendation = async (req, res) => {
+    try {
+        const rec = await PricingRecommendation.findById(req.params.id);
+        if (!rec) return res.status(404).json({ message: 'Recommendation not found' });
+
+        if (rec.status !== 'accepted') {
+            return res.status(400).json({ message: `Cannot revert: recommendation is currently ${rec.status}` });
+        }
+
+        const product = await Product.findOne({ _id: rec.productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Authorized Product not found' });
+
+        if (rec.revenueBeforeChange) {
+            product.currentPrice = rec.revenueBeforeChange;
+            await product.save();
+            
+            if (product.source === 'shopify' && product.externalIds && product.externalIds.shopifyId) {
+                const Integration = require('../models/Integration');
+                const axios = require('axios');
+                const integration = await Integration.findOne({ userId: req.user._id, platform: 'shopify', status: 'active' });
+                if (integration) {
+                    try {
+                        const variantId = product.externalIds.shopifyId;
+                        await axios.put(`https://${integration.shopUrl}/admin/api/2024-01/variants/${variantId}.json`, {
+                            variant: { id: variantId, price: product.currentPrice.toString() }
+                        }, { headers: { 'X-Shopify-Access-Token': integration.accessToken } });
+                    } catch (syncErr) {}
+                }
+            }
+        }
+
+        rec.status = 'pending';
+        await rec.save();
+        res.json({ message: 'Price reverted', recommendation: rec, product });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 exports.getDashboardStats = async (req, res) => {
     try {

@@ -1,3 +1,35 @@
+// ─── Mock external services BEFORE any requires that trigger them ───
+
+// Mock ioredis so Redis connections never happen in tests
+jest.mock('ioredis', () => {
+    const fakeRedis = {
+        get: jest.fn().mockResolvedValue(null),
+        set: jest.fn().mockResolvedValue('OK'),
+        setex: jest.fn().mockResolvedValue('OK'),
+        del: jest.fn().mockResolvedValue(1),
+        on: jest.fn(),
+        connect: jest.fn().mockResolvedValue(),
+        disconnect: jest.fn().mockResolvedValue(),
+        status: 'ready',
+    };
+    return jest.fn(() => fakeRedis);
+});
+
+// Mock bullmq so Queue/Worker never attempt real Redis connections
+jest.mock('bullmq', () => {
+    const fakeQueue = {
+        add: jest.fn().mockResolvedValue({ id: 'test-job-1' }),
+        getJob: jest.fn().mockResolvedValue(null),
+        on: jest.fn(),
+    };
+    return {
+        Queue: jest.fn(() => fakeQueue),
+        Worker: jest.fn(() => ({
+            on: jest.fn(),
+        })),
+    };
+});
+
 const request = require('supertest');
 const express = require('express');
 const { connect, closeDatabase, clearDatabase } = require('./setup');

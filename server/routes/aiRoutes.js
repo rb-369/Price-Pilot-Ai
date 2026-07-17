@@ -3,6 +3,7 @@ const router = express.Router();
 const {
     getRecommendations, generateRecommendation, getForecast,
     generateForecast, acceptRecommendation, rejectRecommendation,
+    revertRecommendation,
     getDashboardStats, getChartData, chat, generateProductDescription,
     checkJobStatus
 } = require('../controllers/aiController');
@@ -19,6 +20,7 @@ router.get('/recommendations', protect, getRecommendations);
 router.post('/recommendations/:productId', protect, aiGenerationLimiter, generateRecommendation);
 router.put('/recommendations/:id/accept', protect, acceptRecommendation);
 router.put('/recommendations/:id/reject', protect, rejectRecommendation);
+router.put('/recommendations/:id/revert', protect, revertRecommendation);
 router.get('/forecasts', protect, getForecast);
 router.post('/forecasts/:productId', protect, aiGenerationLimiter, generateForecast);
 router.get('/jobs/:jobId', protect, checkJobStatus);
