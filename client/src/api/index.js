@@ -74,6 +74,7 @@ export const getRecommendations = (page = 1, limit = 20) => api.get(`/ai/recomme
 export const generateRecommendation = (productId) => api.post(`/ai/recommendations/${productId}`);
 export const acceptRecommendation = (id) => api.put(`/ai/recommendations/${id}/accept`);
 export const rejectRecommendation = (id, reason = '') => api.put(`/ai/recommendations/${id}/reject`, { reason });
+export const revertRecommendation = (id) => api.put(`/ai/recommendations/${id}/revert`);
 export const getForecasts = (page = 1, limit = 20) => api.get(`/ai/forecasts?page=${page}&limit=${limit}`);
 export const generateForecast = (productId, days) => api.post(`/ai/forecasts/${productId}`, { forecastDays: days });
 export const generateProductDescription = (data) => api.post('/ai/generate-description', data);

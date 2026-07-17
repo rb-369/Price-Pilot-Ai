@@ -199,7 +199,15 @@ export default function Dashboard() {
                                     <p className="text-sm font-medium text-text">{rec.productId?.name || 'Product'}</p>
                                     <span className="badge-info text-[10px]">{(rec.confidenceScore * 100).toFixed(0)}%</span>
                                 </div>
-                                <p className="text-xs text-text-muted line-clamp-2">{rec.reason}</p>
+                                <p className="text-xs text-text-muted line-clamp-2">
+                                    {(() => {
+                                        try {
+                                            return JSON.parse(rec.insight).summary;
+                                        } catch {
+                                            return rec.insight || rec.reason;
+                                        }
+                                    })()}
+                                </p>
                                 <div className="flex items-center gap-3 mt-2 text-xs">
                                     <span className="text-text-muted">Current: ₹{rec.currentPrice}</span>
                                     <span className="text-primary font-semibold">→ ₹{rec.recommendedPrice}</span>

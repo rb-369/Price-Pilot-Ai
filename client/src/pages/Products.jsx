@@ -14,7 +14,7 @@ const STANDARD_CATEGORIES = [
 
 const DEFAULT_FORM_STATE = { 
     name: '', sku: '', category: 'General', 
-    baseCost: '', currentPrice: '', minMargin: '0.1', 
+    baseCost: '', currentPrice: '', minMargin: '10', 
     stockLevel: '', reorderThreshold: '10',
     description: '',
     productLinks: { amazon: '', flipkart: '', meesho: '', shopify: '' }
@@ -84,7 +84,7 @@ export default function Products() {
             category: isStandard ? p.category : 'Other',
             baseCost: p.baseCost || '',
             currentPrice: p.currentPrice || '',
-            minMargin: p.minMargin || '0.1',
+            minMargin: p.minMargin ? (p.minMargin * 100).toString() : '10',
             stockLevel: p.stockLevel || '',
             reorderThreshold: p.reorderThreshold || '10',
             description: p.description || '',
@@ -109,7 +109,7 @@ export default function Products() {
                 category: finalCategory,
                 baseCost: +form.baseCost, 
                 currentPrice: +form.currentPrice, 
-                minMargin: +form.minMargin, 
+                minMargin: (+form.minMargin) / 100, 
                 stockLevel: +form.stockLevel, 
                 reorderThreshold: +form.reorderThreshold 
             };
@@ -232,7 +232,7 @@ export default function Products() {
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Base Cost (₹)</label><input className="input-field" type="number" placeholder="Cost" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Current Price (₹)</label><input className="input-field" type="number" placeholder="Price" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Min Margin</label><input className="input-field" type="number" step="0.01" placeholder="0.1 (10%)" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Min Margin (%)</label><input className="input-field" type="number" step="0.1" placeholder="10" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Stock Level</label><input className="input-field" type="number" placeholder="Stock" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Reorder Threshold</label><input className="input-field" type="number" placeholder="Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} /></div>
                             </div>

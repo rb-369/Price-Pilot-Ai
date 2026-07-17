@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation, rejectRecommendation, getJobStatus } from '../api';
+import { getRecommendations, getProducts, generateRecommendation, acceptRecommendation, rejectRecommendation, revertRecommendation, getJobStatus } from '../api';
 import toast from 'react-hot-toast';
 import { HiOutlineLightBulb, HiOutlineCheck, HiOutlineRefresh, HiOutlineArrowUp, HiOutlineArrowDown } from 'react-icons/hi';
 import jsPDF from 'jspdf';
@@ -65,13 +65,25 @@ export default function Recommendations() {
         }
     };
 
-    const handleAccept = async (id) => {
+    const handleAccept = async (id, impact) => {
+        if (impact < -10) {
+            if (!confirm(`Warning: This change is projected to decrease revenue by ${Math.abs(impact)}%. Are you sure you want to apply this price?`)) return;
+        }
         try {
             await acceptRecommendation(id);
             toast.success('Price updated!');
             fetchData();
         } catch {
             toast.error('Failed to apply');
+        }
+    };
+    const handleRevert = async (id) => {
+        try {
+            await revertRecommendation(id);
+            toast.success('Price reverted to previous value');
+            fetchData();
+        } catch {
+            toast.error('Failed to revert');
         }
     };
 
@@ -252,7 +264,7 @@ export default function Recommendations() {
 
                             {rec.status === 'pending' && (
                                 <div className="flex gap-3">
-                                    <button onClick={() => handleAccept(rec._id)} className="btn-primary flex items-center gap-2">
+                                    <button onClick={() => handleAccept(rec._id, rec.expectedRevenueImpact)} className="btn-primary flex items-center gap-2">
                                         <HiOutlineCheck className="w-4 h-4" /> Accept & Apply Price
                                     </button>
                                     <button onClick={async () => {
@@ -263,6 +275,13 @@ export default function Recommendations() {
                                         } catch { toast.error('Failed to reject'); }
                                     }} className="btn-secondary flex items-center gap-2 text-danger hover:bg-danger/10 hover:border-danger/30">
                                         ✕ Reject
+                                    </button>
+                                </div>
+                            )}
+                            {rec.status === 'accepted' && (
+                                <div className="flex gap-3 mt-4 pt-4 border-t border-[rgba(99,102,241,0.1)]">
+                                    <button onClick={() => handleRevert(rec._id)} className="btn-secondary flex items-center gap-2 text-warning hover:bg-warning/10 hover:border-warning/30">
+                                        <HiOutlineRefresh className="w-4 h-4" /> Undo & Revert Price
                                     </button>
                                 </div>
                             )}
