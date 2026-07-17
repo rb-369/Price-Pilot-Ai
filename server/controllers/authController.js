@@ -8,6 +8,9 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 exports.register = async (req, res) => {
     try {
         const { name, email, password, storeType } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Name, email, and password are required' });
+        }
         console.log(`Registration attempt for: ${email}`);
 
         const exists = await User.findOne({ email });

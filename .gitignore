@@ -58,6 +58,7 @@ RENDER_DEPLOYMENT.md
 docs/agents/domain.md
 docs/agents/issue-tracker.md
 docs/agents/triage-labels.md
+docs/*
 Procfile
 
 skills-lock.json

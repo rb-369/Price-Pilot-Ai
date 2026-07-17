@@ -41,50 +41,60 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     gemini_key = os.getenv("CHATBOT_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("LLM_API_KEY", "")
     openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
 
-    # 2. Setup primary LLM (Gemini)
-    primary_llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        google_api_key=gemini_key,
-    )
-    
-    # 3. Setup fallback LLM (OpenRouter)
-    fallback_llm = ChatOpenAI(
-        model="nvidia/nemotron-3-ultra-550b-a55b:free",
-        base_url="https://openrouter.ai/api/v1",
-        api_key=openrouter_key
-    )
-    
-    # Apply LangChain fallbacks
-    llm = primary_llm.with_fallbacks([fallback_llm])
-    
-    # 4. Create RAG Chain
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("human", "{input}")
-    ])
-    
-    rag_chain = (
-        prompt
-        | llm
-        | StrOutputParser()
-    )
-    
-    # 5. Format message history for LangChain
-    chat_history = []
-    for msg in messages[:-1]:
-        if msg["role"] == "user":
-            chat_history.append(HumanMessage(content=msg["content"]))
-        else:
-            chat_history.append(AIMessage(content=msg["content"]))
-            
-    latest_query = messages[-1]["content"] if messages else ""
-    
-    # 6. We already set context_str directly from the frontend request above.
-    # No need to query ChromaDB for local user products.
-    
-    # 7. Invoke Chain (always runs, even if retrieval failed)
     try:
+        if gemini_key:
+            primary_llm = ChatGoogleGenerativeAI(
+                model="gemini-2.5-flash",
+                google_api_key=gemini_key,
+            )
+        else:
+            primary_llm = None
+        
+        if openrouter_key:
+            fallback_llm = ChatOpenAI(
+                model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                base_url="https://openrouter.ai/api/v1",
+                api_key=openrouter_key
+            )
+        else:
+            fallback_llm = None
+        
+        if primary_llm and fallback_llm:
+            llm = primary_llm.with_fallbacks([fallback_llm])
+        elif primary_llm:
+            llm = primary_llm
+        elif fallback_llm:
+            llm = fallback_llm
+        else:
+            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
+        
+        # 4. Create RAG Chain
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", SYSTEM_PROMPT),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}")
+        ])
+        
+        rag_chain = (
+            prompt
+            | llm
+            | StrOutputParser()
+        )
+        
+        # 5. Format message history for LangChain
+        chat_history = []
+        for msg in messages[:-1]:
+            if msg["role"] == "user":
+                chat_history.append(HumanMessage(content=msg["content"]))
+            else:
+                chat_history.append(AIMessage(content=msg["content"]))
+                
+        latest_query = messages[-1]["content"] if messages else ""
+        
+        # 6. We already set context_str directly from the frontend request above.
+        # No need to query ChromaDB for local user products.
+        
+        # 7. Invoke Chain (always runs, even if retrieval failed)
         response = await rag_chain.ainvoke({
             "context": context_str,
             "input": latest_query,
