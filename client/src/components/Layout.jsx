@@ -11,7 +11,7 @@ export default function Layout() {
     useRealTimeUpdates();
 
     return (
-        <div className="flex flex-col min-h-screen bg-surface">
+        <div className="flex flex-col h-[100dvh] overflow-hidden bg-surface">
             {/* Top accent gradient bar */}
             <div className="accent-bar fixed top-0 left-0 right-0 z-[100]" />
 
