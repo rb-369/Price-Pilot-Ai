@@ -4,12 +4,11 @@ const CompetitorPrice = require('../models/CompetitorPrice');
 const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
-const Alert = require('../models/Alert');
+const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const FeedbackLog = require('../models/FeedbackLog');
 const redisClient = require('../config/redis');
 const { recommendationQueue, forecastQueue, RECOMMENDATION_JOB_PREFIX, FORECAST_JOB_PREFIX } = require('../services/queueService');
 
-const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
 exports.getRecommendations = async (req, res) => {
     try {

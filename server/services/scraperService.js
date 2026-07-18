@@ -11,7 +11,7 @@ const CompetitorPrice = require('../models/CompetitorPrice');
 const Product = require('../models/Product');
 const Alert = require('../models/Alert');
 
-const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 // Simulated competitor data — used as fallback when real API is unavailable
 const COMPETITORS = ['Amazon', 'Flipkart', 'Myntra', 'Snapdeal', 'Meesho'];

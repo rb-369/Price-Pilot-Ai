@@ -356,7 +356,7 @@ const Chat = () => {
     ];
 
     return (
-        <div className="h-full w-full bg-surface flex overflow-hidden relative font-sans">
+        <div className="flex-1 w-full bg-surface flex overflow-hidden relative font-sans">
             
             {/* Chat Sidebar */}
             <div className="flex flex-col bg-surface-light border-r border-border w-64 md:w-80 h-full relative z-10 shrink-0">
@@ -522,7 +522,7 @@ const Chat = () => {
                 )}
 
                 {/* Chat Action Input bar */}
-                <div className="w-full px-4 pb-4 pt-2 relative z-20 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+                <div className="w-full px-4 pb-1 pt-3 relative z-20 bg-gradient-to-t from-surface via-surface/95 to-transparent">
                     <div className="max-w-4xl mx-auto">
                         <form onSubmit={(e) => handleSend(e)} className="relative flex items-center group shadow-xl rounded-2xl bg-surface-lighter border border-border transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.15)]">
                             <input
@@ -559,7 +559,7 @@ const Chat = () => {
                                 <svg className="w-4 h-4 translate-x-[0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                             </button>
                         </form>
-                        <p className="text-center text-[10px] text-text-muted mt-2 font-medium tracking-wide opacity-70">AI can make mistakes. Consider verifying important information.</p>
+                        <p className="text-center text-[10px] text-text-muted mt-1 mb-1 font-medium tracking-wide opacity-70">AI can make mistakes. Consider verifying important information.</p>
                     </div>
                 </div>
             </div>

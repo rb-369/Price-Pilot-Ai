@@ -15,7 +15,7 @@ const Product = require('../models/Product');
 const Alert = require('../models/Alert');
 const axios = require('axios');
 
-const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 /**
  * Simple seeded pseudo-random number generator (Mulberry32).

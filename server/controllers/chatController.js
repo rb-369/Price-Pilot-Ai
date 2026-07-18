@@ -3,7 +3,7 @@ const Product = require('../models/Product');
 const Alert = require('../models/Alert');
 const axios = require('axios');
 
-const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 exports.getChats = async (req, res) => {
     try {
@@ -57,13 +57,12 @@ exports.sendMessage = async (req, res) => {
         
         let chat = await Chat.findOne({ _id: id, userId: req.user._id });
         if (!chat) return res.status(404).json({ message: 'Chat not found' });
-
         // Generate title if it's the first message and title is default
         if (chat.messages.length === 0 && chat.title === 'New Chat') {
-            chat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+            chat.title = (message || '').substring(0, 30) + ((message || '').length > 30 ? '...' : '');
         }
 
-        const userMsg = { role: 'user', content: message };
+        const userMsg = { role: 'user', content: message || '' };
         chat.messages.push(userMsg);
 
         // Gather real context for the chatbot (RAG)

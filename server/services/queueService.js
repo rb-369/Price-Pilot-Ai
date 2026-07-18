@@ -7,7 +7,7 @@ const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
 
-const AI_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 const recommendationQueue = new Queue('recommendationQueue', { connection: redisClient });
 const forecastQueue = new Queue('forecastQueue', { connection: redisClient });
