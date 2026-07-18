@@ -3,6 +3,8 @@ Conversational AI Chatbot Service
 Uses LangChain RAG with ChromaDB, Gemini as primary LLM, and OpenRouter as fallback.
 """
 import os
+import asyncio
+import hashlib
 from typing import List, Dict
 
 from langchain_core.messages import HumanMessage, AIMessage
@@ -19,24 +21,88 @@ Answer the user's questions clearly and concisely.
 Use specific numbers when referring to data.
 
 --- 
-Context Information below is automatically retrieved from the PricePilot vector database:
+Context Information below is automatically retrieved from the PricePilot vector database and active memory:
 {context}
 """
 
+class WorkingMemory:
+    """
+    Represents the ephemeral Context RAM for an AI Agent Session.
+    Aggregates System Prompt, Current Chat History, User Prompt, and RAG Context.
+    """
+    def __init__(self, messages: List[Dict], context_data: Dict = None):
+        self.messages = messages
+        self.context_data = context_data
+
+        # We initialized these explicitly in each method where they are needed rather than keeping them open all the time
+        self._collection_name_semantic = "semantic_memory"
+        self._collection_name_episodic = "episodic_memory"
+
+    async def build_context_string(self, latest_query: str) -> str:
+        context_parts = []
+
+        # 1. Real-time API Context
+        if self.context_data:
+            import json
+            context_parts.append("### Real-time Request Context:\n" + json.dumps(self.context_data, indent=2))
+
+        # 2. RAG from Semantic Memory (Durable facts & rules)
+        try:
+            semantic_retriever = get_retriever(k=2, collection_name=self._collection_name_semantic)
+            semantic_docs = await semantic_retriever.ainvoke(latest_query)
+            if semantic_docs:
+                semantic_text = "\n".join([d.page_content for d in semantic_docs])
+                context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
+        except Exception as e:
+            print(f"Semantic RAG error: {e}")
+
+        # 3. RAG from Episodic Memory (Past events)
+        try:
+            episodic_retriever = get_retriever(k=2, collection_name=self._collection_name_episodic)
+            episodic_docs = await episodic_retriever.ainvoke(latest_query)
+            if episodic_docs:
+                episodic_text = "\n".join([d.page_content for d in episodic_docs])
+                context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
+        except Exception as e:
+            print(f"Episodic RAG error: {e}")
+
+        return "\n\n".join(context_parts) if context_parts else "No additional context available."
+
+    def get_langchain_history(self) -> List:
+        chat_history = []
+        for msg in self.messages[:-1]:
+            if msg["role"] == "user":
+                chat_history.append(HumanMessage(content=msg["content"]))
+            else:
+                chat_history.append(AIMessage(content=msg["content"]))
+        return chat_history
+
+    def get_latest_query(self) -> str:
+        return self.messages[-1]["content"] if self.messages else ""
+
+    def save_episodic_interaction(self, query: str, response: str):
+        """Save this specific turn to Episodic Memory for future recall and summarization."""
+        try:
+            interaction = {
+                "id": hashlib.sha256((query + response).encode('utf-8')).hexdigest(),
+                "query": query,
+                "response": response,
+                "type": "chat_interaction"
+            }
+            # Run the synchronous ingest_data in a separate thread so it doesn't block the async event loop
+            asyncio.create_task(asyncio.to_thread(ingest_data, [interaction], "chat_interaction", "episodic_memory"))
+        except Exception as e:
+            print(f"Failed to save episodic interaction: {e}")
+
 async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     """
-    Process a chat conversation using RAG.
-    messages: list of dicts with 'role' ('user' or 'model'/'assistant') and 'content'
-    context_data: optional dict with data sent from frontend on-the-fly.
+    Process a chat conversation using the Ephemeral Working Memory architecture.
     """
-    # We receive context directly from the Node backend for this specific user.
-    # To prevent cross-account data leaks, we inject this directly into the prompt
-    # instead of storing and retrieving it from a global vector database.
-    context_str = "No additional context available."
-    if context_data:
-        import json
-        context_str = json.dumps(context_data, indent=2)
+    # Initialize ephemeral Working Memory for this session
+    memory = WorkingMemory(messages, context_data)
+    latest_query = memory.get_latest_query()
 
+    context_str = await memory.build_context_string(latest_query)
     # Combine API keys for fallback safety
     gemini_key = os.getenv("CHATBOT_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("LLM_API_KEY", "")
     openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
@@ -82,24 +148,18 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         )
         
         # 5. Format message history for LangChain
-        chat_history = []
-        for msg in messages[:-1]:
-            if msg["role"] == "user":
-                chat_history.append(HumanMessage(content=msg["content"]))
-            else:
-                chat_history.append(AIMessage(content=msg["content"]))
-                
-        latest_query = messages[-1]["content"] if messages else ""
-        
-        # 6. We already set context_str directly from the frontend request above.
-        # No need to query ChromaDB for local user products.
-        
+        chat_history = memory.get_langchain_history()
         # 7. Invoke Chain (always runs, even if retrieval failed)
+        # Invoke Chain
         response = await rag_chain.ainvoke({
             "context": context_str,
             "input": latest_query,
             "chat_history": chat_history
         })
+        
+        # Save to episodic memory asynchronously (fire-and-forget for now)
+        memory.save_episodic_interaction(latest_query, response)
+        
         return response
     except Exception as e:
         print(f"Chatbot Chain Error: {e}")
