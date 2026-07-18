@@ -3,6 +3,8 @@ Conversational AI Chatbot Service
 Uses LangChain RAG with ChromaDB, Gemini as primary LLM, and OpenRouter as fallback.
 """
 import os
+import asyncio
+import hashlib
 from typing import List, Dict
 
 from langchain_core.messages import HumanMessage, AIMessage
@@ -31,35 +33,39 @@ class WorkingMemory:
     def __init__(self, messages: List[Dict], context_data: Dict = None):
         self.messages = messages
         self.context_data = context_data
-        self.semantic_retriever = get_retriever(k=2, collection_name="semantic_memory")
-        self.episodic_retriever = get_retriever(k=2, collection_name="episodic_memory")
+
+        # We initialized these explicitly in each method where they are needed rather than keeping them open all the time
+        self._collection_name_semantic = "semantic_memory"
+        self._collection_name_episodic = "episodic_memory"
 
     async def build_context_string(self, latest_query: str) -> str:
         context_parts = []
-        
+
         # 1. Real-time API Context
         if self.context_data:
             import json
             context_parts.append("### Real-time Request Context:\n" + json.dumps(self.context_data, indent=2))
-            
+
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
-            semantic_docs = await self.semantic_retriever.ainvoke(latest_query)
+            semantic_retriever = get_retriever(k=2, collection_name=self._collection_name_semantic)
+            semantic_docs = await semantic_retriever.ainvoke(latest_query)
             if semantic_docs:
                 semantic_text = "\n".join([d.page_content for d in semantic_docs])
                 context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
         except Exception as e:
             print(f"Semantic RAG error: {e}")
-            
+
         # 3. RAG from Episodic Memory (Past events)
         try:
-            episodic_docs = await self.episodic_retriever.ainvoke(latest_query)
+            episodic_retriever = get_retriever(k=2, collection_name=self._collection_name_episodic)
+            episodic_docs = await episodic_retriever.ainvoke(latest_query)
             if episodic_docs:
                 episodic_text = "\n".join([d.page_content for d in episodic_docs])
                 context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
         except Exception as e:
             print(f"Episodic RAG error: {e}")
-            
+
         return "\n\n".join(context_parts) if context_parts else "No additional context available."
 
     def get_langchain_history(self) -> List:
@@ -78,12 +84,13 @@ class WorkingMemory:
         """Save this specific turn to Episodic Memory for future recall and summarization."""
         try:
             interaction = {
-                "id": str(hash(query + response)),
+                "id": hashlib.sha256((query + response).encode('utf-8')).hexdigest(),
                 "query": query,
                 "response": response,
                 "type": "chat_interaction"
             }
-            ingest_data([interaction], data_type="chat_interaction", collection_name="episodic_memory")
+            # Run the synchronous ingest_data in a separate thread so it doesn't block the async event loop
+            asyncio.create_task(asyncio.to_thread(ingest_data, [interaction], "chat_interaction", "episodic_memory"))
         except Exception as e:
             print(f"Failed to save episodic interaction: {e}")
 
