@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { HiOutlineUserGroup, HiOutlineArrowLeft } from 'react-icons/hi';
+import { FaGithub } from 'react-icons/fa';
 
 export default function About() {
     return (
@@ -35,6 +36,21 @@ export default function About() {
                             <h3 className="font-semibold text-cyan-300 mb-2">The Tech</h3>
                             <p className="text-sm text-slate-400">Powered by React, Node.js, FastAPI, and Google Gemini, we bridge the gap between deterministic algorithms and generative insights.</p>
                         </div>
+                    </div>
+
+                    <div className="mt-10 pt-8 border-t border-slate-700/50">
+                        <a
+                            href="https://github.com/rb-369/Price-Pilot-Ai"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-800/80 border border-slate-600/50 hover:border-indigo-500/50 hover:bg-slate-700/80 transition-all duration-300 group"
+                        >
+                            <FaGithub className="w-6 h-6 text-white group-hover:text-indigo-400 transition-colors" />
+                            <div className="text-left">
+                                <div className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors">View on GitHub</div>
+                                <div className="text-xs text-slate-500">rb-369/Price-Pilot-Ai</div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
