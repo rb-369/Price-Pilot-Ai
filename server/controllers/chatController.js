@@ -89,13 +89,20 @@ exports.sendMessage = async (req, res) => {
         const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload);
         const replyText = aiResponse.data.reply || aiResponse.data;
 
-        const modelMsg = { role: 'model', content: replyText };
+        const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };
         chat.messages.push(modelMsg);
         await chat.save();
 
         res.json({ chat, reply: modelMsg });
     } catch (error) {
         console.error('Chat error:', error.message);
-        res.status(500).json({ message: 'Failed to communicate with AI Chatbot', error: error.message });
+        if (error.response) {
+            console.error('AI Service Error Data:', error.response.data);
+        }
+        res.status(500).json({ 
+            message: 'Failed to communicate with AI Chatbot', 
+            error: error.message,
+            details: error.response?.data || null
+        });
     }
 };
