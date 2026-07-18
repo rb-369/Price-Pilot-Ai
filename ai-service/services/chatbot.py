@@ -104,7 +104,7 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
 
     context_str = await memory.build_context_string(latest_query)
     # Combine API keys for fallback safety
-    gemini_key = os.getenv("CHATBOT_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("LLM_API_KEY", "")
+    gemini_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY", "")
     openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
 
     try:
