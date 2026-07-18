@@ -408,10 +408,8 @@ const Chat = () => {
                 <div className="flex items-center justify-between px-6 h-[68px] border-b border-border bg-surface/30 backdrop-blur-md relative z-10">
                     <div className="flex items-center space-x-3">
                         <div className="relative">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.15)]">
-                                <div className="w-full h-full bg-surface-light rounded-xl flex items-center justify-center p-1">
-                                    <img src={logoUrl} alt="PricePilot Logo" className="w-6 h-6 object-contain" />
-                                </div>
+                            <div className="w-9 h-9 rounded-xl bg-surface-lighter border border-border flex items-center justify-center p-0.5 shadow-sm overflow-hidden">
+                                <img src="/chabot-assistant-without-bg.png" alt="PricePilot Logo" className="w-full h-full object-cover scale-110" />
                             </div>
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success border-2 border-surface rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
                         </div>
@@ -429,13 +427,14 @@ const Chat = () => {
                     {messages.length === 0 && (
                         <div className="flex flex-col items-center justify-start mt-8 md:mt-16 max-w-3xl mx-auto px-4 text-center animate-fade-in pb-8">
                             {/* Glowing Brand Icon */}
-                            <div className="relative mb-6">
-                                <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent blur-xl opacity-30 animate-pulse"></div>
-                                <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent p-[1.5px] relative z-10 shadow-[0_8px_32px_rgba(99,102,241,0.35)]">
-                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center overflow-hidden p-0.5">
-                                        <img src={logoUrl} alt="PricePilot AI Logo" className="w-full h-full object-contain scale-[1.15] transform transition-transform" />
-                                    </div>
-                                </div>
+                            {/* Floating Assistant Character */}
+                            <div className="relative mb-8 mt-4">
+                                <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full animate-pulse-glow"></div>
+                                <img 
+                                    src="/chabot-assistant-without-bg.png" 
+                                    alt="PricePilot AI Assistant" 
+                                    className="w-32 h-32 md:w-40 md:h-40 object-contain relative z-10 animate-float drop-shadow-2xl"
+                                />
                             </div>
                             
                             {/* Welcoming Text */}
@@ -477,19 +476,8 @@ const Chat = () => {
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
                             {msg.role !== 'user' && (
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-accent p-[1.5px] mr-3 mt-1 shrink-0 shadow-md transform transition-transform group-hover:scale-105">
-                                    <div className="w-full h-full bg-surface-light rounded-[10px] flex items-center justify-center overflow-hidden relative">
-                                        {/* Dynamic glowing core behind the agent */}
-                                        <div className="absolute inset-0 bg-primary/20 animate-pulse-glow"></div>
-                                        {/* Signature AI Agent Face */}
-                                        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-primary-light relative z-10 drop-shadow-[0_0_3px_rgba(129,140,248,0.6)]" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 3C8.134 3 5 6.134 5 10V14C5 17.866 8.134 21 12 21C15.866 21 19 17.866 19 14V10C19 6.134 15.866 3 12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                            <path d="M9 11C9 10.4477 9.44772 10 10 10C10.5523 10 11 10.4477 11 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                            <path d="M15 11C15 10.4477 14.5523 10 14 10C13.4477 10 13 10.4477 13 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                            <path d="M9 16C9 16 10.5 17 12 17C13.5 17 15 16 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
-                                        </svg>
-                                    </div>
+                                <div className="w-8 h-8 rounded-full bg-surface-lighter border border-border mr-3 mt-1 shrink-0 shadow-sm transform transition-transform group-hover:scale-105 overflow-hidden flex items-center justify-center">
+                                    <img src="/chabot-assistant-without-bg.png" alt="AI" className="w-full h-full object-cover scale-110" />
                                 </div>
                             )}
                             <div className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-lg border relative ${
@@ -534,43 +522,45 @@ const Chat = () => {
                 )}
 
                 {/* Chat Action Input bar */}
-                <div className="px-6 pb-2 pt-4 bg-surface/50 backdrop-blur-lg border-t border-border relative z-20">
-                    <form onSubmit={(e) => handleSend(e)} className="relative flex items-center max-w-4xl mx-auto group">
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            className="hidden"
-                            accept=".pdf,.txt,.csv"
-                            onChange={handleFileUpload}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="absolute left-4.5 text-text-muted hover:text-primary-light transition-colors z-10"
-                            title="Attach PDF or Text file"
-                        >
-                            <HiOutlinePaperClip className="w-5 h-5" />
-                        </button>
-                        
-                        <input
-                            type="text"
-                            ref={inputRef}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={extractedText ? "Ask about your attached file..." : "Message PricePilot AI..."}
-                            className="w-full bg-surface-light border border-border rounded-2xl pl-13 pr-15 py-4 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-sm transition-all placeholder-text-muted"
-                        />
-                        
-                        <button
-                            type="submit"
-                            disabled={!input.trim() || isLoading}
-                            className="absolute right-2 bg-gradient-to-r from-primary to-primary-dark text-white p-2.5 rounded-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 transform active:scale-95 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
-                        >
-                            <svg className="w-4 h-4 translate-x-[0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </button>
-                    </form>
-                    <p className="text-center text-[10px] text-text-muted mt-3 font-medium tracking-wide">AI can make mistakes. Consider verifying important information.</p>
+                <div className="w-full px-4 pb-4 pt-2 relative z-20 bg-gradient-to-t from-surface via-surface/80 to-transparent">
+                    <div className="max-w-4xl mx-auto">
+                        <form onSubmit={(e) => handleSend(e)} className="relative flex items-center group shadow-xl rounded-2xl bg-surface-lighter border border-border transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.15)]">
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept=".pdf,.txt,.csv"
+                                onChange={handleFileUpload}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="absolute left-3 text-text-muted hover:text-primary-light transition-colors z-10 p-2 rounded-xl hover:bg-surface"
+                                title="Attach PDF or Text file"
+                            >
+                                <HiOutlinePaperClip className="w-5 h-5" />
+                            </button>
+                            
+                            <input
+                                type="text"
+                                ref={inputRef}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder={extractedText ? "Ask about your attached file..." : "Message PricePilot AI..."}
+                                className="w-full bg-transparent pl-14 pr-16 py-4 text-[15px] text-text focus:outline-none placeholder-text-muted"
+                            />
+                            
+                            <button
+                                type="submit"
+                                disabled={!input.trim() || isLoading}
+                                className="absolute right-2 bg-gradient-to-r from-primary to-primary-dark text-white p-2.5 rounded-xl hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] disabled:opacity-40 disabled:hover:shadow-none transition-all duration-300 transform active:scale-95 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                            >
+                                <svg className="w-4 h-4 translate-x-[0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                            </button>
+                        </form>
+                        <p className="text-center text-[10px] text-text-muted mt-2 font-medium tracking-wide opacity-70">AI can make mistakes. Consider verifying important information.</p>
+                    </div>
                 </div>
             </div>
         </div>
