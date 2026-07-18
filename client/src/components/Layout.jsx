@@ -11,7 +11,7 @@ export default function Layout() {
     useRealTimeUpdates();
 
     return (
-        <div className="flex flex-col h-[100dvh] overflow-hidden bg-surface">
+        <div className="flex flex-col h-screen overflow-hidden bg-surface">
             {/* Top accent gradient bar */}
             <div className="accent-bar fixed top-0 left-0 right-0 z-[100]" />
 
@@ -20,7 +20,7 @@ export default function Layout() {
 
             {/* Main content */}
             <div
-                className="flex flex-col flex-1"
+                className="flex flex-col flex-1 h-full"
                 style={{
                     marginLeft: sidebarOpen ? '260px' : '0',
                     transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -69,7 +69,7 @@ export default function Layout() {
                     </div>
                 )}
 
-                <div className={isChatPage ? 'w-full flex-1 flex flex-col overflow-hidden relative' : 'p-8 max-w-[1400px] mx-auto animate-fade-in flex-1'}>
+                <div className={isChatPage ? 'w-full h-full flex-1 flex flex-col overflow-hidden relative' : 'p-8 max-w-[1400px] mx-auto animate-fade-in flex-1'}>
                     <Outlet context={{ sidebarOpen, setSidebarOpen }} />
                 </div>
             </div>

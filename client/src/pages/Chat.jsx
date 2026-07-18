@@ -356,7 +356,7 @@ const Chat = () => {
     ];
 
     return (
-        <div className="flex-1 w-full bg-surface flex overflow-hidden relative font-sans">
+        <div className="flex-1 w-full h-full bg-surface flex overflow-hidden relative font-sans">
             
             {/* Chat Sidebar */}
             <div className="flex flex-col bg-surface-light border-r border-border w-64 md:w-80 h-full relative z-10 shrink-0">
