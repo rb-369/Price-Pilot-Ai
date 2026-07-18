@@ -1,16 +1,34 @@
-import { useState, useEffect } from 'react';
-import { getLatestCompetitorPrices, getProducts, getCompetitorPrices, deleteProduct } from '../api';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { HiOutlineScale, HiOutlineTrendingDown, HiOutlineTrendingUp, HiDownload, HiOutlineTrash, HiOutlineCube } from 'react-icons/hi';
-import { SkeletonTable, SkeletonCard } from '../components/Skeleton';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+    HiDownload,
+    HiOutlineChartBar,
+    HiOutlineCube,
+    HiOutlineScale,
+    HiOutlineTrendingDown,
+    HiOutlineTrendingUp,
+    HiOutlineTrash,
+} from 'react-icons/hi';
+import { deleteProduct, getCompetitorPrices, getLatestCompetitorPrices, getProducts } from '../api';
 import ErrorState from '../components/ErrorState';
+import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import { exportToCSV } from '../utils/export';
+
+const competitorColors = {
+    Amazon: '#FF9900',
+    Flipkart: '#2874F0',
+    Myntra: '#FF3E6C',
+    Snapdeal: '#E40046',
+    Meesho: '#570A57',
+};
+
+const formatPrice = (price) => `Rs. ${Number(price || 0).toLocaleString('en-IN')}`;
 
 export default function Competitors() {
     const [prices, setPrices] = useState([]);
     const [products, setProducts] = useState([]);
-    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [selectedProduct, setSelectedProduct] = useState('');
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -19,8 +37,8 @@ export default function Competitors() {
         setLoading(true);
         setError(false);
         Promise.all([
-            getLatestCompetitorPrices().then(r => setPrices(r.data)).catch(() => { throw new Error('Failed to fetch prices') }),
-            getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error('Failed to fetch products') }),
+            getLatestCompetitorPrices().then((response) => setPrices(response.data)),
+            getProducts().then((response) => setProducts(response.data.data || response.data)),
         ]).catch(() => {
             setError(true);
         }).finally(() => {
@@ -29,231 +47,202 @@ export default function Competitors() {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchData();
     }, []);
 
     useEffect(() => {
-        if (selectedProduct) {
-            getCompetitorPrices(selectedProduct).then(r => {
-                const grouped = {};
-                r.data.forEach(cp => {
-                    const day = new Date(cp.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                    if (!grouped[day]) grouped[day] = { day };
-                    grouped[day][cp.competitorName] = cp.competitorPrice;
-                });
-                setHistory(Object.values(grouped).reverse().slice(-15));
-            }).catch(() => { });
+        if (!selectedProduct) {
+            setHistory([]);
+            return;
         }
+
+        getCompetitorPrices(selectedProduct).then((response) => {
+            const grouped = response.data.reduce((result, price) => {
+                const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                if (!result[day]) result[day] = { day };
+                result[day][price.competitorName] = price.competitorPrice;
+                return result;
+            }, {});
+            setHistory(Object.values(grouped).reverse().slice(-15));
+        }).catch(() => setHistory([]));
     }, [selectedProduct]);
 
+    const productPrices = useMemo(() => prices.reduce((result, price) => {
+        const productId = price._id?.productId?.toString();
+        if (!productId || !price.product) return result;
+        if (!result[productId]) result[productId] = { product: price.product, competitors: [] };
+        result[productId].competitors.push({
+            name: price._id.competitorName,
+            price: price.latestPrice,
+            inStock: price.inStock,
+            timestamp: price.timestamp,
+        });
+        return result;
+    }, {}), [prices]);
+
+    const summary = useMemo(() => {
+        const entries = Object.values(productPrices).flatMap((data) => data.competitors.map((competitor) => ({
+            competitor,
+            ourPrice: data.product.currentPrice,
+        })));
+        return {
+            products: Object.keys(productPrices).length,
+            offers: entries.length,
+            lowerPriced: entries.filter(({ competitor, ourPrice }) => competitor.price < ourPrice).length,
+        };
+    }, [productPrices]);
+
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
+        if (!window.confirm('Are you sure you want to delete this product?')) return;
         try {
             await deleteProduct(id);
             toast.success('Product deleted');
+            if (selectedProduct === id) setSelectedProduct('');
             fetchData();
-            if (selectedProduct === id) setSelectedProduct(null);
         } catch {
             toast.error('Failed to delete product');
         }
     };
 
     const handleExport = () => {
-        const exportData = [];
-        Object.entries(productPrices).forEach(([, data]) => {
-            data.competitors.forEach(comp => {
-                exportData.push({
-                    Product: data.product.name,
-                    SKU: data.product.sku,
-                    Our_Price: data.product.currentPrice,
-                    Competitor_Name: comp.name,
-                    Competitor_Price: comp.price,
-                    In_Stock: comp.inStock ? 'Yes' : 'No',
-                    Difference_Pct: ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1)
-                });
-            });
-        });
+        const exportData = Object.values(productPrices).flatMap((data) => data.competitors.map((competitor) => ({
+            Product: data.product.name,
+            SKU: data.product.sku,
+            Our_Price: data.product.currentPrice,
+            Competitor_Name: competitor.name,
+            Competitor_Price: competitor.price,
+            In_Stock: competitor.inStock ? 'Yes' : 'No',
+            Difference_Pct: (((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1),
+        })));
         exportToCSV(exportData, 'competitor-prices');
     };
 
-    const competitorColors = { Amazon: '#FF9900', Flipkart: '#2874F0', Myntra: '#FF3E6C', Snapdeal: '#E40046', Meesho: '#570A57' };
-
-    if (error) {
-        return <ErrorState title="Failed to load Competitor data" onRetry={fetchData} />;
-    }
+    if (error) return <ErrorState title="Failed to load competitor data" onRetry={fetchData} />;
 
     if (loading) {
         return (
             <div className="space-y-6">
-                <div className="flex justify-between items-end mb-8">
-                    <div><div className="skeleton h-8 w-64 mb-2 rounded"></div><div className="skeleton h-4 w-48 rounded"></div></div>
-                </div>
+                <div><div className="skeleton mb-2 h-8 w-64 rounded" /><div className="skeleton h-4 w-48 rounded" /></div>
+                <div className="grid gap-3 sm:grid-cols-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
                 <SkeletonCard className="h-[400px]" />
-                <SkeletonTable rows={5} columns={6} />
+                <SkeletonTable rows={5} columns={4} />
             </div>
         );
     }
 
-    const productPrices = {};
-    prices.forEach(p => {
-        const pid = p._id?.productId?.toString();
-        if (!productPrices[pid]) productPrices[pid] = { product: p.product, competitors: [] };
-        productPrices[pid].competitors.push({
-            name: p._id.competitorName, price: p.latestPrice,
-            inStock: p.inStock, timestamp: p.timestamp,
-        });
-    });
+    const historyCompetitors = Object.keys(competitorColors).filter((competitor) => history.some((point) => point[competitor]));
 
     return (
-        <div className="space-y-6">
-            <div className="animate-slide-up flex justify-between items-end">
+        <div className="space-y-7 pb-8">
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="page-header text-3xl">Competitor Comparison</h1>
-                    <p className="text-text-muted mt-1 text-sm">Real-time competitor price monitoring</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">Market intelligence</p>
+                    <h1 className="page-header mt-1 text-3xl">Competitor comparison</h1>
+                    <p className="mt-2 text-sm text-text-muted">Monitor price position and availability across your tracked catalog.</p>
                 </div>
-                <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
-                    <HiDownload className="w-5 h-5" /> Export CSV
+                <button type="button" onClick={handleExport} disabled={!summary.offers} className="btn-secondary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40">
+                    <HiDownload className="h-4 w-4" />
+                    Export CSV
                 </button>
-            </div>
+            </header>
 
-            {/* Price History Chart */}
-            <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-                    <h2 className="text-base font-semibold text-text flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <HiOutlineScale className="w-4 h-4 text-primary" />
-                        </div>
-                        Price History
-                    </h2>
-                    <select className="input-field w-full md:w-64" value={selectedProduct || ''}
-                        onChange={e => setSelectedProduct(e.target.value)}>
-                        <option value="">Select a product</option>
-                        {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+            <section className="grid gap-3 sm:grid-cols-3" aria-label="Competitor summary">
+                <div className="border border-border bg-surface-light p-4">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Tracked products</span><HiOutlineCube className="h-4 w-4 text-primary-light" /></div>
+                    <p className="mt-3 text-2xl font-semibold text-text">{summary.products}</p>
+                </div>
+                <div className="border border-border bg-surface-light p-4">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Live competitor offers</span><HiOutlineChartBar className="h-4 w-4 text-accent" /></div>
+                    <p className="mt-3 text-2xl font-semibold text-text">{summary.offers}</p>
+                </div>
+                <div className="border border-border bg-surface-light p-4">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Priced below us</span><HiOutlineTrendingDown className="h-4 w-4 text-warning" /></div>
+                    <p className="mt-3 text-2xl font-semibold text-text">{summary.lowerPriced}</p>
+                </div>
+            </section>
+
+            <section className="border border-border bg-surface-light">
+                <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineScale className="h-5 w-5" /></div>
+                        <div><h2 className="text-sm font-semibold text-text">Price history</h2><p className="mt-0.5 text-xs text-text-muted">Latest 15 competitor price observations</p></div>
+                    </div>
+                    <label className="sr-only" htmlFor="product-history">Choose a product</label>
+                    <select id="product-history" className="input-field w-full sm:w-72" value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)}>
+                        <option value="">Choose a product to inspect</option>
+                        {products.map((product) => <option key={product._id} value={product._id}>{product.name}</option>)}
                     </select>
                 </div>
-                {history.length > 0 ? (
-                    <div className="chart-container">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={history}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.06)" />
-                                <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.06)' }} />
-                                <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid rgba(99,102,241,0.15)', borderRadius: '12px', color: '#f1f5f9', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }} />
-                                <Legend />
-                                {Object.keys(competitorColors).map(comp => (
-                                    history.some(h => h[comp]) && <Line key={comp} type="monotone" dataKey={comp} stroke={competitorColors[comp]} strokeWidth={2} dot={{ r: 3, fill: competitorColors[comp] }} />
-                                ))}
-                            </LineChart>
-                        </ResponsiveContainer>
+                <div className="p-4 sm:p-6">
+                    {history.length ? (
+                        <div className="h-[300px] sm:h-[340px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={history} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
+                                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                    <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} width={52} />
+                                    <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid #1e293b', borderRadius: '8px', color: '#f1f5f9' }} />
+                                    <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
+                                    {historyCompetitors.map((competitor) => <Line key={competitor} type="monotone" dataKey={competitor} stroke={competitorColors[competitor]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />)}
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <div className="flex h-[300px] flex-col items-center justify-center text-center">
+                            <HiOutlineScale className="h-9 w-9 text-text-muted" />
+                            <p className="mt-3 text-sm font-medium text-text">Select a product to view its price trend</p>
+                            <p className="mt-1 text-xs text-text-muted">We will plot each tracked competitor separately.</p>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            <section>
+                <div className="mb-4 flex items-center justify-between">
+                    <div><h2 className="text-base font-semibold text-text">Latest price checks</h2><p className="mt-1 text-xs text-text-muted">Each row compares one competitor offer with your current price.</p></div>
+                    <span className="hidden text-xs text-text-muted sm:block">{summary.offers} offers</span>
+                </div>
+
+                {Object.keys(productPrices).length ? (
+                    <div className="space-y-4">
+                        {Object.entries(productPrices).map(([productId, data]) => (
+                            <article key={productId} className="overflow-hidden border border-border bg-surface-light">
+                                <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineCube className="h-4 w-4" /></div>
+                                        <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-text">{data.product.name}</h3><p className="mt-0.5 text-xs text-text-muted">Your price: <span className="font-medium text-text">{formatPrice(data.product.currentPrice)}</span>{data.product.sku ? `  |  ${data.product.sku}` : ''}</p></div>
+                                    </div>
+                                    <button type="button" onClick={() => handleDelete(productId)} className="self-end rounded-lg p-2 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger sm:self-auto" aria-label={`Delete ${data.product.name}`} title="Delete product"><HiOutlineTrash className="h-4 w-4" /></button>
+                                </div>
+
+                                <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] gap-4 border-b border-border bg-surface px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-text-muted md:grid">
+                                    <span>Competitor</span><span className="text-right">Their price</span><span className="text-center">Availability</span><span className="text-right">Difference</span>
+                                </div>
+                                <div className="divide-y divide-border">
+                                    {data.competitors.map((competitor, index) => {
+                                        const difference = data.product.currentPrice ? ((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100 : 0;
+                                        const competitorIsHigher = difference >= 0;
+                                        return (
+                                            <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
+                                                <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
+                                                <span className="hidden text-right text-sm font-semibold text-text md:block">{formatPrice(competitor.price)}</span>
+                                                <div className="md:text-center"><span className={`badge ${competitor.inStock ? 'badge-success' : 'badge-danger'} text-[10px]`}>{competitor.inStock ? 'In stock' : 'Out of stock'}</span></div>
+                                                <div className={`flex items-center gap-1 text-sm font-semibold md:justify-end ${competitorIsHigher ? 'text-success' : 'text-danger'}`}>
+                                                    {competitorIsHigher ? <HiOutlineTrendingUp className="h-4 w-4" /> : <HiOutlineTrendingDown className="h-4 w-4" />}
+                                                    {competitorIsHigher ? '+' : ''}{difference.toFixed(1)}%
+                                                    <span className="text-xs font-normal text-text-muted md:hidden">vs you</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </article>
+                        ))}
                     </div>
                 ) : (
-                    <div className="text-text-muted text-center py-16 text-sm">
-                        <HiOutlineScale className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                        Select a product to view competitor price history
-                    </div>
+                    <div className="border border-dashed border-border bg-surface-light px-6 py-14 text-center"><HiOutlineScale className="mx-auto h-9 w-9 text-text-muted" /><p className="mt-3 text-sm font-medium text-text">No competitor prices yet</p><p className="mt-1 text-xs text-text-muted">Add products and competitor sources to begin monitoring the market.</p></div>
                 )}
-            </div>
-
-            {/* Comparison Table Section */}
-            <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <h2 className="text-base font-semibold text-text mb-4 px-1">Latest Competitor Prices</h2>
-                
-                {/* Mobile View */}
-                <div className="md:hidden flex flex-col gap-6">
-                    {Object.entries(productPrices).map(([pid, data]) => (
-                        <div key={pid} className="glass-card overflow-hidden shadow-sm">
-                            <div className="bg-gradient-to-r from-primary/10 to-transparent p-4 border-b border-[rgba(99,102,241,0.1)] flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-bold text-text text-base">{data.product.name}</h3>
-                                    <p className="text-xs text-text-muted mt-1 font-medium">Our Price: <span className="font-semibold text-text">₹{data.product.currentPrice}</span></p>
-                                </div>
-                                <button onClick={() => handleDelete(pid)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all bg-surface/50 border border-transparent hover:border-danger/20 shadow-sm" title="Delete Product">
-                                    <HiOutlineTrash className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <div className="divide-y divide-[rgba(99,102,241,0.04)]">
-                                {data.competitors.map((comp, i) => {
-                                    const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
-                                    return (
-                                        <div key={i} className="p-4 flex flex-col gap-3 hover:bg-[rgba(99,102,241,0.02)] transition-colors">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium text-text">{comp.name}</span>
-                                                <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-text-muted text-sm block">Their Price: <span className="font-semibold text-text">₹{comp.price}</span></span>
-                                                <span className={`text-sm font-bold flex items-center gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
-                                                    {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
-                                                    {diff > 0 ? '+' : ''}{diff}%
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Desktop View */}
-                <div className="hidden md:flex flex-col gap-6">
-                    {/* Header Row */}
-                    <div className="glass-card px-6 py-4 flex w-full">
-                        <div className="w-[40%] text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Competitor</div>
-                        <div className="w-[20%] text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Their Price</div>
-                        <div className="w-[20%] text-center text-xs font-semibold text-text-muted uppercase tracking-wider">Stock</div>
-                        <div className="w-[20%] text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Difference</div>
-                    </div>
-
-                    {/* Product Cards */}
-                    {Object.entries(productPrices).map(([pid, data]) => (
-                        <div key={pid} className="glass-card overflow-hidden shadow-sm">
-                            <div className="bg-gradient-to-r from-[rgba(99,102,241,0.1)] to-transparent border-b border-[rgba(99,102,241,0.15)] px-6 py-4 flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-[rgba(99,102,241,0.15)] flex items-center justify-center text-primary border border-[rgba(99,102,241,0.2)]">
-                                        <HiOutlineCube className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                        <span className="font-bold text-text text-base tracking-tight">{data.product.name}</span>
-                                        <span className="text-sm text-text-muted ml-4 font-medium">Our Price: <span className="text-text font-semibold">₹{data.product.currentPrice}</span></span>
-                                    </div>
-                                </div>
-                                <button onClick={() => handleDelete(pid)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all border border-transparent hover:border-danger/20 bg-surface/50 shadow-sm" title="Delete Product">
-                                    <HiOutlineTrash className="w-4 h-4" />
-                                </button>
-                            </div>
-                            
-                            <div className="flex flex-col">
-                                {data.competitors.map((comp, i) => {
-                                    const diff = ((comp.price - data.product.currentPrice) / data.product.currentPrice * 100).toFixed(1);
-                                    const isLast = i === data.competitors.length - 1;
-                                    return (
-                                        <div key={`${pid}-${i}`} className={`flex items-stretch w-full hover:bg-[rgba(99,102,241,0.03)] transition-colors ${!isLast ? 'border-b border-[rgba(99,102,241,0.03)]' : ''}`}>
-                                            <div className="w-[40%] px-6 py-4 text-sm font-medium text-text pl-16 relative flex items-center">
-                                                {/* Visual tree line connector */}
-                                                <div className={`absolute left-9 top-0 w-px bg-[rgba(99,102,241,0.2)] ${isLast ? 'h-1/2' : 'h-full'}`}></div>
-                                                <div className="absolute left-9 top-1/2 w-4 h-px bg-[rgba(99,102,241,0.2)]"></div>
-                                                {comp.name}
-                                            </div>
-                                            <div className="w-[20%] px-6 py-4 text-sm font-semibold text-text text-right flex items-center justify-end">₹{comp.price}</div>
-                                            <div className="w-[20%] px-6 py-4 text-center flex items-center justify-center">
-                                                <span className={`badge ${comp.inStock ? 'badge-success' : 'badge-danger'}`}>{comp.inStock ? 'In Stock' : 'OOS'}</span>
-                                            </div>
-                                            <div className="w-[20%] px-6 py-4 text-right flex items-center justify-end">
-                                                <span className={`text-sm font-bold flex items-center justify-end gap-1 ${diff > 0 ? 'text-success' : 'text-danger'}`}>
-                                                    {diff > 0 ? <HiOutlineTrendingUp className="w-4 h-4" /> : <HiOutlineTrendingDown className="w-4 h-4" />}
-                                                    {diff > 0 ? '+' : ''}{diff}%
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            </section>
         </div>
     );
 }

@@ -20,7 +20,7 @@ export default function Layout() {
 
             {/* Main content */}
             <div
-                className="flex flex-col flex-1 h-full"
+                className="flex min-h-0 flex-col flex-1 h-full"
                 style={{
                     marginLeft: sidebarOpen ? '260px' : '0',
                     transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -69,8 +69,10 @@ export default function Layout() {
                     </div>
                 )}
 
-                <div className={isChatPage ? 'w-full h-full flex-1 flex flex-col overflow-hidden relative' : 'p-8 max-w-[1400px] mx-auto animate-fade-in flex-1'}>
+                <div className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-5 sm:p-8'}>
+                    <div className={isChatPage ? 'h-full w-full' : 'mx-auto w-full max-w-[1400px] animate-fade-in'}>
                     <Outlet context={{ sidebarOpen, setSidebarOpen }} />
+                    </div>
                 </div>
             </div>
         </div>
