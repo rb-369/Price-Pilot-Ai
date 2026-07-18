@@ -12,7 +12,7 @@ def get_vectorstore(collection_name="ecommerce_data"):
         print("Warning: No Gemini API key found. Vectorstore will fail.")
         
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004", # Updated to latest model
+        model="models/embedding-001",
         google_api_key=api_key
     )
     

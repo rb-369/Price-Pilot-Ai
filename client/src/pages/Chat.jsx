@@ -399,7 +399,7 @@ const Chat = () => {
             </div>
 
             {/* Main Chat Workspace */}
-            <div className="flex-1 flex flex-col h-full bg-surface relative overflow-hidden">
+            <div className="flex-1 flex flex-col h-[100dvh] bg-surface relative overflow-hidden">
                 {/* Decorative Glowing Mesh Orbs */}
                 <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none"></div>
                 <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] pointer-events-none"></div>
