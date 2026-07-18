@@ -5,8 +5,10 @@ import {
 } from '../api';
 import { 
     HiOutlineTrash, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineX, 
-    HiOutlinePaperClip, HiOutlineDocumentText 
+    HiOutlinePaperClip, HiOutlineDocumentText,
+    HiOutlineTrendingUp, HiOutlineChartBar, HiOutlineLightningBolt, HiOutlineBell
 } from 'react-icons/hi';
+import logoUrl from '../assets/FINAL.svg';
 
 const Chat = () => {
     const { sidebarOpen } = useOutletContext() || {};
@@ -228,7 +230,7 @@ const Chat = () => {
         const flushList = (key) => {
             if (currentList.length > 0) {
                 rendered.push(
-                    <ul key={`list-${key}`} className="list-disc pl-5 my-2 space-y-1 text-slate-200">
+                    <ul key={`list-${key}`} className="list-disc pl-5 my-2 space-y-1 text-text">
                         {currentList}
                     </ul>
                 );
@@ -253,14 +255,14 @@ const Chat = () => {
                 // Headings
                 if (line.startsWith('### ')) {
                     rendered.push(
-                        <h4 key={idx} className="text-sm font-semibold text-indigo-300 mt-4 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                        <h4 key={idx} className="text-sm font-semibold text-text mt-4 mb-1.5 flex items-center gap-1.5 uppercase tracking-wider">
                             <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full inline-block"></span>
                             {parseInlineMarkdown(line.substring(4))}
                         </h4>
                     );
                 } else if (line.startsWith('## ')) {
                     rendered.push(
-                        <h3 key={idx} className="text-base font-bold text-indigo-200 mt-5 mb-2 border-b border-white/5 pb-1">
+                        <h3 key={idx} className="text-base font-bold text-indigo-200 mt-5 mb-2 border-b border-border pb-1">
                             {parseInlineMarkdown(line.substring(3))}
                         </h3>
                     );
@@ -272,7 +274,7 @@ const Chat = () => {
                     );
                 } else if (trimmed) {
                     rendered.push(
-                        <p key={idx} className="text-sm text-slate-200 leading-relaxed my-2">
+                        <p key={idx} className="text-sm text-text leading-relaxed my-2">
                             {parseInlineMarkdown(line)}
                         </p>
                     );
@@ -314,7 +316,7 @@ const Chat = () => {
                 );
             } else if (matchedStr.startsWith('`') && matchedStr.endsWith('`')) {
                 parts.push(
-                    <code key={index} className="bg-slate-950/70 border border-white/10 text-cyan-400 font-mono text-[11px] px-1.5 py-0.5 rounded mx-0.5 font-medium">
+                    <code key={index} className="bg-surface-lighter border border-border text-accent font-mono text-[11px] px-1.5 py-0.5 rounded mx-0.5 font-medium">
                         {matchedStr.substring(1, matchedStr.length - 1)}
                     </code>
                 );
@@ -330,22 +332,26 @@ const Chat = () => {
         {
             title: "Optimize Stock",
             desc: "Which products should I discount this week?",
-            prompt: "Can u suggest which products can i put on discount this week?"
+            prompt: "Can u suggest which products can i put on discount this week?",
+            icon: <HiOutlineLightningBolt className="w-5 h-5" />
         },
         {
             title: "Analyze Competitors",
             desc: "Compare our prices against market leaders",
-            prompt: "Analyze our competitor pricing trends and show me where we are priced too high or too low."
+            prompt: "Analyze our competitor pricing trends and show me where we are priced too high or too low.",
+            icon: <HiOutlineChartBar className="w-5 h-5" />
         },
         {
             title: "Forecast Demand",
             desc: "What are the demand signals for next month?",
-            prompt: "Show me the key demand signals and sales forecasts for the upcoming month."
+            prompt: "Show me the key demand signals and sales forecasts for the upcoming month.",
+            icon: <HiOutlineTrendingUp className="w-5 h-5" />
         },
         {
             title: "Alert Strategy",
             desc: "Configure pricing anomaly alerts",
-            prompt: "How should I configure alerts for sudden competitor price drops or high inventory levels?"
+            prompt: "How should I configure alerts for sudden competitor price drops or high inventory levels?",
+            icon: <HiOutlineBell className="w-5 h-5" />
         }
     ];
 
@@ -353,9 +359,9 @@ const Chat = () => {
         <div className="h-full w-full bg-surface flex overflow-hidden relative font-sans">
             
             {/* Chat Sidebar */}
-            <div className="flex flex-col bg-surface-light border-r border-white/5 w-64 md:w-80 h-full relative z-10 shrink-0">
+            <div className="flex flex-col bg-surface-light border-r border-border w-64 md:w-80 h-full relative z-10 shrink-0">
                 {/* Sidebar Header - Dynamic Left Padding to Clear Dashboard Menu Toggle Button */}
-                <div className={`p-4 flex items-center justify-between border-b border-white/5 ${!sidebarOpen ? 'pl-[72px]' : ''} h-[68px] transition-all duration-300`}>
+                <div className={`p-4 flex items-center justify-between border-b border-border ${!sidebarOpen ? 'pl-[72px]' : ''} h-[68px] transition-all duration-300`}>
                     <button 
                         onClick={handleNewChat}
                         className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary-light border border-primary/20 hover:bg-primary hover:text-white py-2.5 rounded-xl transition-all font-medium text-xs shadow-[0_0_15px_rgba(99,102,241,0.05)] hover:shadow-[0_0_20px_rgba(99,102,241,0.25)]"
@@ -373,16 +379,16 @@ const Chat = () => {
                             className={`flex items-center justify-between p-3 rounded-xl cursor-pointer group transition-all duration-200 border ${
                                 activeChatId === chat._id 
                                 ? 'bg-primary/10 border-primary/15 text-white font-medium shadow-[0_4px_12px_rgba(99,102,241,0.08)]' 
-                                : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                                : 'border-transparent text-text-muted hover:bg-surface-lighter hover:text-text'
                             }`}
                         >
                             <div className="flex items-center gap-2.5 truncate flex-1 min-w-0">
-                                <HiOutlineChatAlt2 className={`w-4.5 h-4.5 shrink-0 ${activeChatId === chat._id ? 'text-primary-light animate-pulse' : 'text-slate-500'}`} />
+                                <HiOutlineChatAlt2 className={`w-4.5 h-4.5 shrink-0 ${activeChatId === chat._id ? 'text-primary-light animate-pulse' : 'text-text-muted'}`} />
                                 <span className="text-xs truncate">{chat.title}</span>
                             </div>
                             <button 
                                 onClick={(e) => handleDeleteChat(e, chat._id)}
-                                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-danger/90 hover:scale-105 transition-all p-1 rounded-md hover:bg-white/5"
+                                className="opacity-0 group-hover:opacity-100 text-text-muted hover:text-danger/90 hover:scale-105 transition-all p-1 rounded-md hover:bg-surface-lighter"
                                 title="Delete Chat"
                             >
                                 <HiOutlineTrash className="w-3.5 h-3.5" />
@@ -399,18 +405,18 @@ const Chat = () => {
                 <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] pointer-events-none"></div>
 
                 {/* Workspace Header */}
-                <div className="flex items-center justify-between px-6 h-[68px] border-b border-white/5 bg-surface/30 backdrop-blur-md relative z-10">
+                <div className="flex items-center justify-between px-6 h-[68px] border-b border-border bg-surface/30 backdrop-blur-md relative z-10">
                     <div className="flex items-center space-x-3">
                         <div className="relative">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent p-[1px] shadow-[0_0_15px_rgba(99,102,241,0.15)]">
-                                <div className="w-full h-full bg-surface-light rounded-xl flex items-center justify-center">
-                                    <HiOutlineChatAlt2 className="w-4.5 h-4.5 text-primary-light" />
+                                <div className="w-full h-full bg-surface-light rounded-xl flex items-center justify-center p-1">
+                                    <img src={logoUrl} alt="PricePilot Logo" className="w-6 h-6 object-contain" />
                                 </div>
                             </div>
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success border-2 border-surface rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-100 text-xs tracking-wider uppercase">PricePilot AI</h3>
+                            <h3 className="font-bold text-text text-xs tracking-wider uppercase">PricePilot AI</h3>
                             <p className="text-[9px] text-success tracking-widest font-semibold flex items-center gap-1 mt-0.5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-success inline-block animate-ping"></span> Online
                             </p>
@@ -426,8 +432,8 @@ const Chat = () => {
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent blur-xl opacity-30 animate-pulse"></div>
                                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent p-[1.5px] relative z-10 shadow-[0_8px_32px_rgba(99,102,241,0.35)]">
-                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center">
-                                        <HiOutlineChatAlt2 className="w-10 h-10 text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-accent" />
+                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center p-2">
+                                        <img src={logoUrl} alt="PricePilot AI Logo" className="w-14 h-14 object-contain opacity-90" />
                                     </div>
                                 </div>
                             </div>
@@ -436,7 +442,7 @@ const Chat = () => {
                             <h2 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-slate-400 tracking-tight">
                                 Meet PricePilot AI
                             </h2>
-                            <p className="text-slate-400 text-sm md:text-base mt-2 max-w-lg leading-relaxed">
+                            <p className="text-text-muted text-sm md:text-base mt-2 max-w-lg leading-relaxed">
                                 Your real-time intelligence assistant for pricing optimization, competitor tracking, and smart inventory decisions.
                             </p>
                             
@@ -446,15 +452,19 @@ const Chat = () => {
                                     <div
                                         key={idx}
                                         onClick={() => handleSend(null, sug.prompt)}
-                                        className="glass-card p-5 rounded-2xl border border-white/5 bg-slate-900/40 hover:bg-slate-900/80 cursor-pointer flex flex-col items-left text-left group transition-all duration-300 hover:border-primary/30"
+                                        className="glass-card p-5 rounded-2xl border border-border bg-surface-lighter/50 hover:bg-surface-lighter cursor-pointer flex flex-col items-start text-left group transition-all duration-300 hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(99,102,241,0.12)] hover:-translate-y-1 relative overflow-hidden"
                                     >
-                                        <h4 className="text-sm font-semibold text-indigo-300 group-hover:text-white transition-colors duration-200">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-primary/15 transition-all duration-500 pointer-events-none"></div>
+                                        <div className="w-10 h-10 rounded-xl bg-surface-light/50 border border-border flex items-center justify-center text-primary-light mb-3 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                                            {sug.icon}
+                                        </div>
+                                        <h4 className="text-sm font-semibold text-text group-hover:text-white transition-colors duration-200">
                                             {sug.title}
                                         </h4>
-                                        <p className="text-xs text-slate-400 mt-1.5 leading-normal group-hover:text-slate-300 transition-colors duration-200">
+                                        <p className="text-xs text-text-muted mt-2 leading-relaxed group-hover:text-text transition-colors duration-200">
                                             {sug.desc}
                                         </p>
-                                        <div className="mt-3 flex items-center gap-1.5 text-[11px] text-primary-light group-hover:text-primary-light/80 font-medium">
+                                        <div className="mt-4 flex items-center gap-1.5 text-[11px] text-primary-light group-hover:text-primary-light font-medium uppercase tracking-wider">
                                             <span>Try prompt</span>
                                             <span className="transform translate-x-0 group-hover:translate-x-1 transition-transform duration-200">→</span>
                                         </div>
@@ -469,7 +479,7 @@ const Chat = () => {
                             <div className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-lg border relative ${
                                 msg.role === 'user' 
                                 ? 'bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-sm shadow-primary/10' 
-                                : 'bg-surface-light/55 backdrop-blur-md border-white/5 text-slate-200 rounded-tl-sm'
+                                : 'bg-surface-light/55 backdrop-blur-md border-border text-text rounded-tl-sm'
                             }`}>
                                 {msg.role === 'user' ? (
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -484,7 +494,7 @@ const Chat = () => {
                     
                     {isLoading && (
                         <div className="flex justify-start animate-in fade-in duration-300">
-                            <div className="bg-surface-light/55 backdrop-blur-md border border-white/5 rounded-2xl rounded-tl-sm px-5 py-4 flex space-x-2.5">
+                            <div className="bg-surface-light/55 backdrop-blur-md border border-border rounded-2xl rounded-tl-sm px-5 py-4 flex space-x-2.5">
                                 <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]"></div>
                                 <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]" style={{ animationDelay: '0.15s' }}></div>
                                 <div className="w-2 h-2 bg-primary-light rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.5)]" style={{ animationDelay: '0.3s' }}></div>
@@ -500,7 +510,7 @@ const Chat = () => {
                         <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary-light text-xs px-3.5 py-2 rounded-xl">
                             <HiOutlineDocumentText className="w-4 h-4 text-primary-light" />
                             <span className="truncate max-w-[200px] font-medium">{attachedFile.name}</span>
-                            <button onClick={() => {setAttachedFile(null); setExtractedText(null);}} className="hover:text-white ml-1 text-slate-400 transition-colors">
+                            <button onClick={() => {setAttachedFile(null); setExtractedText(null);}} className="hover:text-white ml-1 text-text-muted transition-colors">
                                 <HiOutlineX className="w-3.5 h-3.5" />
                             </button>
                         </div>
@@ -508,7 +518,7 @@ const Chat = () => {
                 )}
 
                 {/* Chat Action Input bar */}
-                <div className="p-6 bg-surface/50 backdrop-blur-lg border-t border-white/5 relative z-20">
+                <div className="p-6 bg-surface/50 backdrop-blur-lg border-t border-border relative z-20">
                     <form onSubmit={(e) => handleSend(e)} className="relative flex items-center max-w-4xl mx-auto group">
                         <input
                             type="file"
@@ -520,7 +530,7 @@ const Chat = () => {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="absolute left-4.5 text-slate-400 hover:text-primary-light transition-colors z-10"
+                            className="absolute left-4.5 text-text-muted hover:text-primary-light transition-colors z-10"
                             title="Attach PDF or Text file"
                         >
                             <HiOutlinePaperClip className="w-5 h-5" />
@@ -533,7 +543,7 @@ const Chat = () => {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={extractedText ? "Ask about your attached file..." : "Message PricePilot AI..."}
-                            className="w-full bg-surface-light border border-white/5 rounded-2xl pl-13 pr-15 py-4 text-sm text-slate-100 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-all placeholder-slate-500"
+                            className="w-full bg-surface-light border border-border rounded-2xl pl-13 pr-15 py-4 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-all placeholder-text-muted"
                         />
                         
                         <button
@@ -544,7 +554,7 @@ const Chat = () => {
                             <svg className="w-4 h-4 translate-x-[0.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </button>
                     </form>
-                    <p className="text-center text-[10px] text-slate-500 mt-3 font-medium tracking-wide">AI can make mistakes. Consider verifying important information.</p>
+                    <p className="text-center text-[10px] text-text-muted mt-3 font-medium tracking-wide">AI can make mistakes. Consider verifying important information.</p>
                 </div>
             </div>
         </div>
