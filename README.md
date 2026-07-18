@@ -124,7 +124,7 @@ PricePilot AI solves these challenges with automated, intelligent pricing that a
 The system follows a **microservices architecture** with three main components:
 1. **React Client** — Single-page application with responsive UI
 2. **Node.js API Server** — RESTful backend with MongoDB for data persistence
-3. **Python AI Service** — FastAPI microservice for ML workloads (forecasting, optimization, LLM insights)
+3. **Python AI Service** — FastAPI microservice for ML workloads (forecasting, optimization, LLM insights) featuring Ephemeral AI Agent Session architecture with WorkingMemory and RAG retrievers
 
 ---
 
