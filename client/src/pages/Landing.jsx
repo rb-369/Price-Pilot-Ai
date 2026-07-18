@@ -101,7 +101,7 @@ export default function Landing() {
 
     return (
         <div
-            className="min-h-screen bg-surface flex flex-col text-text overflow-hidden relative transition-colors duration-300"
+            className="min-h-screen bg-surface flex flex-col text-text overflow-x-hidden overflow-y-auto relative transition-colors duration-300"
             style={{
                 backgroundImage: `url("${landingBg}")`,
                 backgroundSize: 'cover',

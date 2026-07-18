@@ -39,7 +39,7 @@ export default function ResetPassword() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-x-hidden overflow-y-auto">
             {/* Background floating animations */}
             <div className="orb orb-1" />
             <div className="orb orb-2" />

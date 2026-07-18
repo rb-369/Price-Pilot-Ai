@@ -50,7 +50,7 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-x-hidden overflow-y-auto">
             {/* Floating orbs */}
             <div className="orb orb-1" />
             <div className="orb orb-2" />
