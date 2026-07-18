@@ -432,8 +432,8 @@ const Chat = () => {
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent blur-xl opacity-30 animate-pulse"></div>
                                 <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent p-[1.5px] relative z-10 shadow-[0_8px_32px_rgba(99,102,241,0.35)]">
-                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center p-2">
-                                        <img src={logoUrl} alt="PricePilot AI Logo" className="w-14 h-14 object-contain opacity-90" />
+                                    <div className="w-full h-full bg-surface-light rounded-[22px] flex items-center justify-center overflow-hidden p-0.5">
+                                        <img src={logoUrl} alt="PricePilot AI Logo" className="w-full h-full object-contain scale-[1.15] transform transition-transform" />
                                     </div>
                                 </div>
                             </div>
@@ -475,10 +475,26 @@ const Chat = () => {
                     )}
                     
                     {messages.map((msg, idx) => (
-                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
+                            {msg.role !== 'user' && (
+                                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-accent p-[1.5px] mr-3 mt-1 shrink-0 shadow-md transform transition-transform group-hover:scale-105">
+                                    <div className="w-full h-full bg-surface-light rounded-[10px] flex items-center justify-center overflow-hidden relative">
+                                        {/* Dynamic glowing core behind the agent */}
+                                        <div className="absolute inset-0 bg-primary/20 animate-pulse-glow"></div>
+                                        {/* Signature AI Agent Face */}
+                                        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-primary-light relative z-10 drop-shadow-[0_0_3px_rgba(129,140,248,0.6)]" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 3C8.134 3 5 6.134 5 10V14C5 17.866 8.134 21 12 21C15.866 21 19 17.866 19 14V10C19 6.134 15.866 3 12 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <path d="M9 11C9 10.4477 9.44772 10 10 10C10.5523 10 11 10.4477 11 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <path d="M15 11C15 10.4477 14.5523 10 14 10C13.4477 10 13 10.4477 13 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            <path d="M9 16C9 16 10.5 17 12 17C13.5 17 15 16 15 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            )}
                             <div className={`max-w-[85%] px-5 py-4 rounded-2xl shadow-lg border relative ${
                                 msg.role === 'user' 
-                                ? 'bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-sm shadow-primary/10' 
+                                ? 'bg-gradient-to-br from-primary to-primary-dark border-primary/20 text-white rounded-tr-sm shadow-[0_4px_20px_rgba(99,102,241,0.2)]' 
                                 : 'bg-surface-light/55 backdrop-blur-md border-border text-text rounded-tl-sm'
                             }`}>
                                 {msg.role === 'user' ? (
@@ -518,7 +534,7 @@ const Chat = () => {
                 )}
 
                 {/* Chat Action Input bar */}
-                <div className="p-6 bg-surface/50 backdrop-blur-lg border-t border-border relative z-20">
+                <div className="px-6 pb-2 pt-4 bg-surface/50 backdrop-blur-lg border-t border-border relative z-20">
                     <form onSubmit={(e) => handleSend(e)} className="relative flex items-center max-w-4xl mx-auto group">
                         <input
                             type="file"
