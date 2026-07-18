@@ -427,7 +427,7 @@ const Chat = () => {
                 {/* Messages Panel */}
                 <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 custom-scrollbar bg-transparent relative z-10">
                     {messages.length === 0 && (
-                        <div className="flex-1 flex flex-col items-center justify-center max-w-3xl mx-auto px-4 text-center h-full animate-fade-in py-8">
+                        <div className="flex flex-col items-center justify-start mt-8 md:mt-16 max-w-3xl mx-auto px-4 text-center animate-fade-in pb-8">
                             {/* Glowing Brand Icon */}
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-primary via-purple-500 to-accent blur-xl opacity-30 animate-pulse"></div>
@@ -439,7 +439,7 @@ const Chat = () => {
                             </div>
                             
                             {/* Welcoming Text */}
-                            <h2 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-slate-400 tracking-tight">
+                            <h2 className="text-2xl md:text-3xl font-extrabold page-header tracking-tight">
                                 Meet PricePilot AI
                             </h2>
                             <p className="text-text-muted text-sm md:text-base mt-2 max-w-lg leading-relaxed">
@@ -543,7 +543,7 @@ const Chat = () => {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={extractedText ? "Ask about your attached file..." : "Message PricePilot AI..."}
-                            className="w-full bg-surface-light border border-border rounded-2xl pl-13 pr-15 py-4 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] transition-all placeholder-text-muted"
+                            className="w-full bg-surface-light border border-border rounded-2xl pl-13 pr-15 py-4 text-sm text-text focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 focus:bg-surface-light/80 shadow-sm transition-all placeholder-text-muted"
                         />
                         
                         <button
