@@ -10,6 +10,9 @@ router = APIRouter()
 class CompetitorPriceData(BaseModel):
     name: str
     price: float
+    productName: Optional[str] = ""
+    url: Optional[str] = ""
+    rating: Optional[float] = None
     inStock: Optional[bool] = True
     timestamp: Optional[str] = None
 
@@ -62,8 +65,10 @@ async def optimize(request: OptimizeRequest):
                 competitors = await validate_competitors(product["name"], competitors)
 
         if not competitors:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=503, detail="Could not fetch real competitors. Please configure RAINFOREST_API_KEY in ai-service/.env.")
+            return {
+                "error": True,
+                "message": "Failed to fetch competitor prices. Please configure RAINFOREST_API_KEY or add competitors manually."
+            }
     # ----------------------------------------
 
     recommendation = optimize_price(product, competitors, demand)

@@ -253,13 +253,20 @@ export default function Recommendations() {
                                 })()}
                             </div>
 
-                            {rec.competitorsUsed && rec.competitorsUsed.length > 0 && (
+                            {rec.competitorsUsed && rec.competitorsUsed.length > 0 ? (
                                 <div className="mb-4">
                                     <p className="text-[10px] text-text-muted mb-2 font-semibold uppercase tracking-wider">Live Competitor Pricing Data</p>
                                     <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                                         {rec.competitorsUsed.map((comp, idx) => (
-                                            <div key={idx} className="shrink-0 bg-surface/50 p-2.5 rounded-lg border border-primary/10 min-w-[140px] max-w-[160px]">
-                                                <p className="text-[11px] text-text font-medium truncate" title={comp.name}>{comp.name}</p>
+                                            <div key={idx} className="shrink-0 bg-surface/50 p-2.5 rounded-lg border border-primary/10 min-w-[170px] max-w-[220px]">
+                                                <p className="text-[10px] text-text-muted font-medium mb-0.5">{comp.platform || comp.name}</p>
+                                                {comp.url ? (
+                                                    <a href={comp.url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-primary-light hover:underline font-medium line-clamp-2 block" title={comp.productName || comp.name}>
+                                                        {comp.productName || comp.name}
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-[11px] text-text font-medium line-clamp-2" title={comp.productName || comp.name}>{comp.productName || comp.name}</p>
+                                                )}
                                                 <div className="flex justify-between items-end mt-1.5">
                                                     <p className="text-sm text-primary-light font-bold">₹{comp.price}</p>
                                                     <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${comp.inStock ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>
@@ -270,7 +277,12 @@ export default function Recommendations() {
                                         ))}
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="mb-4 p-3 rounded-lg bg-warning/5 border border-warning/20">
+                                    <p className="text-xs text-warning font-medium">⚠ Failed to fetch competitor prices. Configure your API key or add competitors manually.</p>
+                                </div>
                             )}
+
 
                             {rec.status === 'pending' && (
                                 <div className="flex gap-3">

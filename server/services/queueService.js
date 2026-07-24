@@ -52,26 +52,43 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
         recommendation = aiResponse.data;
     } catch (err) {
         console.error('Python AI Service unreachable/failed in recommendationWorker:', err.message);
-        // Ponytail: fallback directly in Node so we don't break the UI when microservice drops.
-        recommendation = {
-            recommendedPrice: Math.round(product.currentPrice * 1.05),
-            reason: "Fallback recommendation generated (AI service offline).",
-            insight: JSON.stringify({
-                summary: "Steady demand detected.",
-                risk_level: "low",
-                detailed_analysis: "The AI microservice is currently unreachable. Based on basic heuristics, a 5% price increase is suggested.",
-                action_items: ["Monitor competitor pricing"]
-            }),
-            elasticityUsed: 1.0,
-            competitorsUsed: [
-                { platform: "Amazon", productName: "Mock Competitor Product A", price: Math.round(product.currentPrice * 0.95), inStock: true, timestamp: new Date().toISOString() },
-                { platform: "Flipkart", productName: "Mock Competitor Product B", price: Math.round(product.currentPrice * 1.08), inStock: true, timestamp: new Date().toISOString() },
-                { platform: "Snapdeal", productName: "Mock Competitor Product C", price: Math.round(product.currentPrice * 0.98), inStock: true, timestamp: new Date().toISOString() }
-            ],
-            factors: { demand: 0.6, competitor: 0.5 },
-            revenueImpact: 5.0,
-            confidenceScore: 0.7
-        };
+
+        // Check if it was a "failed to fetch competitors" error from the AI service
+        const aiErrorData = err.response?.data;
+        if (aiErrorData?.error && aiErrorData?.message) {
+            recommendation = {
+                recommendedPrice: product.currentPrice,
+                reason: aiErrorData.message,
+                insight: JSON.stringify({
+                    summary: "Could not generate recommendation.",
+                    risk_level: "unknown",
+                    detailed_analysis: aiErrorData.message,
+                    action_items: ["Configure RAINFOREST_API_KEY or add competitor data manually"]
+                }),
+                elasticityUsed: 1.0,
+                competitorsUsed: [],
+                factors: { demand: 0, competitor: 0 },
+                revenueImpact: 0,
+                confidenceScore: 0
+            };
+        } else {
+            // Generic AI service failure fallback
+            recommendation = {
+                recommendedPrice: Math.round(product.currentPrice * 1.05),
+                reason: "Fallback recommendation generated (AI service offline). Live competitor data could not be fetched.",
+                insight: JSON.stringify({
+                    summary: "Steady demand detected.",
+                    risk_level: "low",
+                    detailed_analysis: "The AI microservice is currently unreachable. Based on basic heuristics, a 5% price increase is suggested. No live competitor data available.",
+                    action_items: ["Check AI service status", "Configure RAINFOREST_API_KEY for live competitor data"]
+                }),
+                elasticityUsed: 1.0,
+                competitorsUsed: [],
+                factors: { demand: 0.6, competitor: 0 },
+                revenueImpact: 5.0,
+                confidenceScore: 0.5
+            };
+        }
     }
 
     const saved = await PricingRecommendation.create({

@@ -9,8 +9,8 @@ def test_health_check(client):
 def test_optimize_price_endpoint(client, mock_product, mock_competitors, mock_demand_signals):
     payload = {
         "product": mock_product,
-        "competitors": mock_competitors,
-        "demand_signals": mock_demand_signals
+        "competitorPrices": mock_competitors,
+        "demandSignals": mock_demand_signals
     }
     
     response = client.post("/api/optimize-price", json=payload)
@@ -22,6 +22,22 @@ def test_optimize_price_endpoint(client, mock_product, mock_competitors, mock_de
     assert "revenueImpact" in data
 
 
+def test_optimize_price_no_competitors_returns_error(client, mock_product, mock_demand_signals):
+    """When no competitors are provided and no API key is set, return an error message, not mock data."""
+    payload = {
+        "product": mock_product,
+        "competitorPrices": [],
+        "demandSignals": mock_demand_signals
+    }
+
+    response = client.post("/api/optimize-price", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("error") is True
+    assert "message" in data
+    assert "Failed to fetch" in data["message"]
+
 
 def test_suggest_promotion_endpoint(client, mock_product, mock_demand_signals):
     # Make product overstocked
@@ -29,7 +45,7 @@ def test_suggest_promotion_endpoint(client, mock_product, mock_demand_signals):
     
     payload = {
         "product": mock_product,
-        "demand_signals": mock_demand_signals
+        "demandSignals": mock_demand_signals
     }
     
     response = client.post("/api/suggest-promotion", json=payload)
