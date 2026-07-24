@@ -34,6 +34,7 @@ export default function Competitors() {
     const [fetchingPrices, setFetchingPrices] = useState(false);
     const [error, setError] = useState(false);
     const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
+    const [fetchingHistory, setFetchingHistory] = useState(false);
 
     const fetchData = () => {
         setLoading(true);
@@ -75,6 +76,7 @@ export default function Competitors() {
             return;
         }
 
+        setFetchingHistory(true);
         getCompetitorPrices(selectedProduct).then((response) => {
             const grouped = response.data.reduce((result, price) => {
                 const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
@@ -83,7 +85,7 @@ export default function Competitors() {
                 return result;
             }, {});
             setHistory(Object.values(grouped).reverse().slice(-15));
-        }).catch(() => setHistory([]));
+        }).catch(() => setHistory([])).finally(() => setFetchingHistory(false));
     }, [selectedProduct]);
 
     const productPrices = useMemo(() => {
@@ -208,7 +210,15 @@ export default function Competitors() {
                     </select>
                 </div>
                 <div className="p-4 sm:p-6">
-                    {history.length ? (
+                    {fetchingHistory ? (
+                        <div className="flex h-[300px] flex-col items-center justify-center text-center">
+                            <svg className="mb-3 h-9 w-9 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            <p className="text-sm font-medium text-text">Loading price history...</p>
+                        </div>
+                    ) : history.length ? (
                         <div className="h-[300px] sm:h-[340px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={history} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -220,6 +230,14 @@ export default function Competitors() {
                                     {historyCompetitors.map((competitor) => <Line key={competitor} type="monotone" dataKey={competitor} stroke={competitorColors[competitor]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />)}
                                 </LineChart>
                             </ResponsiveContainer>
+                        </div>
+                    ) : selectedProduct ? (
+                        <div className="flex h-[300px] flex-col items-center justify-center text-center">
+                            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
+                                <span className="text-xl">✕</span>
+                            </div>
+                            <p className="text-sm font-medium text-text">Failed to fetch competitor prices</p>
+                            <p className="mt-1 text-xs text-text-muted">No historical data available for this product.</p>
                         </div>
                     ) : (
                         <div className="flex h-[300px] flex-col items-center justify-center text-center">
