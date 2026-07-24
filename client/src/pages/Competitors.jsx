@@ -73,6 +73,8 @@ export default function Competitors() {
         if (!result[productId]) result[productId] = { product: price.product, competitors: [] };
         result[productId].competitors.push({
             name: price._id.competitorName,
+            productName: price._id.productName || '',
+            url: price.url || '',
             price: price.latestPrice,
             inStock: price.inStock,
             timestamp: price.timestamp,
@@ -224,7 +226,18 @@ export default function Competitors() {
                                         const competitorIsHigher = difference >= 0;
                                         return (
                                             <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
-                                                <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
+                                                <div className="flex flex-col justify-center">
+                                                    <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
+                                                    {competitor.productName && (
+                                                        <div className="mt-1">
+                                                            {competitor.url ? (
+                                                                <a href={competitor.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-light hover:underline line-clamp-1">{competitor.productName}</a>
+                                                            ) : (
+                                                                <span className="text-xs text-text-muted line-clamp-1">{competitor.productName}</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <span className="hidden text-right text-sm font-semibold text-text md:block">{formatPrice(competitor.price)}</span>
                                                 <div className="md:text-center"><span className={`badge ${competitor.inStock ? 'badge-success' : 'badge-danger'} text-[10px]`}>{competitor.inStock ? 'In stock' : 'Out of stock'}</span></div>
                                                 <div className={`flex items-center gap-1 text-sm font-semibold md:justify-end ${competitorIsHigher ? 'text-success' : 'text-danger'}`}>

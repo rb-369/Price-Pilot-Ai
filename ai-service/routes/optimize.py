@@ -41,6 +41,7 @@ class OptimizeRequest(BaseModel):
 
 import os
 from services.rainforest import search_competitors_by_keyword, get_mock_competitor_prices
+from services.validator import validate_competitors
 
 @router.post("/optimize-price")
 async def optimize(request: OptimizeRequest):
@@ -55,6 +56,10 @@ async def optimize(request: OptimizeRequest):
         if api_key:
             print(f"Fetching Live Amazon Competitors for '{product['name']}'...")
             competitors = await search_competitors_by_keyword(product["name"])
+            
+            # AI Validation step: Filter out junk products
+            if competitors:
+                competitors = await validate_competitors(product["name"], competitors)
             
         # Fallback to realistic mock data based on the product's actual price
         if not competitors:

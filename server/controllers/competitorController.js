@@ -28,8 +28,9 @@ exports.getAllLatestPrices = async (req, res) => {
             { $sort: { timestamp: -1 } },
             {
                 $group: {
-                    _id: { productId: '$productId', competitorName: '$competitorName' },
+                    _id: { productId: '$productId', competitorName: '$competitorName', productName: '$productName' },
                     latestPrice: { $first: '$competitorPrice' },
+                    url: { $first: '$competitorUrl' },
                     inStock: { $first: '$inStock' },
                     timestamp: { $first: '$timestamp' },
                 }

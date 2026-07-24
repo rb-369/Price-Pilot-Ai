@@ -32,8 +32,12 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
             reorderThreshold: product.reorderThreshold,
         },
         competitorPrices: competitorPrices.map(cp => ({
-            name: cp.competitorName, price: cp.competitorPrice,
-            inStock: cp.inStock, timestamp: cp.timestamp,
+            name: cp.competitorName, // Will be mapped to platform in Python
+            productName: cp.productName || '',
+            url: cp.competitorUrl || '',
+            price: cp.competitorPrice,
+            inStock: cp.inStock, 
+            timestamp: cp.timestamp,
         })),
         demandSignals: demandSignals.map(ds => ({
             searchTrendScore: ds.searchTrendScore, weatherFactor: ds.weatherFactor,
@@ -60,9 +64,9 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
             }),
             elasticityUsed: 1.0,
             competitorsUsed: [
-                { name: "Amazon (Mock)", price: Math.round(product.currentPrice * 0.95), inStock: true, timestamp: new Date().toISOString() },
-                { name: "Flipkart (Mock)", price: Math.round(product.currentPrice * 1.08), inStock: true, timestamp: new Date().toISOString() },
-                { name: "Snapdeal (Mock)", price: Math.round(product.currentPrice * 0.98), inStock: true, timestamp: new Date().toISOString() }
+                { platform: "Amazon", productName: "Mock Competitor Product A", price: Math.round(product.currentPrice * 0.95), inStock: true, timestamp: new Date().toISOString() },
+                { platform: "Flipkart", productName: "Mock Competitor Product B", price: Math.round(product.currentPrice * 1.08), inStock: true, timestamp: new Date().toISOString() },
+                { platform: "Snapdeal", productName: "Mock Competitor Product C", price: Math.round(product.currentPrice * 0.98), inStock: true, timestamp: new Date().toISOString() }
             ],
             factors: { demand: 0.6, competitor: 0.5 },
             revenueImpact: 5.0,

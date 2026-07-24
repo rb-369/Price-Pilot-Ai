@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const competitorPriceSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-    competitorName: { type: String, required: true },
+    competitorName: { type: String, required: true }, // The Platform (e.g. Amazon, Flipkart)
+    productName: { type: String, default: '' }, // The actual product title
     competitorPrice: { type: Number, required: true },
     competitorUrl: { type: String, default: '' },
     inStock: { type: Boolean, default: true },

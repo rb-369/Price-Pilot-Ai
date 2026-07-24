@@ -126,8 +126,17 @@ def _parse_search_results(html: str, max_results: int) -> List[Dict]:
                 except ValueError:
                     pass
 
+            url = "https://www.flipkart.com"
+            link_el = card.select_one("a.s1Q9rs") or card.select_one("a._2rpwqI") or card.select_one("a.IRpwTa") or card.select_one("a._1fQZEK") or card.select_one("a.CGtC98")
+            if link_el and link_el.has_attr("href"):
+                url = "https://www.flipkart.com" + link_el["href"]
+            elif title_el and title_el.name == "a" and title_el.has_attr("href"):
+                url = "https://www.flipkart.com" + title_el["href"]
+                
             products.append({
-                "name": f"[Flipkart] {title[:80]}",
+                "platform": "Flipkart",
+                "productName": title[:150],
+                "url": url,
                 "price": price,
                 "inStock": True,
                 "rating": rating,
@@ -169,7 +178,9 @@ def _regex_parse_fallback(html: str, max_results: int) -> List[Dict]:
             price = float(price_str.replace(",", ""))
             if 10 < price < 1000000:  # Sanity check
                 products.append({
-                    "name": f"[Flipkart] Product {i + 1}",
+                    "platform": "Flipkart",
+                    "productName": f"Flipkart Product {i + 1}",
+                    "url": "https://www.flipkart.com",
                     "price": price,
                     "inStock": True,
                     "rating": None,
@@ -194,7 +205,9 @@ def get_mock_flipkart_prices(product_name: str, base_price: float) -> List[Dict]
 
     return [
         {
-            "name": m["name"],
+            "platform": "Flipkart",
+            "productName": m["name"],
+            "url": "https://www.flipkart.com",
             "price": round(base_price * m["mult"] * random.uniform(0.97, 1.03), 2),
             "inStock": random.random() > 0.15,
             "rating": round(random.uniform(3.5, 4.7), 1),

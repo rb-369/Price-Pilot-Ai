@@ -55,7 +55,9 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
         in_stock = buybox.get("availability", {}).get("type", "in_stock") == "in_stock"
 
         return {
-            "name": product.get("title", f"ASIN:{asin}")[:80],
+            "platform": "Amazon",
+            "productName": product.get("title", f"ASIN:{asin}")[:150],
+            "url": product.get("link", f"https://www.amazon.in/dp/{asin}"),
             "asin": asin,
             "price": float(price_value),
             "inStock": in_stock,
@@ -180,7 +182,9 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
                 continue
 
             competitors.append({
-                "name": item.get("title", "Unknown")[:80],
+                "platform": "Amazon",
+                "productName": item.get("title", "Unknown")[:150],
+                "url": item.get("link", f"https://www.amazon.in/dp/{item.get('asin', '')}"),
                 "asin": item.get("asin", ""),
                 "price": float(price_value),
                 "inStock": True,
@@ -219,7 +223,9 @@ def get_mock_competitor_prices(product_name: str, base_price: float) -> List[Dic
 
     amazon_mocks = [
         {
-            "name": c["name"],
+            "platform": "Amazon",
+            "productName": c["name"],
+            "url": f"https://www.amazon.in/dp/MOCK{i:04d}",
             "asin": f"MOCK{i:04d}",
             "price": round(base_price * c["multiplier"] * random.uniform(0.97, 1.03), 2),
             "inStock": random.random() > 0.2,

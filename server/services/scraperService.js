@@ -64,7 +64,9 @@ async function scrapeCompetitorPrices() {
                 for (const comp of liveCompetitors) {
                     await CompetitorPrice.create({
                         productId: product._id,
-                        competitorName: comp.name?.substring(0, 80) || 'Amazon Seller',
+                        competitorName: comp.platform || 'Amazon',
+                        productName: comp.productName?.substring(0, 150) || 'Unknown Product',
+                        competitorUrl: comp.url || '',
                         competitorPrice: comp.price,
                         inStock: comp.inStock !== false,
                     });
@@ -77,8 +79,8 @@ async function scrapeCompetitorPrices() {
                             type: 'competitor_undercut',
                             severity: 'high',
                             title: `Price Alert: ${product.name}`,
-                            message: `${comp.name?.substring(0, 40)} is selling at ₹${comp.price} (${((1 - comp.price / product.currentPrice) * 100).toFixed(1)}% lower than your ₹${product.currentPrice})`,
-                            metadata: { competitor: comp.name, competitorPrice: comp.price, ourPrice: product.currentPrice, source: 'rainforest_api' },
+                            message: `${comp.platform} is selling at ₹${comp.price} (${((1 - comp.price / product.currentPrice) * 100).toFixed(1)}% lower than your ₹${product.currentPrice})`,
+                            metadata: { competitor: comp.platform, competitorPrice: comp.price, ourPrice: product.currentPrice, source: 'rainforest_api' },
                         });
                         alertsCreated++;
                     }
@@ -98,6 +100,7 @@ async function scrapeCompetitorPrices() {
                     await CompetitorPrice.create({
                         productId: product._id,
                         competitorName: competitor,
+                        productName: `Simulated ${product.name} Variant`,
                         competitorPrice,
                         inStock,
                     });
