@@ -192,27 +192,3 @@ def _regex_parse_fallback(html: str, max_results: int) -> List[Dict]:
 
     return products
 
-
-def get_mock_flipkart_prices(product_name: str, base_price: float) -> List[Dict]:
-    """Mock Flipkart prices for development."""
-    random.seed(hash(product_name) % 1000 + 42)
-
-    mocks = [
-        {"name": "[Flipkart] Seller A", "mult": 0.92},
-        {"name": "[Flipkart] Seller B", "mult": 1.05},
-        {"name": "[Flipkart] Seller C", "mult": 0.97},
-    ]
-
-    return [
-        {
-            "platform": "Flipkart",
-            "productName": m["name"],
-            "url": "https://www.flipkart.com",
-            "price": round(base_price * m["mult"] * random.uniform(0.97, 1.03), 2),
-            "inStock": random.random() > 0.15,
-            "rating": round(random.uniform(3.5, 4.7), 1),
-            "timestamp": datetime.utcnow().isoformat(),
-            "source": "mock_flipkart",
-        }
-        for m in mocks
-    ]

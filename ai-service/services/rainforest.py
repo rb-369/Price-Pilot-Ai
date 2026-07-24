@@ -202,41 +202,4 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
     except Exception as e:
         print(f"[Rainforest] Search error for '{keyword}': {e}")
         return []
-
-
-def get_mock_competitor_prices(product_name: str, base_price: float) -> List[Dict]:
-    """
-    Returns mock competitor data for development/testing when API key is not set.
-    Simulates realistic price variation around the base price.
-    """
-    import random
-    from services.flipkart_scraper import get_mock_flipkart_prices
-    random.seed(hash(product_name) % 1000)
-
-    mock_competitors = [
-        {"name": "Competitor A (Amazon)", "multiplier": 0.95},
-        {"name": "Competitor B (Amazon)", "multiplier": 1.08},
-        {"name": "Competitor C (Amazon)", "multiplier": 0.98},
-        {"name": "Competitor D (Amazon)", "multiplier": 1.15},
-        {"name": "Competitor E (Amazon)", "multiplier": 0.87},
-    ]
-
-    amazon_mocks = [
-        {
-            "platform": "Amazon",
-            "productName": c["name"],
-            "url": f"https://www.amazon.in/dp/MOCK{i:04d}",
-            "asin": f"MOCK{i:04d}",
-            "price": round(base_price * c["multiplier"] * random.uniform(0.97, 1.03), 2),
-            "inStock": random.random() > 0.2,
-            "rating": round(random.uniform(3.5, 4.8), 1),
-            "ratingsTotal": random.randint(50, 5000),
-            "timestamp": datetime.utcnow().isoformat(),
-            "source": "mock",
-        }
-        for i, c in enumerate(mock_competitors)
-    ]
-    
-    flipkart_mocks = get_mock_flipkart_prices(product_name, base_price)
-    
-    return amazon_mocks + flipkart_mocks
+

@@ -52,12 +52,12 @@ exports.createProduct = async (req, res) => {
 
         const product = await Product.create({ ...safeBody, userId: req.user._id });
 
-        // Return immediately — generate mock data in background (non-blocking)
+        // Return immediately — generate demand signals in background (non-blocking)
         res.status(201).json(product);
 
-        // --- Fire-and-forget: Generate historical mock data so graphs work immediately ---
-        _generateMockHistoricalData(product).catch(err => {
-            console.error(`[ProductCreate] Background mock data generation failed for ${product._id}:`, err.message);
+        // --- Fire-and-forget: Generate historical demand signals so graphs work immediately ---
+        _generateHistoricalDemandSignals(product).catch(err => {
+            console.error(`[ProductCreate] Background demand signal generation failed for ${product._id}:`, err.message);
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -101,12 +101,8 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
-// ── Background helper: generate mock historical data ─────────────────────────
-async function _generateMockHistoricalData(product) {
-    const COMPETITORS = ['Amazon', 'Flipkart', 'Myntra', 'Snapdeal', 'Meesho'];
-
-    // Use bulkWrite for efficiency instead of individual creates
-    const competitorOps = [];
+// ── Background helper: generate historical demand signals ─────────────────────
+async function _generateHistoricalDemandSignals(product) {
     const demandOps = [];
 
     for (let day = 30; day >= 0; day--) {
@@ -115,30 +111,6 @@ async function _generateMockHistoricalData(product) {
 
         // Seeded randomness based on product ID + day for deterministic results
         const seed = (product._id.toString().charCodeAt(0) + day) / 100;
-
-        // Competitor Prices
-        const numCompetitors = 2 + Math.floor(((seed * 7919) % 1) * 3); // pseudo-random 2-4
-        const shuffled = [...COMPETITORS].sort((a, b) => {
-            const ha = a.charCodeAt(0) + day;
-            const hb = b.charCodeAt(0) + day;
-            return ha - hb;
-        });
-        const selected = shuffled.slice(0, Math.min(numCompetitors, COMPETITORS.length));
-
-        for (const comp of selected) {
-            const variance = (((comp.charCodeAt(0) + day) % 100) / 100 - 0.45) * 0.3;
-            competitorOps.push({
-                insertOne: {
-                    document: {
-                        productId: product._id,
-                        competitorName: comp,
-                        competitorPrice: Math.round(product.currentPrice * (1 + variance) * 100) / 100,
-                        inStock: ((comp.charCodeAt(0) + day) % 10) > 1, // ~80% in stock
-                        timestamp: date,
-                    },
-                },
-            });
-        }
 
         // Demand Signals
         const searchTrendScore = Math.round(20 + ((day * 31 + seed * 100) % 70));
@@ -167,13 +139,9 @@ async function _generateMockHistoricalData(product) {
         });
     }
 
-    // Bulk insert for performance
-    if (competitorOps.length > 0) {
-        await CompetitorPrice.bulkWrite(competitorOps);
-    }
     if (demandOps.length > 0) {
         await DemandSignal.bulkWrite(demandOps);
     }
 
-    console.log(`[ProductCreate] Generated ${competitorOps.length} competitor prices + ${demandOps.length} demand signals for "${product.name}"`);
+    console.log(`[ProductCreate] Generated ${demandOps.length} demand signals for "${product.name}"`);
 }

@@ -24,8 +24,6 @@ class ScrapeByKeywordRequest(BaseModel):
     keyword: str
     amazonDomain: Optional[str] = "amazon.in"
     maxResults: Optional[int] = 5
-    # Fallback: if no API key, use mock prices based on this base price
-    basePriceForMock: Optional[float] = None
 
 
 @router.post("/scrape/asins")
@@ -73,7 +71,7 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
     Search Amazon for a keyword and return competitor prices.
     Use this when you don't have specific ASINs.
 
-    If RAINFOREST_API_KEY is not set, returns mock data (for dev/testing).
+    Requires RAINFOREST_API_KEY to be configured.
 
     Example body:
     {

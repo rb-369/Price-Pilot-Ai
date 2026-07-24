@@ -33,16 +33,32 @@ export default function Competitors() {
     const [loading, setLoading] = useState(true);
     const [fetchingPrices, setFetchingPrices] = useState(false);
     const [error, setError] = useState(false);
+    const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
 
     const fetchData = () => {
         setLoading(true);
         setError(false);
         setFetchingPrices(true);
-        Promise.all([
-            getLatestCompetitorPrices().then((response) => setPrices(response.data)),
-            getProducts().then((response) => setProducts(response.data.data || response.data)),
-        ]).catch(() => {
-            setError(true);
+        setPricesFetchFailed(false);
+        Promise.allSettled([
+            getLatestCompetitorPrices(),
+            getProducts(),
+        ]).then(([pricesResult, productsResult]) => {
+            if (pricesResult.status === 'fulfilled') {
+                setPrices(pricesResult.value.data);
+            } else {
+                setPrices([]);
+                setPricesFetchFailed(true);
+            }
+            if (productsResult.status === 'fulfilled') {
+                setProducts(productsResult.value.data.data || productsResult.value.data);
+            } else {
+                setProducts([]);
+            }
+            // Only show global error if both failed
+            if (pricesResult.status === 'rejected' && productsResult.status === 'rejected') {
+                setError(true);
+            }
         }).finally(() => {
             setLoading(false);
             setFetchingPrices(false);
@@ -89,7 +105,13 @@ export default function Competitors() {
         for (const key of Object.keys(grouped)) {
             grouped[key].competitors.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
         }
-        return grouped;
+        // Sort product groups by most recent competitor timestamp (most recently checked first)
+        const sorted = Object.entries(grouped).sort(([, a], [, b]) => {
+            const aLatest = a.competitors[0]?.timestamp ? new Date(a.competitors[0].timestamp) : new Date(0);
+            const bLatest = b.competitors[0]?.timestamp ? new Date(b.competitors[0].timestamp) : new Date(0);
+            return bLatest - aLatest;
+        });
+        return Object.fromEntries(sorted);
     }, [prices]);
 
     const summary = useMemo(() => {
@@ -276,16 +298,24 @@ export default function Competitors() {
                             </article>
                         ))}
                     </div>
+                ) : pricesFetchFailed ? (
+                    <div className="border border-border bg-surface-light px-6 py-14 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10">
+                            <span className="text-xl">✕</span>
+                        </div>
+                        <p className="mt-4 text-sm font-semibold text-text">Failed to fetch competitor prices</p>
+                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">The request to load competitor data failed. Check your network connection or API configuration and try again.</p>
+                        <button type="button" onClick={fetchData} className="btn-secondary mt-4 text-xs">
+                            Try again
+                        </button>
+                    </div>
                 ) : (
                     <div className="border border-border bg-surface-light px-6 py-14 text-center">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning/10">
                             <span className="text-xl">⚠</span>
                         </div>
-                        <p className="mt-4 text-sm font-semibold text-text">Failed to fetch competitor prices</p>
-                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">We could not retrieve live competitor data. Please configure your RAINFOREST_API_KEY or add competitor prices manually.</p>
-                        <button type="button" onClick={fetchData} className="btn-secondary mt-4 text-xs">
-                            Try again
-                        </button>
+                        <p className="mt-4 text-sm font-semibold text-text">No competitor prices yet</p>
+                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">Configure your RAINFOREST_API_KEY and run a price check, or wait for the next scheduled scrape.</p>
                     </div>
                 )}
             </section>
