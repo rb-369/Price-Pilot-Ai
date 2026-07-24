@@ -86,50 +86,9 @@ async function scrapeCompetitorPrices() {
                     }
                 }
             } else {
-                // --- Fallback: simulated data ---
+                // No live data available — skip this product, do NOT store mock/simulated data
                 simCount++;
-                const numCompetitors = 2 + Math.floor(Math.random() * 3);
-                const selectedCompetitors = [...COMPETITORS]
-                    .sort(() => Math.random() - 0.5)
-                    .slice(0, numCompetitors);
-
-                for (const competitor of selectedCompetitors) {
-                    const competitorPrice = generateSimulatedPrice(product.currentPrice);
-                    const inStock = Math.random() > 0.15;
-
-                    await CompetitorPrice.create({
-                        productId: product._id,
-                        competitorName: competitor,
-                        productName: `Simulated ${product.name} Variant`,
-                        competitorPrice,
-                        inStock,
-                    });
-                    newPrices++;
-
-                    if (competitorPrice < product.currentPrice * 0.95) {
-                        await Alert.create({
-                            productId: product._id,
-                            type: 'competitor_undercut',
-                            severity: 'high',
-                            title: `Price Alert: ${product.name}`,
-                            message: `${competitor} is selling at ₹${competitorPrice} (${((1 - competitorPrice / product.currentPrice) * 100).toFixed(1)}% lower than your ₹${product.currentPrice})`,
-                            metadata: { competitor, competitorPrice, ourPrice: product.currentPrice, source: 'simulated' },
-                        });
-                        alertsCreated++;
-                    }
-
-                    if (!inStock) {
-                        await Alert.create({
-                            productId: product._id,
-                            type: 'competitor_stockout',
-                            severity: 'medium',
-                            title: `Opportunity: ${product.name}`,
-                            message: `${competitor} is out of stock — consider increasing price to capture demand`,
-                            metadata: { competitor, source: 'simulated' },
-                        });
-                        alertsCreated++;
-                    }
-                }
+                console.log(`[Scraper] ⚠️ No live competitor data for "${product.name}" — skipping (no mock data stored)`);
             }
         }
 

@@ -43,7 +43,7 @@ class OptimizeRequest(BaseModel):
 
 
 import os
-from services.rainforest import search_competitors_by_keyword, get_mock_competitor_prices
+from services.rainforest import search_competitors_by_keyword
 from services.validator import validate_competitors
 
 @router.post("/optimize-price")

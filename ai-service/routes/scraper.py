@@ -10,7 +10,6 @@ import os
 from services.rainforest import (
     fetch_competitor_prices,
     search_competitors_by_keyword,
-    get_mock_competitor_prices,
 )
 
 router = APIRouter()

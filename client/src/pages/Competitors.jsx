@@ -31,11 +31,13 @@ export default function Competitors() {
     const [selectedProduct, setSelectedProduct] = useState('');
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [fetchingPrices, setFetchingPrices] = useState(false);
     const [error, setError] = useState(false);
 
     const fetchData = () => {
         setLoading(true);
         setError(false);
+        setFetchingPrices(true);
         Promise.all([
             getLatestCompetitorPrices().then((response) => setPrices(response.data)),
             getProducts().then((response) => setProducts(response.data.data || response.data)),
@@ -43,6 +45,7 @@ export default function Competitors() {
             setError(true);
         }).finally(() => {
             setLoading(false);
+            setFetchingPrices(false);
         });
     };
 
@@ -67,20 +70,27 @@ export default function Competitors() {
         }).catch(() => setHistory([]));
     }, [selectedProduct]);
 
-    const productPrices = useMemo(() => prices.reduce((result, price) => {
-        const productId = price._id?.productId?.toString();
-        if (!productId || !price.product) return result;
-        if (!result[productId]) result[productId] = { product: price.product, competitors: [] };
-        result[productId].competitors.push({
-            name: price._id.competitorName,
-            productName: price._id.productName || '',
-            url: price.url || '',
-            price: price.latestPrice,
-            inStock: price.inStock,
-            timestamp: price.timestamp,
-        });
-        return result;
-    }, {}), [prices]);
+    const productPrices = useMemo(() => {
+        const grouped = prices.reduce((result, price) => {
+            const productId = price._id?.productId?.toString();
+            if (!productId || !price.product) return result;
+            if (!result[productId]) result[productId] = { product: price.product, competitors: [] };
+            result[productId].competitors.push({
+                name: price._id.competitorName,
+                productName: price._id.productName || '',
+                url: price.url || '',
+                price: price.latestPrice,
+                inStock: price.inStock,
+                timestamp: price.timestamp,
+            });
+            return result;
+        }, {});
+        // Sort competitors within each product by latest timestamp first
+        for (const key of Object.keys(grouped)) {
+            grouped[key].competitors.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+        }
+        return grouped;
+    }, [prices]);
 
     const summary = useMemo(() => {
         const entries = Object.values(productPrices).flatMap((data) => data.competitors.map((competitor) => ({
@@ -201,8 +211,22 @@ export default function Competitors() {
 
             <section>
                 <div className="mb-4 flex items-center justify-between">
-                    <div><h2 className="text-base font-semibold text-text">Latest price checks</h2><p className="mt-1 text-xs text-text-muted">Each row compares one competitor offer with your current price.</p></div>
-                    <span className="hidden text-xs text-text-muted sm:block">{summary.offers} offers</span>
+                    <div>
+                        <h2 className="text-base font-semibold text-text">Latest price checks</h2>
+                        <p className="mt-1 text-xs text-text-muted">Each row compares one competitor offer with your current price.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {fetchingPrices && (
+                            <div className="flex items-center gap-2 text-xs text-primary-light">
+                                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Fetching prices…
+                            </div>
+                        )}
+                        <span className="hidden text-xs text-text-muted sm:block">{summary.offers} offers</span>
+                    </div>
                 </div>
 
                 {Object.keys(productPrices).length ? (
@@ -228,15 +252,15 @@ export default function Competitors() {
                                             <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
                                                 <div className="flex flex-col justify-center">
                                                     <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
-                                                    {competitor.productName && (
+                                                    {competitor.productName ? (
                                                         <div className="mt-1">
                                                             {competitor.url ? (
-                                                                <a href={competitor.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-light hover:underline line-clamp-1">{competitor.productName}</a>
+                                                                <a href={competitor.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-light hover:underline line-clamp-1" title={competitor.productName}>{competitor.productName}</a>
                                                             ) : (
-                                                                <span className="text-xs text-text-muted line-clamp-1">{competitor.productName}</span>
+                                                                <span className="text-xs text-text-muted line-clamp-1" title={competitor.productName}>{competitor.productName}</span>
                                                             )}
                                                         </div>
-                                                    )}
+                                                    ) : null}
                                                 </div>
                                                 <span className="hidden text-right text-sm font-semibold text-text md:block">{formatPrice(competitor.price)}</span>
                                                 <div className="md:text-center"><span className={`badge ${competitor.inStock ? 'badge-success' : 'badge-danger'} text-[10px]`}>{competitor.inStock ? 'In stock' : 'Out of stock'}</span></div>
@@ -253,7 +277,16 @@ export default function Competitors() {
                         ))}
                     </div>
                 ) : (
-                    <div className="border border-dashed border-border bg-surface-light px-6 py-14 text-center"><HiOutlineScale className="mx-auto h-9 w-9 text-text-muted" /><p className="mt-3 text-sm font-medium text-text">No competitor prices yet</p><p className="mt-1 text-xs text-text-muted">Add products and competitor sources to begin monitoring the market.</p></div>
+                    <div className="border border-border bg-surface-light px-6 py-14 text-center">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning/10">
+                            <span className="text-xl">⚠</span>
+                        </div>
+                        <p className="mt-4 text-sm font-semibold text-text">Failed to fetch competitor prices</p>
+                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">We could not retrieve live competitor data. Please configure your RAINFOREST_API_KEY or add competitor prices manually.</p>
+                        <button type="button" onClick={fetchData} className="btn-secondary mt-4 text-xs">
+                            Try again
+                        </button>
+                    </div>
                 )}
             </section>
         </div>
