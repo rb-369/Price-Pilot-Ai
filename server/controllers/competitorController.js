@@ -9,7 +9,10 @@ exports.getCompetitorPrices = async (req, res) => {
         const product = await Product.findOne({ _id: productId, userId: req.user._id });
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
-        const prices = await CompetitorPrice.find({ productId })
+        const prices = await CompetitorPrice.find({ 
+            productId, 
+            productName: { $exists: true, $ne: '' } 
+        })
             .sort({ timestamp: -1 })
             .limit(100);
         res.json(prices);
@@ -24,7 +27,12 @@ exports.getAllLatestPrices = async (req, res) => {
         const productIds = userProducts.map(p => p._id);
 
         const prices = await CompetitorPrice.aggregate([
-            { $match: { productId: { $in: productIds } } },
+            { 
+                $match: { 
+                    productId: { $in: productIds },
+                    productName: { $exists: true, $ne: '' } 
+                } 
+            },
             { $sort: { timestamp: -1 } },
             {
                 $group: {

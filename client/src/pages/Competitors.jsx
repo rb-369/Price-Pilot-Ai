@@ -298,24 +298,16 @@ export default function Competitors() {
                             </article>
                         ))}
                     </div>
-                ) : pricesFetchFailed ? (
+                ) : (
                     <div className="border border-border bg-surface-light px-6 py-14 text-center">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
                             <span className="text-xl">✕</span>
                         </div>
                         <p className="mt-4 text-sm font-semibold text-text">Failed to fetch competitor prices</p>
-                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">The request to load competitor data failed. Check your network connection or API configuration and try again.</p>
+                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">We could not retrieve live competitor data. Please configure your RAINFOREST_API_KEY or add competitor prices manually.</p>
                         <button type="button" onClick={fetchData} className="btn-secondary mt-4 text-xs">
                             Try again
                         </button>
-                    </div>
-                ) : (
-                    <div className="border border-border bg-surface-light px-6 py-14 text-center">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-warning/10">
-                            <span className="text-xl">⚠</span>
-                        </div>
-                        <p className="mt-4 text-sm font-semibold text-text">No competitor prices yet</p>
-                        <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">Configure your RAINFOREST_API_KEY and run a price check, or wait for the next scheduled scrape.</p>
                     </div>
                 )}
             </section>
