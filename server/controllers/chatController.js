@@ -86,8 +86,14 @@ exports.sendMessage = async (req, res) => {
             context: contextContent
         };
 
-        const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload);
-        const replyText = aiResponse.data.reply || aiResponse.data;
+        let replyText;
+        try {
+            const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload);
+            replyText = aiResponse.data.reply || aiResponse.data;
+        } catch (aiErr) {
+            console.error('Python AI Service unreachable/failed in chatController:', aiErr.message);
+            replyText = "Oops! I'm currently operating in fallback mode because the Python AI microservice is unreachable (it may be sleeping on Render). Please check the AI_SERVICE_URL configuration or wake up the service.";
+        }
 
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };
         chat.messages.push(modelMsg);

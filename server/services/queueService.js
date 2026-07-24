@@ -59,7 +59,11 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
                 action_items: ["Monitor competitor pricing"]
             }),
             elasticityUsed: 1.0,
-            competitorsUsed: [],
+            competitorsUsed: [
+                { name: "Amazon (Mock)", price: Math.round(product.currentPrice * 0.95), inStock: true, timestamp: new Date().toISOString() },
+                { name: "Flipkart (Mock)", price: Math.round(product.currentPrice * 1.08), inStock: true, timestamp: new Date().toISOString() },
+                { name: "Snapdeal (Mock)", price: Math.round(product.currentPrice * 0.98), inStock: true, timestamp: new Date().toISOString() }
+            ],
             factors: { demand: 0.6, competitor: 0.5 },
             revenueImpact: 5.0,
             confidenceScore: 0.7
