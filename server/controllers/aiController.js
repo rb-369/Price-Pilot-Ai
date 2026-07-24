@@ -397,8 +397,21 @@ exports.generateProductDescription = async (req, res) => {
         const { productName, category } = req.body;
         if (!productName) return res.status(400).json({ message: 'Product name is required' });
         
-        const aiResponse = await axios.post(`${AI_URL}/api/generate-description`, { product_name: productName, category: category || "" });
-        res.json(aiResponse.data);
+        try {
+            const aiResponse = await axios.post(`${AI_URL}/api/generate-description`, { 
+                product_name: productName, 
+                category: category || "" 
+            });
+            res.json(aiResponse.data);
+        } catch (aiError) {
+            console.error('Python AI Service unreachable/failed:', aiError.message);
+            // Ponytail: fallback directly in Node so we don't break the UI when microservice drops.
+            res.json({
+                title: `Premium ${productName}`,
+                description: `Experience the best quality with our ${productName}. Designed for maximum performance and reliability in the ${category || 'General'} space. Order now.`,
+                seo_tags: [productName, category || 'premium', 'best quality', 'buy online']
+            });
+        }
     } catch (error) {
         console.error('Generate Description error:', error.message);
         res.status(500).json({ message: 'Failed to generate product description', error: error.message });
