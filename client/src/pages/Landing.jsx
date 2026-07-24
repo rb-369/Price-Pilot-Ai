@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
+import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon, HiOutlineUserGroup, HiOutlineMail, HiOutlineArrowUp } from 'react-icons/hi';
+import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import landingBgDark from '../assets/BG_dark2.png';
 import landingBgLight from '../assets/BG_light2.png';
 import logoIcon from '../assets/FINAL.png';
@@ -38,6 +39,17 @@ const faqData = [
         question: 'How frequently does the algorithm update my product prices?',
         answer: 'The algorithm can refresh prices in near real-time based on competitor moves, demand signals, and predefined business rules.',
         category: 'Pricing & AI'
+    }
+];
+
+const teamMembers = [
+    {
+        name: 'Aryan Desale',
+        role: 'Design & Frontend Development'
+    },
+    {
+        name: 'Rudra Babar',
+        role: 'Backend & AI Integration'
     }
 ];
 
@@ -101,7 +113,7 @@ export default function Landing() {
 
     return (
         <div
-            className="min-h-screen bg-surface flex flex-col text-text overflow-x-hidden overflow-y-auto relative transition-colors duration-300"
+            className="min-h-screen bg-surface flex flex-col text-text overflow-hidden relative transition-colors duration-300"
             style={{
                 backgroundImage: `url("${landingBg}")`,
                 backgroundSize: 'cover',
@@ -132,9 +144,9 @@ export default function Landing() {
                                 FAQ
                             </a>
 
-                            <Link to="/about" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+                            <a href="#about" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
                                 About Us
-                            </Link>
+                            </a>
 
                             <Link to="/login" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
                                 Sign In
@@ -177,7 +189,7 @@ export default function Landing() {
             <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-36 pb-20 relative z-10 w-full max-w-[1400px] mx-auto">
 
                 {/* Floating Decorative Elements */}
-                <div className="hidden lg:block absolute left-4 top-1/3 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '0s' }}>
+                <div className="hidden lg:block absolute left-4 top-45 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '0s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
                             <HiOutlineTrendingUp className="w-5 h-5 text-green-500" />
@@ -189,7 +201,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute right-4 top-1/4 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '2s' }}>
+                <div className="hidden lg:block absolute right-4 top-80 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '2s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
                             <HiOutlineShieldCheck className="w-5 h-5 text-indigo-500" />
@@ -201,7 +213,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute left-12 bottom-[32%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
+                <div className="hidden lg:block absolute left-12 top-120 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
                             <HiOutlineCubeTransparent className="w-5 h-5 text-cyan-500" />
@@ -213,7 +225,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute right-12 bottom-[38%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
+                <div className="hidden lg:block absolute right-12 top-160 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
                             <HiOutlineLightningBolt className="w-5 h-5 text-purple-500" />
@@ -353,6 +365,123 @@ export default function Landing() {
                         </div>
                     </div>
                 </section>
+
+                {/* About Us Section */}
+                <section id="about" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 w-full">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex items-center justify-center gap-3 mb-10">
+                            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                                <HiOutlineUserGroup className="w-6 h-6 text-cyan-400" />
+                            </div>
+                            <h2 className="text-3xl font-bold text-text">About Us</h2>
+                        </div>
+
+                        <div className="rounded-[2rem] border border-primary/10 bg-surface/70 backdrop-blur-xl p-8 md:p-12 text-center space-y-6 shadow-2xl shadow-primary/5">
+                            <div className="w-70 h-70 mx-auto flex items-center justify-center">
+                                <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(99,102,241,0.5)]" />
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-text">PricePilot AI Team</h3>
+
+                            <p className="text-text-muted max-w-2xl mx-auto leading-relaxed">
+                                We are a passionate team of developers and AI enthusiasts building the future of e-commerce.
+                                PricePilot AI was developed as a comprehensive Final Year Project to demonstrate the real-world utility of Generative AI, machine learning forecasting, and dynamic pricing algorithms.
+                            </p>
+
+                            <div className="grid md:grid-cols-2 gap-6 mt-10 text-left">
+                                <div className="bg-surface/60 p-6 rounded-2xl border border-primary/10">
+                                    <h4 className="font-semibold text-indigo-400 mb-2">Our Mission</h4>
+                                    <p className="text-sm text-text-muted leading-relaxed">To democratize enterprise-grade pricing intelligence, making it accessible, transparent, and fully explainable for merchants of all sizes.</p>
+                                </div>
+                                <div className="bg-surface/60 p-6 rounded-2xl border border-primary/10">
+                                    <h4 className="font-semibold text-cyan-400 mb-2">The Tech</h4>
+                                    <p className="text-sm text-text-muted leading-relaxed">Powered by React, Node.js, FastAPI, and Google Gemini, we bridge the gap between deterministic algorithms and generative insights.</p>
+                                </div>
+                            </div>
+
+                            {/* Team Members */}
+                            <div className="mt-14 text-left">
+                                <h4 className="text-xl font-bold text-text mb-6 text-center">Meet the Team</h4>
+                                <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                                    {teamMembers.map((member) => (
+                                        <div
+                                            key={member.name}
+                                            className="bg-surface/60 p-6 rounded-2xl border border-primary/10 text-center hover:border-primary/30 transition-all"
+                                        >
+                                            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-indigo-500/80 to-cyan-400/80 flex items-center justify-center text-xl font-bold text-white mb-4">
+                                                {member.name.split(' ').map((n) => n[0]).join('')}
+                                            </div>
+                                            <p className="font-semibold text-text">{member.name}</p>
+                                            <p className="text-sm text-text-muted">{member.role}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+
+                            {/* Contact */}
+                            <div className="mt-14 pt-10 border-t border-primary/10 text-left">
+                                <h4 className="text-xl font-bold text-text mb-6 text-center">Get in Touch</h4>
+                                
+                                {/* GitHub Repo Button */}
+                            <div className="flex justify-center mb-8">
+                                <a
+                                    href="https://github.com/rb-369/Price-Pilot-Ai"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                                >
+                                    <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+                                        <FaGithub className="w-5 h-5 text-text" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-semibold text-text">View on GitHub</p>
+                                        <p className="text-xs text-text-muted">rb-369/Price-Pilot-Ai</p>
+                                    </div>
+                                </a>
+                            </div>
+                                
+                                <div className="flex flex-col items-center gap-4">
+                                    <a
+                                        href="mailto:pricepilot5@gmail.com"
+                                        className="inline-flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                                    >
+                                        <HiOutlineMail className="w-5 h-5" />
+                                        pricepilot5@gmail.com
+                                    </a>
+                                    <a
+                                        href="https://www.linkedin.com/in/aryan-desale-18330a377"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                                    >
+                                        <FaLinkedin className="w-5 h-5" />
+                                        Aryan Desale
+                                    </a>
+                                    <a
+                                        href="http://www.linkedin.com/in/rudra-babar-8594a8379"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+                                    >
+                                        <FaLinkedin className="w-5 h-5" />
+                                        Rudra Babar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Back to Top Button */}
+                <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="fixed bottom-20 right-8 z-50 animate-float glass-card px-5 py-3 rounded-full bg-surface/70 backdrop-blur-md border border-primary/10 shadow-[0_0_20px_rgba(99,102,241,0.3)] flex items-center gap-2 text-text font-medium hover:border-primary/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
+                >
+                    <HiOutlineArrowUp className="w-4 h-4 text-primary" />
+                    Back to Top
+                </button>
+
             </main>
 
             {/* Footer */}
