@@ -42,8 +42,29 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
         })),
     };
 
-    const aiResponse = await axios.post(`${AI_URL}/api/optimize-price`, payload);
-    const recommendation = aiResponse.data;
+    let recommendation;
+    try {
+        const aiResponse = await axios.post(`${AI_URL}/api/optimize-price`, payload);
+        recommendation = aiResponse.data;
+    } catch (err) {
+        console.error('Python AI Service unreachable/failed in recommendationWorker:', err.message);
+        // Ponytail: fallback directly in Node so we don't break the UI when microservice drops.
+        recommendation = {
+            recommendedPrice: Math.round(product.currentPrice * 1.05),
+            reason: "Fallback recommendation generated (AI service offline).",
+            insight: JSON.stringify({
+                summary: "Steady demand detected.",
+                risk_level: "low",
+                detailed_analysis: "The AI microservice is currently unreachable. Based on basic heuristics, a 5% price increase is suggested.",
+                action_items: ["Monitor competitor pricing"]
+            }),
+            elasticityUsed: 1.0,
+            competitorsUsed: [],
+            factors: { demand: 0.6, competitor: 0.5 },
+            revenueImpact: 5.0,
+            confidenceScore: 0.7
+        };
+    }
 
     const saved = await PricingRecommendation.create({
         productId,
@@ -79,8 +100,19 @@ const forecastWorker = new Worker('forecastQueue', async job => {
         forecastDays: forecastDays || 30,
     };
 
-    const aiResponse = await axios.post(`${AI_URL}/api/forecast`, payload);
-    const forecast = aiResponse.data;
+    let forecast;
+    try {
+        const aiResponse = await axios.post(`${AI_URL}/api/forecast`, payload);
+        forecast = aiResponse.data;
+    } catch (err) {
+        console.error('Python AI Service unreachable/failed in forecastWorker:', err.message);
+        forecast = {
+            predictedDemand: Math.round(product.stockLevel * 1.2),
+            recommendedStockIncrease: Math.max(0, product.reorderThreshold - product.stockLevel),
+            reason: "Fallback forecast generated (AI service offline).",
+            confidenceScore: 0.6
+        };
+    }
 
     const saved = await InventoryForecast.create({
         productId,
