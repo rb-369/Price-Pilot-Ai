@@ -141,7 +141,11 @@ export default function Recommendations() {
             <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 <h2 className="text-base font-semibold text-text mb-4 flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                        <HiOutlineRefresh className="w-4 h-4 text-accent" />
+                        {generating ? (
+                            <span className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin"></span>
+                        ) : (
+                            <HiOutlineRefresh className="w-4 h-4 text-accent" />
+                        )}
                     </div>
                     Generate New Recommendation
                 </h2>
@@ -149,8 +153,14 @@ export default function Recommendations() {
                     {products.slice(0, 10).map(p => (
                         <button key={p._id} onClick={() => handleGenerate(p._id)}
                             disabled={generating === p._id}
-                            className="p-3.5 bg-surface/50 border border-primary/10 rounded-xl text-left hover:border-primary/25 hover:bg-primary/5 transition-all disabled:opacity-50 group">
-                            <p className="text-sm font-medium text-text truncate group-hover:text-primary-light transition-colors">{p.name}</p>
+                            className={`p-3.5 bg-surface/50 border rounded-xl text-left transition-all group ${generating === p._id ? 'border-primary/40 bg-primary/10' : 'border-primary/10 hover:border-primary/25 hover:bg-primary/5 disabled:opacity-50'}`}>
+                            {generating === p._id ? (
+                                <p className="text-sm font-medium text-primary-light flex items-center gap-2">
+                                    <span className="w-3 h-3 border-2 border-primary-light border-t-transparent rounded-full animate-spin"></span> Fetching...
+                                </p>
+                            ) : (
+                                <p className="text-sm font-medium text-text truncate group-hover:text-primary-light transition-colors">{p.name}</p>
+                            )}
                             <p className="text-[11px] text-text-muted">₹{p.currentPrice}</p>
                             {generating === p._id && <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mt-1.5" />}
                         </button>

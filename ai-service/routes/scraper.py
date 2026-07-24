@@ -89,15 +89,10 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
     api_key = os.getenv("RAINFOREST_API_KEY", "")
 
     if not api_key:
-        # Dev mode: return mock data so the rest of the pipeline still works
-        base_price = request.basePriceForMock or 1000.0
-        mock_data = get_mock_competitor_prices(request.keyword, base_price)
-        return {
-            "competitors": mock_data[:request.maxResults],
-            "fetched": min(len(mock_data), request.maxResults),
-            "source": "mock",
-            "warning": "RAINFOREST_API_KEY not set — using mock competitor data.",
-        }
+        raise HTTPException(
+            status_code=503,
+            detail="RAINFOREST_API_KEY not configured. Set it in your .env file to fetch real competitor data.",
+        )
 
     results = await search_competitors_by_keyword(
         keyword=request.keyword,

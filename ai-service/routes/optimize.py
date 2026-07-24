@@ -56,15 +56,14 @@ async def optimize(request: OptimizeRequest):
         if api_key:
             print(f"Fetching Live Amazon Competitors for '{product['name']}'...")
             competitors = await search_competitors_by_keyword(product["name"])
-            
+
             # AI Validation step: Filter out junk products
             if competitors:
                 competitors = await validate_competitors(product["name"], competitors)
-            
-        # Fallback to realistic mock data based on the product's actual price
+
         if not competitors:
-            print(f"Using Mock Competitors for '{product['name']}'...")
-            competitors = get_mock_competitor_prices(product["name"], product["currentPrice"])
+            from fastapi import HTTPException
+            raise HTTPException(status_code=503, detail="Could not fetch real competitors. Please configure RAINFOREST_API_KEY in ai-service/.env.")
     # ----------------------------------------
 
     recommendation = optimize_price(product, competitors, demand)
