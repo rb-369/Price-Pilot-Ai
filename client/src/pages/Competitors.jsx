@@ -183,7 +183,7 @@ export default function Competitors() {
                                     <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} width={52} />
                                     <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid #1e293b', borderRadius: '8px', color: '#f1f5f9' }} />
                                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
-                                    {historyCompetitors.map((competitor) => <Line key={competitor} type="monotone" dataKey={competitor} stroke={competitorColors[competitor]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />)}
+                                    {historyCompetitors.map((competitor) => <Line key={competitor} type="monotone" dataKey={competitor} stroke={competitorColors[competitor]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />)}
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>

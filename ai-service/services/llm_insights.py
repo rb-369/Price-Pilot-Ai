@@ -26,6 +26,11 @@ Demand Signals:
 Revenue Impact: {revenue_impact}%
 Confidence Score: {confidence}
 
+IMPORTANT CONTEXT ON PROFIT MARGIN:
+Our model optimizes for GROSS PROFIT (Price - Base Cost) * Volume, rather than just Revenue.
+If the Recommended Price is higher than the Current Price, it means the model determined that the increase in per-unit profit margin outweighs the slight drop in sales volume. 
+DO NOT flag a recommendation as "high risk" simply because the revenue impact is slightly negative, IF the price increase leads to a much stronger profit margin. Only flag as "high risk" if there's severe stock pressure or other alarming factors.
+
 You must return ONLY a JSON object with the following schema:
 {{
   "summary": "1-sentence summary of the recommendation",
@@ -65,6 +70,15 @@ async def _generate_with_gemini(
     demand_signals: list,
 ) -> str:
     """Generate insight using Google Gemini API."""
+    # Format competitor and demand summaries
+    comp_summary = "No data"
+    if competitor_prices:
+        comp_summary = ", ".join([f"{cp.get('name', 'Unknown')}: ₹{cp.get('price', 0)}" for cp in competitor_prices])
+        
+    dem_summary = "No data"
+    if demand_signals:
+        dem_summary = f"{len(demand_signals)} demand signals processed."
+
     prompt = INSIGHT_PROMPT_TEMPLATE.format(
         product_name=product.get("name", "Unknown"),
         current_price=product.get("currentPrice", 0),
@@ -73,8 +87,8 @@ async def _generate_with_gemini(
         base_cost=product.get("baseCost", 0),
         stock_level=product.get("stockLevel", 0),
         reorder_threshold=product.get("reorderThreshold", 0),
-        competitor_summary="No data",
-        demand_summary="No data",
+        competitor_summary=comp_summary,
+        demand_summary=dem_summary,
         revenue_impact=recommendation.get("revenueImpact", 0),
         confidence=recommendation.get("confidenceScore", 0),
     )

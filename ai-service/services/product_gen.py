@@ -11,6 +11,10 @@ Based on the following product information, generate an optimized product title,
 Product Name / Keywords: {product_name}
 Category/Context: {category}
 
+IMPORTANT CONSTRAINTS:
+1. DO NOT include any real-world brand names, trademarks, or competitor names (e.g., Apple, Nike, Logitech, Ergotron, etc.) unless explicitly provided in the Product Name. 
+2. Keep the copy generic, white-label, or unbranded, focusing entirely on features, quality, and benefits.
+
 You must return ONLY a JSON object with the following schema:
 {{
   "title": "Optimized, catchy product title (max 60 chars)",
