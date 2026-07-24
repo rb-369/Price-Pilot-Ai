@@ -25,6 +25,7 @@ router.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
 
     // Send an initial connected message
     res.write('data: {"type": "connected"}\n\n');
