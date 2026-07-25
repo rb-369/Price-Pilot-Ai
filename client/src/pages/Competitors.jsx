@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
@@ -10,6 +10,8 @@ import {
     HiOutlineTrendingUp,
     HiOutlineTrash,
     HiOutlineRefresh,
+    HiChevronDown,
+    HiOutlineSearch,
 } from 'react-icons/hi';
 import { deleteProduct, getCompetitorPrices, getLatestCompetitorPrices, getProducts, fetchLiveCompetitorPrices } from '../api';
 import ErrorState from '../components/ErrorState';
@@ -26,6 +28,91 @@ const competitorColors = {
 
 const formatPrice = (price) => `Rs. ${Number(price || 0).toLocaleString('en-IN')}`;
 
+function SearchableProductSelect({ products, selectedProduct, onSelect }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const containerRef = useRef(null);
+
+    const selectedObj = products.find((p) => p._id === selectedProduct);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const filtered = products.filter((p) =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div ref={containerRef} className="relative w-full sm:w-72">
+            <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="input-field flex w-full items-center justify-between gap-2 text-left text-xs sm:text-sm py-2 px-3"
+            >
+                <span className="truncate">
+                    {selectedObj ? selectedObj.name : 'Choose a product to inspect'}
+                </span>
+                <HiChevronDown className={`h-4 w-4 shrink-0 text-text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-full rounded-lg border border-border bg-surface-light p-2 shadow-2xl backdrop-blur-md">
+                    <div className="relative mb-2">
+                        <HiOutlineSearch className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted" />
+                        <input
+                            type="text"
+                            autoFocus
+                            placeholder="Search products..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="input-field w-full pl-8 py-1.5 text-xs"
+                        />
+                    </div>
+                    <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onSelect('');
+                                setIsOpen(false);
+                                setSearch('');
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs rounded-md transition-colors ${!selectedProduct ? 'bg-primary/20 text-primary-light font-semibold' : 'text-text-muted hover:bg-surface hover:text-text'}`}
+                        >
+                            Choose a product to inspect
+                        </button>
+                        {filtered.length > 0 ? (
+                            filtered.map((product) => (
+                                <button
+                                    key={product._id}
+                                    type="button"
+                                    onClick={() => {
+                                        onSelect(product._id);
+                                        setIsOpen(false);
+                                        setSearch('');
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-xs rounded-md transition-colors truncate ${selectedProduct === product._id ? 'bg-primary/20 text-primary-light font-semibold' : 'text-text hover:bg-surface'}`}
+                                    title={product.name}
+                                >
+                                    {product.name}
+                                </button>
+                            ))
+                        ) : (
+                            <p className="px-3 py-3 text-center text-xs text-text-muted">No products found</p>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function Competitors() {
     const [prices, setPrices] = useState([]);
     const [products, setProducts] = useState([]);
@@ -37,7 +124,6 @@ export default function Competitors() {
     const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(false);
     const [fetchingLiveProduct, setFetchingLiveProduct] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchData = () => {
         setLoading(true);
@@ -78,8 +164,16 @@ export default function Competitors() {
             return;
         }
 
-        // The user requested that selecting a product does the exact same thing as the refresh button (fetching live prices)
-        handleFetchLive(selectedProduct);
+        setFetchingHistory(true);
+        getCompetitorPrices(selectedProduct).then((response) => {
+            const grouped = response.data.reduce((result, price) => {
+                const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                if (!result[day]) result[day] = { day };
+                result[day][price.competitorName] = price.competitorPrice;
+                return result;
+            }, {});
+            setHistory(Object.values(grouped).reverse().slice(-15));
+        }).catch(() => setHistory([])).finally(() => setFetchingHistory(false));
     }, [selectedProduct]);
 
     const productPrices = useMemo(() => {
@@ -125,7 +219,6 @@ export default function Competitors() {
 
     const handleFetchLive = async (productId) => {
         setFetchingLiveProduct(productId);
-        // We also want to show that we are fetching history for the chart area
         if (selectedProduct === productId) {
             setFetchingHistory(true);
         }
@@ -134,11 +227,9 @@ export default function Competitors() {
         try {
             await fetchLiveCompetitorPrices(productId);
             toast.success('Prices updated successfully', { id: loadingToast });
-            // Refresh data quietly
             const [pricesResult] = await Promise.allSettled([getLatestCompetitorPrices()]);
             if (pricesResult.status === 'fulfilled') setPrices(pricesResult.value.data);
             
-            // Update history if this product is currently selected
             if (selectedProduct === productId) {
                 const response = await getCompetitorPrices(productId);
                 const grouped = response.data.reduce((result, price) => {
@@ -151,8 +242,6 @@ export default function Competitors() {
             }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to fetch live prices', { id: loadingToast });
-            
-            // If live fetch fails, at least try to load historical data for the chart
             if (selectedProduct === productId) {
                 try {
                     const response = await getCompetitorPrices(productId);
@@ -163,7 +252,7 @@ export default function Competitors() {
                         return result;
                     }, {});
                     setHistory(Object.values(grouped).reverse().slice(-15));
-                } catch (historyErr) {
+                } catch {
                     setHistory([]);
                 }
             }
@@ -215,10 +304,6 @@ export default function Competitors() {
 
     const historyCompetitors = Object.keys(competitorColors).filter((competitor) => history.some((point) => point[competitor]));
 
-    const filteredProducts = products.filter(p => 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
         <div className="space-y-7 pb-8">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -256,21 +341,31 @@ export default function Competitors() {
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineScale className="h-5 w-5" /></div>
                         <div><h2 className="text-sm font-semibold text-text">Price history</h2><p className="mt-0.5 text-xs text-text-muted">Latest 15 competitor price observations</p></div>
                     </div>
-                    <div className="flex flex-col gap-2 w-full sm:w-auto">
-                        <label className="sr-only" htmlFor="product-search">Search products</label>
-                        <input
-                            type="text"
-                            id="product-search"
-                            placeholder="Search products..."
-                            className="input-field w-full sm:w-72"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                    <div className="flex items-center gap-2">
+                        <SearchableProductSelect
+                            products={products}
+                            selectedProduct={selectedProduct}
+                            onSelect={(id) => setSelectedProduct(id)}
                         />
-                        <label className="sr-only" htmlFor="product-history">Choose a product</label>
-                        <select id="product-history" className="input-field w-full sm:w-72" value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)}>
-                            <option value="">Choose a product to inspect</option>
-                            {filteredProducts.map((product) => <option key={product._id} value={product._id}>{product.name}</option>)}
-                        </select>
+                        {selectedProduct && (
+                            <button
+                                type="button"
+                                onClick={() => handleFetchLive(selectedProduct)}
+                                disabled={fetchingLiveProduct === selectedProduct}
+                                className="rounded-lg p-2.5 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary-light border border-border disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                title="Fetch Live Prices for Selected Product"
+                                aria-label="Fetch Live Prices"
+                            >
+                                {fetchingLiveProduct === selectedProduct ? (
+                                    <svg className="h-4 w-4 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                ) : (
+                                    <HiOutlineRefresh className="h-4 w-4" />
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="p-4 sm:p-6">
