@@ -111,6 +111,7 @@ async def search_competitors_by_keyword(
     keyword: str,
     amazon_domain: str = "amazon.in",
     max_results: int = 5,
+    asin: Optional[str] = None,
 ) -> List[Dict]:
     """
     Search Amazon for a keyword and return top results as competitor prices.
@@ -132,7 +133,15 @@ async def search_competitors_by_keyword(
         
         # Try to get both Amazon and Flipkart results concurrently if possible
         import asyncio
-        amazon_task = asyncio.create_task(_fetch_amazon_search(keyword, amazon_domain, max_results))
+        if asin:
+            # Wrap the single product fetch in a list to match the search return type
+            async def _fetch_amazon_by_asin_wrapped():
+                res = await fetch_product_by_asin(asin, amazon_domain)
+                return [res] if res else []
+            amazon_task = asyncio.create_task(_fetch_amazon_by_asin_wrapped())
+        else:
+            amazon_task = asyncio.create_task(_fetch_amazon_search(keyword, amazon_domain, max_results))
+            
         flipkart_task = asyncio.create_task(scrape_flipkart_prices(keyword, max_results=2))
         
         amazon_results, flipkart_results = await asyncio.gather(amazon_task, flipkart_task, return_exceptions=True)

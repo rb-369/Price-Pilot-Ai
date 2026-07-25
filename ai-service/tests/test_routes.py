@@ -53,3 +53,46 @@ def test_suggest_promotion_endpoint(client, mock_product, mock_demand_signals):
     assert response.status_code == 200
     data = response.json()
     assert "shouldPromote" in data
+
+def test_scrape_search_endpoint_with_asin(client, monkeypatch):
+    """Test that the scraper search endpoint accepts the asin parameter."""
+    # Mock the underlying fetch_product_by_asin function to avoid hitting the real API
+    async def mock_fetch_product(*args, **kwargs):
+        return {
+            "platform": "Amazon",
+            "productName": "Mocked ASIN Product",
+            "url": "https://amazon.in/dp/B073JYC4XM",
+            "asin": "B073JYC4XM",
+            "price": 999.0,
+            "inStock": True,
+            "timestamp": "2026-01-01T00:00:00Z",
+            "source": "rainforest_api"
+        }
+    
+    # We must patch RAINFOREST_API_KEY so the route doesn't fail with 503
+    monkeypatch.setenv("RAINFOREST_API_KEY", "test-key-mock")
+    
+    import services.rainforest
+    monkeypatch.setattr(services.rainforest, "fetch_product_by_asin", mock_fetch_product)
+    
+    # Also mock flipkart scraper to avoid real requests
+    async def mock_flipkart(*args, **kwargs):
+        return []
+    
+    import services.flipkart_scraper
+    monkeypatch.setattr(services.flipkart_scraper, "scrape_flipkart_prices", mock_flipkart)
+
+    payload = {
+        "keyword": "sunscreen",
+        "amazonDomain": "amazon.in",
+        "asin": "B073JYC4XM"
+    }
+
+    response = client.post("/api/scrape/search", json=payload)
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "competitors" in data
+    assert len(data["competitors"]) > 0
+    assert data["competitors"][0]["asin"] == "B073JYC4XM"
+

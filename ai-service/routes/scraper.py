@@ -24,6 +24,7 @@ class ScrapeByKeywordRequest(BaseModel):
     keyword: str
     amazonDomain: Optional[str] = "amazon.in"
     maxResults: Optional[int] = 5
+    asin: Optional[str] = None
 
 
 @router.post("/scrape/asins")
@@ -95,6 +96,7 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
         keyword=request.keyword,
         amazon_domain=request.amazonDomain,
         max_results=request.maxResults,
+        asin=request.asin,
     )
 
     return {

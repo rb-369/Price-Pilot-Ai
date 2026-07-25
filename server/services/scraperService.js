@@ -11,7 +11,12 @@ async function fetchLiveCompetitorsForProduct(product) {
     try {
         response = await axios.post(
             `${AI_URL}/api/scrape/search`,
-            { keyword: product.name, amazonDomain: 'amazon.in', maxResults: 5 },
+            { 
+                keyword: product.name, 
+                amazonDomain: 'amazon.in', 
+                maxResults: 5,
+                asin: product.externalIds?.amazonAsin || undefined
+            },
             { timeout: 25000 },
         );
     } catch (error) {
