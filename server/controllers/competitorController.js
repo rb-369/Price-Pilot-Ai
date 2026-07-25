@@ -91,3 +91,19 @@ exports.addCompetitorPrice = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.fetchLivePrices = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findOne({ _id: productId, userId: req.user._id });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        const { fetchLiveCompetitorsForProduct } = require('../services/scraperService');
+        const result = await fetchLiveCompetitorsForProduct(product);
+        
+        res.json({ message: 'Live prices fetched successfully', ...result });
+    } catch (error) {
+        console.error(`[Manual Scrape Error] ${error.message}`);
+        res.status(500).json({ message: error.message });
+    }
+};

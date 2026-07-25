@@ -62,6 +62,7 @@ export const deleteProduct = (id) => api.delete(`/products/${id}`);
 // Competitor Prices
 export const getCompetitorPrices = (productId) => api.get(`/competitor-prices/${productId}`);
 export const getLatestCompetitorPrices = () => api.get('/competitor-prices/latest');
+export const fetchLiveCompetitorPrices = (productId) => api.post(`/competitor-prices/fetch/${productId}`);
 
 // Demand Signals
 export const getDemandSignals = (productId) => api.get(`/demand-signals/${productId}`);
