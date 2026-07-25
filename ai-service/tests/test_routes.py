@@ -73,6 +73,7 @@ def test_scrape_search_endpoint_with_asin(client, monkeypatch):
     monkeypatch.setenv("RAINFOREST_API_KEY", "test-key-mock")
     
     import services.rainforest
+    monkeypatch.setattr(services.rainforest, "RAINFOREST_API_KEY", "test-key-mock")
     monkeypatch.setattr(services.rainforest, "fetch_product_by_asin", mock_fetch_product)
     
     # Also mock flipkart scraper to avoid real requests
