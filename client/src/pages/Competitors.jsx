@@ -37,6 +37,7 @@ export default function Competitors() {
     const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(false);
     const [fetchingLiveProduct, setFetchingLiveProduct] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchData = () => {
         setLoading(true);
@@ -77,16 +78,8 @@ export default function Competitors() {
             return;
         }
 
-        setFetchingHistory(true);
-        getCompetitorPrices(selectedProduct).then((response) => {
-            const grouped = response.data.reduce((result, price) => {
-                const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                if (!result[day]) result[day] = { day };
-                result[day][price.competitorName] = price.competitorPrice;
-                return result;
-            }, {});
-            setHistory(Object.values(grouped).reverse().slice(-15));
-        }).catch(() => setHistory([])).finally(() => setFetchingHistory(false));
+        // The user requested that selecting a product does the exact same thing as the refresh button (fetching live prices)
+        handleFetchLive(selectedProduct);
     }, [selectedProduct]);
 
     const productPrices = useMemo(() => {
@@ -132,6 +125,11 @@ export default function Competitors() {
 
     const handleFetchLive = async (productId) => {
         setFetchingLiveProduct(productId);
+        // We also want to show that we are fetching history for the chart area
+        if (selectedProduct === productId) {
+            setFetchingHistory(true);
+        }
+        
         const loadingToast = toast.loading('Fetching live competitor prices...');
         try {
             await fetchLiveCompetitorPrices(productId);
@@ -153,8 +151,27 @@ export default function Competitors() {
             }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to fetch live prices', { id: loadingToast });
+            
+            // If live fetch fails, at least try to load historical data for the chart
+            if (selectedProduct === productId) {
+                try {
+                    const response = await getCompetitorPrices(productId);
+                    const grouped = response.data.reduce((result, price) => {
+                        const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                        if (!result[day]) result[day] = { day };
+                        result[day][price.competitorName] = price.competitorPrice;
+                        return result;
+                    }, {});
+                    setHistory(Object.values(grouped).reverse().slice(-15));
+                } catch (historyErr) {
+                    setHistory([]);
+                }
+            }
         } finally {
             setFetchingLiveProduct(null);
+            if (selectedProduct === productId) {
+                setFetchingHistory(false);
+            }
         }
     };
 
@@ -198,6 +215,10 @@ export default function Competitors() {
 
     const historyCompetitors = Object.keys(competitorColors).filter((competitor) => history.some((point) => point[competitor]));
 
+    const filteredProducts = products.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="space-y-7 pb-8">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -235,11 +256,22 @@ export default function Competitors() {
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineScale className="h-5 w-5" /></div>
                         <div><h2 className="text-sm font-semibold text-text">Price history</h2><p className="mt-0.5 text-xs text-text-muted">Latest 15 competitor price observations</p></div>
                     </div>
-                    <label className="sr-only" htmlFor="product-history">Choose a product</label>
-                    <select id="product-history" className="input-field w-full sm:w-72" value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)}>
-                        <option value="">Choose a product to inspect</option>
-                        {products.map((product) => <option key={product._id} value={product._id}>{product.name}</option>)}
-                    </select>
+                    <div className="flex flex-col gap-2 w-full sm:w-auto">
+                        <label className="sr-only" htmlFor="product-search">Search products</label>
+                        <input
+                            type="text"
+                            id="product-search"
+                            placeholder="Search products..."
+                            className="input-field w-full sm:w-72"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <label className="sr-only" htmlFor="product-history">Choose a product</label>
+                        <select id="product-history" className="input-field w-full sm:w-72" value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)}>
+                            <option value="">Choose a product to inspect</option>
+                            {filteredProducts.map((product) => <option key={product._id} value={product._id}>{product.name}</option>)}
+                        </select>
+                    </div>
                 </div>
                 <div className="p-4 sm:p-6">
                     {fetchingHistory ? (

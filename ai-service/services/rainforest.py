@@ -284,7 +284,7 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
     print(f"[SerpApi] Attempting Amazon search fallback for '{keyword}'...")
     params = {
         "engine": "amazon",
-        "q": keyword,
+        "k": keyword,
         "amazon_domain": amazon_domain,
         "api_key": serpapi_key,
     }
