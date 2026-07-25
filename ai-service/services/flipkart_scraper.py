@@ -94,20 +94,32 @@ def _parse_search_results(html: str, max_results: int) -> List[Dict]:
     for card in product_cards[:max_results * 2]:  # Scan more to filter
         try:
             # Extract title
-            title_el = (
-                card.select_one("div._4rR01T") or
-                card.select_one("a.s1Q9rs") or
-                card.select_one("a._2rpwqI") or
-                card.select_one("a.IRpwTa")
-            )
-            title = title_el.get_text(strip=True) if title_el else None
+            title = None
+            img_el = card.find("img")
+            if img_el and img_el.get("alt"):
+                title = img_el.get("alt")
+            
+            if not title:
+                title_el = (
+                    card.select_one("div._4rR01T") or
+                    card.select_one("a.s1Q9rs") or
+                    card.select_one("a._2rpwqI") or
+                    card.select_one("a.IRpwTa")
+                )
+                title = title_el.get_text(strip=True) if title_el else None
 
             # Extract price
-            price_el = (
-                card.select_one("div._30jeq3") or
-                card.select_one("div._1_WHN1")
-            )
-            price_text = price_el.get_text(strip=True) if price_el else None
+            price_text = None
+            price_div = card.find("div", string=lambda t: t and '₹' in t)
+            if price_div:
+                price_text = price_div.get_text(strip=True)
+                
+            if not price_text:
+                price_el = (
+                    card.select_one("div._30jeq3") or
+                    card.select_one("div._1_WHN1")
+                )
+                price_text = price_el.get_text(strip=True) if price_el else None
 
             if not title or not price_text:
                 continue
@@ -126,12 +138,15 @@ def _parse_search_results(html: str, max_results: int) -> List[Dict]:
                 except ValueError:
                     pass
 
+            # Extract link
             url = "https://www.flipkart.com"
-            link_el = card.select_one("a.s1Q9rs") or card.select_one("a._2rpwqI") or card.select_one("a.IRpwTa") or card.select_one("a._1fQZEK") or card.select_one("a.CGtC98")
-            if link_el and link_el.has_attr("href"):
-                url = "https://www.flipkart.com" + link_el["href"]
-            elif title_el and title_el.name == "a" and title_el.has_attr("href"):
-                url = "https://www.flipkart.com" + title_el["href"]
+            a_tag = card.find("a", href=True)
+            if a_tag:
+                url = "https://www.flipkart.com" + a_tag["href"]
+            else:
+                link_el = card.select_one("a.s1Q9rs") or card.select_one("a._2rpwqI") or card.select_one("a.IRpwTa") or card.select_one("a._1fQZEK") or card.select_one("a.CGtC98")
+                if link_el and link_el.has_attr("href"):
+                    url = "https://www.flipkart.com" + link_el["href"]
                 
             products.append({
                 "platform": "Flipkart",
