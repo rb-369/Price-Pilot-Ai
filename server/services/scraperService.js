@@ -34,7 +34,10 @@ async function fetchLiveCompetitorsForProduct(product) {
     );
 
     if (!competitors.length) {
-        throw new Error('No linkable live competitor prices were returned');
+        return {
+            checkedAt: new Date().toISOString(),
+            competitors: [],
+        };
     }
 
     const checkedAt = new Date();

@@ -101,7 +101,11 @@ exports.fetchLivePrices = async (req, res) => {
         const { fetchLiveCompetitorsForProduct } = require('../services/scraperService');
         const result = await fetchLiveCompetitorsForProduct(product);
         
-        res.json({ message: 'Live prices fetched successfully', ...result });
+        if (result.competitors && result.competitors.length === 0) {
+            res.json({ message: 'Live scrape finished, but no competitors were found for this product.', ...result });
+        } else {
+            res.json({ message: 'Live prices fetched successfully', ...result });
+        }
     } catch (error) {
         console.error(`[Manual Scrape Error] ${error.message}`);
         res.status(500).json({ message: error.message });

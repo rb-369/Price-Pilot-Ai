@@ -160,7 +160,9 @@ async def search_competitors_by_keyword(
         return competitors
 
     except Exception as e:
+        import traceback
         print(f"[Rainforest] Search error for '{keyword}': {e}")
+        traceback.print_exc()
         return []
 
 async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: int) -> List[Dict]:
@@ -209,6 +211,8 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
         print(f"[Rainforest] Search HTTP error for '{keyword}': {e.response.status_code}")
         return []
     except Exception as e:
+        import traceback
         print(f"[Rainforest] Search error for '{keyword}': {e}")
+        traceback.print_exc()
         return []
 
