@@ -4,17 +4,34 @@ Fetches real-time competitor pricing data from Amazon via Rainforest API.
 Docs: https://www.rainforestapi.com/docs
 """
 import os
+import re
 import httpx
 import asyncio
 from typing import List, Dict, Optional
 from datetime import datetime
 
-
 RAINFOREST_API_KEY = os.getenv("RAINFOREST_API_KEY", "")
 RAINFOREST_BASE_URL = "https://api.rainforestapi.com/request"
+REQUEST_TIMEOUT = 30.0
 
-# Request timeout in seconds
-REQUEST_TIMEOUT = 20
+def _extract_price_value(price_raw) -> Optional[float]:
+    """Helper to safely extract float price from dict, float, int, or string."""
+    if price_raw is None:
+        return None
+    if isinstance(price_raw, (int, float)):
+        return float(price_raw)
+    if isinstance(price_raw, dict):
+        val = price_raw.get("value") if price_raw.get("value") is not None else (price_raw.get("raw") or price_raw.get("extracted"))
+        return _extract_price_value(val)
+    if isinstance(price_raw, str):
+        clean_str = price_raw.replace(",", "")
+        match = re.search(r"\d+(?:\.\d+)?", clean_str)
+        if match:
+            try:
+                return float(match.group(0))
+            except ValueError:
+                return None
+    return None
 
 
 async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> Optional[Dict]:
@@ -46,8 +63,7 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
 
         # Extract buybox / listing price
         buybox = product.get("buybox_winner", {})
-        price_info = buybox.get("price", {}) or product.get("price", {})
-        price_value = price_info.get("value")
+        price_value = _extract_price_value(buybox.get("price")) or _extract_price_value(product.get("price"))
 
         if price_value is None:
             return None
@@ -107,14 +123,10 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
 
         # Extract buybox / listing price
         buybox = product.get("buybox_winner", {})
-        price_info = buybox.get("price", {}) or product.get("price", {})
-        price_value = price_info.get("value")
+        price_value = _extract_price_value(buybox.get("price")) or _extract_price_value(product.get("price"))
 
         if price_value is None:
-            if "price" in product and isinstance(product["price"], (int, float)):
-                price_value = product["price"]
-            else:
-                return None
+            return None
 
         in_stock = buybox.get("availability", {}).get("type", "in_stock") == "in_stock"
 
@@ -243,8 +255,7 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
 
         competitors = []
         for item in search_results:
-            price_info = item.get("price", {})
-            price_value = price_info.get("value") if price_info else None
+            price_value = _extract_price_value(item.get("price"))
 
             if price_value is None:
                 continue
@@ -303,14 +314,12 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
 
         competitors = []
         for item in search_results:
-            price_info = item.get("price", {})
-            price_value = price_info.get("value") if price_info else None
+            price_value = _extract_price_value(item.get("price"))
+            if price_value is None:
+                price_value = _extract_price_value(item.get("price_string")) or _extract_price_value(item.get("extracted_price"))
 
             if price_value is None:
-                if "price" in item and isinstance(item["price"], (int, float)):
-                    price_value = item["price"]
-                else:
-                    continue
+                continue
 
             competitors.append({
                 "platform": "Amazon",
