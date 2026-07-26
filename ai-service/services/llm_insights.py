@@ -119,24 +119,37 @@ async def _generate_with_gemini(
                 "Authorization": f"Bearer {or_key}",
                 "Content-Type": "application/json"
             }
-            data = {
-                "model": "meta-llama/llama-3-8b-instruct",
-                "messages": [{"role": "user", "content": prompt + "\n\nCRITICAL: You MUST return ONLY a raw JSON object. Do not wrap in markdown blocks like ```json."}],
-                "temperature": 0.4
-            }
+            # List of reliable free models to try in sequence
+            fallback_models = [
+                "nvidia/nemotron-3-ultra-550b-a55b:free",
+                "google/gemini-2.5-flash:free",
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "openrouter/auto"
+            ]
             async with httpx.AsyncClient(timeout=30) as http_client:
-                resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-                resp.raise_for_status()
-                resp_json = resp.json()
-                content = resp_json["choices"][0]["message"]["content"].strip()
-                if content.startswith("```json"):
-                    content = content[7:-3].strip()
-                elif content.startswith("```"):
-                    content = content[3:-3].strip()
-                return content
+                for model_name in fallback_models:
+                    try:
+                        data = {
+                            "model": model_name,
+                            "messages": [{"role": "user", "content": prompt + "\n\nCRITICAL: You MUST return ONLY a raw JSON object. Do not wrap in markdown blocks like ```json."}],
+                            "temperature": 0.4
+                        }
+                        resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+                        if resp.status_code == 200:
+                            resp_json = resp.json()
+                            content = resp_json["choices"][0]["message"]["content"].strip()
+                            if content.startswith("```json"):
+                                content = content[7:-3].strip()
+                            elif content.startswith("```"):
+                                content = content[3:-3].strip()
+                            return content
+                    except Exception as m_err:
+                        print(f"[OpenRouter] Model {model_name} failed: {m_err}")
+                        continue
         except Exception as fallbackE:
             print(f"Fallback Exception: {fallbackE}")
-            return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
+
+        return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
 
 def _generate_template_insight(
     product: Dict,

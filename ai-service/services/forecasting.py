@@ -33,10 +33,11 @@ def _build_prophet_dataframe(demand_history: List[Dict]):
         score = max(0.01, min(1.0, score))
         rows.append({"ds": dt, "y": score})
 
-    df = pd.DataFrame(rows).sort_values("ds").reset_index(drop=True)
-
-    # Drop duplicate dates — Prophet cannot handle them
-    df = df.drop_duplicates(subset="ds")
+    df = pd.DataFrame(rows)
+    if not df.empty:
+        # Floor datetimes to daily frequency to eliminate duplicate labels in Prophet
+        df["ds"] = pd.to_datetime(df["ds"]).dt.floor("d")
+        df = df.groupby("ds", as_index=False)["y"].mean().sort_values("ds").reset_index(drop=True)
 
     return df
 

@@ -67,34 +67,36 @@ async def generate_product_copy(product_name: str, category: str = "") -> dict:
         
         try:
             import httpx
-            async with httpx.AsyncClient() as http_client:
-                headers = {
-                    "Authorization": f"Bearer {openrouter_key}",
-                    "Content-Type": "application/json"
-                }
-                data = {
-                    "model": "google/gemini-2.5-flash", # Fallback to same model via OpenRouter or change if preferred
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.7,
-                }
-                
-                resp = await http_client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers=headers,
-                    json=data,
-                    timeout=30.0
-                )
-                resp.raise_for_status()
-                resp_json = resp.json()
-                content = resp_json["choices"][0]["message"]["content"]
-                
-                # Strip markdown code blocks if the model wrapped the JSON in them
-                if content.startswith("```json"):
-                    content = content[7:-3].strip()
-                elif content.startswith("```"):
-                    content = content[3:-3].strip()
-                    
-                return json.loads(content)
+            headers = {
+                "Authorization": f"Bearer {openrouter_key}",
+                "Content-Type": "application/json"
+            }
+            fallback_models = [
+                "nvidia/nemotron-3-ultra-550b-a55b:free",
+                "google/gemini-2.5-flash:free",
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "openrouter/auto"
+            ]
+            async with httpx.AsyncClient(timeout=30.0) as http_client:
+                for model_name in fallback_models:
+                    try:
+                        data = {
+                            "model": model_name,
+                            "messages": [{"role": "user", "content": prompt}],
+                            "temperature": 0.7,
+                        }
+                        resp = await http_client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+                        if resp.status_code == 200:
+                            resp_json = resp.json()
+                            content = resp_json["choices"][0]["message"]["content"].strip()
+                            if content.startswith("```json"):
+                                content = content[7:-3].strip()
+                            elif content.startswith("```"):
+                                content = content[3:-3].strip()
+                            return json.loads(content)
+                    except Exception as m_err:
+                        print(f"[OpenRouter product_gen] Model {model_name} failed: {m_err}")
+                        continue
         except Exception as fallback_err:
             print(f"OpenRouter fallback also failed: {fallback_err}")
             return {

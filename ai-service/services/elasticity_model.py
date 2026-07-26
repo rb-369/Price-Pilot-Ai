@@ -65,7 +65,7 @@ class ElasticityModel:
             else:
                 print("[Elasticity] No trained model found, using heuristic fallback")
         except Exception as e:
-            print(f"[Elasticity] Failed to load model: {e}")
+            print(f"[Elasticity] Pre-trained model incompatible or missing ({e}), using heuristic fallback")
             self.model = None
 
     def predict(self, features: Dict) -> Tuple[float, str]:
