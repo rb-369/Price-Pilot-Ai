@@ -11,7 +11,7 @@ exports.getCompetitorPrices = async (req, res) => {
 
         const prices = await CompetitorPrice.find({ 
             productId,
-            competitorUrl: { $exists: true, $ne: '', $ne: null }
+            productName: { $exists: true, $ne: null, $ne: '' }
         })
             .sort({ timestamp: -1 })
             .limit(100);
@@ -30,7 +30,7 @@ exports.getAllLatestPrices = async (req, res) => {
             { 
                 $match: { 
                     productId: { $in: productIds },
-                    competitorUrl: { $exists: true, $ne: '', $ne: null }
+                    productName: { $exists: true, $ne: null, $ne: '' }
                 } 
             },
             { $sort: { timestamp: -1 } },

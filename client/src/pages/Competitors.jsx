@@ -165,16 +165,8 @@ export default function Competitors() {
             return;
         }
 
-        setFetchingHistory(true);
-        getCompetitorPrices(selectedProduct).then((response) => {
-            const grouped = response.data.reduce((result, price) => {
-                const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                if (!result[day]) result[day] = { day };
-                result[day][price.competitorName] = price.competitorPrice;
-                return result;
-            }, {});
-            setHistory(Object.values(grouped).reverse().slice(-15));
-        }).catch(() => setHistory([])).finally(() => setFetchingHistory(false));
+        // Trigger live fetch for selected product (same code as refresh button)
+        handleFetchLive(selectedProduct);
     }, [selectedProduct]);
 
     const productPrices = useMemo(() => {
@@ -457,11 +449,11 @@ export default function Competitors() {
                                             return (
                                                 <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
                                                     <div className="flex flex-col justify-center">
-                                                        <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
+                                                        <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name || 'Amazon'}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
                                                         {competitor.productName ? (
                                                             <div className="mt-1">
                                                                 <a
-                                                                    href={competitor.url || `https://www.google.com/search?q=${encodeURIComponent(competitor.name + ' ' + competitor.productName)}`}
+                                                                    href={competitor.url ? (competitor.url.startsWith('http') ? competitor.url : `https://www.flipkart.com${competitor.url}`) : `https://www.google.com/search?q=${encodeURIComponent((competitor.name || 'Amazon') + ' ' + competitor.productName)}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="text-xs text-primary-light hover:underline line-clamp-1"
