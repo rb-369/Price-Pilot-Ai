@@ -9,7 +9,8 @@ import {
   HiOutlineSparkles,
   HiOutlineCube,
   HiOutlineShieldCheck,
-  HiOutlineLightningBolt
+  HiOutlineLightningBolt,
+  HiOutlineSearch
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -22,6 +23,7 @@ export default function Forecasts() {
   const [error, setError] = useState(false);
   const [generating, setGenerating] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -105,9 +107,12 @@ export default function Forecasts() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'ALL') return products;
-    return products.filter(p => p.category === selectedCategory);
-  }, [products, selectedCategory]);
+    return products.filter(p => {
+      const matchCat = selectedCategory === 'ALL' || p.category === selectedCategory;
+      const matchQuery = !searchQuery || p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchQuery;
+    });
+  }, [products, selectedCategory, searchQuery]);
 
   if (error) return <ErrorState title="Failed to load Inventory Forecasts" onRetry={fetchData} />;
 
@@ -228,70 +233,91 @@ export default function Forecasts() {
 
           {/* ── Generate Forecast Selector Bar ── */}
           <div className="glass-card p-6 animate-slide-up stagger-3">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.1)' }}>
                   <HiOutlineSparkles className="w-4.5 h-4.5 text-accent" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-text">Generate AI Forecast</h2>
-                  <p className="text-xs text-text-muted">Select a product to run Prophet &amp; Holt-Winters predictive model</p>
+                  <p className="text-xs text-text-muted">Search or select a product to run Prophet &amp; Holt-Winters predictive model</p>
                 </div>
               </div>
 
-              {categories.length > 1 && (
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-primary text-white shadow-md'
-                          : 'bg-surface/60 text-text-muted hover:text-text border border-border'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+              {/* Search & Category Filter Controls */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative flex-1 sm:w-64">
+                  <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Search all products..."
+                    className="input-field w-full text-xs py-2 pr-3"
+                    style={{ paddingLeft: '2.25rem' }}
+                  />
                 </div>
-              )}
+
+                {categories.length > 1 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
+                    {categories.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                          selectedCategory === cat
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-surface/60 text-text-muted hover:text-text border border-border'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-              {filteredProducts.slice(0, 10).map(p => {
-                const isGenerating = generating === p._id;
-                return (
-                  <button
-                    key={p._id}
-                    onClick={() => handleGenerate(p._id)}
-                    disabled={isGenerating}
-                    className="p-3.5 bg-surface/50 border border-border rounded-xl text-left hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-60 cursor-pointer group relative overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted truncate">
-                        {p.category || 'General'}
-                      </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.stockLevel < 20 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
-                        {p.stockLevel < 20 ? 'Low' : 'OK'}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-text truncate group-hover:text-primary-light transition-colors">
-                      {p.name}
-                    </p>
-                    <p className="text-[11px] text-text-muted mt-1">
-                      {p.stockLevel} units in stock
-                    </p>
-                    {isGenerating && (
-                      <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary-light font-semibold">
-                        <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                        Generating...
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-h-72 overflow-y-auto pr-1">
+                {filteredProducts.map(p => {
+                  const isGenerating = generating === p._id;
+                  return (
+                    <button
+                      key={p._id}
+                      onClick={() => handleGenerate(p._id)}
+                      disabled={isGenerating}
+                      className="p-3.5 bg-surface/50 border border-border rounded-xl text-left hover:border-primary/40 hover:bg-primary/5 transition-all disabled:opacity-60 cursor-pointer group relative overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted truncate">
+                          {p.category || 'General'}
+                        </span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.stockLevel < 20 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                          {p.stockLevel < 20 ? 'Low' : 'OK'}
+                        </span>
                       </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                      <p className="text-xs font-semibold text-text truncate group-hover:text-primary-light transition-colors" title={p.name}>
+                        {p.name}
+                      </p>
+                      <p className="text-[11px] text-text-muted mt-1">
+                        {p.stockLevel} units in stock
+                      </p>
+                      {isGenerating && (
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary-light font-semibold">
+                          <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                          Generating...
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-text-muted text-xs">
+                No products found matching <span className="text-text font-semibold">"{searchQuery}"</span>
+              </div>
+            )}
           </div>
 
           {/* ── Forecast Cards Grid ── */}
