@@ -76,29 +76,53 @@ export default function Forecasts() {
     }
   };
 
+  const getProductDetails = (f) => {
+    const pId = typeof f.productId === 'object' ? f.productId?._id : f.productId;
+    const matched = products.find(p => String(p._id) === String(pId));
+    const name =
+      (typeof f.productId === 'object' && f.productId?.name) ||
+      matched?.name ||
+      f.productName ||
+      f.product?.name ||
+      f.reason?.match(/Demand for (.+?) is projected/i)?.[1] ||
+      'Product';
+    const currentStock =
+      f.currentStock ??
+      (typeof f.productId === 'object' ? f.productId?.stockLevel : null) ??
+      matched?.stockLevel ??
+      0;
+    return { name, currentStock };
+  };
+
   const handleExport = () => {
-    const exportData = forecasts.map(f => ({
-      Product: f.productId?.name || 'Unknown',
-      Forecast_Range_Days: f.forecastRange,
-      Predicted_Demand: f.predictedDemand,
-      Current_Stock: f.currentStock || f.productId?.stockLevel || 0,
-      Recommended_Increase: f.recommendedStockIncrease,
-      Confidence_Score: f.confidenceScore,
-      Reason: f.reason
-    }));
+    const exportData = forecasts.map(f => {
+      const { name, currentStock } = getProductDetails(f);
+      return {
+        Product: name,
+        Forecast_Range_Days: f.forecastRange || 30,
+        Predicted_Demand: f.predictedDemand,
+        Current_Stock: currentStock,
+        Recommended_Increase: f.recommendedStockIncrease,
+        Confidence_Score: f.confidenceScore,
+        Reason: f.reason
+      };
+    });
     exportToCSV(exportData, 'inventory-forecasts');
   };
 
   // ─── Analytics KPIs ───
   const kpis = useMemo(() => {
     if (!forecasts.length) return { total: 0, atRisk: 0, avgConfidence: 0, totalReorder: 0 };
-    const atRisk = forecasts.filter(f => f.predictedDemand > (f.currentStock || f.productId?.stockLevel || 0)).length;
+    const atRisk = forecasts.filter(f => {
+      const { currentStock } = getProductDetails(f);
+      return f.predictedDemand > currentStock;
+    }).length;
     const avgConfidence = Math.round(
       (forecasts.reduce((sum, f) => sum + (f.confidenceScore || 0.85), 0) / forecasts.length) * 100
     );
     const totalReorder = forecasts.reduce((sum, f) => sum + (f.recommendedStockIncrease || 0), 0);
     return { total: forecasts.length, atRisk, avgConfidence, totalReorder };
-  }, [forecasts]);
+  }, [forecasts, products]);
 
   // Categories list
   const categories = useMemo(() => {
@@ -323,7 +347,7 @@ export default function Forecasts() {
           {/* ── Forecast Cards Grid ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {forecasts.map((f, i) => {
-              const currentStock = f.currentStock || f.productId?.stockLevel || 0;
+              const { name: productName, currentStock } = getProductDetails(f);
               const demandPct = currentStock > 0 ? Math.round((f.predictedDemand / currentStock) * 100) : 100;
               const isRisk = f.predictedDemand > currentStock;
               const confidence = f.confidenceScore ? Math.round(f.confidenceScore * 100) : 88;
@@ -353,7 +377,7 @@ export default function Forecasts() {
                       </div>
                       <div>
                         <h3 className="font-bold text-text text-base leading-tight">
-                          {f.productId?.name || 'Product'}
+                          {productName}
                         </h3>
                         <p className="text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                           {f.forecastRange || 30}-Day Demand Prediction

@@ -125,10 +125,13 @@ exports.checkJobStatus = async (req, res) => {
         
         if (state === 'completed') {
             let result = job.returnvalue;
-            // Populate productId if it's a PricingRecommendation
+            // Populate productId if it's a PricingRecommendation or InventoryForecast
             if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX) && result && result._id) {
                 const PricingRecommendation = require('../models/PricingRecommendation');
                 result = await PricingRecommendation.findById(result._id).populate('productId', 'name sku currentPrice baseCost stockLevel');
+            } else if (jobId.startsWith(FORECAST_JOB_PREFIX) && result && result._id) {
+                const InventoryForecast = require('../models/InventoryForecast');
+                result = await InventoryForecast.findById(result._id).populate('productId', 'name sku stockLevel reorderThreshold');
             }
             return res.json({ status: state, result });
         } else if (state === 'failed') {
