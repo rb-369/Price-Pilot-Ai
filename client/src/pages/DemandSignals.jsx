@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllDemandSignals, getProducts, getDemandSignals } from '../api';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import { HiOutlineTrendingUp, HiOutlineFire, HiDownload, HiOutlineFilter, HiOutlineLightningBulb, HiOutlineCube } from 'react-icons/hi';
+import { HiOutlineTrendingUp, HiOutlineFire, HiDownload, HiOutlineFilter, HiLightningBolt, HiCube } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
@@ -219,7 +219,7 @@ export default function DemandSignals() {
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">Products Tracked</span>
             <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.12)' }}>
-              <HiOutlineCube className="w-4 h-4 text-[#22d3ee]" />
+              <HiCube className="w-4 h-4 text-[#22d3ee]" />
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-[#f1f5f9]">{kpis.productCount}</p>
@@ -230,7 +230,7 @@ export default function DemandSignals() {
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">Signals Today</span>
             <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.12)' }}>
-              <HiOutlineLightningBulb className="w-4 h-4 text-[#34d399]" />
+              <HiLightningBolt className="w-4 h-4 text-[#34d399]" />
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-[#f1f5f9]">1,847</p>
