@@ -460,11 +460,15 @@ export default function Competitors() {
                                                         <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
                                                         {competitor.productName ? (
                                                             <div className="mt-1">
-                                                                {competitor.url ? (
-                                                                    <a href={competitor.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-light hover:underline line-clamp-1" title={competitor.productName}>{competitor.productName}</a>
-                                                                ) : (
-                                                                    <span className="text-xs text-text-muted line-clamp-1" title={competitor.productName}>{competitor.productName}</span>
-                                                                )}
+                                                                <a
+                                                                    href={competitor.url || `https://www.google.com/search?q=${encodeURIComponent(competitor.name + ' ' + competitor.productName)}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-xs text-primary-light hover:underline line-clamp-1"
+                                                                    title={competitor.productName}
+                                                                >
+                                                                    {competitor.productName}
+                                                                </a>
                                                             </div>
                                                         ) : null}
                                                     </div>
