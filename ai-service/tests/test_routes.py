@@ -22,8 +22,10 @@ def test_optimize_price_endpoint(client, mock_product, mock_competitors, mock_de
     assert "revenueImpact" in data
 
 
-def test_optimize_price_no_competitors_returns_error(client, mock_product, mock_demand_signals):
+def test_optimize_price_no_competitors_returns_error(client, mock_product, mock_demand_signals, monkeypatch):
     """When no competitors are provided and no API key is set, return an error message, not mock data."""
+    monkeypatch.delenv("RAINFOREST_API_KEY", raising=False)
+    monkeypatch.delenv("SERPAPI_API_KEY", raising=False)
     payload = {
         "product": mock_product,
         "competitorPrices": [],
