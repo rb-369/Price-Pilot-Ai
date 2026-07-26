@@ -49,6 +49,7 @@ export default function DemandSignals() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productSignals, setProductSignals] = useState([]);
+  const [showAllProducts, setShowAllProducts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -275,7 +276,7 @@ export default function DemandSignals() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {heatmapData.map((item, i) => {
+          {(showAllProducts ? heatmapData : heatmapData.slice(0, 6)).map((item, i) => {
             const badge = getDemandBadge(item.demand);
             const isSelected = selectedProduct === item.id || selectedProduct === item.productId;
             return (
@@ -319,9 +320,24 @@ export default function DemandSignals() {
             </svg>
             Sparklines show 7-day trend · Click any card for detailed analysis
           </div>
-          <span className="text-xs font-medium text-[#818cf8]">
-            Showing {heatmapData.length} Products
-          </span>
+          {heatmapData.length > 6 && (
+            <button
+              onClick={() => setShowAllProducts(!showAllProducts)}
+              className="text-xs font-semibold flex items-center gap-1.5 transition-colors hover:text-primary-light cursor-pointer"
+              style={{ color: '#818cf8' }}
+            >
+              {showAllProducts ? 'Show Less' : `View All ${heatmapData.length} Products`}
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-300 ${showAllProducts ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
