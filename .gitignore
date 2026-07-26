@@ -65,4 +65,6 @@ skills-lock.json
 codebase-analysis-report.md
 .playwright-mcp
 .gnhf*
+.planning/*
+.lavish/*
 graphify-out/*
