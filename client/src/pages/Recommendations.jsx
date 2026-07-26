@@ -21,9 +21,9 @@ import {
   HiOutlineTrendingUp,
   HiOutlineSearch,
   HiOutlineDocumentText,
-  HiOutlineXMark,
-  HiOutlineExclamationTriangle
-} from 'react-icons/hi2';
+  HiX as HiOutlineXMark,
+  HiOutlineExclamation as HiOutlineExclamationTriangle
+} from 'react-icons/hi';
 import jsPDF from 'jspdf';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
