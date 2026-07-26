@@ -548,42 +548,51 @@ export default function Recommendations() {
                       <p className="text-[10px] text-text-muted mb-2.5 font-semibold uppercase tracking-wider">
                         Live Competitor Benchmark Data
                       </p>
-                      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                        {rec.competitorsUsed.map((comp, idx) => (
-                          <div
-                            key={idx}
-                            className="shrink-0 bg-surface/50 p-3 rounded-xl border border-border min-w-[180px] max-w-[230px]"
-                          >
-                            <span className="text-[10px] font-bold text-accent uppercase tracking-wider mb-1 block">
-                              {comp.platform || comp.name}
-                            </span>
-                            {comp.url ? (
-                              <a
-                                href={comp.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-primary-light hover:underline font-semibold line-clamp-2 block"
-                                title={comp.productName || comp.name}
-                              >
-                                {comp.productName || comp.name}
-                              </a>
-                            ) : (
-                              <p className="text-xs text-text font-semibold line-clamp-2" title={comp.productName || comp.name}>
-                                {comp.productName || comp.name}
-                              </p>
-                            )}
-                            <div className="flex justify-between items-end mt-2">
-                              <p className="text-base text-text font-extrabold">₹{comp.price}</p>
-                              <span
-                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                  comp.inStock ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
-                                }`}
-                              >
-                                {comp.inStock ? 'In Stock' : 'OOS'}
-                              </span>
+                      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                        {rec.competitorsUsed.map((comp, idx) => {
+                          const rawName = comp.productName || comp.name || '';
+                          const shortTitle = rawName.split(/[,|\-–—]/)[0].trim() || rawName;
+                          const platform = (comp.platform || comp.name || 'Competitor').toUpperCase();
+                          const isAmazon = platform.includes('AMAZON');
+                          const isFlipkart = platform.includes('FLIPKART');
+                          const platformColor = isAmazon ? '#f97316' : isFlipkart ? '#0084ff' : '#06b6d4';
+                          const linkUrl = comp.url || `https://www.google.com/search?q=${encodeURIComponent((comp.platform || '') + ' ' + rawName)}`;
+
+                          return (
+                            <div
+                              key={idx}
+                              className="shrink-0 bg-surface/50 p-3.5 rounded-xl border border-border w-[210px] h-[135px] flex flex-col justify-between"
+                            >
+                              <div>
+                                <span
+                                  className="text-[10px] font-extrabold uppercase tracking-wider mb-1 block"
+                                  style={{ color: platformColor }}
+                                >
+                                  {platform}
+                                </span>
+                                <a
+                                  href={linkUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-text hover:text-primary-light hover:underline font-semibold line-clamp-2 block leading-snug"
+                                  title={rawName}
+                                >
+                                  {shortTitle}
+                                </a>
+                              </div>
+                              <div className="flex justify-between items-end pt-2 border-t border-border/40">
+                                <p className="text-base text-text font-extrabold">₹{comp.price}</p>
+                                <span
+                                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                    comp.inStock ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
+                                  }`}
+                                >
+                                  {comp.inStock ? 'In Stock' : 'OOS'}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ) : (
