@@ -84,12 +84,13 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
     if not request.keyword.strip():
         raise HTTPException(status_code=400, detail="Keyword cannot be empty.")
 
-    api_key = os.getenv("RAINFOREST_API_KEY", "")
+    rainforest_key = os.getenv("RAINFOREST_API_KEY", "")
+    serpapi_key = os.getenv("SERPAPI_KEY", "")
 
-    if not api_key:
+    if not rainforest_key and not serpapi_key:
         raise HTTPException(
             status_code=503,
-            detail="RAINFOREST_API_KEY not configured. Set it in your .env file to fetch real competitor data.",
+            detail="Neither RAINFOREST_API_KEY nor SERPAPI_KEY configured. Set one in your .env file to fetch real competitor data.",
         )
 
     results = await search_competitors_by_keyword(

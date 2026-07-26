@@ -64,15 +64,16 @@ function SearchableProductSelect({ products, selectedProduct, onSelect }) {
 
             {isOpen && (
                 <div className="absolute right-0 top-full z-50 mt-1.5 w-full rounded-lg border border-border bg-surface-light p-2 shadow-2xl backdrop-blur-md">
-                    <div className="relative mb-2">
-                        <HiOutlineSearch className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-text-muted" />
+                    <div className="relative mb-2 flex items-center">
+                        <HiOutlineSearch className="absolute left-2.5 z-10 h-3.5 w-3.5 text-text-muted pointer-events-none" />
                         <input
                             type="text"
                             autoFocus
                             placeholder="Search products..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="input-field w-full pl-8 py-1.5 text-xs"
+                            className="input-field w-full py-1.5 text-xs"
+                            style={{ paddingLeft: '2.25rem' }}
                         />
                     </div>
                     <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
