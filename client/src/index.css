@@ -525,6 +525,24 @@ tbody tr:hover {
   box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
 }
 
+:root.light .btn-secondary {
+  background: rgba(241, 245, 249, 0.9);
+  color: #0f172a;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+:root.light .btn-secondary:hover {
+  background: #ffffff;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+:root.light .gradient-text {
+  background: linear-gradient(135deg, #0f172a 0%, #4f46e5 50%, #0891b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 :root.light .stat-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.7));
   border: 1px solid rgba(99, 102, 241, 0.15);
