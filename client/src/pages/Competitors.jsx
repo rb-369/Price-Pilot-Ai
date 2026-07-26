@@ -188,8 +188,8 @@ export default function Competitors() {
             if (!productId || !grouped[productId]) return;
             grouped[productId].competitors.push({
                 name: price._id.competitorName,
-                productName: price._id.productName || '',
-                url: price.url || '',
+                productName: price._id?.productName || price.productName || '',
+                url: price.url || price.competitorUrl || '',
                 price: price.latestPrice,
                 inStock: price.inStock,
                 timestamp: price.timestamp,
