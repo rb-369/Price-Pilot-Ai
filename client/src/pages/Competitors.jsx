@@ -228,7 +228,11 @@ export default function Competitors() {
                 const grouped = response.data.reduce((result, price) => {
                     const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
                     if (!result[day]) result[day] = { day };
-                    result[day][price.competitorName] = price.competitorPrice;
+                    let key = price.competitorName;
+                    if (price.productName) {
+                        key = `${price.competitorName} - ${price.productName.substring(0, 15)}...`;
+                    }
+                    result[day][key] = price.competitorPrice;
                     return result;
                 }, {});
                 setHistory(Object.values(grouped).reverse().slice(-15));
@@ -241,7 +245,11 @@ export default function Competitors() {
                     const grouped = response.data.reduce((result, price) => {
                         const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
                         if (!result[day]) result[day] = { day };
-                        result[day][price.competitorName] = price.competitorPrice;
+                        let key = price.competitorName;
+                        if (price.productName) {
+                            key = `${price.competitorName} - ${price.productName.substring(0, 15)}...`;
+                        }
+                        result[day][key] = price.competitorPrice;
                         return result;
                     }, {});
                     setHistory(Object.values(grouped).reverse().slice(-15));
@@ -295,7 +303,8 @@ export default function Competitors() {
         );
     }
 
-    const historyCompetitors = Object.keys(competitorColors).filter((competitor) => history.some((point) => point[competitor]));
+    // Get all unique keys from history data to plot lines
+    const historyCompetitors = Array.from(new Set(history.flatMap(point => Object.keys(point).filter(k => k !== 'day'))));
 
     return (
         <div className="space-y-7 pb-8">
@@ -379,7 +388,15 @@ export default function Competitors() {
                                     <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} width={52} />
                                     <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid #1e293b', borderRadius: '8px', color: '#f1f5f9' }} />
                                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
-                                    {historyCompetitors.map((competitor) => <Line key={competitor} type="monotone" dataKey={competitor} stroke={competitorColors[competitor]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />)}
+                                    {historyCompetitors.map((competitor, idx) => {
+                                        const colors = [
+                                            '#FF9900', '#2874F0', '#10B981', '#FF3E6C', 
+                                            '#8B5CF6', '#F59E0B', '#EC4899', '#3B82F6', 
+                                            '#14B8A6', '#84CC16', '#F43F5E', '#A855F7'
+                                        ];
+                                        const color = colors[idx % colors.length];
+                                        return <Line key={competitor} type="monotone" dataKey={competitor} stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />
+                                    })}
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
