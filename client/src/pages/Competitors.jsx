@@ -225,14 +225,20 @@ export default function Competitors() {
             
             if (selectedProduct === productId) {
                 const response = await getCompetitorPrices(productId);
-                const grouped = response.data.reduce((result, price) => {
+                // Sort by price so Offer 1 is always the cheapest
+                const sortedPrices = [...response.data].sort((a, b) => a.competitorPrice - b.competitorPrice);
+                const grouped = sortedPrices.reduce((result, price) => {
                     const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                    if (!result[day]) result[day] = { day };
-                    let key = price.competitorName;
-                    if (price.productName) {
-                        key = `${price.competitorName} - ${price.productName.substring(0, 15)}...`;
+                    if (!result[day]) result[day] = { day, _counts: {} };
+                    
+                    const comp = price.competitorName;
+                    result[day]._counts[comp] = (result[day]._counts[comp] || 0) + 1;
+                    const idx = result[day]._counts[comp];
+                    
+                    // Take top 3 cheapest offers per competitor
+                    if (idx <= 3) {
+                        result[day][`${comp} - Offer ${idx}`] = price.competitorPrice;
                     }
-                    result[day][key] = price.competitorPrice;
                     return result;
                 }, {});
                 setHistory(Object.values(grouped).reverse().slice(-15));
@@ -242,14 +248,18 @@ export default function Competitors() {
             if (selectedProduct === productId) {
                 try {
                     const response = await getCompetitorPrices(productId);
-                    const grouped = response.data.reduce((result, price) => {
+                    const sortedPrices = [...response.data].sort((a, b) => a.competitorPrice - b.competitorPrice);
+                    const grouped = sortedPrices.reduce((result, price) => {
                         const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-                        if (!result[day]) result[day] = { day };
-                        let key = price.competitorName;
-                        if (price.productName) {
-                            key = `${price.competitorName} - ${price.productName.substring(0, 15)}...`;
+                        if (!result[day]) result[day] = { day, _counts: {} };
+                        
+                        const comp = price.competitorName;
+                        result[day]._counts[comp] = (result[day]._counts[comp] || 0) + 1;
+                        const idx = result[day]._counts[comp];
+                        
+                        if (idx <= 3) {
+                            result[day][`${comp} - Offer ${idx}`] = price.competitorPrice;
                         }
-                        result[day][key] = price.competitorPrice;
                         return result;
                     }, {});
                     setHistory(Object.values(grouped).reverse().slice(-15));
@@ -304,7 +314,7 @@ export default function Competitors() {
     }
 
     // Get all unique keys from history data to plot lines
-    const historyCompetitors = Array.from(new Set(history.flatMap(point => Object.keys(point).filter(k => k !== 'day'))));
+    const historyCompetitors = Array.from(new Set(history.flatMap(point => Object.keys(point).filter(k => k !== 'day' && k !== '_counts'))));
 
     return (
         <div className="space-y-7 pb-8">
