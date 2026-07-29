@@ -4,19 +4,19 @@ import { useCurrency } from '../context/CurrencyContext';
 import { exportReportToPdf } from '../utils/exportPdf';
 import toast from 'react-hot-toast';
 import {
-  HiOutlineBeaker,
-  HiOutlinePlus,
-  HiOutlineCheckCircle,
-  HiOutlineXCircle,
-  HiOutlinePlay,
-  HiOutlineStop,
-  HiOutlineTrendingUp,
-  HiOutlineSparkles,
-  HiOutlineDocumentDownload as HiOutlineDocumentArrowDown,
-  HiOutlineEye,
-  HiOutlineShoppingBag,
-  HiOutlineTrophy,
-  HiOutlineRefresh
+  HiBeaker,
+  HiPlus,
+  HiCheckCircle,
+  HiXCircle,
+  HiPlay,
+  HiStop,
+  HiTrendingUp,
+  HiSparkles,
+  HiDocumentDownload,
+  HiEye,
+  HiShoppingBag,
+  HiBadgeCheck,
+  HiRefresh
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -147,7 +147,7 @@ export default function ABTestDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-header text-3xl flex items-center gap-3">
-            <HiOutlineBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+            <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
           </h1>
           <p className="text-text-muted mt-1 text-sm">
             Test AI-recommended prices against baseline control prices with real-time statistical significance
@@ -159,13 +159,13 @@ export default function ABTestDashboard() {
             onClick={handleExportPDF}
             className="btn-secondary flex items-center gap-2 text-xs"
           >
-            <HiOutlineDocumentArrowDown className="w-4 h-4 text-accent" /> Export PDF Report
+            <HiDocumentDownload className="w-4 h-4 text-accent" /> Export PDF Report
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
             className="btn-primary flex items-center gap-2 text-xs"
           >
-            <HiOutlinePlus className="w-4 h-4" /> New Price Experiment
+            <HiPlus className="w-4 h-4" /> New Price Experiment
           </button>
         </div>
       </div>
@@ -220,12 +220,12 @@ export default function ABTestDashboard() {
           {/* Active Experiments List */}
           <div>
             <h2 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
-              <HiOutlinePlay className="w-5 h-5 text-emerald-400" /> Active Experiments ({activeTests.length})
+              <HiPlay className="w-5 h-5 text-emerald-400" /> Active Experiments ({activeTests.length})
             </h2>
 
             {activeTests.length === 0 ? (
               <div className="glass-card p-8 text-center text-text-muted">
-                <HiOutlineBeaker className="w-10 h-10 mx-auto mb-2 opacity-40 text-primary" />
+                <HiBeaker className="w-10 h-10 mx-auto mb-2 opacity-40 text-primary" />
                 <p className="text-sm font-medium">No active price experiments right now.</p>
                 <p className="text-xs text-text-muted mt-1">Click "New Price Experiment" above to start testing an AI recommendation against your current price.</p>
               </div>
@@ -285,7 +285,7 @@ export default function ABTestDashboard() {
                           <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-[11px] font-bold text-primary-light uppercase flex items-center gap-1">
-                                <HiOutlineSparkles className="w-3 h-3" /> Variant B (AI)
+                                <HiSparkles className="w-3 h-3" /> Variant B (AI)
                               </span>
                               <span className="font-bold text-primary">{formatCurrency(test.variantB?.price)}</span>
                             </div>
@@ -327,7 +327,7 @@ export default function ABTestDashboard() {
                         onClick={() => handleEndTest(test._id)}
                         className="w-full py-2.5 rounded-xl bg-surface border border-border hover:bg-danger/10 hover:border-danger/30 text-text hover:text-danger text-xs font-semibold flex items-center justify-center gap-2 transition"
                       >
-                        <HiOutlineStop className="w-4 h-4 text-danger" /> Complete Experiment &amp; Declare Winner
+                        <HiStop className="w-4 h-4 text-danger" /> Complete Experiment &amp; Declare Winner
                       </button>
                     </div>
                   );
@@ -341,7 +341,7 @@ export default function ABTestDashboard() {
             <div className="glass-card overflow-hidden">
               <div className="p-5 border-b border-border">
                 <h3 className="font-bold text-text text-base flex items-center gap-2">
-                  <HiOutlineTrophy className="w-5 h-5 text-amber-400" /> Completed Experiments History
+                  <HiBadgeCheck className="w-5 h-5 text-amber-400" /> Completed Experiments History
                 </h3>
               </div>
               <div className="overflow-x-auto">
@@ -398,7 +398,7 @@ export default function ABTestDashboard() {
           <div className="bg-surface-card border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-text flex items-center gap-2">
-                <HiOutlineBeaker className="w-5 h-5 text-primary" /> Start A/B Price Experiment
+                <HiBeaker className="w-5 h-5 text-primary" /> Start A/B Price Experiment
               </h3>
               <button onClick={() => setShowCreateModal(false)} className="text-text-muted hover:text-text">✕</button>
             </div>
