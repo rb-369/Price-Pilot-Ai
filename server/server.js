@@ -65,6 +65,8 @@ const corsOptions = {
     origin(origin, callback) {
         // Same-origin / curl / no Origin header — allow.
         if (!origin) return callback(null, true);
+        // Always allow local development origins (localhost / 127.0.0.1)
+        if (origin.includes('localhost') || origin.includes('127.0.0.1')) return callback(null, true);
         if (allowedOrigins && allowedOrigins.includes(origin)) return callback(null, true);
         if (allowedRegex && allowedRegex.test(origin)) return callback(null, true);
         if (!IS_PROD) return callback(null, true); // dev: permissive
