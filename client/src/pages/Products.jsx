@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil, HiOutlineChartBar } from 'react-icons/hi';
 import { SkeletonTable } from '../components/Skeleton';
@@ -28,6 +29,7 @@ export default function Products() {
     const [form, setForm] = useState(DEFAULT_FORM_STATE);
     const [customCategory, setCustomCategory] = useState('');
     const [editId, setEditId] = useState(null);
+    const { formatCurrency, config } = useCurrency();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [historyProduct, setHistoryProduct] = useState(null);
@@ -234,8 +236,8 @@ export default function Products() {
                         <div className="space-y-4">
                             <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Pricing & Stock</h4>
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Base Cost (₹)</label><input className="input-field" type="number" placeholder="Cost" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Current Price (₹)</label><input className="input-field" type="number" placeholder="Price" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Base Cost ({config.symbol})</label><input className="input-field" type="number" placeholder="Cost" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required /></div>
+                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Current Price ({config.symbol})</label><input className="input-field" type="number" placeholder="Price" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Min Margin (%)</label><input className="input-field" type="number" step="0.1" placeholder="10" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Stock Level</label><input className="input-field" type="number" placeholder="Stock" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required /></div>
                                 <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Reorder Threshold</label><input className="input-field" type="number" placeholder="Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} /></div>
@@ -293,13 +295,13 @@ export default function Products() {
                                         <span className={`badge ${status.cls}`}>{status.text}</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2 text-sm bg-surface-lighter/30 p-3 rounded-lg">
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Base Cost</span>
-                                            <span className="font-medium text-text">₹{p.baseCost}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Base Cost</span>
+                                            <span className="font-medium text-text">{formatCurrency(p.baseCost)}</span>
                                         </div>
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Current Price</span>
-                                            <span className="font-medium text-text">₹{p.currentPrice}</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Current Price</span>
+                                            <span className="font-medium text-text">{formatCurrency(p.currentPrice)}</span>
                                         </div>
                                         <div>
                                             <span className="text-text-muted text-xs block">Margin</span>
@@ -355,8 +357,8 @@ export default function Products() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-text-muted font-mono text-xs">{p.sku}</td>
-                                            <td className="px-6 py-4 text-sm text-text-muted text-right">₹{p.baseCost}</td>
-                                            <td className="px-6 py-4 text-sm font-semibold text-text text-right">₹{p.currentPrice}</td>
+                                            <td className="px-6 py-4 text-sm text-text-muted text-right">{formatCurrency(p.baseCost)}</td>
+                                            <td className="px-6 py-4 text-sm font-semibold text-text text-right">{formatCurrency(p.currentPrice)}</td>
                                             <td className="px-6 py-4 text-sm text-right">
                                                 <span className={`font-semibold ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
                                             </td>

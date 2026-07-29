@@ -16,7 +16,8 @@ import {
   HiEye,
   HiShoppingBag,
   HiBadgeCheck,
-  HiRefresh
+  HiRefresh,
+  HiOutlineSearch
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -30,6 +31,7 @@ export default function ABTestDashboard() {
   const [selectedProductId, setSelectedProductId] = useState('');
   const [variantBPrice, setVariantBPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { formatCurrency } = useCurrency();
 
   useEffect(() => {
@@ -130,6 +132,11 @@ export default function ABTestDashboard() {
     });
     toast.success('PDF report exported!');
   };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const activeTests = tests.filter(t => t.status === 'active');
   const completedTests = tests.filter(t => t.status === 'completed');
@@ -395,7 +402,7 @@ export default function ABTestDashboard() {
       {/* Create New Test Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-          <div className="bg-surface-card border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
+          <div className="bg-surface-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-text flex items-center gap-2">
                 <HiBeaker className="w-5 h-5 text-primary" /> Start A/B Price Experiment
@@ -405,28 +412,56 @@ export default function ABTestDashboard() {
 
             <form onSubmit={handleCreateTest} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-text-muted uppercase block mb-1.5">Select Product</label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => {
-                    setSelectedProductId(e.target.value);
-                    const prod = products.find(p => p._id === e.target.value);
-                    if (prod) setVariantBPrice(Math.round(prod.currentPrice * 1.05));
-                  }}
-                  required
-                  className="w-full bg-surface border border-border text-text rounded-xl p-3 text-sm focus:outline-none focus:border-primary"
-                >
-                  <option value="">-- Choose Product --</option>
-                  {products.map(p => (
-                    <option key={p._id} value={p._id}>
-                      {p.name} (Current: ₹{p.currentPrice})
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-semibold text-text-muted uppercase">Select Product</label>
+                  <div className="relative w-64">
+                    <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Search products..."
+                      className="w-full bg-surface border border-border text-xs rounded-lg py-2 pr-3 text-text focus:outline-none focus:border-primary"
+                      style={{ paddingLeft: '2.25rem' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-1 mb-4">
+                  {filteredProducts.length > 0 ? filteredProducts.map(p => (
+                    <button
+                      key={p._id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProductId(p._id);
+                        setVariantBPrice(Math.round(p.currentPrice * 1.05));
+                      }}
+                      className={`p-3 text-left border rounded-xl transition-all ${
+                        selectedProductId === p._id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-header'
+                      }`}
+                    >
+                      <div className="text-[10px] font-bold text-text-muted uppercase truncate mb-1">
+                        {p.category || 'General'}
+                      </div>
+                      <div className="text-xs font-semibold text-text truncate mb-1" title={p.name}>
+                        {p.name}
+                      </div>
+                      <div className="text-xs font-bold text-primary mt-2">
+                        {formatCurrency(p.currentPrice)}
+                      </div>
+                    </button>
+                  )) : (
+                    <div className="col-span-full text-center py-6 text-text-muted text-xs">
+                      No products found.
+                    </div>
+                  )}
+                </div>
               </div>
 
               {selectedProductId && (
-                <div>
+                <div className="bg-surface p-4 rounded-xl border border-border mt-2">
                   <label className="text-xs font-semibold text-text-muted uppercase block mb-1.5">Variant B Price (AI / Test Target)</label>
                   <input
                     type="number"
@@ -435,10 +470,10 @@ export default function ABTestDashboard() {
                     required
                     min="1"
                     placeholder="Enter test price"
-                    className="w-full bg-surface border border-border text-text rounded-xl p-3 text-sm focus:outline-none focus:border-primary font-semibold"
+                    className="w-full bg-surface-header border border-border text-text rounded-lg p-3 text-sm focus:outline-none focus:border-primary font-semibold"
                   />
-                  <span className="text-[11px] text-text-muted mt-1 block">
-                    Variant A will be current price: ₹{products.find(p => p._id === selectedProductId)?.currentPrice}
+                  <span className="text-[11px] text-text-muted mt-2 block">
+                    Variant A will remain at current price: <strong className="text-text">{formatCurrency(products.find(p => p._id === selectedProductId)?.currentPrice)}</strong>
                   </span>
                 </div>
               )}
@@ -447,14 +482,14 @@ export default function ABTestDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-border text-text text-sm font-semibold hover:bg-surface-header"
+                  className="flex-1 py-2.5 rounded-xl border border-border text-text text-sm font-semibold hover:bg-surface-header transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50"
+                  disabled={submitting || !selectedProductId}
+                  className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition"
                 >
                   {submitting ? 'Starting...' : 'Launch Experiment'}
                 </button>

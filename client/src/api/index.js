@@ -64,7 +64,7 @@ export const bulkImportProducts = (products) => api.post('/products/bulk-import'
 // A/B Testing
 export const getABTests = () => api.get('/ab-tests');
 export const createABTest = (data) => api.post('/ab-tests', data);
-export const recordABTestEvent = (id, data) => api.post(`/ab-tests/${id}/event`, data);
+export const recordABTestEvent = (id, data) => api.post(`/ab-tests/${id}/record`, data);
 export const completeABTest = (id) => api.put(`/ab-tests/${id}/complete`);
 
 // Competitor Prices

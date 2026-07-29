@@ -18,6 +18,7 @@ import ErrorState from '../components/ErrorState';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import { exportToCSV } from '../utils/export';
 import { exportReportToPdf } from '../utils/exportPdf';
+import { useCurrency } from '../context/CurrencyContext';
 
 const competitorColors = {
     Amazon: '#FF9900',
@@ -26,8 +27,6 @@ const competitorColors = {
     Snapdeal: '#E40046',
     Meesho: '#570A57',
 };
-
-const formatPrice = (price) => `Rs. ${Number(price || 0).toLocaleString('en-IN')}`;
 
 function SearchableProductSelect({ products, selectedProduct, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -126,6 +125,7 @@ export default function Competitors() {
     const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(false);
     const [fetchingLiveProduct, setFetchingLiveProduct] = useState(null);
+    const { formatCurrency } = useCurrency();
 
     const fetchData = () => {
         setLoading(true);
@@ -305,9 +305,9 @@ export default function Competitors() {
         const exportData = Object.values(productPrices).flatMap((data) => data.competitors.map((competitor) => [
             data.product.name,
             data.product.sku,
-            `₹${data.product.currentPrice}`,
+            formatCurrency(data.product.currentPrice),
             competitor.name,
-            `₹${competitor.price}`,
+            formatCurrency(competitor.price),
             competitor.inStock ? 'In Stock' : 'Out of Stock',
             `${(((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1)}%`
         ]));
@@ -481,7 +481,7 @@ export default function Competitors() {
                                 <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                                     <div className="flex min-w-0 items-center gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineCube className="h-4 w-4" /></div>
-                                        <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-text">{data.product.name}</h3><p className="mt-0.5 text-xs text-text-muted">Your price: <span className="font-medium text-text">{formatPrice(data.product.currentPrice)}</span>{data.product.sku ? `  |  ${data.product.sku}` : ''}</p></div>
+                                        <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-text">{data.product.name}</h3><p className="mt-0.5 text-xs text-text-muted">Your price: <span className="font-medium text-text">{formatCurrency(data.product.currentPrice)}</span>{data.product.sku ? `  |  ${data.product.sku}` : ''}</p></div>
                                     </div>
                                     <div className="flex gap-2 self-end sm:self-auto">
                                         <button type="button" onClick={() => handleFetchLive(productId)} disabled={fetchingLiveProduct === productId} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary-light disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Fetch Live Prices for ${data.product.name}`} title="Fetch Live Prices">
@@ -502,7 +502,7 @@ export default function Competitors() {
                                             return (
                                                 <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
                                                     <div className="flex flex-col justify-center">
-                                                        <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name || 'Amazon'}</span><span className="text-xs text-text-muted md:hidden">{formatPrice(competitor.price)}</span></div>
+                                                        <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name || 'Amazon'}</span><span className="text-xs text-text-muted md:hidden">{formatCurrency(competitor.price)}</span></div>
                                                         {competitor.productName ? (
                                                             <div className="mt-1">
                                                                 <a
@@ -517,7 +517,7 @@ export default function Competitors() {
                                                             </div>
                                                         ) : null}
                                                     </div>
-                                                    <span className="hidden text-right text-sm font-semibold text-text md:block">{formatPrice(competitor.price)}</span>
+                                                    <span className="hidden text-right text-sm font-semibold text-text md:block">{formatCurrency(competitor.price)}</span>
                                                     <div className="md:text-center"><span className={`badge ${competitor.inStock ? 'badge-success' : 'badge-danger'} text-[10px]`}>{competitor.inStock ? 'In stock' : 'Out of stock'}</span></div>
                                                     <div className={`flex items-center gap-1 text-sm font-semibold md:justify-end ${competitorIsHigher ? 'text-success' : 'text-danger'}`}>
                                                         {competitorIsHigher ? <HiOutlineTrendingUp className="h-4 w-4" /> : <HiOutlineTrendingDown className="h-4 w-4" />}

@@ -27,6 +27,7 @@ const ExplainabilityPanel = () => {
         { name: 'High Base Cost', impact: -15, type: 'negative' }
     ]);
 
+    const { formatCurrency } = useCurrency();
     const [whatIfScenario, setWhatIfScenario] = useState('demand_surge');
     const [simulatedPrice, setSimulatedPrice] = useState(120);
 
@@ -97,7 +98,7 @@ const ExplainabilityPanel = () => {
                     <div className="mt-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-between">
                         <div>
                             <p className="text-xs text-indigo-300 font-bold uppercase tracking-wider mb-1">Simulated Price</p>
-                            <p className="text-3xl font-black text-indigo-400">₹{simulatedPrice}</p>
+                            <p className="text-3xl font-black text-indigo-400">{formatCurrency(simulatedPrice)}</p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center">
                             <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>

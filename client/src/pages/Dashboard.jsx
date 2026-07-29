@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getDashboardStats, getRecommendations, getAlerts, getChartData } from '../api';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { HiOutlineCube, HiOutlineCurrencyRupee, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
+import { HiOutlineCube, HiOutlineCurrencyDollar, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
+import { useCurrency } from '../context/CurrencyContext';
 import ExplainabilityPanel from '../components/ExplainabilityPanel';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -58,8 +59,10 @@ export default function Dashboard() {
         );
     }
 
+    const { formatCurrency } = useCurrency();
+
     const statCards = [
-        { label: 'Inventory Value', value: `₹${(stats?.inventoryValue || stats?.totalRevenue || 0).toLocaleString()}`, icon: HiOutlineCurrencyRupee, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: null },
+        { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: null },
         { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, gradient: 'from-primary to-primary-dark', borderColor: 'border-l-primary', change: null },
         { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', borderColor: 'border-l-accent', change: null },
         { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, gradient: 'from-warning to-orange-600', borderColor: 'border-l-warning', change: null },
@@ -209,8 +212,8 @@ export default function Dashboard() {
                                     })()}
                                 </p>
                                 <div className="flex items-center gap-3 mt-2 text-xs">
-                                    <span className="text-text-muted">Current: ₹{rec.currentPrice}</span>
-                                    <span className="text-primary font-semibold">→ ₹{rec.recommendedPrice}</span>
+                                    <span className="text-text-muted">Current: {formatCurrency(rec.currentPrice)}</span>
+                                    <span className="text-primary font-semibold">→ {formatCurrency(rec.recommendedPrice)}</span>
                                     <span className={rec.expectedRevenueImpact > 0 ? 'text-success' : 'text-danger'}>
                                         {rec.expectedRevenueImpact > 0 ? '+' : ''}{rec.expectedRevenueImpact}% revenue
                                     </span>

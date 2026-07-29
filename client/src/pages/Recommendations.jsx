@@ -8,6 +8,7 @@ import {
   revertRecommendation,
   getJobStatus
 } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 import {
   HiOutlineLightBulb,
@@ -39,6 +40,7 @@ export default function Recommendations() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [historyProduct, setHistoryProduct] = useState(null);
+  const { formatCurrency, config } = useCurrency();
 
   const fetchData = () => {
     setLoading(true);
@@ -150,7 +152,7 @@ export default function Recommendations() {
       doc.setFontSize(12);
       doc.text(`${i + 1}. ${name}`, 14, y);
       doc.setFontSize(9);
-      doc.text(`Current: ₹${rec.currentPrice} → Recommended: ₹${rec.recommendedPrice}`, 20, y + 7);
+      doc.text(`Current: ${formatCurrency(rec.currentPrice)} → Recommended: ${formatCurrency(rec.recommendedPrice)}`, 20, y + 7);
       doc.text(`Revenue Impact: ${rec.expectedRevenueImpact}% | Confidence: ${(rec.confidenceScore * 100).toFixed(0)}%`, 20, y + 13);
       doc.text(`Reason: ${rec.reason?.substring(0, 100)}...`, 20, y + 19);
       doc.text(`Status: ${rec.status}`, 20, y + 25);
@@ -373,10 +375,16 @@ export default function Recommendations() {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted truncate">
                           {p.category || 'General'}
                         </span>
-                        <span className="text-[11px] font-bold text-text">
-                          ₹{p.currentPrice}
-                        </span>
                       </div>
+                      <div className="flex justify-between items-center bg-surface-header/50 p-2 rounded-lg border border-border mt-3">
+                          <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                            <HiOutlineCube className="w-3.5 h-3.5" />
+                            Current Price
+                          </span>
+                          <span className="text-sm font-black text-text">
+                            {formatCurrency(p.currentPrice)}
+                          </span>
+                        </div>
                       <p className="text-xs font-semibold text-text truncate group-hover:text-primary-light transition-colors" title={p.name}>
                         {p.name}
                       </p>
@@ -464,23 +472,23 @@ export default function Recommendations() {
 
                   {/* 4 Metrics Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                    <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
-                      <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mb-0.5">
-                        Current Price
-                      </p>
-                      <p className="text-lg font-extrabold text-text">₹{currentPrice}</p>
+                    <div className="bg-surface border border-border rounded-xl p-3">
+                      <p className="text-[10px] font-extrabold text-text-muted uppercase tracking-wider mb-1">Current Price</p>
+                      <p className="text-lg font-extrabold text-text">{formatCurrency(currentPrice)}</p>
                     </div>
 
-                    <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
-                      <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mb-0.5">
+                    <div className={`border rounded-xl p-3 ${isIncrease ? 'bg-success/5 border-success/20' : 'bg-danger/5 border-danger/20'}`}>
+                      <p className={`text-[10px] font-extrabold uppercase tracking-wider mb-1 ${isIncrease ? 'text-success' : 'text-danger'}`}>
                         Recommended
                       </p>
-                      <p className={`text-lg font-extrabold ${isIncrease ? 'text-primary-light' : 'text-accent'}`}>
-                        ₹{recPrice}
-                        <span className="text-[10px] ml-1 font-semibold opacity-80">
-                          ({isIncrease ? `+₹${priceDiff}` : `-₹${priceDiff}`})
+                      <div className="flex items-baseline gap-2">
+                        <p className={`text-lg font-extrabold ${isIncrease ? 'text-success' : 'text-danger'}`}>
+                          {formatCurrency(recPrice)}
+                        </p>
+                        <span className={`text-[11px] font-bold ${isIncrease ? 'text-success' : 'text-danger'}`}>
+                          ({isIncrease ? `+${formatCurrency(priceDiff)}` : `-${formatCurrency(priceDiff)}`})
                         </span>
-                      </p>
+                      </div>
                     </div>
 
                     <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
@@ -583,8 +591,10 @@ export default function Recommendations() {
                                   {shortTitle}
                                 </a>
                               </div>
+                              <div className="mt-2 text-right">
+                                <p className="text-base text-text font-extrabold">{formatCurrency(comp.price)}</p>
+                              </div>
                               <div className="flex justify-between items-end pt-2 border-t border-border/40">
-                                <p className="text-base text-text font-extrabold">₹{comp.price}</p>
                                 <span
                                   className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                                     comp.inStock ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'

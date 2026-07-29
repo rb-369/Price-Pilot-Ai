@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { FiX, FiTrendingUp, FiTrendingDown, FiDollarSign, FiShoppingBag, FiCalendar, FiRefreshCw } from 'react-icons/fi';
 import { getPriceHistory } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 
 export default function PriceHistoryModal({ product, onClose }) {
@@ -18,6 +19,7 @@ export default function PriceHistoryModal({ product, onClose }) {
   const [days, setDays] = useState(30);
   const [historyData, setHistoryData] = useState([]);
   const [stats, setStats] = useState(null);
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
     if (!product?._id) return;
@@ -124,7 +126,7 @@ export default function PriceHistoryModal({ product, onClose }) {
               <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
                 <FiDollarSign className="w-3.5 h-3.5 text-primary" /> Current Price
               </span>
-              <p className="text-xl font-bold text-text-primary mt-1">₹{currentPrice.toLocaleString('en-IN')}</p>
+              <p className="text-xl font-bold text-text-primary mt-1">{formatCurrency(currentPrice)}</p>
               <span className="text-[11px] text-emerald-500 font-semibold">{marginPct}% margin</span>
             </div>
 
@@ -132,7 +134,7 @@ export default function PriceHistoryModal({ product, onClose }) {
               <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
                 <FiTrendingDown className="w-3.5 h-3.5 text-emerald-400" /> Lowest Price
               </span>
-              <p className="text-xl font-bold text-emerald-400 mt-1">₹{(stats?.lowestPrice || currentPrice).toLocaleString('en-IN')}</p>
+              <p className="text-xl font-bold text-emerald-400 mt-1">{formatCurrency(stats?.lowestPrice || currentPrice)}</p>
               <span className="text-[11px] text-text-secondary">Historical Floor</span>
             </div>
 
@@ -140,7 +142,7 @@ export default function PriceHistoryModal({ product, onClose }) {
               <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
                 <FiTrendingUp className="w-3.5 h-3.5 text-amber-400" /> Highest Price
               </span>
-              <p className="text-xl font-bold text-amber-400 mt-1">₹{(stats?.highestPrice || currentPrice).toLocaleString('en-IN')}</p>
+              <p className="text-xl font-bold text-amber-400 mt-1">{formatCurrency(stats?.highestPrice || currentPrice)}</p>
               <span className="text-[11px] text-text-secondary">Historical Ceiling</span>
             </div>
 
@@ -148,7 +150,7 @@ export default function PriceHistoryModal({ product, onClose }) {
               <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
                 <FiShoppingBag className="w-3.5 h-3.5 text-blue-400" /> Competitor Avg
               </span>
-              <p className="text-xl font-bold text-blue-400 mt-1">₹{(stats?.avgCompetitorPrice || currentPrice).toLocaleString('en-IN')}</p>
+              <p className="text-xl font-bold text-blue-400 mt-1">{formatCurrency(stats?.avgCompetitorPrice || currentPrice)}</p>
               <span className="text-[11px] text-text-secondary">Market Benchmark</span>
             </div>
           </div>
@@ -214,7 +216,7 @@ export default function PriceHistoryModal({ product, onClose }) {
                         fontSize: '12px',
                         boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)'
                       }}
-                      formatter={(value, name) => [`₹${Number(value).toLocaleString('en-IN')}`, name]}
+                      formatter={(value, name) => [formatCurrency(value), name]}
                       labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || label}
                     />
                     <Area type="monotone" dataKey="Price" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" name="Your Price" />

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { bulkImportProducts } from '../api';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle, FiDownload } from 'react-icons/fi';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function BulkImportModal({ onClose, onSuccess }) {
+  const { formatCurrency, config } = useCurrency();
   const [fileContent, setFileContent] = useState('');
   const [parsedData, setParsedData] = useState([]);
   const [importing, setImporting] = useState(false);
@@ -191,8 +193,8 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
                           <th className="p-2">Name</th>
                           <th className="p-2">SKU</th>
                           <th className="p-2">Category</th>
-                          <th className="p-2 text-right">Base Cost</th>
-                          <th className="p-2 text-right">Price</th>
+                          <th className="p-2 text-right font-medium">Cost ({config.symbol})</th>
+                          <th className="p-2 text-right font-medium">Price ({config.symbol})</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
@@ -201,8 +203,8 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
                             <td className="p-2 font-medium text-text-primary">{row.name}</td>
                             <td className="p-2 text-text-secondary font-mono">{row.sku}</td>
                             <td className="p-2 text-text-secondary">{row.category || 'General'}</td>
-                            <td className="p-2 text-right">₹{row.baseCost}</td>
-                            <td className="p-2 text-right font-bold text-primary">₹{row.currentPrice}</td>
+                            <td className="p-2 text-right">{formatCurrency(row.baseCost)}</td>
+                            <td className="p-2 text-right font-bold text-primary">{formatCurrency(row.currentPrice)}</td>
                           </tr>
                         ))}
                       </tbody>
