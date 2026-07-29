@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil, HiOutlineChartBar } from 'react-icons/hi';
 import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
+import PriceHistoryModal from '../components/PriceHistoryModal';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -28,6 +29,7 @@ export default function Products() {
     const [editId, setEditId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [historyProduct, setHistoryProduct] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
     const fetchProducts = () => {
@@ -307,6 +309,9 @@ export default function Products() {
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
+                                        <button onClick={() => setHistoryProduct(p)} className="flex-1 py-2 rounded-lg bg-[rgba(16,185,129,0.1)] text-success hover:bg-success hover:text-white transition-all text-sm font-medium flex items-center justify-center gap-1">
+                                            <HiOutlineChartBar className="w-4 h-4" /> Trend
+                                        </button>
                                         <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-lg bg-[rgba(99,102,241,0.1)] text-primary hover:bg-primary hover:text-white transition-all text-sm font-medium">Edit</button>
                                         <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-lg bg-[rgba(239,68,68,0.1)] text-danger hover:bg-danger hover:text-white transition-all text-sm font-medium">Delete</button>
                                     </div>
@@ -357,6 +362,9 @@ export default function Products() {
                                             <td className="px-6 py-4 text-center"><span className={`badge ${status.cls}`}>{status.text}</span></td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex items-center justify-center gap-2">
+                                                    <button onClick={() => setHistoryProduct(p)} className="p-2 rounded-lg text-text-muted hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Price History Trend">
+                                                        <HiOutlineChartBar className="w-4.5 h-4.5 text-emerald-400" />
+                                                    </button>
                                                     <button onClick={() => handleEditClick(p)} className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all" title="Edit">
                                                         <HiOutlinePencil className="w-4 h-4" />
                                                     </button>
@@ -372,6 +380,14 @@ export default function Products() {
                         </table>
                     </div>
                 </div>
+            )}
+
+            {/* Price History Trend Modal */}
+            {historyProduct && (
+                <PriceHistoryModal
+                    product={historyProduct}
+                    onClose={() => setHistoryProduct(null)}
+                />
             )}
         </div>
     );

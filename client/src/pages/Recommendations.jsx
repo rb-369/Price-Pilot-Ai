@@ -22,11 +22,13 @@ import {
   HiOutlineSearch,
   HiOutlineDocumentText,
   HiX as HiOutlineXMark,
-  HiOutlineExclamation as HiOutlineExclamationTriangle
+  HiOutlineExclamation as HiOutlineExclamationTriangle,
+  HiOutlineChartBar
 } from 'react-icons/hi';
 import jsPDF from 'jspdf';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
+import PriceHistoryModal from '../components/PriceHistoryModal';
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
@@ -36,6 +38,7 @@ export default function Recommendations() {
   const [generating, setGenerating] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [historyProduct, setHistoryProduct] = useState(null);
 
   const fetchData = () => {
     setLoading(true);
@@ -603,41 +606,48 @@ export default function Recommendations() {
                   )}
 
                   {/* Actions Bar */}
-                  {rec.status === 'pending' && (
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleAccept(rec._id, rec.expectedRevenueImpact)}
-                        className="btn-primary flex items-center gap-2 text-xs"
-                      >
-                        <HiOutlineCheck className="w-4 h-4" /> Accept &amp; Apply Price
-                      </button>
-                      <button
-                        onClick={async () => {
-                          try {
-                            await rejectRecommendation(rec._id);
-                            toast.success('Recommendation rejected');
-                            fetchData();
-                          } catch {
-                            toast.error('Failed to reject recommendation');
-                          }
-                        }}
-                        className="btn-secondary flex items-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer"
-                      >
-                        <HiOutlineXMark className="w-4 h-4" /> Reject
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border">
+                    {rec.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleAccept(rec._id, rec.expectedRevenueImpact)}
+                          className="btn-primary flex items-center gap-2 text-xs"
+                        >
+                          <HiOutlineCheck className="w-4 h-4" /> Accept &amp; Apply Price
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await rejectRecommendation(rec._id);
+                              toast.success('Recommendation rejected');
+                              fetchData();
+                            } catch {
+                              toast.error('Failed to reject recommendation');
+                            }
+                          }}
+                          className="btn-secondary flex items-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer"
+                        >
+                          <HiOutlineXMark className="w-4 h-4" /> Reject
+                        </button>
+                      </>
+                    )}
 
-                  {rec.status === 'accepted' && (
-                    <div className="flex items-center gap-3 pt-3 border-t border-border">
+                    {rec.status === 'accepted' && (
                       <button
                         onClick={() => handleRevert(rec._id)}
                         className="btn-secondary flex items-center gap-2 text-xs text-warning hover:bg-warning/10 hover:border-warning/30 cursor-pointer"
                       >
                         <HiOutlineRefresh className="w-4 h-4" /> Undo &amp; Revert Price
                       </button>
-                    </div>
-                  )}
+                    )}
+
+                    <button
+                      onClick={() => setHistoryProduct(rec.productId || { name: rec.productName, currentPrice: rec.currentPrice, baseCost: rec.baseCost || 0 })}
+                      className="btn-secondary flex items-center gap-2 text-xs text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10 cursor-pointer ml-auto"
+                    >
+                      <HiOutlineChartBar className="w-4 h-4 text-emerald-400" /> View Price Trend
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -653,6 +663,14 @@ export default function Recommendations() {
             </div>
           )}
         </>
+      )}
+
+      {/* Price History Modal */}
+      {historyProduct && (
+        <PriceHistoryModal
+          product={historyProduct}
+          onClose={() => setHistoryProduct(null)}
+        />
       )}
     </div>
   );
