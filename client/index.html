@@ -34,9 +34,17 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://price-pilot-ai.onrender.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+  
+  <script>
+    // Eagerly ping the Render backend to wake it from sleep on free tier
+    try {
+      fetch('https://price-pilot-ai.onrender.com/api/ready', { method: 'HEAD', mode: 'no-cors' }).catch(e => console.log('Wake ping skipped'));
+    } catch (e) {}
+  </script>
 </head>
 
 <body>
