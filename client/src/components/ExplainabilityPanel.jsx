@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { HiOutlineInformationCircle, HiOutlineAdjustments } from 'react-icons/hi';
+import { useCurrency } from '../context/CurrencyContext';
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
