@@ -7,7 +7,7 @@ import os
 import httpx
 import asyncio
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY", "")
@@ -109,12 +109,13 @@ async def _fetch_via_pytrends(keyword: str, region: str) -> Optional[int]:
 
 def _simulate_trend_score(product_name: str) -> int:
     """Deterministic simulated trend score based on product name hash."""
-    day_of_year = datetime.utcnow().timetuple().tm_yday
+    now = datetime.now(timezone.utc)
+    day_of_year = now.timetuple().tm_yday
     name_hash = sum(ord(c) for c in product_name)
     seed = (name_hash * 31 + day_of_year * 997) % 10000
     # Generate score in 30-90 range (realistic for most products)
     score = 30 + (seed % 61)
     # Weekend boost
-    if datetime.utcnow().weekday() >= 5:
+    if now.weekday() >= 5:
         score = min(100, score + 8)
     return score

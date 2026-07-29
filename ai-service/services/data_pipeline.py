@@ -5,7 +5,7 @@ Provides a single unified API for the Node.js backend to call.
 """
 import asyncio
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from services.google_trends import get_google_trends_score
 from services.weather import get_weather_factor
@@ -34,7 +34,7 @@ def detect_event_factor() -> Dict:
     Returns:
         {"factor": float, "event": str | None, "source": "calendar"}
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     month = now.month
     day = now.day
 
@@ -128,7 +128,7 @@ async def collect_real_demand_signal(
             "sentimentTrend": sentiment_result.get("trend", "neutral"),
             "trendsKeyword": trends_result.get("keyword", product_name),
             "city": city,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         },
     }
 

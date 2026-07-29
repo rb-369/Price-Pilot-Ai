@@ -171,8 +171,8 @@ Return ONLY a JSON object:
 
 def _heuristic_sentiment(product_name: str) -> float:
     """Deterministic heuristic sentiment score."""
-    from datetime import datetime
-    day_of_year = datetime.utcnow().timetuple().tm_yday
+    from datetime import datetime, timezone
+    day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
     name_hash = sum(ord(c) for c in product_name)
     seed = (name_hash * 41 + day_of_year * 13) % 1000
     # Generate value in -0.2 to 0.8 range (slightly positive bias)

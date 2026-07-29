@@ -6,7 +6,7 @@ Category-aware: e.g., umbrellas get positive factor in rain, ACs in heatwaves.
 import os
 import httpx
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
@@ -128,7 +128,7 @@ def _compute_factor(weather_data: dict, category: str) -> float:
 
 def _simulate_weather_factor(city: str, category: str) -> float:
     """Deterministic simulated weather factor."""
-    day_of_year = datetime.utcnow().timetuple().tm_yday
+    day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
     city_hash = sum(ord(c) for c in city)
     seed = (city_hash * 17 + day_of_year * 31) % 1000
     # Generate a value in -0.3 to 0.3 range

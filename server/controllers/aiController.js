@@ -197,7 +197,18 @@ exports.acceptRecommendation = async (req, res) => {
             const latestSignal = await DemandSignal.findOne({ productId: product._id }).sort({ date: -1 });
             const demandScore = latestSignal ? latestSignal.compositeDemandScore : 0.5;
             const searchTrend = latestSignal ? (latestSignal.searchTrendScore / 100) : 0.5;
-            
+
+            // Calculate actual competitor price spread
+            let compSpread = 0.1;
+            const recentCompPrices = await CompetitorPrice.find({ productId: product._id }).sort({ timestamp: -1 }).limit(10);
+            const validPrices = recentCompPrices.map(c => c.competitorPrice).filter(p => p && p > 0);
+            if (validPrices.length >= 2) {
+                const minP = Math.min(...validPrices);
+                const maxP = Math.max(...validPrices);
+                const avgP = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
+                compSpread = avgP > 0 ? (maxP - minP) / avgP : 0.1;
+            }
+
             await FeedbackLog.create({
                 recommendationId: rec._id,
                 productId: product._id,
@@ -207,7 +218,7 @@ exports.acceptRecommendation = async (req, res) => {
                 action: 'accepted',
                 features: {
                     demand_score: demandScore,
-                    competitor_spread: 0.1, // Approximated
+                    competitor_spread: compSpread,
                     stock_ratio: stockBefore / Math.max(product.reorderThreshold || 1, 1),
                     price_level: priceBeforeChange,
                     margin_pct: (priceBeforeChange - product.baseCost) / Math.max(priceBeforeChange, 1),
@@ -245,7 +256,18 @@ exports.rejectRecommendation = async (req, res) => {
             const latestSignal = await DemandSignal.findOne({ productId: product._id }).sort({ date: -1 });
             const demandScore = latestSignal ? latestSignal.compositeDemandScore : 0.5;
             const searchTrend = latestSignal ? (latestSignal.searchTrendScore / 100) : 0.5;
-            
+
+            // Calculate actual competitor price spread
+            let compSpread = 0.1;
+            const recentCompPrices = await CompetitorPrice.find({ productId: product._id }).sort({ timestamp: -1 }).limit(10);
+            const validPrices = recentCompPrices.map(c => c.competitorPrice).filter(p => p && p > 0);
+            if (validPrices.length >= 2) {
+                const minP = Math.min(...validPrices);
+                const maxP = Math.max(...validPrices);
+                const avgP = validPrices.reduce((sum, p) => sum + p, 0) / validPrices.length;
+                compSpread = avgP > 0 ? (maxP - minP) / avgP : 0.1;
+            }
+
             await FeedbackLog.create({
                 recommendationId: rec._id,
                 productId: product._id,
@@ -255,7 +277,7 @@ exports.rejectRecommendation = async (req, res) => {
                 action: 'rejected',
                 features: {
                     demand_score: demandScore,
-                    competitor_spread: 0.1, // Approximated
+                    competitor_spread: compSpread,
                     stock_ratio: product.stockLevel / Math.max(product.reorderThreshold || 1, 1),
                     price_level: product.currentPrice,
                     margin_pct: (product.currentPrice - product.baseCost) / Math.max(product.currentPrice, 1),

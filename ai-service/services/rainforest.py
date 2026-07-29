@@ -8,7 +8,7 @@ import re
 import httpx
 import asyncio
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 RAINFOREST_API_KEY = os.getenv("RAINFOREST_API_KEY", "")
 RAINFOREST_BASE_URL = "https://api.rainforestapi.com/request"
@@ -79,7 +79,7 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
             "inStock": in_stock,
             "rating": product.get("rating"),
             "ratingsTotal": product.get("ratings_total"),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "rainforest_api",
         }
 
@@ -139,7 +139,7 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
             "inStock": in_stock,
             "rating": product.get("rating"),
             "ratingsTotal": product.get("reviews"),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": "serpapi_amazon_product",
         }
     except Exception as e:
@@ -269,7 +269,7 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
                 "inStock": True,
                 "rating": item.get("rating"),
                 "ratingsTotal": item.get("ratings_total"),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "source": "rainforest_search",
             })
 
@@ -330,7 +330,7 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
                 "inStock": True,
                 "rating": item.get("rating"),
                 "ratingsTotal": item.get("reviews"),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "source": "serpapi_amazon_search",
             })
 

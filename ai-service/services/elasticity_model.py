@@ -15,7 +15,7 @@ import json
 import pickle
 import numpy as np
 from typing import Dict, List, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -164,8 +164,8 @@ class ElasticityModel:
                 pickle.dump({"model": model, "scaler": scaler}, f)
 
             metadata = {
-                "version": datetime.utcnow().strftime("%Y%m%d_%H%M%S"),
-                "trained_at": datetime.utcnow().isoformat(),
+                "version": datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S"),
+                "trained_at": datetime.now(timezone.utc).isoformat(),
                 "samples": len(training_data),
                 "r2_mean": round(r2_mean, 4),
                 "r2_std": round(r2_std, 4),

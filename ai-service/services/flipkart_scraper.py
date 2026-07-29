@@ -7,7 +7,7 @@ import httpx
 import asyncio
 import random
 from typing import List, Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # Flipkart search URL template
@@ -155,7 +155,7 @@ def _parse_search_results(html: str, max_results: int) -> List[Dict]:
                 "price": price,
                 "inStock": True,
                 "rating": rating,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "source": "flipkart_scrape",
             })
 
@@ -199,7 +199,7 @@ def _regex_parse_fallback(html: str, max_results: int) -> List[Dict]:
                     "price": price,
                     "inStock": True,
                     "rating": None,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                     "source": "flipkart_regex",
                 })
         except ValueError:

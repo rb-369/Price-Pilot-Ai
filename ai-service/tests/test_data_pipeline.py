@@ -6,10 +6,10 @@ def test_detect_event_factor():
     from unittest.mock import patch
     
     # Mock date to Diwali (Nov 10)
-    mock_now = datetime.datetime(2023, 11, 10)
+    mock_now = datetime.datetime(2023, 11, 10, tzinfo=datetime.timezone.utc)
     
     with patch('services.data_pipeline.datetime') as mock_datetime:
-        mock_datetime.utcnow.return_value = mock_now
+        mock_datetime.now.return_value = mock_now
         
         result = detect_event_factor()
         
@@ -22,10 +22,10 @@ def test_detect_no_event_factor():
     from unittest.mock import patch
     
     # Mock date to non-event day (May 15)
-    mock_now = datetime.datetime(2023, 5, 15)
+    mock_now = datetime.datetime(2023, 5, 15, tzinfo=datetime.timezone.utc)
     
     with patch('services.data_pipeline.datetime') as mock_datetime:
-        mock_datetime.utcnow.return_value = mock_now
+        mock_datetime.now.return_value = mock_now
         
         result = detect_event_factor()
         

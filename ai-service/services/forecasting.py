@@ -7,7 +7,7 @@ Uses Facebook Prophet for time-series forecasting with:
 """
 import numpy as np
 from typing import List, Dict, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def _build_prophet_dataframe(demand_history: List[Dict]):
@@ -25,9 +25,9 @@ def _build_prophet_dataframe(demand_history: List[Dict]):
             try:
                 dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).replace(tzinfo=None)
             except Exception:
-                dt = datetime.utcnow() - timedelta(days=len(demand_history) - i)
+                dt = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=len(demand_history) - i)
         else:
-            dt = datetime.utcnow() - timedelta(days=len(demand_history) - i)
+            dt = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=len(demand_history) - i)
 
         score = float(point.get("score", 0.5))
         score = max(0.01, min(1.0, score))
