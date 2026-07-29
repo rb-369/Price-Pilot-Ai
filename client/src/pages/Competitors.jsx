@@ -17,6 +17,7 @@ import { deleteProduct, getCompetitorPrices, getLatestCompetitorPrices, getProdu
 import ErrorState from '../components/ErrorState';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import { exportToCSV } from '../utils/export';
+import { exportReportToPdf } from '../utils/exportPdf';
 
 const competitorColors = {
     Amazon: '#FF9900',
@@ -300,6 +301,27 @@ export default function Competitors() {
         exportToCSV(exportData, 'competitor-prices');
     };
 
+    const handleExportPDF = () => {
+        const exportData = Object.values(productPrices).flatMap((data) => data.competitors.map((competitor) => [
+            data.product.name,
+            data.product.sku,
+            `₹${data.product.currentPrice}`,
+            competitor.name,
+            `₹${competitor.price}`,
+            competitor.inStock ? 'In Stock' : 'Out of Stock',
+            `${(((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1)}%`
+        ]));
+
+        exportReportToPdf({
+            title: 'Competitor Price Benchmark Report',
+            subtitle: `Comparative pricing analysis for ${products.length} products`,
+            columns: ['Product', 'SKU', 'Our Price', 'Competitor', 'Comp Price', 'Stock Status', 'Spread'],
+            data: exportData,
+            filename: 'PricePilot_Competitor_Report.pdf'
+        });
+        toast.success('PDF report exported!');
+    };
+
     if (error) return <ErrorState title="Failed to load competitor data" onRetry={fetchData} />;
 
     if (loading) {
@@ -325,7 +347,11 @@ export default function Competitors() {
                     <p className="mt-2 text-sm text-text-muted">Monitor price position and availability across your tracked catalog.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button type="button" onClick={handleExport} disabled={!summary.offers} className="btn-secondary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40">
+                    <button type="button" onClick={handleExportPDF} disabled={!summary.offers} className="btn-secondary flex items-center justify-center gap-2 text-xs">
+                        <HiDownload className="h-4 w-4 text-accent" />
+                        Export PDF
+                    </button>
+                    <button type="button" onClick={handleExport} disabled={!summary.offers} className="btn-secondary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40 text-xs">
                         <HiDownload className="h-4 w-4" />
                         Export CSV
                     </button>

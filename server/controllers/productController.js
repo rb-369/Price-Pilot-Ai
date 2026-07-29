@@ -184,7 +184,71 @@ exports.getPriceHistory = async (req, res) => {
     }
 };
 
-// ── Background helper: generate historical demand signals ─────────────────────
+exports.bulkImportProducts = async (req, res) => {
+    try {
+        const { products } = req.body;
+        if (!Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ message: 'Provide an array of product objects to import.' });
+        }
+
+        const createdProducts = [];
+        const errors = [];
+
+        for (let i = 0; i < products.length; i++) {
+            const item = products[i];
+            try {
+                if (!item.name || !item.sku || item.currentPrice === undefined || item.baseCost === undefined) {
+                    errors.push({ row: i + 1, sku: item.sku || 'N/A', error: 'Missing required fields (name, sku, currentPrice, baseCost)' });
+                    continue;
+                }
+
+                const existing = await Product.findOne({ sku: item.sku, userId: req.user._id });
+                if (existing) {
+                    errors.push({ row: i + 1, sku: item.sku, error: 'SKU already exists for your account' });
+                    continue;
+                }
+
+                const product = await Product.create({
+                    name: String(item.name).trim(),
+                    sku: String(item.sku).trim(),
+                    category: item.category || 'General',
+                    baseCost: Number(item.baseCost),
+                    currentPrice: Number(item.currentPrice),
+                    minMargin: Number(item.minMargin || 0.1),
+                    stockLevel: Number(item.stockLevel || 0),
+                    reorderThreshold: Number(item.reorderThreshold || 10),
+                    description: item.description || '',
+                    userId: req.user._id,
+                });
+
+                createdProducts.push(product);
+
+                // Fire-and-forget initial Price History & demand signals
+                PriceHistory.create({
+                    productId: product._id,
+                    price: product.currentPrice,
+                    baseCost: product.baseCost,
+                    changeReason: 'bulk_import',
+                    timestamp: new Date(),
+                }).catch(() => {});
+
+                _generateHistoricalDemandSignals(product).catch(() => {});
+            } catch (err) {
+                errors.push({ row: i + 1, sku: item.sku || 'N/A', error: err.message });
+            }
+        }
+
+        res.status(200).json({
+            message: `Successfully imported ${createdProducts.length} products.`,
+            importedCount: createdProducts.length,
+            errorCount: errors.length,
+            errors,
+            products: createdProducts,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 async function _generateHistoricalDemandSignals(product) {
     const demandOps = [];
 

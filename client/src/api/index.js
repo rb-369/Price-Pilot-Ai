@@ -59,6 +59,13 @@ export const createProduct = (data) => api.post('/products', data);
 export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const deleteProduct = (id) => api.delete(`/products/${id}`);
 export const getPriceHistory = (id, days = 30) => api.get(`/products/${id}/price-history?days=${days}`);
+export const bulkImportProducts = (products) => api.post('/products/bulk-import', { products });
+
+// A/B Testing
+export const getABTests = () => api.get('/ab-tests');
+export const createABTest = (data) => api.post('/ab-tests', data);
+export const recordABTestEvent = (id, data) => api.post(`/ab-tests/${id}/event`, data);
+export const completeABTest = (id) => api.put(`/ab-tests/${id}/complete`);
 
 // Competitor Prices
 export const getCompetitorPrices = (productId) => api.get(`/competitor-prices/${productId}`);

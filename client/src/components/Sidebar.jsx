@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useCurrency } from '../context/CurrencyContext';
 import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
-    HiOutlineLink
+    HiOutlineLink, HiOutlineBeaker
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import logoIcon from '../assets/FINAL.png';
@@ -17,6 +18,7 @@ const links = [
     { to: '/dashboard/demand', icon: HiOutlineTrendingUp, label: 'Demand Signals' },
     { to: '/dashboard/forecasts', icon: HiOutlineTrendingUp, label: 'Forecasts' },
     { to: '/dashboard/recommendations', icon: HiOutlineLightBulb, label: 'AI Recommendations' },
+    { to: '/dashboard/ab-tests', icon: HiOutlineBeaker, label: 'A/B Test Experiments' },
     { to: '/dashboard/chat', icon: HiOutlineChatAlt2, label: 'PricePilot AI' },
     { to: '/dashboard/integrations', icon: HiOutlineLink, label: 'Integrations' },
     { to: '/dashboard/alerts', icon: HiOutlineBell, label: 'Alerts' },
@@ -25,6 +27,7 @@ const links = [
 export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    const { currency, setCurrency, currencies } = useCurrency();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -117,6 +120,16 @@ export default function Sidebar({ isOpen, onClose }) {
                             <p className="text-sm text-text truncate font-medium">{user?.name || 'User'}</p>
                             <p className="text-[10px] text-text-muted truncate uppercase tracking-wider">{user?.role || 'user'}</p>
                         </div>
+                        <select
+                            value={currency}
+                            onChange={(e) => setCurrency(e.target.value)}
+                            className="bg-surface border border-border text-xs font-semibold text-text rounded-lg px-1.5 py-1 focus:outline-none focus:border-primary cursor-pointer"
+                            title="Select Currency"
+                        >
+                            {currencies.map(c => (
+                                <option key={c} value={c} className="bg-surface text-text">{c}</option>
+                            ))}
+                        </select>
                         <button onClick={toggleTheme} className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(99,102,241,0.1)] transition-colors" title="Toggle Theme">
                             {theme === 'dark' ? <HiOutlineSun className="w-4 h-4" /> : <HiOutlineMoon className="w-4 h-4" />}
                         </button>

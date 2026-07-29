@@ -5,6 +5,7 @@ import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePenc
 import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
+import BulkImportModal from '../components/BulkImportModal';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -30,6 +31,7 @@ export default function Products() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [historyProduct, setHistoryProduct] = useState(null);
+    const [showBulkModal, setShowBulkModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
     const fetchProducts = () => {
@@ -174,8 +176,8 @@ export default function Products() {
                     <p className="text-text-muted mt-1 text-sm">{products.length} products in inventory</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => window.location.href = '/dashboard/integrations'} className="btn-secondary flex items-center gap-2">
-                        <HiOutlineCube className="w-5 h-5" /> Import
+                    <button onClick={() => setShowBulkModal(true)} className="btn-secondary flex items-center gap-2">
+                        <HiOutlineCube className="w-5 h-5" /> Bulk CSV Import
                     </button>
                     <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
                         {showForm && !editId ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
@@ -387,6 +389,14 @@ export default function Products() {
                 <PriceHistoryModal
                     product={historyProduct}
                     onClose={() => setHistoryProduct(null)}
+                />
+            )}
+
+            {/* Bulk Product CSV Import Modal */}
+            {showBulkModal && (
+                <BulkImportModal
+                    onClose={() => setShowBulkModal(false)}
+                    onSuccess={fetchProducts}
                 />
             )}
         </div>
