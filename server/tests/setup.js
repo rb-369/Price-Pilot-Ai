@@ -7,16 +7,24 @@ process.env.NODE_ENV = 'test';
 let mongoServer;
 
 module.exports.connect = async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+        instance: {
+            launchTimeout: 60000,
+        },
+    });
     const uri = mongoServer.getUri();
 
     await mongoose.connect(uri);
 };
 
 module.exports.closeDatabase = async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
+    if (mongoose.connection.readyState !== 0) {
+        await mongoose.connection.dropDatabase();
+        await mongoose.connection.close();
+    }
+    if (mongoServer) {
+        await mongoServer.stop();
+    }
 };
 
 module.exports.clearDatabase = async () => {
