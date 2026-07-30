@@ -40,7 +40,7 @@ export default function Analytics() {
         try {
             setSimulating(true);
             const toastId = toast.loading('Simulating 30 days of synthetic sales data...');
-            const res = await api.post('/api/sales/simulate');
+            const res = await api.post('/sales/simulate');
             toast.success(res.data.message || 'Simulation complete', { id: toastId });
             fetchAnalytics(); // Refresh
         } catch (error) {

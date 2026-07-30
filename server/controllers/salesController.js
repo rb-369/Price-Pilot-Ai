@@ -258,13 +258,25 @@ exports.getAILocalColumnMapping = async (req, res) => {
         // if the AI service isn't reachable, or we can just mock the AI response.
         
         const mapping = {};
+        
+        // Pass 1: High-confidence exact or near-exact matches
         headers.forEach((h, idx) => {
             const lower = String(h).toLowerCase().trim();
-            if (lower.includes('product') || lower.includes('id') || lower.includes('sku')) mapping['productId'] = idx;
-            else if (lower.includes('qty') || lower.includes('quant') || lower.includes('unit')) mapping['quantity'] = idx;
-            else if (lower.includes('price') || lower.includes('amount') || lower.includes('cost')) mapping['salePrice'] = idx;
-            else if (lower.includes('date') || lower.includes('time') || lower.includes('when')) mapping['purchasedAt'] = idx;
-            else if (lower.includes('order') || lower.includes('ref')) mapping['orderId'] = idx;
+            if (['productname', 'product_name', 'product', 'sku', 'item', 'item_name'].includes(lower) && mapping['productId'] === undefined) mapping['productId'] = idx;
+            if (['orderid', 'order_id', 'order no', 'order number', 'transaction_id', 'transaction'].includes(lower) && mapping['orderId'] === undefined) mapping['orderId'] = idx;
+            if (['quantity', 'qty', 'count', 'units'].includes(lower) && mapping['quantity'] === undefined) mapping['quantity'] = idx;
+            if (['saleprice', 'sale_price', 'price', 'selling_price', 'unit_price', 'cost', 'amount'].includes(lower) && mapping['salePrice'] === undefined) mapping['salePrice'] = idx;
+            if (['purchasedat', 'purchased_at', 'date', 'order_date', 'timestamp', 'created_at', 'time'].includes(lower) && mapping['purchasedAt'] === undefined) mapping['purchasedAt'] = idx;
+        });
+
+        // Pass 2: Fallback fuzzy matches for missing columns
+        headers.forEach((h, idx) => {
+            const lower = String(h).toLowerCase().trim();
+            if (mapping['productId'] === undefined && (lower.includes('product') || lower.includes('sku') || lower.includes('item'))) mapping['productId'] = idx;
+            if (mapping['orderId'] === undefined && (lower.includes('order') || lower.includes('ref') || lower.includes('id'))) mapping['orderId'] = idx;
+            if (mapping['quantity'] === undefined && (lower.includes('qty') || lower.includes('quant') || lower.includes('unit'))) mapping['quantity'] = idx;
+            if (mapping['salePrice'] === undefined && (lower.includes('price') || lower.includes('cost') || lower.includes('amount'))) mapping['salePrice'] = idx;
+            if (mapping['purchasedAt'] === undefined && (lower.includes('date') || lower.includes('time') || lower.includes('when'))) mapping['purchasedAt'] = idx;
         });
 
         // AI Confidence score simulation
