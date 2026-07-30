@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import {
   ResponsiveContainer,
-  AreaChart,
+  ComposedChart,
   Area,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -11,6 +12,7 @@ import {
 } from 'recharts';
 import { FiX, FiTrendingUp, FiTrendingDown, FiDollarSign, FiShoppingBag, FiCalendar, FiRefreshCw } from 'react-icons/fi';
 import { getPriceHistory } from '../api';
+import api from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 
@@ -31,16 +33,33 @@ export default function PriceHistoryModal({ product, onClose }) {
     try {
       const res = await getPriceHistory(product._id, rangeDays);
       const rawHistory = res.data.history || [];
+      // Fetch Sales Data simultaneously
+      let salesMap = {};
+      try {
+          const salesRes = await api.get(`/api/sales/product/${product._id}`);
+          if (salesRes.data.success) {
+              salesRes.data.data.forEach(metric => {
+                  const d = new Date(metric.date);
+                  const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                  salesMap[dateStr] = metric.totalUnitsSold;
+              });
+          }
+      } catch (salesErr) {
+          console.error('Failed to fetch sales history:', salesErr);
+      }
+
       const formatted = rawHistory.map(item => {
         const d = new Date(item.timestamp);
+        const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         return {
-          date: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          date: dateStr,
           fullDate: d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
           Price: item.price,
           BaseCost: item.baseCost,
           CompetitorAvg: item.competitorAvgPrice || null,
           Amazon: item.amazonPrice || null,
           Flipkart: item.flipkartPrice || null,
+          SalesVolume: salesMap[dateStr] || 0
         };
       });
       setHistoryData(formatted);
@@ -189,7 +208,7 @@ export default function PriceHistoryModal({ product, onClose }) {
             ) : (
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <ComposedChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
@@ -206,7 +225,8 @@ export default function PriceHistoryModal({ product, onClose }) {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
                     <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} domain={['auto', 'auto']} />
+                    <YAxis yAxisId="left" stroke="#94a3b8" fontSize={11} tickLine={false} domain={['auto', 'auto']} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={11} tickLine={false} />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#1e293b',
@@ -216,14 +236,18 @@ export default function PriceHistoryModal({ product, onClose }) {
                         fontSize: '12px',
                         boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)'
                       }}
-                      formatter={(value, name) => [formatCurrency(value), name]}
+                      formatter={(value, name) => {
+                        if (name === 'Sales Volume') return [value, name];
+                        return [formatCurrency(value), name];
+                      }}
                       labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || label}
                     />
-                    <Area type="monotone" dataKey="Price" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" name="Your Price" />
-                    <Area type="monotone" dataKey="Amazon" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorAmazon)" name="Amazon" />
-                    <Area type="monotone" dataKey="Flipkart" stroke="#0084ff" strokeWidth={2} fillOpacity={1} fill="url(#colorFlipkart)" name="Flipkart" />
-                    <Area type="monotone" dataKey="BaseCost" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fill="none" name="Base Cost" />
-                  </AreaChart>
+                    <Bar yAxisId="right" dataKey="SalesVolume" fill="#10b981" fillOpacity={0.3} barSize={20} name="Sales Volume" />
+                    <Area yAxisId="left" type="monotone" dataKey="Price" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" name="Your Price" />
+                    <Area yAxisId="left" type="monotone" dataKey="Amazon" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorAmazon)" name="Amazon" />
+                    <Area yAxisId="left" type="monotone" dataKey="Flipkart" stroke="#0084ff" strokeWidth={2} fillOpacity={1} fill="url(#colorFlipkart)" name="Flipkart" />
+                    <Area yAxisId="left" type="monotone" dataKey="BaseCost" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fill="none" name="Base Cost" />
+                  </ComposedChart>
                 </ResponsiveContainer>
               </div>
             )}

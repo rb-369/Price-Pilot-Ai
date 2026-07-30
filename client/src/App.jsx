@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 import Products from './pages/Products';
 import Competitors from './pages/Competitors';
 import DemandSignals from './pages/DemandSignals';
@@ -58,6 +59,7 @@ function AppRoutes() {
       
       <Route path="/dashboard" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="products" element={<Products />} />
         <Route path="competitors" element={<Competitors />} />
         <Route path="demand" element={<DemandSignals />} />

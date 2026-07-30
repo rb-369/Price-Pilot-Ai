@@ -13,6 +13,7 @@ import logoIcon from '../assets/FINAL.png';
 
 const links = [
     { to: '/dashboard', icon: HiOutlineChartBar, label: 'Dashboard' },
+    { to: '/dashboard/analytics', icon: HiOutlineTrendingUp, label: 'Analytics' },
     { to: '/dashboard/products', icon: HiOutlineCube, label: 'Products' },
     { to: '/dashboard/competitors', icon: HiOutlineScale, label: 'Competitors' },
     { to: '/dashboard/demand', icon: HiOutlineTrendingUp, label: 'Demand Signals' },
