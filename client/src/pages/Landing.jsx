@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon, HiOutlineUserGroup, HiOutlineMail, HiOutlineArrowUp } from 'react-icons/hi';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';

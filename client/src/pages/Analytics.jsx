@@ -111,7 +111,7 @@ export default function Analytics() {
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                                             <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#818cf8' }} dy={10} minTickGap={30} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#818cf8' }} tickFormatter={(val) => \`\${config.symbol}\${val >= 1000 ? (val/1000).toFixed(1)+'k' : val}\`} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#818cf8' }} tickFormatter={(val) => `${config.symbol}${val >= 1000 ? (val/1000).toFixed(1)+'k' : val}`} />
                                             <RechartsTooltip 
                                                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                                                 formatter={(value) => [formatCurrency(value), 'Revenue']}

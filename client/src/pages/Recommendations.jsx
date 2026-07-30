@@ -40,7 +40,7 @@ export default function Recommendations() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [historyProduct, setHistoryProduct] = useState(null);
-  const { formatCurrency, config } = useCurrency();
+  const { formatCurrency } = useCurrency();
 
   const fetchData = () => {
     setLoading(true);
@@ -52,7 +52,10 @@ export default function Recommendations() {
   };
 
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // ─── Helper to resolve Product Name & SKU ───
