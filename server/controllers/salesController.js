@@ -100,11 +100,29 @@ exports.handleBulkUpload = async (req, res) => {
 
             try {
                 // Check if product exists and belongs to user
-                const product = await Product.findOne({ _id: productId, userId });
+                let product;
+                const mongoose = require('mongoose');
+                if (mongoose.isValidObjectId(productId)) {
+                    product = await Product.findOne({ _id: productId, userId });
+                } 
+                if (!product) {
+                    // Try to find by name or sku (case-insensitive)
+                    product = await Product.findOne({ 
+                        userId, 
+                        $or: [
+                            { name: { $regex: new RegExp(`^${productId}$`, 'i') } },
+                            { sku: { $regex: new RegExp(`^${productId}$`, 'i') } }
+                        ] 
+                    });
+                }
+                
                 if (!product) {
                     skipped++;
                     continue;
                 }
+                
+                // Override the arbitrary 'productId' string from the CSV with the real MongoDB ObjectId
+                orderData.productId = product._id;
 
                 // Skip duplicates
                 const existingOrder = await Order.findOne({ userId, orderId });

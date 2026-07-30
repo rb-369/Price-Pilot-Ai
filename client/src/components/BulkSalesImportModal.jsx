@@ -141,14 +141,14 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
               <div className="bg-surface-hover/30 border border-border rounded-xl p-5 text-sm text-text-secondary space-y-4">
                   <div>
                       <h4 className="font-semibold text-text-primary mb-1">Recommended Format</h4>
-                      <p>For best results, include columns for: <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">productId</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">orderId</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">quantity</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">salePrice</code>, and <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">purchasedAt</code>.</p>
+                      <p>For best results, include columns for: <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">productName</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">orderId</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">quantity</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">salePrice</code>, and <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">purchasedAt</code>.</p>
                   </div>
                   <div>
                       <h4 className="font-semibold text-text-primary mb-2">Need to clean messy data?</h4>
                       <p className="mb-2">Copy this prompt and paste it into ChatGPT, Claude, or Gemini along with your messy data:</p>
                       <div className="bg-surface border border-border rounded-lg p-3">
                           <code className="text-xs text-text-primary/90 block whitespace-pre-wrap">
-                              Please format my sales data into a clean CSV with the following columns: productId, orderId, quantity, salePrice, purchasedAt.{"\n\n"}
+                              Please format my sales data into a clean CSV with the following columns: productName, orderId, quantity, salePrice, purchasedAt.{"\n\n"}
                               IMPORTANT: If any crucial information is missing (like sales volume, price, or product identifier), DO NOT guess. Instead, give me a clear ERROR MESSAGE telling me exactly which fields are missing for which rows so I can fix them.
                           </code>
                       </div>
