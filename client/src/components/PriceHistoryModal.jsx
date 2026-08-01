@@ -36,7 +36,7 @@ export default function PriceHistoryModal({ product, onClose }) {
       // Fetch Sales Data simultaneously
       let salesMap = {};
       try {
-          const salesRes = await api.get(`/api/sales/product/${product._id}`);
+          const salesRes = await api.get(`/sales/product/${product._id}`);
           if (salesRes.data.success) {
               salesRes.data.data.forEach(metric => {
                   const d = new Date(metric.date);

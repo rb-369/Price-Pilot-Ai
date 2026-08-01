@@ -52,7 +52,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
       try {
           // Send first 5 rows to AI for mapping
           const sampleRows = rows.slice(0, 5);
-          const mapRes = await api.post('/api/sales/map-columns', { headers, sampleRows });
+          const mapRes = await api.post('/sales/map-columns', { headers, sampleRows });
           
           if (mapRes.data.success) {
               const aiMapping = mapRes.data.data; // { "productId": 0, "quantity": 3, ... }
@@ -101,7 +101,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
     setImporting(true);
     const loadingToast = toast.loading('Importing sales data...');
     try {
-      const response = await api.post('/api/sales/upload', { orders: validation.valid });
+      const response = await api.post('/sales/upload', { orders: validation.valid });
       if (response.data.success) {
         toast.success(response.data.message, { id: loadingToast });
         if (onSuccess) onSuccess();
