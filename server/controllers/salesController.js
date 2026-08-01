@@ -172,15 +172,9 @@ exports.handleBulkUpload = async (req, res) => {
 exports.getAnalyticsSummary = async (req, res) => {
     try {
         const userId = req.user.id;
-        // Last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        // Aggregate total revenue and units across all products in last 30 days
-        const metrics = await DailySalesMetric.find({
-            userId,
-            date: { $gte: getStartOfDay(thirtyDaysAgo) }
-        });
+        
+        // Aggregate total revenue and units across all products (All Time)
+        const metrics = await DailySalesMetric.find({ userId });
 
         let totalRevenue = 0;
         let totalUnitsSold = 0;
