@@ -12,6 +12,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
   const [isHistorical, setIsHistorical] = useState(false);
   const [missingProducts, setMissingProducts] = useState([]);
   const [currentMissingIndex, setCurrentMissingIndex] = useState(0);
+  const [productsToCreate, setProductsToCreate] = useState([]);
   const [outOfStockWarnings, setOutOfStockWarnings] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -99,19 +100,23 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
     reader.readAsText(file);
   };
 
-  const handleImport = async (productsToCreate = null) => {
-    if (!validation || validation.valid.length === 0) return;
+  const handleImport = async (productsToSubmit = null, customOrders = null) => {
+    const ordersToSubmit = customOrders || validation?.valid;
+    if (!ordersToSubmit || ordersToSubmit.length === 0) {
+        toast.error("No valid rows left to import.");
+        return;
+    }
     
     setImporting(true);
     let loadingToast = toast.loading('Importing sales data...');
     try {
-      if (productsToCreate) {
+      if (productsToSubmit && productsToSubmit.length > 0) {
           toast.loading('Creating missing products...', { id: loadingToast });
-          await api.bulkImportProducts(productsToCreate);
+          await api.bulkImportProducts(productsToSubmit);
           loadingToast = toast.loading('Importing sales data...', { id: loadingToast });
       }
 
-      const response = await api.post('/sales/upload', { orders: validation.valid, isHistorical });
+      const response = await api.post('/sales/upload', { orders: ordersToSubmit, isHistorical });
       if (response.data.success) {
         toast.success(response.data.message, { id: loadingToast });
         
@@ -138,6 +143,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
            });
            setMissingProducts(uniqueMissing);
            setCurrentMissingIndex(0);
+           setProductsToCreate([]);
            setMappingState('wizard');
            return;
         }
@@ -409,39 +415,93 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           )}
           
           {mappingState === 'wizard' && (
-              <button 
-                  type="button" 
-                  onClick={() => {
-                      const current = missingProducts[currentMissingIndex];
-                      if (!current.sku || current.baseCost === '' || current.currentPrice === '' || current.stockLevel === '') {
-                          toast.error('Please fill in all required fields (SKU, Cost, Price, Stock).');
-                          return;
-                      }
+              <div className="flex items-center justify-between w-full">
+                  <button 
+                      type="button" 
+                      onClick={() => {
+                          const current = missingProducts[currentMissingIndex];
+                          let finalProducts = [...productsToCreate];
+                          // Try to include current if valid
+                          if (current.sku && current.baseCost !== '' && current.currentPrice !== '' && current.stockLevel !== '') {
+                              finalProducts.push({
+                                  ...current,
+                                  baseCost: parseFloat(current.baseCost),
+                                  currentPrice: parseFloat(current.currentPrice),
+                                  stockLevel: parseInt(current.stockLevel)
+                              });
+                          }
+                          
+                          const namesToCreate = finalProducts.map(p => p.name);
+                          const namesToSkip = missingProducts.map(p => p.name).filter(n => !namesToCreate.includes(n));
+                          const finalOrders = validation.valid.filter(row => !namesToSkip.includes(row.productId));
+                          
+                          handleImport(finalProducts, finalOrders);
+                      }} 
+                      disabled={importing}
+                      className="px-4 py-2 text-sm font-medium text-text-secondary bg-surface-hover hover:bg-border rounded-lg transition-colors disabled:opacity-50"
+                  >
+                      Finish & Import Now
+                  </button>
+                  
+                  <div className="flex items-center gap-3">
+                      <button 
+                          type="button" 
+                          onClick={() => {
+                              if (currentMissingIndex < missingProducts.length - 1) {
+                                  setCurrentMissingIndex(prev => prev + 1);
+                              } else {
+                                  const namesToCreate = productsToCreate.map(p => p.name);
+                                  const namesToSkip = missingProducts.map(p => p.name).filter(n => !namesToCreate.includes(n));
+                                  const finalOrders = validation.valid.filter(row => !namesToSkip.includes(row.productId));
+                                  handleImport(productsToCreate, finalOrders);
+                              }
+                          }} 
+                          disabled={importing}
+                          className="px-4 py-2 text-sm font-medium text-text-primary bg-surface-hover hover:bg-border border border-border rounded-lg transition-colors disabled:opacity-50"
+                      >
+                          Skip Product
+                      </button>
                       
-                      if (currentMissingIndex < missingProducts.length - 1) {
-                          setCurrentMissingIndex(prev => prev + 1);
-                      } else {
-                          // Submit all
-                          const cleanProducts = missingProducts.map(p => ({
-                              ...p,
-                              baseCost: parseFloat(p.baseCost),
-                              currentPrice: parseFloat(p.currentPrice),
-                              stockLevel: parseInt(p.stockLevel)
-                          }));
-                          handleImport(cleanProducts);
-                      }
-                  }} 
-                  disabled={importing} 
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                  {importing ? (
-                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
-                  ) : currentMissingIndex < missingProducts.length - 1 ? (
-                      <>Next Product</>
-                  ) : (
-                      <>Create All & Resume Import</>
-                  )}
-              </button>
+                      <button 
+                          type="button" 
+                          onClick={() => {
+                              const current = missingProducts[currentMissingIndex];
+                              if (!current.sku || current.baseCost === '' || current.currentPrice === '' || current.stockLevel === '') {
+                                  toast.error('Please fill in all required fields (SKU, Cost, Price, Stock).');
+                                  return;
+                              }
+                              
+                              const cleanProduct = {
+                                  ...current,
+                                  baseCost: parseFloat(current.baseCost),
+                                  currentPrice: parseFloat(current.currentPrice),
+                                  stockLevel: parseInt(current.stockLevel)
+                              };
+                              const newProducts = [...productsToCreate, cleanProduct];
+                              setProductsToCreate(newProducts);
+                              
+                              if (currentMissingIndex < missingProducts.length - 1) {
+                                  setCurrentMissingIndex(prev => prev + 1);
+                              } else {
+                                  const namesToCreate = newProducts.map(p => p.name);
+                                  const namesToSkip = missingProducts.map(p => p.name).filter(n => !namesToCreate.includes(n));
+                                  const finalOrders = validation.valid.filter(row => !namesToSkip.includes(row.productId));
+                                  handleImport(newProducts, finalOrders);
+                              }
+                          }} 
+                          disabled={importing} 
+                          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                      >
+                          {importing ? (
+                              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                          ) : currentMissingIndex < missingProducts.length - 1 ? (
+                              <>Next Product</>
+                          ) : (
+                              <>Create & Finish Import</>
+                          )}
+                      </button>
+                  </div>
+              </div>
           )}
 
           {mappingState === 'done_with_warnings' && (
