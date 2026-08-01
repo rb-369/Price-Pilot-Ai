@@ -317,7 +317,6 @@ export default function Products() {
                     <div className="md:hidden divide-y divide-border">
                         {products.map((p) => {
                             const status = getStockStatus(p);
-                            const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
                             return (
                                 <div key={p._id} className="p-5 flex flex-col gap-4 hover:bg-surface-lighter/30 transition-colors">
                                     <div className="flex justify-between items-start gap-4">
