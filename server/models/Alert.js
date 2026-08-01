@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const alertSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     type: {
         type: String,
         enum: ['price_drop', 'stockout_risk', 'competitor_undercut', 'competitor_stockout', 'promotion', 'reorder'],

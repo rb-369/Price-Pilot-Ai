@@ -19,10 +19,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-# Model persistence path
+# Model persistence directory
 MODEL_DIR = Path(__file__).parent.parent / "models"
-MODEL_PATH = MODEL_DIR / "elasticity_model.pkl"
-METADATA_PATH = MODEL_DIR / "elasticity_metadata.json"
 
 
 class ElasticityModel:
@@ -40,7 +38,10 @@ class ElasticityModel:
       - elasticity: estimated from volume change after price change
     """
 
-    def __init__(self):
+    def __init__(self, user_id="global"):
+        self.user_id = user_id
+        self.model_path = MODEL_DIR / f"elasticity_model_{user_id}.pkl"
+        self.metadata_path = MODEL_DIR / f"elasticity_metadata_{user_id}.json"
         self.model = None
         self.scaler = None
         self.feature_names = [
@@ -53,17 +54,17 @@ class ElasticityModel:
     def _load(self):
         """Load trained model from disk if available."""
         try:
-            if MODEL_PATH.exists():
-                with open(MODEL_PATH, "rb") as f:
+            if self.model_path.exists():
+                with open(self.model_path, "rb") as f:
                     saved = pickle.load(f)
                 self.model = saved.get("model")
                 self.scaler = saved.get("scaler")
-                if METADATA_PATH.exists():
-                    with open(METADATA_PATH, "r") as f:
+                if self.metadata_path.exists():
+                    with open(self.metadata_path, "r") as f:
                         self.metadata = json.load(f)
-                print(f"[Elasticity] Loaded trained model (version: {self.metadata.get('version', 'unknown')})")
+                print(f"[Elasticity] Loaded trained model for user {self.user_id} (version: {self.metadata.get('version', 'unknown')})")
             else:
-                print("[Elasticity] No trained model found, using heuristic fallback")
+                print(f"[Elasticity] No trained model found for user {self.user_id}, using heuristic fallback")
         except Exception as e:
             print(f"[Elasticity] Pre-trained model incompatible or missing ({e}), using heuristic fallback")
             self.model = None
@@ -160,7 +161,7 @@ class ElasticityModel:
 
             # Save model
             MODEL_DIR.mkdir(parents=True, exist_ok=True)
-            with open(MODEL_PATH, "wb") as f:
+            with open(self.model_path, "wb") as f:
                 pickle.dump({"model": model, "scaler": scaler}, f)
 
             metadata = {
@@ -171,7 +172,7 @@ class ElasticityModel:
                 "r2_std": round(r2_std, 4),
                 "feature_importances": importances,
             }
-            with open(METADATA_PATH, "w") as f:
+            with open(self.metadata_path, "w") as f:
                 json.dump(metadata, f, indent=2)
 
             # Update in-memory model
@@ -185,7 +186,7 @@ class ElasticityModel:
                 "r2_mean": round(r2_mean, 4),
                 "r2_std": round(r2_std, 4),
                 "feature_importances": importances,
-                "model_path": str(MODEL_PATH),
+                "model_path": str(self.model_path),
             }
 
         except ImportError:
@@ -198,7 +199,7 @@ class ElasticityModel:
         return {
             "has_trained_model": self.model is not None,
             "metadata": self.metadata,
-            "model_path": str(MODEL_PATH),
+            "model_path": str(self.model_path),
             "fallback": "heuristic" if self.model is None else "ml_model",
         }
 
@@ -232,13 +233,12 @@ class ElasticityModel:
         return float(np.clip(base, -3.0, -0.3))
 
 
-# Singleton instance
-_model_instance: Optional[ElasticityModel] = None
+# Dictionary of instances
+_models: Dict[str, ElasticityModel] = {}
 
 
-def get_elasticity_model() -> ElasticityModel:
-    """Get the singleton ElasticityModel instance."""
-    global _model_instance
-    if _model_instance is None:
-        _model_instance = ElasticityModel()
-    return _model_instance
+def get_elasticity_model(user_id: str = "global") -> ElasticityModel:
+    """Get the ElasticityModel instance for a given user."""
+    if user_id not in _models:
+        _models[user_id] = ElasticityModel(user_id)
+    return _models[user_id]

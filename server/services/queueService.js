@@ -25,6 +25,7 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
     const demandSignals = await DemandSignal.find({ productId }).sort({ timestamp: -1 }).limit(30);
 
     const payload = {
+        user_id: product.userId,
         product: {
             name: product.name, sku: product.sku,
             baseCost: product.baseCost || 0, currentPrice: product.currentPrice || 0,
@@ -93,6 +94,7 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
 
     const saved = await PricingRecommendation.create({
         productId,
+        userId: product.userId,
         recommendedPrice: recommendation.recommendedPrice,
         currentPrice: product.currentPrice,
         reason: recommendation.reason,
@@ -115,6 +117,7 @@ const forecastWorker = new Worker('forecastQueue', async job => {
     const demandSignals = await DemandSignal.find({ productId }).sort({ timestamp: 1 }).limit(90);
 
     const payload = {
+        user_id: product.userId,
         product: {
             name: product.name, stockLevel: product.stockLevel,
             reorderThreshold: product.reorderThreshold,
@@ -141,6 +144,7 @@ const forecastWorker = new Worker('forecastQueue', async job => {
 
     const saved = await InventoryForecast.create({
         productId,
+        userId: product.userId,
         predictedDemand: forecast.predictedDemand,
         recommendedStockIncrease: forecast.recommendedStockIncrease,
         currentStock: product.stockLevel,

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const inventoryForecastSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     predictedDemand: { type: Number, required: true },
     recommendedStockIncrease: { type: Number, default: 0 },
     currentStock: { type: Number },

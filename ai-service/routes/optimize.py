@@ -37,6 +37,7 @@ class ProductData(BaseModel):
 
 
 class OptimizeRequest(BaseModel):
+    user_id: Optional[str] = "global"
     product: ProductData
     competitorPrices: Optional[List[CompetitorPriceData]] = []
     demandSignals: Optional[List[DemandSignalData]] = []
@@ -71,7 +72,7 @@ async def optimize(request: OptimizeRequest):
             }
     # ----------------------------------------
 
-    recommendation = optimize_price(product, competitors, demand)
+    recommendation = optimize_price(product, competitors, demand, user_id=request.user_id)
 
     # Generate LLM insight
     insight = await generate_insight(product, recommendation, competitors, demand)

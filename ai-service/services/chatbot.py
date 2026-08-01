@@ -34,9 +34,12 @@ class WorkingMemory:
         self.messages = messages
         self.context_data = context_data
 
+        user_id = self.context_data.get('userId', 'global') if self.context_data else 'global'
+        self.user_id = user_id
+
         # We initialized these explicitly in each method where they are needed rather than keeping them open all the time
-        self._collection_name_semantic = "semantic_memory"
-        self._collection_name_episodic = "episodic_memory"
+        self._collection_name_semantic = f"semantic_memory_{user_id}"
+        self._collection_name_episodic = f"episodic_memory_{user_id}"
 
     async def build_context_string(self, latest_query: str) -> str:
         context_parts = []
@@ -90,7 +93,7 @@ class WorkingMemory:
                 "type": "chat_interaction"
             }
             # Run the synchronous ingest_data in a separate thread so it doesn't block the async event loop
-            asyncio.create_task(asyncio.to_thread(ingest_data, [interaction], "chat_interaction", "episodic_memory"))
+            asyncio.create_task(asyncio.to_thread(ingest_data, [interaction], "chat_interaction", self._collection_name_episodic))
         except Exception as e:
             print(f"Failed to save episodic interaction: {e}")
 

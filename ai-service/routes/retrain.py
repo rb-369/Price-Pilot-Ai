@@ -17,6 +17,7 @@ class TrainingObservation(BaseModel):
 
 
 class RetrainRequest(BaseModel):
+    user_id: Optional[str] = "global"
     training_data: List[TrainingObservation]
 
 
@@ -26,20 +27,21 @@ async def retrain_elasticity(request: RetrainRequest):
     Retrain the elasticity ML model with historical feedback data.
     Called by the Node.js weekly cron job or manually triggered.
     """
-    model = get_elasticity_model()
+    model = get_elasticity_model(request.user_id)
     data = [obs.model_dump() for obs in request.training_data]
     result = model.train(data)
     return result
 
 
 @router.get("/model-status")
-async def model_status():
+async def model_status(user_id: str = "global"):
     """Check current ML model status, version, and accuracy metrics."""
-    model = get_elasticity_model()
+    model = get_elasticity_model(user_id)
     return model.get_status()
 
 
 class PredictRequest(BaseModel):
+    user_id: Optional[str] = "global"
     demand_score: Optional[float] = 0.5
     competitor_spread: Optional[float] = 0.1
     stock_ratio: Optional[float] = 3.0
@@ -51,7 +53,7 @@ class PredictRequest(BaseModel):
 @router.post("/predict-elasticity")
 async def predict_elasticity(request: PredictRequest):
     """Test elasticity prediction for given features."""
-    model = get_elasticity_model()
+    model = get_elasticity_model(request.user_id)
     features = request.model_dump()
     elasticity, source = model.predict(features)
     return {

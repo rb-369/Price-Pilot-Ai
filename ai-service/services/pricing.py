@@ -19,6 +19,7 @@ def _estimate_elasticity(
     demand_signals: List[Dict],
     product: Optional[Dict] = None,
     competitor_prices: Optional[List[Dict]] = None,
+    user_id: str = "global",
 ) -> Tuple[float, str]:
     """
     Estimate price elasticity using the ML model (preferred) or heuristic fallback.
@@ -62,7 +63,7 @@ def _estimate_elasticity(
         "search_trend_normalized": float(search_trend),
     }
 
-    model = get_elasticity_model()
+    model = get_elasticity_model(user_id)
     elasticity, source = model.predict(features)
     return elasticity, source
 
@@ -300,6 +301,7 @@ def optimize_price(
     product: Dict,
     competitor_prices: List[Dict],
     demand_signals: List[Dict],
+    user_id: str = "global",
 ) -> Dict:
     """
     Calculate the optimal price with:
@@ -329,7 +331,7 @@ def optimize_price(
     )
     demand_factor, demand_context = _analyze_demand(demand_signals)
     stock_factor, stock_context = _analyze_stock(stock_level, reorder_threshold)
-    elasticity, elasticity_source = _estimate_elasticity(demand_signals, product, competitor_prices)
+    elasticity, elasticity_source = _estimate_elasticity(demand_signals, product, competitor_prices, user_id=user_id)
 
     # Raw combined adjustment (heuristic signal)
     raw_adjustment = competitor_factor + demand_factor + stock_factor

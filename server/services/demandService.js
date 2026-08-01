@@ -98,6 +98,7 @@ async function collectDemandSignals() {
             if (composite > 0.75 && product.stockLevel < product.reorderThreshold * 2) {
                 await Alert.create({
                     productId: product._id,
+                    userId: product.userId,
                     type: 'stockout_risk',
                     severity: 'critical',
                     title: `Stock Alert: ${product.name}`,

@@ -55,6 +55,7 @@ async function fetchLiveCompetitorsForProduct(product) {
         if (record.competitorPrice < product.currentPrice * 0.95) {
             await Alert.create({
                 productId: product._id,
+                userId: product.userId,
                 type: 'competitor_undercut',
                 severity: 'high',
                 title: `Price Alert: ${product.name}`,

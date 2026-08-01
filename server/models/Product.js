@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
-    sku: { type: String, required: true, unique: true },
+    sku: { type: String, required: true },
     category: { type: String, default: 'general' },
     baseCost: { type: Number, required: true },
     currentPrice: { type: Number, required: true },
@@ -25,6 +25,8 @@ const productSchema = new mongoose.Schema({
     source: { type: String, enum: ['manual', 'shopify', 'amazon', 'flipkart'], default: 'manual' },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
+
+productSchema.index({ sku: 1, userId: 1 }, { unique: true });
 
 productSchema.virtual('marginPercent').get(function () {
     if (this.currentPrice === 0) return 0;
