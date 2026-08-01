@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import api from '../api';
+import api, { bulkImportProducts } from '../api';
 
 export default function BulkSalesImportModal({ onClose, onSuccess }) {
   const [fileContent, setFileContent] = useState('');
@@ -112,7 +112,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
     try {
       if (productsToSubmit && productsToSubmit.length > 0) {
           toast.loading('Creating missing products...', { id: loadingToast });
-          await api.bulkImportProducts(productsToSubmit);
+          await bulkImportProducts(productsToSubmit);
           loadingToast = toast.loading('Importing sales data...', { id: loadingToast });
       }
 
