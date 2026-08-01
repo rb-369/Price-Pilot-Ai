@@ -11,6 +11,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
   const [validation, setValidation] = useState(null); // { valid: [], invalid: [] }
   const [isHistorical, setIsHistorical] = useState(false);
   const [missingProducts, setMissingProducts] = useState([]);
+  const [currentMissingIndex, setCurrentMissingIndex] = useState(0);
   const [outOfStockWarnings, setOutOfStockWarnings] = useState([]);
   const fileInputRef = useRef(null);
 
@@ -126,14 +127,17 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                  seen.add(m.productName);
                  uniqueMissing.push({
                      name: m.productName,
-                     sku: m.productName,
-                     baseCost: m.salePrice ? parseFloat((m.salePrice * 0.5).toFixed(2)) : 10,
-                     currentPrice: m.salePrice || 20,
-                     stockLevel: 100
+                     sku: '',
+                     baseCost: '',
+                     currentPrice: m.salePrice || '',
+                     stockLevel: '',
+                     category: '',
+                     description: ''
                  });
               }
            });
            setMissingProducts(uniqueMissing);
+           setCurrentMissingIndex(0);
            setMappingState('wizard');
            return;
         }
@@ -261,61 +265,99 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           {mappingState === 'wizard' && (
              <div className="space-y-4">
                 <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
-                    <h3 className="text-amber-500 font-semibold flex items-center gap-2">
-                        <FiAlertCircle /> Missing Products Found
+                    <h3 className="text-amber-500 font-semibold flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2"><FiAlertCircle /> Missing Products Found</span>
+                        <span className="text-xs font-bold bg-amber-500/20 px-2 py-1 rounded-full">Product {currentMissingIndex + 1} of {missingProducts.length}</span>
                     </h3>
                     <p className="text-sm text-amber-500/80 mt-1">
-                        We couldn't find the following products in your PricePilot database. Please fill in their details below to create them and retry the import.
+                        We couldn't find the following products in your PricePilot database. Please fill in their details below.
                     </p>
                 </div>
-                <div className="border border-border rounded-xl overflow-hidden overflow-x-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-surface-hover border-b border-border text-text-secondary">
-                            <tr>
-                                <th className="px-4 py-3 font-medium">Product Name</th>
-                                <th className="px-4 py-3 font-medium">SKU</th>
-                                <th className="px-4 py-3 font-medium">Base Cost</th>
-                                <th className="px-4 py-3 font-medium">Sale Price</th>
-                                <th className="px-4 py-3 font-medium">Initial Stock</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                            {missingProducts.map((p, i) => (
-                                <tr key={i} className="hover:bg-surface-hover/30">
-                                    <td className="px-4 py-2 text-text-primary truncate max-w-[200px]">{p.name}</td>
-                                    <td className="px-4 py-2">
-                                        <input type="text" className="w-full bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.sku} onChange={e => {
-                                            const newArr = [...missingProducts];
-                                            newArr[i].sku = e.target.value;
-                                            setMissingProducts(newArr);
-                                        }} />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.baseCost} onChange={e => {
-                                            const newArr = [...missingProducts];
-                                            newArr[i].baseCost = parseFloat(e.target.value);
-                                            setMissingProducts(newArr);
-                                        }} />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.currentPrice} onChange={e => {
-                                            const newArr = [...missingProducts];
-                                            newArr[i].currentPrice = parseFloat(e.target.value);
-                                            setMissingProducts(newArr);
-                                        }} />
-                                    </td>
-                                    <td className="px-4 py-2">
-                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.stockLevel} onChange={e => {
-                                            const newArr = [...missingProducts];
-                                            newArr[i].stockLevel = parseInt(e.target.value);
-                                            setMissingProducts(newArr);
-                                        }} />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                
+                {missingProducts.length > 0 && (
+                <div className="border border-border rounded-xl p-5 space-y-4 bg-surface-hover/30">
+                    <div>
+                        <label className="block text-xs font-medium text-text-secondary mb-1">Product Name</label>
+                        <input type="text" className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary" readOnly value={missingProducts[currentMissingIndex].name} />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">SKU <span className="text-red-400">*</span></label>
+                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                                value={missingProducts[currentMissingIndex].sku} 
+                                onChange={e => {
+                                    const newArr = [...missingProducts];
+                                    newArr[currentMissingIndex].sku = e.target.value;
+                                    setMissingProducts(newArr);
+                                }} 
+                                placeholder="Enter SKU"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Category</label>
+                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                                value={missingProducts[currentMissingIndex].category} 
+                                onChange={e => {
+                                    const newArr = [...missingProducts];
+                                    newArr[currentMissingIndex].category = e.target.value;
+                                    setMissingProducts(newArr);
+                                }} 
+                                placeholder="e.g. Electronics"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Base Cost ($) <span className="text-red-400">*</span></label>
+                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                                value={missingProducts[currentMissingIndex].baseCost} 
+                                onChange={e => {
+                                    const newArr = [...missingProducts];
+                                    newArr[currentMissingIndex].baseCost = e.target.value;
+                                    setMissingProducts(newArr);
+                                }} 
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Sale Price ($) <span className="text-red-400">*</span></label>
+                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                                value={missingProducts[currentMissingIndex].currentPrice} 
+                                onChange={e => {
+                                    const newArr = [...missingProducts];
+                                    newArr[currentMissingIndex].currentPrice = e.target.value;
+                                    setMissingProducts(newArr);
+                                }} 
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Initial Stock <span className="text-red-400">*</span></label>
+                            <input type="number" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                                value={missingProducts[currentMissingIndex].stockLevel} 
+                                onChange={e => {
+                                    const newArr = [...missingProducts];
+                                    newArr[currentMissingIndex].stockLevel = e.target.value;
+                                    setMissingProducts(newArr);
+                                }} 
+                            />
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="block text-xs font-medium text-text-secondary mb-1">Description (Optional)</label>
+                        <textarea className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary h-20 resize-none" 
+                            value={missingProducts[currentMissingIndex].description} 
+                            onChange={e => {
+                                const newArr = [...missingProducts];
+                                newArr[currentMissingIndex].description = e.target.value;
+                                setMissingProducts(newArr);
+                            }} 
+                            placeholder="Brief product description..."
+                        />
+                    </div>
                 </div>
+                )}
              </div>
           )}
           
@@ -369,14 +411,35 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           {mappingState === 'wizard' && (
               <button 
                   type="button" 
-                  onClick={() => handleImport(missingProducts)} 
+                  onClick={() => {
+                      const current = missingProducts[currentMissingIndex];
+                      if (!current.sku || current.baseCost === '' || current.currentPrice === '' || current.stockLevel === '') {
+                          toast.error('Please fill in all required fields (SKU, Cost, Price, Stock).');
+                          return;
+                      }
+                      
+                      if (currentMissingIndex < missingProducts.length - 1) {
+                          setCurrentMissingIndex(prev => prev + 1);
+                      } else {
+                          // Submit all
+                          const cleanProducts = missingProducts.map(p => ({
+                              ...p,
+                              baseCost: parseFloat(p.baseCost),
+                              currentPrice: parseFloat(p.currentPrice),
+                              stockLevel: parseInt(p.stockLevel)
+                          }));
+                          handleImport(cleanProducts);
+                      }
+                  }} 
                   disabled={importing} 
                   className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                   {importing ? (
                       <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                  ) : currentMissingIndex < missingProducts.length - 1 ? (
+                      <>Next Product</>
                   ) : (
-                      <>Create Products & Retry Import</>
+                      <>Create All & Resume Import</>
                   )}
               </button>
           )}
