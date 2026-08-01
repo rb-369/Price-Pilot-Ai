@@ -172,94 +172,127 @@ export default function Products() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between animate-slide-up">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up mb-6">
                 <div>
-                    <h1 className="page-header text-3xl">Products</h1>
-                    <p className="text-text-muted mt-1 text-sm">{products.length} products in inventory</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-text">Inventory</h1>
+                    <p className="text-text-muted mt-1 text-sm">{products.length} products in catalog</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setShowBulkModal(true)} className="btn-secondary flex items-center gap-2">
-                        <HiOutlineCube className="w-5 h-5" /> Bulk CSV Import
+                    <button onClick={() => setShowBulkModal(true)} className="btn-secondary flex items-center gap-2 active:scale-[0.98] transition-transform">
+                        <HiOutlineCube className="w-4 h-4" /> Import CSV
                     </button>
-                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2">
-                        {showForm && !editId ? <HiOutlineX className="w-5 h-5" /> : <HiOutlinePlus className="w-5 h-5" />}
+                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform">
+                        {showForm && !editId ? <HiOutlineX className="w-4 h-4" /> : <HiOutlinePlus className="w-4 h-4" />}
                         {showForm && !editId ? 'Close' : 'Add Product'}
                     </button>
                 </div>
             </div>
 
             {showForm && (
-                <div className="glass-card p-6 animate-slide-up">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-base font-semibold text-text flex items-center gap-2">
-                            <HiOutlineCube className="w-5 h-5 text-primary" /> {editId ? 'Edit Product' : 'New Product'}
-                        </h3>
-                        <button onClick={() => { setShowForm(false); setEditId(null); }} className="text-text-muted hover:text-text transition-colors">
+                <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 animate-slide-up shadow-sm mb-8">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 className="text-lg font-semibold text-text tracking-tight">
+                                {editId ? 'Edit Product' : 'New Product'}
+                            </h3>
+                            <p className="text-sm text-text-muted mt-1">
+                                {editId ? 'Update product details and inventory.' : 'Add a new product to your catalog.'}
+                            </p>
+                        </div>
+                        <button onClick={() => { setShowForm(false); setEditId(null); }} className="p-2 rounded-full text-text-muted hover:text-text hover:bg-surface-lighter transition-colors">
                             <HiOutlineX className="w-5 h-5" />
                         </button>
                     </div>
                     
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Basic Info */}
-                        <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Basic Info</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex gap-2">
-                                    <input className="input-field w-full" placeholder="Product Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-                                    <button 
-                                        type="button" 
-                                        onClick={handleGenerateAiCopy} 
-                                        disabled={isGenerating || !form.name}
-                                        className="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 rounded-xl text-sm font-medium hover:bg-indigo-600/30 transition-colors whitespace-nowrap disabled:opacity-50"
-                                    >
-                                        ✨ AI Optimize
-                                    </button>
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Basic Info */}
+                            <div className="lg:col-span-2 space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div className="flex flex-col gap-1.5 md:col-span-2">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-[13px] font-medium text-text">Product Name</label>
+                                            <button 
+                                                type="button" 
+                                                onClick={handleGenerateAiCopy} 
+                                                disabled={isGenerating || !form.name}
+                                                className="text-[11px] font-semibold uppercase tracking-wider text-primary hover:text-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 active:scale-[0.98]"
+                                            >
+                                                ✨ AI Optimize
+                                            </button>
+                                        </div>
+                                        <input className="input-field w-full" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">SKU</label>
+                                        <input className="input-field" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 relative">
+                                        <label className="text-[13px] font-medium text-text">Category</label>
+                                        <select className="input-field w-full" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                                            {STANDARD_CATEGORIES.map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                            <option value="Other">Other (Custom)</option>
+                                        </select>
+                                    </div>
+                                    {form.category === 'Other' && (
+                                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                                            <label className="text-[13px] font-medium text-text">Custom Category</label>
+                                            <input className="input-field w-full" value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col gap-1.5 md:col-span-2">
+                                        <label className="text-[13px] font-medium text-text">Description</label>
+                                        <textarea className="input-field w-full min-h-[100px] resize-y py-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                                    </div>
                                 </div>
-                                <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
-                                
-                                <div className="relative">
-                                    <select className="input-field w-full" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                                        {STANDARD_CATEGORIES.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                        <option value="Other">Other (Custom)</option>
-                                    </select>
-                                </div>
-                                {form.category === 'Other' && (
-                                    <input className="input-field w-full" placeholder="Type your custom category..." value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
-                                )}
                             </div>
-                            <textarea className="input-field w-full min-h-[80px] resize-y" placeholder="Product Description..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-                        </div>
 
-                        {/* Pricing & Stock */}
-                        <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Pricing & Stock</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Base Cost ({config.symbol})</label><input className="input-field" type="number" placeholder="Cost" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Current Price ({config.symbol})</label><input className="input-field" type="number" placeholder="Price" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Min Margin (%)</label><input className="input-field" type="number" step="0.1" placeholder="10" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Stock Level</label><input className="input-field" type="number" placeholder="Stock" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required /></div>
-                                <div className="flex flex-col"><label className="text-xs text-text-muted mb-1">Reorder Threshold</label><input className="input-field" type="number" placeholder="Threshold" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} /></div>
+                            {/* Pricing & Stock */}
+                            <div className="space-y-5 bg-surface-lighter/50 p-5 rounded-xl border border-[rgba(99,102,241,0.05)]">
+                                <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Pricing & Inventory</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Cost ({config.symbol})</label>
+                                        <input className="input-field" type="number" step="0.01" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Price ({config.symbol})</label>
+                                        <input className="input-field" type="number" step="0.01" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Min Margin %</label>
+                                        <input className="input-field" type="number" step="0.1" value={form.minMargin} onChange={e => setForm({ ...form, minMargin: e.target.value })} />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Stock</label>
+                                        <input className="input-field" type="number" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 col-span-2">
+                                        <label className="text-[13px] font-medium text-text">Reorder Threshold</label>
+                                        <input className="input-field" type="number" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {/* Product Links */}
-                        <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-text border-b border-[rgba(99,102,241,0.08)] pb-2">Your Product Links</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input className="input-field" placeholder="Amazon Link" value={form.productLinks.amazon} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, amazon: e.target.value } })} />
-                                <input className="input-field" placeholder="Flipkart Link" value={form.productLinks.flipkart} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, flipkart: e.target.value } })} />
-                                <input className="input-field" placeholder="Meesho Link" value={form.productLinks.meesho} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, meesho: e.target.value } })} />
-                                <input className="input-field" placeholder="Shopify Link" value={form.productLinks.shopify} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, shopify: e.target.value } })} />
+                        <div className="space-y-4 pt-6 border-t border-border">
+                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Sales Channels</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Amazon URL</label><input className="input-field" value={form.productLinks.amazon} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, amazon: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Flipkart URL</label><input className="input-field" value={form.productLinks.flipkart} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, flipkart: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Meesho URL</label><input className="input-field" value={form.productLinks.meesho} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, meesho: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Shopify URL</label><input className="input-field" value={form.productLinks.shopify} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, shopify: e.target.value } })} /></div>
                             </div>
                         </div>
 
-                        <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)]">
-                            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary px-6">
+                        <div className="flex gap-3 justify-end pt-6 border-t border-border">
+                            <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary px-6 active:scale-[0.98] transition-transform">
                                 Cancel
                             </button>
-                            <button type="submit" className="btn-primary px-6">
+                            <button type="submit" className="btn-primary px-6 active:scale-[0.98] transition-transform">
                                 {editId ? 'Save Changes' : 'Create Product'}
                             </button>
                         </div>
@@ -268,56 +301,58 @@ export default function Products() {
             )}
 
             {products.length === 0 ? (
-                <div className="glass-card empty-state">
-                    <HiOutlineCube className="empty-state-icon w-16 h-16" />
-                    <h3 className="text-lg font-semibold text-text mb-1">No products yet</h3>
-                    <p className="text-text-muted text-sm">Add your first product to get started with AI pricing</p>
+                <div className="bg-surface border border-border rounded-2xl flex flex-col items-center justify-center py-24 text-center">
+                    <div className="w-16 h-16 bg-surface-lighter rounded-2xl flex items-center justify-center mb-4">
+                        <HiOutlineCube className="w-8 h-8 text-text-muted" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-text mb-1 tracking-tight">No products found</h3>
+                    <p className="text-text-muted text-sm max-w-sm mb-6">Import your sales data via CSV or manually add a product to get started.</p>
+                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform">
+                        <HiOutlinePlus className="w-4 h-4" /> Add Product
+                    </button>
                 </div>
             ) : (
-                <div className="glass-card overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                <div className="bg-surface border border-border rounded-2xl overflow-hidden animate-slide-up shadow-sm">
                     {/* Mobile View */}
-                    <div className="md:hidden divide-y divide-[rgba(99,102,241,0.04)]">
+                    <div className="md:hidden divide-y divide-border">
                         {products.map((p) => {
                             const status = getStockStatus(p);
                             const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
                             return (
-                                <div key={p._id} className="p-4 flex flex-col gap-3">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/15 to-accent/10 flex items-center justify-center">
-                                                <HiOutlineCube className="w-5 h-5 text-primary" />
+                                <div key={p._id} className="p-5 flex flex-col gap-4 hover:bg-surface-lighter/30 transition-colors">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-surface-lighter border border-border flex items-center justify-center shrink-0">
+                                                <HiOutlineCube className="w-5 h-5 text-text-muted" />
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-text">{p.name}</p>
-                                                <p className="text-xs text-text-muted">{p.sku} • {p.category}</p>
+                                                <p className="font-semibold text-text leading-tight">{p.name}</p>
+                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                    <span className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border">{p.sku}</span>
+                                                    <span className="text-xs text-text-muted">{p.category}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <span className={`badge ${status.cls}`}>{status.text}</span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2 text-sm bg-surface-lighter/30 p-3 rounded-lg">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Base Cost</span>
-                                            <span className="font-medium text-text">{formatCurrency(p.baseCost)}</span>
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div className="flex flex-col p-3 bg-surface rounded-xl border border-border">
+                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-0.5">Price</span>
+                                            <span className="font-semibold text-text">{formatCurrency(p.currentPrice)}</span>
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-1">Current Price</span>
-                                            <span className="font-medium text-text">{formatCurrency(p.currentPrice)}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Margin</span>
-                                            <span className={`font-semibold ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-text-muted text-xs block">Stock</span>
-                                            <span className="font-medium text-text">{p.stockLevel}</span>
+                                        <div className="flex flex-col p-3 bg-surface rounded-xl border border-border">
+                                            <span className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-0.5">Stock</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-text">{p.stockLevel}</span>
+                                                <span className={`badge ${status.cls} px-1.5 py-0.5 text-[10px]`}>{status.text}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setHistoryProduct(p)} className="flex-1 py-2 rounded-lg bg-[rgba(16,185,129,0.1)] text-success hover:bg-success hover:text-white transition-all text-sm font-medium flex items-center justify-center gap-1">
-                                            <HiOutlineChartBar className="w-4 h-4" /> Trend
+                                    <div className="flex gap-2 mt-1">
+                                        <button onClick={() => setHistoryProduct(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold flex items-center justify-center gap-1 active:scale-[0.98]">
+                                            <HiOutlineChartBar className="w-3.5 h-3.5" /> Trend
                                         </button>
-                                        <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-lg bg-[rgba(99,102,241,0.1)] text-primary hover:bg-primary hover:text-white transition-all text-sm font-medium">Edit</button>
-                                        <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-lg bg-[rgba(239,68,68,0.1)] text-danger hover:bg-danger hover:text-white transition-all text-sm font-medium">Delete</button>
+                                        <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold active:scale-[0.98]">Edit</button>
+                                        <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98]">Delete</button>
                                     </div>
                                 </div>
                             );
@@ -325,54 +360,56 @@ export default function Products() {
                     </div>
                     {/* Desktop View */}
                     <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-[rgba(99,102,241,0.08)]">
-                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Product</th>
-                                    <th className="text-left px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">SKU</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Base Cost</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Price</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Margin</th>
-                                    <th className="text-right px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Stock</th>
-                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Status</th>
-                                    <th className="text-center px-6 py-4 text-[11px] font-semibold text-text-muted uppercase">Actions</th>
+                                <tr className="border-b border-border bg-surface-lighter/50">
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider">Product</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider">SKU</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Base Cost</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Price</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Margin</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Stock</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Status</th>
+                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[rgba(99,102,241,0.04)]">
+                            <tbody className="divide-y divide-border">
                                 {products.map((p, i) => {
                                     const status = getStockStatus(p);
                                     const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
                                     return (
-                                        <tr key={p._id} className="hover:bg-[rgba(99,102,241,0.03)] transition-colors animate-fade-in"
+                                        <tr key={p._id} className="group hover:bg-surface-lighter/40 transition-colors animate-fade-in"
                                             style={{ animationDelay: `${i * 0.03}s` }}>
-                                            <td className="px-6 py-4">
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/15 to-accent/10 flex items-center justify-center">
-                                                        <HiOutlineCube className="w-4 h-4 text-primary" />
+                                                    <div className="w-9 h-9 rounded-xl bg-surface-lighter border border-border flex items-center justify-center shrink-0 group-hover:bg-surface transition-colors">
+                                                        <HiOutlineCube className="w-4 h-4 text-text-muted" />
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium text-text">{p.name}</p>
-                                                        <p className="text-[11px] text-text-muted">{p.category}</p>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[13px] font-semibold text-text">{p.name}</span>
+                                                        <span className="text-[11px] text-text-muted">{p.category}</span>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-text-muted font-mono text-xs">{p.sku}</td>
-                                            <td className="px-6 py-4 text-sm text-text-muted text-right">{formatCurrency(p.baseCost)}</td>
-                                            <td className="px-6 py-4 text-sm font-semibold text-text text-right">{formatCurrency(p.currentPrice)}</td>
-                                            <td className="px-6 py-4 text-sm text-right">
+                                            <td className="px-6 py-4 whitespace-nowrap text-[12px] text-text-muted font-mono">{p.sku}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text-muted text-right font-medium">{formatCurrency(p.baseCost)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] font-semibold text-text text-right">{formatCurrency(p.currentPrice)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-right">
                                                 <span className={`font-semibold ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-text text-right font-medium">{p.stockLevel}</td>
-                                            <td className="px-6 py-4 text-center"><span className={`badge ${status.cls}`}>{status.text}</span></td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button onClick={() => setHistoryProduct(p)} className="p-2 rounded-lg text-text-muted hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Price History Trend">
-                                                        <HiOutlineChartBar className="w-4.5 h-4.5 text-emerald-400" />
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text text-right font-semibold">{p.stockLevel}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <span className={`badge ${status.cls}`}>{status.text}</span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => setHistoryProduct(p)} className="p-1.5 rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-colors" title="Trend">
+                                                        <HiOutlineChartBar className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleEditClick(p)} className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all" title="Edit">
+                                                    <button onClick={() => handleEditClick(p)} className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors" title="Edit">
                                                         <HiOutlinePencil className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(p._id)} className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-all" title="Delete">
+                                                    <button onClick={() => handleDelete(p._id)} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors" title="Delete">
                                                         <HiOutlineTrash className="w-4 h-4" />
                                                     </button>
                                                 </div>
