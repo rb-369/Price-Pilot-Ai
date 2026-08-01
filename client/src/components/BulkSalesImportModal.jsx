@@ -7,8 +7,11 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
   const [fileContent, setFileContent] = useState('');
   const [parsedData, setParsedData] = useState([]);
   const [importing, setImporting] = useState(false);
-  const [mappingState, setMappingState] = useState('idle'); // idle | mapping | mapping_done
+  const [mappingState, setMappingState] = useState('idle'); // idle | mapping | mapping_done | wizard | done_with_warnings
   const [validation, setValidation] = useState(null); // { valid: [], invalid: [] }
+  const [isHistorical, setIsHistorical] = useState(false);
+  const [missingProducts, setMissingProducts] = useState([]);
+  const [outOfStockWarnings, setOutOfStockWarnings] = useState([]);
   const fileInputRef = useRef(null);
 
   const parseCSVRaw = (csvText) => {
@@ -95,15 +98,52 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
     reader.readAsText(file);
   };
 
-  const handleImport = async () => {
+  const handleImport = async (productsToCreate = null) => {
     if (!validation || validation.valid.length === 0) return;
     
     setImporting(true);
-    const loadingToast = toast.loading('Importing sales data...');
+    let loadingToast = toast.loading('Importing sales data...');
     try {
-      const response = await api.post('/sales/upload', { orders: validation.valid });
+      if (productsToCreate) {
+          toast.loading('Creating missing products...', { id: loadingToast });
+          await api.bulkImportProducts(productsToCreate);
+          loadingToast = toast.loading('Importing sales data...', { id: loadingToast });
+      }
+
+      const response = await api.post('/sales/upload', { orders: validation.valid, isHistorical });
       if (response.data.success) {
         toast.success(response.data.message, { id: loadingToast });
+        
+        const skippedDetails = response.data.skippedDetails || [];
+        const missing = skippedDetails.filter(s => s.reason === 'Product not found');
+        const oos = skippedDetails.filter(s => s.reason === 'Out of stock');
+        
+        if (missing.length > 0) {
+           const uniqueMissing = [];
+           const seen = new Set();
+           missing.forEach(m => {
+              if (!seen.has(m.productName)) {
+                 seen.add(m.productName);
+                 uniqueMissing.push({
+                     name: m.productName,
+                     sku: m.productName,
+                     baseCost: m.salePrice ? parseFloat((m.salePrice * 0.5).toFixed(2)) : 10,
+                     currentPrice: m.salePrice || 20,
+                     stockLevel: 100
+                 });
+              }
+           });
+           setMissingProducts(uniqueMissing);
+           setMappingState('wizard');
+           return;
+        }
+        
+        if (oos.length > 0) {
+           setOutOfStockWarnings(oos);
+           setMappingState('done_with_warnings');
+           return;
+        }
+
         if (onSuccess) onSuccess();
       }
     } catch (error) {
@@ -136,6 +176,21 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                 <p className="text-sm font-medium text-text-primary">Click to upload CSV or Excel</p>
                 <p className="text-xs text-text-secondary mt-1">Any tabular format is supported.</p>
                 <input type="file" accept=".csv,.xlsx" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
+              </div>
+              
+              <div className="bg-surface-hover/50 border border-border rounded-xl p-5">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                      <input 
+                          type="checkbox" 
+                          className="mt-1 w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary focus:ring-offset-surface"
+                          checked={isHistorical}
+                          onChange={(e) => setIsHistorical(e.target.checked)}
+                      />
+                      <div>
+                          <p className="text-sm font-semibold text-text-primary">Importing Historical Data?</p>
+                          <p className="text-xs text-text-secondary mt-1">Enable this if you are importing old sales data. When enabled, this import will <strong className="text-primary">NOT</strong> deduct from your current product stock levels.</p>
+                      </div>
+                  </label>
               </div>
               
               <div className="bg-surface-hover/30 border border-border rounded-xl p-5 text-sm text-text-secondary space-y-4">
@@ -202,6 +257,93 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                 )}
              </div>
           )}
+
+          {mappingState === 'wizard' && (
+             <div className="space-y-4">
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
+                    <h3 className="text-amber-500 font-semibold flex items-center gap-2">
+                        <FiAlertCircle /> Missing Products Found
+                    </h3>
+                    <p className="text-sm text-amber-500/80 mt-1">
+                        We couldn't find the following products in your PricePilot database. Please fill in their details below to create them and retry the import.
+                    </p>
+                </div>
+                <div className="border border-border rounded-xl overflow-hidden overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-surface-hover border-b border-border text-text-secondary">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">Product Name</th>
+                                <th className="px-4 py-3 font-medium">SKU</th>
+                                <th className="px-4 py-3 font-medium">Base Cost</th>
+                                <th className="px-4 py-3 font-medium">Sale Price</th>
+                                <th className="px-4 py-3 font-medium">Initial Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {missingProducts.map((p, i) => (
+                                <tr key={i} className="hover:bg-surface-hover/30">
+                                    <td className="px-4 py-2 text-text-primary truncate max-w-[200px]">{p.name}</td>
+                                    <td className="px-4 py-2">
+                                        <input type="text" className="w-full bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.sku} onChange={e => {
+                                            const newArr = [...missingProducts];
+                                            newArr[i].sku = e.target.value;
+                                            setMissingProducts(newArr);
+                                        }} />
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.baseCost} onChange={e => {
+                                            const newArr = [...missingProducts];
+                                            newArr[i].baseCost = parseFloat(e.target.value);
+                                            setMissingProducts(newArr);
+                                        }} />
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.currentPrice} onChange={e => {
+                                            const newArr = [...missingProducts];
+                                            newArr[i].currentPrice = parseFloat(e.target.value);
+                                            setMissingProducts(newArr);
+                                        }} />
+                                    </td>
+                                    <td className="px-4 py-2">
+                                        <input type="number" className="w-24 bg-surface border border-border rounded px-2 py-1 text-text-primary" value={p.stockLevel} onChange={e => {
+                                            const newArr = [...missingProducts];
+                                            newArr[i].stockLevel = parseInt(e.target.value);
+                                            setMissingProducts(newArr);
+                                        }} />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+             </div>
+          )}
+          
+          {mappingState === 'done_with_warnings' && (
+             <div className="space-y-4">
+                <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-4 text-center">
+                    <FiCheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                    <h3 className="text-emerald-500 font-semibold text-lg">Sales Imported Successfully</h3>
+                    <p className="text-sm text-emerald-500/80 mt-1">Most of your sales were imported without issues.</p>
+                </div>
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                    <h3 className="text-red-400 font-semibold flex items-center gap-2 mb-2">
+                        <FiAlertCircle /> Out of Stock Skipped Rows ({outOfStockWarnings.length})
+                    </h3>
+                    <p className="text-sm text-red-400/80 mb-3">
+                        The following sales were skipped because the products do not have enough inventory on record. Please update your stock levels on the Products page and re-import these rows, or check "Historical Data".
+                    </p>
+                    <div className="max-h-40 overflow-y-auto space-y-2">
+                        {outOfStockWarnings.map((w, i) => (
+                            <div key={i} className="text-xs bg-red-500/5 p-2 rounded border border-red-500/10 flex justify-between">
+                                <span className="font-medium text-red-300">{w.productName}</span>
+                                <span className="text-red-400/70">Stock: {w.currentStock} | Required: {w.requestedQuantity}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+             </div>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-border bg-surface flex justify-end gap-3">
@@ -212,7 +354,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           {mappingState === 'mapping_done' && (
               <button 
                   type="button" 
-                  onClick={handleImport} 
+                  onClick={() => handleImport()} 
                   disabled={importing || validation?.valid.length === 0} 
                   className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
               >
@@ -221,6 +363,34 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                   ) : (
                       <>Import Valid Rows Only</>
                   )}
+              </button>
+          )}
+          
+          {mappingState === 'wizard' && (
+              <button 
+                  type="button" 
+                  onClick={() => handleImport(missingProducts)} 
+                  disabled={importing} 
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                  {importing ? (
+                      <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                  ) : (
+                      <>Create Products & Retry Import</>
+                  )}
+              </button>
+          )}
+
+          {mappingState === 'done_with_warnings' && (
+              <button 
+                  type="button" 
+                  onClick={() => {
+                      if (onSuccess) onSuccess();
+                      onClose();
+                  }} 
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors"
+              >
+                  Acknowledge & Close
               </button>
           )}
         </div>

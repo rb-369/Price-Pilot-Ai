@@ -80,7 +80,7 @@ exports.handleWebhook = async (req, res) => {
 exports.handleBulkUpload = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { orders } = req.body; // Expects an array of valid order objects parsed by the frontend
+        const { orders, isHistorical = false } = req.body; 
         
         if (!Array.isArray(orders) || orders.length === 0) {
             return res.status(400).json({ success: false, message: 'No valid orders provided.' });
@@ -88,25 +88,24 @@ exports.handleBulkUpload = async (req, res) => {
 
         let processed = 0;
         let skipped = 0;
+        const skippedDetails = []; // To return granular errors back to the frontend
 
         for (const orderData of orders) {
             const { productId, orderId, quantity, salePrice } = orderData;
             
-            // Skip invalid rows silently here (already validated by frontend, this is a safety net)
             if (!productId || !orderId || !quantity || !salePrice) {
                 skipped++;
+                skippedDetails.push({ row: orderId, reason: 'Missing required fields', productName: productId });
                 continue;
             }
 
             try {
-                // Check if product exists and belongs to user
                 let product;
                 const mongoose = require('mongoose');
                 if (mongoose.isValidObjectId(productId)) {
                     product = await Product.findOne({ _id: productId, userId });
                 } 
                 if (!product) {
-                    // Try to find by name or sku (case-insensitive), escaping regex special characters
                     const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const escapedId = escapeRegExp(productId);
                     product = await Product.findOne({ 
@@ -119,36 +118,40 @@ exports.handleBulkUpload = async (req, res) => {
                 }
                 
                 if (!product) {
-                    // Auto-create product on the fly if it doesn't exist
-                    product = new Product({
-                        userId,
-                        name: productId,
-                        sku: productId,
-                        baseCost: Math.max(1, salePrice * 0.5), // Approximate a 50% margin base cost
-                        currentPrice: salePrice,
-                        stockLevel: 100,
-                        reorderThreshold: 10,
-                        category: 'Imported',
-                        source: 'manual'
-                    });
-                    await product.save();
+                    skipped++;
+                    skippedDetails.push({ row: orderId, reason: 'Product not found', productName: productId, salePrice });
+                    continue;
                 }
                 
-                // Override the arbitrary 'productId' string from the CSV with the real MongoDB ObjectId
-                orderData.productId = product._id;
+                // Stock deduction check
+                if (!isHistorical && product.stockLevel - quantity < 0) {
+                    skipped++;
+                    skippedDetails.push({ row: orderId, reason: 'Out of stock', productName: product.name, currentStock: product.stockLevel, requestedQuantity: quantity });
+                    continue;
+                }
 
                 // Skip duplicates
                 const existingOrder = await Order.findOne({ userId, orderId });
                 if (existingOrder) {
                     skipped++;
+                    skippedDetails.push({ row: orderId, reason: 'Duplicate order ID', productName: product.name });
                     continue;
                 }
 
+                orderData.productId = product._id;
                 await processOrder(userId, { ...orderData, source: 'manual_csv' });
+                
+                // Deduct stock if not historical
+                if (!isHistorical) {
+                    product.stockLevel -= quantity;
+                    await product.save();
+                }
+
                 processed++;
             } catch (err) {
                 logger.error(`Error processing bulk order ${orderId}:`, err);
                 skipped++;
+                skippedDetails.push({ row: orderId, reason: 'Server processing error', productName: productId });
             }
         }
 
@@ -156,7 +159,8 @@ exports.handleBulkUpload = async (req, res) => {
             success: true, 
             message: `Processed ${processed} orders. Skipped ${skipped}.`,
             processed,
-            skipped
+            skipped,
+            skippedDetails
         });
     } catch (error) {
         logger.error('Error handling bulk sales upload:', error);
