@@ -106,19 +106,32 @@ exports.handleBulkUpload = async (req, res) => {
                     product = await Product.findOne({ _id: productId, userId });
                 } 
                 if (!product) {
-                    // Try to find by name or sku (case-insensitive)
+                    // Try to find by name or sku (case-insensitive), escaping regex special characters
+                    const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const escapedId = escapeRegExp(productId);
                     product = await Product.findOne({ 
                         userId, 
                         $or: [
-                            { name: { $regex: new RegExp(`^${productId}$`, 'i') } },
-                            { sku: { $regex: new RegExp(`^${productId}$`, 'i') } }
+                            { name: { $regex: new RegExp(`^${escapedId}$`, 'i') } },
+                            { sku: { $regex: new RegExp(`^${escapedId}$`, 'i') } }
                         ] 
                     });
                 }
                 
                 if (!product) {
-                    skipped++;
-                    continue;
+                    // Auto-create product on the fly if it doesn't exist
+                    product = new Product({
+                        userId,
+                        name: productId,
+                        sku: productId,
+                        baseCost: Math.max(1, salePrice * 0.5), // Approximate a 50% margin base cost
+                        currentPrice: salePrice,
+                        stockLevel: 100,
+                        reorderThreshold: 10,
+                        category: 'Imported',
+                        source: 'manual'
+                    });
+                    await product.save();
                 }
                 
                 // Override the arbitrary 'productId' string from the CSV with the real MongoDB ObjectId
