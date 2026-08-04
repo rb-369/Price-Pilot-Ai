@@ -187,7 +187,17 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 
         # 7. Invoke Agent
         result = await agent.ainvoke({"messages": all_messages})
-        response = result["messages"][-1].content
+        raw_content = result["messages"][-1].content
+        
+        # Handle cases where the LLM returns a list of content blocks (e.g., tool calls + text)
+        if isinstance(raw_content, list):
+            # Extract all text blocks and join them
+            response = " ".join([c.get("text", "") for c in raw_content if isinstance(c, dict) and c.get("type") == "text" and "text" in c])
+            if not response.strip():
+                # Fallback if no text block found
+                response = str(raw_content)
+        else:
+            response = str(raw_content)
         
         # Save to episodic memory asynchronously (fire-and-forget for now)
         memory.save_episodic_interaction(latest_query, response)
