@@ -171,12 +171,14 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
 
         # 5. Create LangGraph Agent
         from langgraph.prebuilt import create_react_agent
+        from langchain_core.messages import SystemMessage
         
         full_system_prompt = SYSTEM_PROMPT.format(context=context_str)
-        agent = create_react_agent(llm, tools, state_modifier=full_system_prompt)
+        # We pass tools, but remove state_modifier to support older langgraph versions
+        agent = create_react_agent(llm, tools)
         
         # 6. Format message history for LangGraph
-        all_messages = []
+        all_messages = [SystemMessage(content=full_system_prompt)]
         for msg in messages:
             if msg["role"] == "user":
                 all_messages.append(HumanMessage(content=msg["content"]))
