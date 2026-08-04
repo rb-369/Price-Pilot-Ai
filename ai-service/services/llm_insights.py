@@ -143,10 +143,9 @@ async def _generate_with_gemini(
             }
             # List of reliable free models to try in sequence
             fallback_models = [
-                "meta-llama/llama-3.3-70b-instruct:free",
-                "google/gemini-2.5-flash:free",
-                "nvidia/nemotron-3-ultra-550b-a55b:free",
-                "openrouter/auto"
+                "google/gemma-4-31b-it:free",
+                "openrouter/free",
+                "nvidia/nemotron-3-ultra-550b-a55b:free"
             ]
             async with httpx.AsyncClient(timeout=30) as http_client:
                 for model_name in fallback_models:

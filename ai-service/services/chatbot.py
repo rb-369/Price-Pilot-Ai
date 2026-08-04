@@ -17,11 +17,16 @@ from services.vector_store import get_retriever, ingest_data
 
 SYSTEM_PROMPT = """You are PricePilot AI, an intelligent e-commerce pricing and inventory assistant.
 You help merchants analyze demand, optimize pricing, and manage stock.
-Answer the user's questions clearly and concisely.
-Use specific numbers when referring to data.
+Answer the user's questions clearly, concisely, and professionally.
+
+CRITICAL INSTRUCTIONS:
+1. NO HALLUCINATIONS: If the answer is not contained within the provided context or chat history, you MUST say "I don't have that information." Do not guess prices, stock levels, or competitor data.
+2. USE CONTEXT: Rely strictly on the real-time request context and memory chunks provided below.
+3. BE SPECIFIC: Use exact numbers, percentages, and names from the context.
+4. TONE: Be helpful, analytical, and direct. Avoid overly fluffy language.
 
 --- 
-Context Information below is automatically retrieved from the PricePilot vector database and active memory:
+Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
 {context}
 """
 
@@ -51,7 +56,7 @@ class WorkingMemory:
 
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
-            semantic_retriever = get_retriever(k=2, collection_name=self._collection_name_semantic)
+            semantic_retriever = get_retriever(k=5, collection_name=self._collection_name_semantic)
             semantic_docs = await semantic_retriever.ainvoke(latest_query)
             if semantic_docs:
                 semantic_text = "\n".join([d.page_content for d in semantic_docs])
@@ -61,7 +66,7 @@ class WorkingMemory:
 
         # 3. RAG from Episodic Memory (Past events)
         try:
-            episodic_retriever = get_retriever(k=2, collection_name=self._collection_name_episodic)
+            episodic_retriever = get_retriever(k=5, collection_name=self._collection_name_episodic)
             episodic_docs = await episodic_retriever.ainvoke(latest_query)
             if episodic_docs:
                 episodic_text = "\n".join([d.page_content for d in episodic_docs])
@@ -113,23 +118,34 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     try:
         if gemini_key:
             primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
+                model="gemini-2.5-flash",
+                google_api_key=gemini_key,
+            )
+            secondary_llm = ChatGoogleGenerativeAI(
+                model="gemini-1.5-pro",
                 google_api_key=gemini_key,
             )
         else:
             primary_llm = None
+            secondary_llm = None
         
         if openrouter_key:
             fallback_llm = ChatOpenAI(
-                model="meta-llama/llama-3.3-70b-instruct:free",
+                model="google/gemma-4-31b-it:free",
                 base_url="https://openrouter.ai/api/v1",
                 api_key=openrouter_key
             )
         else:
             fallback_llm = None
         
-        if primary_llm and fallback_llm:
-            llm = primary_llm.with_fallbacks([fallback_llm])
+        fallbacks = []
+        if secondary_llm:
+            fallbacks.append(secondary_llm)
+        if fallback_llm:
+            fallbacks.append(fallback_llm)
+            
+        if primary_llm and fallbacks:
+            llm = primary_llm.with_fallbacks(fallbacks)
         elif primary_llm:
             llm = primary_llm
         elif fallback_llm:
