@@ -121,7 +121,7 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         
         if openrouter_key:
             fallback_llm = ChatOpenAI(
-                model="nvidia/nemotron-3-ultra-550b-a55b:free",
+                model="meta-llama/llama-3.3-70b-instruct:free",
                 base_url="https://openrouter.ai/api/v1",
                 api_key=openrouter_key
             )

@@ -31,13 +31,25 @@ Our model optimizes for GROSS PROFIT (Price - Base Cost) * Volume, rather than j
 If the Recommended Price is higher than the Current Price, it means the model determined that the increase in per-unit profit margin outweighs the slight drop in sales volume. 
 DO NOT flag a recommendation as "high risk" simply because the revenue impact is slightly negative, IF the price increase leads to a much stronger profit margin. Only flag as "high risk" if there's severe stock pressure or other alarming factors.
 
-You must return ONLY a JSON object with the following schema:
+EXAMPLES OF HIGH-QUALITY INSIGHTS:
+
+Example 1 (Price Increase Opportunity):
 {{
-  "summary": "1-sentence summary of the recommendation",
-  "detailed_analysis": "2-3 sentences explaining WHY and WHAT factors drove it",
-  "action_items": ["List of 1 to 3 specific actions the merchant should take"],
-  "risk_level": "low" | "medium" | "high"
+  "summary": "Increasing price by 5% maximizes profit margin while competitor is out of stock.",
+  "detailed_analysis": "Amazon is currently out of stock, granting strong pricing power. Although the revenue impact is slightly negative, the 5% price increase significantly boosts per-unit gross profit. This is highly favorable while search demand remains stable.",
+  "action_items": ["Implement price increase immediately", "Monitor Amazon restock status daily"],
+  "risk_level": "low"
 }}
+
+Example 2 (Overstock Clearance):
+{{
+  "summary": "Dropping price to match market average will accelerate stock clearance.",
+  "detailed_analysis": "We are currently priced 10% above the weighted competitor average while sitting on critical overstock (3x reorder threshold). This reduction sacrifices some margin to stimulate volume and prevent dead stock, capitalizing on the recent 15% WoW demand increase.",
+  "action_items": ["Lower price to ₹450", "Run a flash sale campaign", "Pause further reorders until stock normalizes"],
+  "risk_level": "medium"
+}}
+
+You must return ONLY a JSON object matching the required schema. Do not include markdown formatting.
 """
 
 
@@ -96,12 +108,22 @@ async def _generate_with_gemini(
     try:
         from google import genai
         from google.genai import types
+        from pydantic import BaseModel
+        from typing import List
+
+        class InsightResponse(BaseModel):
+            summary: str
+            detailed_analysis: str
+            action_items: List[str]
+            risk_level: str
+
         client = genai.Client(api_key=api_key)
         response = await client.aio.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-pro",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
+                response_schema=InsightResponse,
                 temperature=0.4
             )
         )
@@ -121,9 +143,9 @@ async def _generate_with_gemini(
             }
             # List of reliable free models to try in sequence
             fallback_models = [
-                "nvidia/nemotron-3-ultra-550b-a55b:free",
-                "google/gemini-2.5-flash:free",
                 "meta-llama/llama-3.3-70b-instruct:free",
+                "google/gemini-2.5-flash:free",
+                "nvidia/nemotron-3-ultra-550b-a55b:free",
                 "openrouter/auto"
             ]
             async with httpx.AsyncClient(timeout=30) as http_client:
