@@ -20,10 +20,11 @@ You help merchants analyze demand, optimize pricing, and manage stock.
 Answer the user's questions clearly, concisely, and professionally.
 
 CRITICAL INSTRUCTIONS:
-1. NO HALLUCINATIONS: If the answer is not contained within the provided context or chat history, you MUST say "I don't have that information." Do not guess prices, stock levels, or competitor data.
-2. USE CONTEXT: Rely strictly on the real-time request context and memory chunks provided below.
-3. BE SPECIFIC: Use exact numbers, percentages, and names from the context.
-4. TONE: Be helpful, analytical, and direct. Avoid overly fluffy language.
+1. NO HALLUCINATIONS: If the answer is not contained within the provided context, chat history, or web search, you MUST say "I don't have that information." Do not guess prices, stock levels, or competitor data.
+2. USE TOOLS: You have access to a Web Search tool. Use it whenever a user asks about current market trends, news, or competitor pricing that isn't in your context.
+3. USE CONTEXT: Rely strictly on the real-time request context and memory chunks provided below for inventory data.
+4. BE SPECIFIC: Use exact numbers, percentages, and names from the context.
+5. TONE: Be helpful, analytical, and direct. Avoid overly fluffy language.
 
 --- 
 Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
@@ -153,33 +154,45 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         else:
             return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
         
-        # 4. Create RAG Chain
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", SYSTEM_PROMPT),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}")
-        ])
+        # 4. Setup Tools
+        tools = []
+        tavily_key = os.getenv("TAVILY_API_KEY")
+        if tavily_key:
+            from langchain_community.tools.tavily_search import TavilySearchResults
+            tools.append(TavilySearchResults(max_results=3))
         
-        rag_chain = (
-            prompt
-            | llm
-            | StrOutputParser()
-        )
+        if not tools:
+            from langchain_core.tools import tool
+            @tool
+            def dummy_search(query: str) -> str:
+                """Dummy search tool."""
+                return "Web search is currently disabled."
+            tools.append(dummy_search)
+
+        # 5. Create LangGraph Agent
+        from langgraph.prebuilt import create_react_agent
         
-        # 5. Format message history for LangChain
-        chat_history = memory.get_langchain_history()
-        # 7. Invoke Chain (always runs, even if retrieval failed)
-        # Invoke Chain
-        response = await rag_chain.ainvoke({
-            "context": context_str,
-            "input": latest_query,
-            "chat_history": chat_history
-        })
+        full_system_prompt = SYSTEM_PROMPT.format(context=context_str)
+        agent = create_react_agent(llm, tools, state_modifier=full_system_prompt)
+        
+        # 6. Format message history for LangGraph
+        all_messages = []
+        for msg in messages:
+            if msg["role"] == "user":
+                all_messages.append(HumanMessage(content=msg["content"]))
+            else:
+                all_messages.append(AIMessage(content=msg["content"]))
+                
+        # 7. Invoke Agent
+        result = await agent.ainvoke({"messages": all_messages})
+        response = result["messages"][-1].content
         
         # Save to episodic memory asynchronously (fire-and-forget for now)
         memory.save_episodic_interaction(latest_query, response)
         
         return response
     except Exception as e:
-        print(f"Chatbot Chain Error: {e}")
+        import traceback
+        print(f"Chatbot LangGraph Error: {e}")
+        traceback.print_exc()
         return "Oops! I encountered an error while processing your request. Please try again later."
