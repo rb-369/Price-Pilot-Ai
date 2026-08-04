@@ -172,16 +172,16 @@ export default function Products() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-text">Inventory</h1>
-                    <p className="text-text-muted mt-1 text-sm">{products.length} products in catalog</p>
+                    <h1 className="text-3xl font-semibold tracking-tight text-text">Inventory</h1>
+                    <p className="text-text-muted mt-1.5 text-sm">{products.length} products in catalog</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setShowBulkModal(true)} className="btn-secondary flex items-center gap-2 active:scale-[0.98] transition-transform">
+                    <button onClick={() => setShowBulkModal(true)} className="btn-secondary flex items-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
                         <HiOutlineCube className="w-4 h-4" /> Import CSV
                     </button>
-                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform">
+                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
                         {showForm && !editId ? <HiOutlineX className="w-4 h-4" /> : <HiOutlinePlus className="w-4 h-4" />}
                         {showForm && !editId ? 'Close' : 'Add Product'}
                     </button>
@@ -189,13 +189,14 @@ export default function Products() {
             </div>
 
             {showForm && (
-                <div className="bg-surface border border-border rounded-2xl p-6 md:p-8 animate-slide-up shadow-sm mb-8">
+                <div className="glass-card p-6 md:p-8 animate-slide-up mb-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent"></div>
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-lg font-semibold text-text tracking-tight">
+                            <h3 className="text-xl font-medium text-text tracking-tight">
                                 {editId ? 'Edit Product' : 'New Product'}
                             </h3>
-                            <p className="text-sm text-text-muted mt-1">
+                            <p className="text-sm text-text-muted mt-1.5">
                                 {editId ? 'Update product details and inventory.' : 'Add a new product to your catalog.'}
                             </p>
                         </div>
@@ -250,8 +251,8 @@ export default function Products() {
                             </div>
 
                             {/* Pricing & Stock */}
-                            <div className="space-y-5 bg-surface-lighter/50 p-5 rounded-xl border border-[rgba(99,102,241,0.05)]">
-                                <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Pricing & Inventory</h4>
+                            <div className="space-y-5 bg-surface-lighter/30 p-5 rounded-2xl ring-1 ring-border/50 shadow-sm">
+                                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">Pricing & Inventory</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-medium text-text">Cost ({config.symbol})</label>
@@ -301,18 +302,18 @@ export default function Products() {
             )}
 
             {products.length === 0 ? (
-                <div className="bg-surface border border-border rounded-2xl flex flex-col items-center justify-center py-24 text-center">
-                    <div className="w-16 h-16 bg-surface-lighter rounded-2xl flex items-center justify-center mb-4">
+                <div className="glass-card flex flex-col items-center justify-center py-24 text-center border-dashed border-2 border-border/50 bg-surface/30">
+                    <div className="w-16 h-16 bg-surface-lighter rounded-2xl flex items-center justify-center mb-5 ring-1 ring-border/50 shadow-sm">
                         <HiOutlineCube className="w-8 h-8 text-text-muted" />
                     </div>
-                    <h3 className="text-lg font-semibold text-text mb-1 tracking-tight">No products found</h3>
-                    <p className="text-text-muted text-sm max-w-sm mb-6">Import your sales data via CSV or manually add a product to get started.</p>
-                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform">
-                        <HiOutlinePlus className="w-4 h-4" /> Add Product
+                    <h3 className="text-lg font-medium text-text mb-2 tracking-tight">No products found</h3>
+                    <p className="text-text-muted text-sm max-w-sm mb-8 leading-relaxed">Import your sales data via CSV or manually add a product to get started.</p>
+                    <button onClick={openAddForm} className="btn-primary flex items-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
+                        <HiOutlineCube className="w-4 h-4" /> Add Product
                     </button>
                 </div>
             ) : (
-                <div className="bg-surface border border-border rounded-2xl overflow-hidden animate-slide-up shadow-sm">
+                <div className="glass-card overflow-hidden animate-slide-up shadow-sm">
                     {/* Mobile View */}
                     <div className="md:hidden divide-y divide-border">
                         {products.map((p) => {
@@ -361,15 +362,15 @@ export default function Products() {
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-border bg-surface-lighter/50">
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider">Product</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider">SKU</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Base Cost</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Price</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Margin</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-right">Stock</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Status</th>
-                                    <th className="px-6 py-3 text-[10px] font-bold text-text-muted uppercase tracking-wider text-center">Actions</th>
+                                <tr>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent">Product</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent">SKU</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-right">Base Cost</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-right">Price</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-right">Margin</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-right">Stock</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-center">Status</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-text-muted uppercase tracking-widest border-b border-border/40 bg-transparent text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -377,31 +378,31 @@ export default function Products() {
                                     const status = getStockStatus(p);
                                     const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
                                     return (
-                                        <tr key={p._id} className="group hover:bg-surface-lighter/40 transition-colors animate-fade-in"
+                                        <tr key={p._id} className="group hover:bg-surface-lighter/20 transition-colors animate-fade-in"
                                             style={{ animationDelay: `${i * 0.03}s` }}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-6 py-4 whitespace-nowrap border-b border-border/40">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-surface-lighter border border-border flex items-center justify-center shrink-0 group-hover:bg-surface transition-colors">
+                                                    <div className="w-9 h-9 rounded-lg bg-surface-lighter/50 border border-border/50 flex items-center justify-center shrink-0 shadow-sm">
                                                         <HiOutlineCube className="w-4 h-4 text-text-muted" />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[13px] font-semibold text-text">{p.name}</span>
-                                                        <span className="text-[11px] text-text-muted">{p.category}</span>
+                                                        <span className="text-[13px] font-medium text-text tracking-tight">{p.name}</span>
+                                                        <span className="text-[11px] text-text-muted mt-0.5">{p.category}</span>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[12px] text-text-muted font-mono">{p.sku}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text-muted text-right font-medium">{formatCurrency(p.baseCost)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] font-semibold text-text text-right">{formatCurrency(p.currentPrice)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-right">
-                                                <span className={`font-semibold ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[12px] text-text-muted font-mono border-b border-border/40">{p.sku}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text-muted text-right border-b border-border/40">{formatCurrency(p.baseCost)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] font-medium text-text text-right border-b border-border/40">{formatCurrency(p.currentPrice)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-right border-b border-border/40">
+                                                <span className={`font-medium ${margin > 20 ? 'text-success' : margin > 10 ? 'text-warning' : 'text-danger'}`}>{margin}%</span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text text-right font-semibold">{p.stockLevel}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                                            <td className="px-6 py-4 whitespace-nowrap text-[13px] text-text text-right font-medium border-b border-border/40">{p.stockLevel}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-center border-b border-border/40">
                                                 <span className={`badge ${status.cls}`}>{status.text}</span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center border-b border-border/40">
+                                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button onClick={() => setHistoryProduct(p)} className="p-1.5 rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-colors" title="Trend">
                                                         <HiOutlineChartBar className="w-4 h-4" />
                                                     </button>
