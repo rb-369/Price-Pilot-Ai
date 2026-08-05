@@ -2,6 +2,7 @@ const Product = require('../models/Product');
 const CompetitorPrice = require('../models/CompetitorPrice');
 const DemandSignal = require('../models/DemandSignal');
 const PriceHistory = require('../models/PriceHistory');
+const { checkProductForLowStock } = require('../services/inventoryMonitor');
 
 exports.getProducts = async (req, res) => {
     try {
@@ -69,6 +70,9 @@ exports.createProduct = async (req, res) => {
         _generateHistoricalDemandSignals(product).catch(err => {
             console.error(`[ProductCreate] Background demand signal generation failed for ${product._id}:`, err.message);
         });
+
+        // --- Fire-and-forget: Check for low stock immediately ---
+        checkProductForLowStock(product, req.user).catch(() => {});
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -99,6 +103,9 @@ exports.updateProduct = async (req, res) => {
                 timestamp: new Date(),
             }).catch(() => {});
         }
+
+        // --- Fire-and-forget: Check for low stock immediately ---
+        checkProductForLowStock(product, req.user).catch(() => {});
 
         res.json(product);
     } catch (error) {
@@ -233,6 +240,9 @@ exports.bulkImportProducts = async (req, res) => {
                 }).catch(() => {});
 
                 _generateHistoricalDemandSignals(product).catch(() => {});
+                
+                // Fire-and-forget low stock check
+                checkProductForLowStock(product, req.user).catch(() => {});
             } catch (err) {
                 errors.push({ row: i + 1, sku: item.sku || 'N/A', error: err.message });
             }

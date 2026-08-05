@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { scrapeCompetitorPrices } = require('../services/scraperService');
 const { collectDemandSignals } = require('../services/demandService');
+const { runGlobalInventoryCheck } = require('../services/inventoryMonitor');
 
 function initCronJobs() {
     // Scrape competitor prices every 6 hours
@@ -23,7 +24,6 @@ function initCronJobs() {
         }
     });
 
-    // Weekly ML model retraining (Sunday at 2 AM)
     const { processRetraining } = require('../services/retrainService');
     cron.schedule('0 2 * * 0', async () => {
         console.log('[CRON] Starting weekly ML elasticity retraining...');
@@ -31,6 +31,15 @@ function initCronJobs() {
             await processRetraining();
         } catch (err) {
             console.error('[CRON] Retraining failed:', err.message);
+        }
+    });
+
+    // Run global inventory low-stock check every 5 minutes
+    cron.schedule('*/5 * * * *', async () => {
+        try {
+            await runGlobalInventoryCheck();
+        } catch (err) {
+            console.error('[CRON] Global inventory check failed:', err.message);
         }
     });
 
