@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { HiOutlineInformationCircle, HiOutlineAdjustments } from 'react-icons/hi';
 import { useCurrency } from '../context/CurrencyContext';
@@ -18,26 +18,31 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-const ExplainabilityPanel = () => {
-    // Simulated SHAP/LIME contribution data
-    const [factors] = useState([
-        { name: 'Competitor Pricing', impact: 35, type: 'positive' },
-        { name: 'Social Sentiment', impact: 25, type: 'positive' },
-        { name: 'Weather Factor', impact: 15, type: 'positive' },
-        { name: 'Event/Seasonality', impact: 10, type: 'positive' },
-        { name: 'High Base Cost', impact: -15, type: 'negative' }
-    ]);
+const ExplainabilityPanel = ({ xaiData }) => {
+    const factors = xaiData?.factors || [];
+    const simulations = xaiData?.simulations || {
+        basePrice: 0,
+        scenarios: []
+    };
 
     const { formatCurrency } = useCurrency();
-    const [whatIfScenario, setWhatIfScenario] = useState('demand_surge');
-    const [simulatedPrice, setSimulatedPrice] = useState(120);
+    const [whatIfScenario, setWhatIfScenario] = useState('');
+    const [simulatedPrice, setSimulatedPrice] = useState(0);
+
+    useEffect(() => {
+        if (simulations.scenarios.length > 0 && !whatIfScenario) {
+            setWhatIfScenario(simulations.scenarios[0].id);
+            setSimulatedPrice(simulations.scenarios[0].price);
+        }
+    }, [simulations.scenarios, whatIfScenario]);
 
     const handleScenarioChange = (e) => {
-        const scenario = e.target.value;
-        setWhatIfScenario(scenario);
-        if (scenario === 'demand_surge') setSimulatedPrice(135);
-        if (scenario === 'competitor_drop') setSimulatedPrice(105);
-        if (scenario === 'stock_low') setSimulatedPrice(145);
+        const scenarioId = e.target.value;
+        setWhatIfScenario(scenarioId);
+        const scenario = simulations.scenarios.find(s => s.id === scenarioId);
+        if (scenario) {
+            setSimulatedPrice(scenario.price);
+        }
     };
 
     return (
@@ -88,9 +93,9 @@ const ExplainabilityPanel = () => {
                                     value={whatIfScenario}
                                     onChange={handleScenarioChange}
                                 >
-                                    <option value="demand_surge">Social Media Trend Surge (+80% Demand)</option>
-                                    <option value="competitor_drop">Key Competitor Drops Price (-20%)</option>
-                                    <option value="stock_low">Supply Chain Delay (Stock &lt; 5%)</option>
+                                    {simulations.scenarios.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>

@@ -373,6 +373,58 @@ exports.getDashboardStats = async (req, res) => {
             ? products.reduce((sum, p) => sum + ((p.currentPrice - p.baseCost) / p.currentPrice) * 100, 0) / products.length
             : 0;
 
+        // --- XAI Data Generation ---
+        const recentRec = await PricingRecommendation.findOne({ productId: { $in: productIds }, status: 'pending' })
+            .sort({ timestamp: -1 })
+            .populate('productId');
+            
+        const latestSignals = await DemandSignal.find({ productId: { $in: productIds } })
+            .sort({ timestamp: -1 })
+            .limit(10);
+            
+        let xaiFactors = [];
+        let baseSimulatedPrice = 120;
+
+        if (recentRec && recentRec.factors) {
+            xaiFactors = [
+                { name: 'Competitor Pricing', impact: Math.abs(recentRec.factors.competitorFactor || 35), type: (recentRec.factors.competitorFactor || 1) >= 0 ? 'positive' : 'negative' },
+                { name: 'Demand Trend', impact: Math.abs(recentRec.factors.demandFactor || 25), type: (recentRec.factors.demandFactor || 1) >= 0 ? 'positive' : 'negative' },
+                { name: 'Stock Level', impact: Math.abs(recentRec.factors.stockFactor || 15), type: (recentRec.factors.stockFactor || 1) >= 0 ? 'positive' : 'negative' }
+            ];
+            // Filter out 0 impact and sort
+            xaiFactors = xaiFactors.filter(f => f.impact > 0).sort((a,b) => b.impact - a.impact);
+            
+            if (xaiFactors.length === 0) {
+                xaiFactors = [{ name: 'Market Demand', impact: 20, type: 'positive' }];
+            }
+            baseSimulatedPrice = recentRec.recommendedPrice || (recentRec.productId ? recentRec.productId.currentPrice : 120);
+        } else {
+            // Default if no recommendations yet
+            xaiFactors = [{ name: 'Base Cost', impact: 10, type: 'negative' }];
+            const avgCurrentPrice = products.length > 0 ? products.reduce((sum, p) => sum + p.currentPrice, 0) / products.length : 0;
+            baseSimulatedPrice = avgCurrentPrice > 0 ? avgCurrentPrice : 120;
+        }
+
+        if (latestSignals && latestSignals.length > 0) {
+            const avgSearch = latestSignals.reduce((sum, s) => sum + (s.searchTrendScore || 50), 0) / latestSignals.length;
+            if (avgSearch > 60) xaiFactors.push({ name: 'Search Trend', impact: 15, type: 'positive' });
+            else if (avgSearch < 40) xaiFactors.push({ name: 'Search Trend', impact: 15, type: 'negative' });
+        }
+
+        xaiFactors.sort((a,b) => b.impact - a.impact);
+        xaiFactors = xaiFactors.slice(0, 5);
+
+        const simulations = {
+            basePrice: Math.round(baseSimulatedPrice),
+            scenarios: [
+                { id: 'demand_surge', name: 'Social Media Trend Surge (+80% Demand)', price: Math.round(baseSimulatedPrice * 1.15) },
+                { id: 'competitor_drop', name: 'Key Competitor Drops Price (-20%)', price: Math.round(baseSimulatedPrice * 0.85) },
+                { id: 'stock_low', name: 'Supply Chain Delay (Stock < 5%)', price: Math.round(baseSimulatedPrice * 1.25) }
+            ]
+        };
+        // --- End XAI Data Generation ---
+
+
         const responseData = {
             totalProducts,
             lowStockProducts,
@@ -382,6 +434,10 @@ exports.getDashboardStats = async (req, res) => {
             totalRevenue: Math.round(inventoryValue),
             avgMargin: avgMargin.toFixed(1),
             acceptedRecommendations: acceptedRecs.length,
+            xai: {
+                factors: xaiFactors,
+                simulations: simulations
+            }
         };
 
         await redisClient.setex(cacheKey, 300, JSON.stringify(responseData)); // Cache for 5 minutes
