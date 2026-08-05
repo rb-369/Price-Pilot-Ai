@@ -271,7 +271,7 @@ export default function Products() {
                                         <input className="input-field" type="number" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required />
                                     </div>
                                     <div className="flex flex-col gap-1.5 col-span-2">
-                                        <label className="text-[13px] font-medium text-text">Reorder Threshold</label>
+                                        <label className="text-[13px] font-medium text-text">Reorder Threshold <span className="text-text/50 font-normal">(Low Stock Level)</span></label>
                                         <input className="input-field" type="number" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} />
                                     </div>
                                 </div>
