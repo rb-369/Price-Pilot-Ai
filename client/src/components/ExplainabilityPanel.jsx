@@ -80,23 +80,22 @@ const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
                     <p className="text-sm text-text-muted mt-1">Understanding the factors driving current price recommendations</p>
                 </div>
                 
-                {recommendations.length > 0 && (
-                    <div className="flex items-center gap-3">
-                        <label className="text-xs font-semibold text-slate-400">Target:</label>
-                        <select 
-                            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                            value={selectedProductId}
-                            onChange={(e) => setSelectedProductId(e.target.value)}
-                        >
-                            <option value="global">Global (Latest Data)</option>
-                            {recommendations.map(rec => (
-                                <option key={rec.productId?._id} value={rec.productId?._id}>
-                                    {rec.productId?.name || 'Product'}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                <div className="flex items-center gap-3">
+                    <label className="text-xs font-semibold text-slate-400">Target:</label>
+                    <select 
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        value={selectedProductId}
+                        onChange={(e) => setSelectedProductId(e.target.value)}
+                        disabled={!recommendations || recommendations.length === 0}
+                    >
+                        <option value="global">Global (Latest Data)</option>
+                        {recommendations && recommendations.map(rec => (
+                            <option key={rec.productId?._id} value={rec.productId?._id}>
+                                {rec.productId?.name || 'Product'}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
