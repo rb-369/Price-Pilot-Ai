@@ -18,28 +18,52 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-const ExplainabilityPanel = ({ xaiData }) => {
-    const factors = xaiData?.factors || [];
-    const simulations = xaiData?.simulations || {
-        basePrice: 0,
-        scenarios: []
-    };
+const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
+    const [selectedProductId, setSelectedProductId] = useState('global');
+
+    // Determine the data to show based on selected product
+    let currentFactors = xaiData?.factors || [];
+    let currentSimulations = xaiData?.simulations || { basePrice: 0, scenarios: [] };
+
+    if (selectedProductId !== 'global') {
+        const selectedRec = recommendations.find(r => r.productId?._id === selectedProductId);
+        if (selectedRec) {
+            if (selectedRec.factors) {
+                const xai = [
+                    { name: 'Competitor Pricing', impact: Math.abs(selectedRec.factors.competitorFactor || 35), type: (selectedRec.factors.competitorFactor || 1) >= 0 ? 'positive' : 'negative' },
+                    { name: 'Demand Trend', impact: Math.abs(selectedRec.factors.demandFactor || 25), type: (selectedRec.factors.demandFactor || 1) >= 0 ? 'positive' : 'negative' },
+                    { name: 'Stock Level', impact: Math.abs(selectedRec.factors.stockFactor || 15), type: (selectedRec.factors.stockFactor || 1) >= 0 ? 'positive' : 'negative' }
+                ];
+                currentFactors = xai.filter(f => f.impact > 0).sort((a,b) => b.impact - a.impact);
+            }
+            
+            const basePrice = selectedRec.recommendedPrice || (selectedRec.productId ? selectedRec.productId.currentPrice : 120);
+            currentSimulations = {
+                basePrice: Math.round(basePrice),
+                scenarios: [
+                    { id: 'demand_surge', name: 'Social Media Trend Surge (+80% Demand)', price: Math.round(basePrice * 1.15) },
+                    { id: 'competitor_drop', name: 'Key Competitor Drops Price (-20%)', price: Math.round(basePrice * 0.85) },
+                    { id: 'stock_low', name: 'Supply Chain Delay (Stock < 5%)', price: Math.round(basePrice * 1.25) }
+                ]
+            };
+        }
+    }
 
     const { formatCurrency } = useCurrency();
     const [whatIfScenario, setWhatIfScenario] = useState('');
     const [simulatedPrice, setSimulatedPrice] = useState(0);
 
     useEffect(() => {
-        if (simulations.scenarios.length > 0 && !whatIfScenario) {
-            setWhatIfScenario(simulations.scenarios[0].id);
-            setSimulatedPrice(simulations.scenarios[0].price);
+        if (currentSimulations.scenarios.length > 0) {
+            setWhatIfScenario(currentSimulations.scenarios[0].id);
+            setSimulatedPrice(currentSimulations.scenarios[0].price);
         }
-    }, [simulations.scenarios, whatIfScenario]);
+    }, [currentSimulations.scenarios, selectedProductId]);
 
     const handleScenarioChange = (e) => {
         const scenarioId = e.target.value;
         setWhatIfScenario(scenarioId);
-        const scenario = simulations.scenarios.find(s => s.id === scenarioId);
+        const scenario = currentSimulations.scenarios.find(s => s.id === scenarioId);
         if (scenario) {
             setSimulatedPrice(scenario.price);
         }
@@ -47,7 +71,7 @@ const ExplainabilityPanel = ({ xaiData }) => {
 
     return (
         <div className="glass-card p-6 border-l-[3px] border-l-indigo-500 col-span-1 md:col-span-2">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <div>
                     <h2 className="text-lg font-bold text-text flex items-center gap-2">
                         <HiOutlineInformationCircle className="w-6 h-6 text-indigo-400" />
@@ -55,6 +79,24 @@ const ExplainabilityPanel = ({ xaiData }) => {
                     </h2>
                     <p className="text-sm text-text-muted mt-1">Understanding the factors driving current price recommendations</p>
                 </div>
+                
+                {recommendations.length > 0 && (
+                    <div className="flex items-center gap-3">
+                        <label className="text-xs font-semibold text-slate-400">Target:</label>
+                        <select 
+                            className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                            value={selectedProductId}
+                            onChange={(e) => setSelectedProductId(e.target.value)}
+                        >
+                            <option value="global">Global (Latest Data)</option>
+                            {recommendations.map(rec => (
+                                <option key={rec.productId?._id} value={rec.productId?._id}>
+                                    {rec.productId?.name || 'Product'}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -63,12 +105,12 @@ const ExplainabilityPanel = ({ xaiData }) => {
                     <h3 className="text-sm font-semibold text-slate-300 mb-4 text-center uppercase tracking-widest">Global Feature Impact</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart layout="vertical" data={factors} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart layout="vertical" data={currentFactors} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="name" type="category" width={120} tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                                 <Bar dataKey="impact" radius={[0, 4, 4, 0]}>
-                                    {factors.map((entry, index) => (
+                                    {currentFactors.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.type === 'positive' ? '#10b981' : '#ef4444'} />
                                     ))}
                                 </Bar>
@@ -93,7 +135,7 @@ const ExplainabilityPanel = ({ xaiData }) => {
                                     value={whatIfScenario}
                                     onChange={handleScenarioChange}
                                 >
-                                    {simulations.scenarios.map(s => (
+                                    {currentSimulations.scenarios.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}
                                 </select>

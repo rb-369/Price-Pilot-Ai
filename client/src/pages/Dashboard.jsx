@@ -183,7 +183,7 @@ export default function Dashboard() {
 
             {/* Explainability Panel */}
             <div className="grid grid-cols-1 gap-6">
-                <ExplainabilityPanel xaiData={stats?.xai} />
+                <ExplainabilityPanel xaiData={stats?.xai} recommendations={recommendations} />
             </div>
 
             {/* Recommendations & Alerts */}
