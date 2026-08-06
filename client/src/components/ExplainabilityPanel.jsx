@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { HiOutlineInformationCircle, HiOutlineAdjustments } from 'react-icons/hi';
@@ -30,39 +30,41 @@ const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
         }).catch(err => console.error("Failed to fetch products for XAI:", err));
     }, []);
 
-    // Determine the data to show based on selected product
-    let currentFactors = xaiData?.factors || [];
-    let currentSimulations = xaiData?.simulations || { basePrice: 0, scenarios: [] };
+    const { currentFactors, currentSimulations } = useMemo(() => {
+        let factors = xaiData?.factors || [];
+        let simulations = xaiData?.simulations || { basePrice: 0, scenarios: [] };
 
-    if (selectedProductId !== 'global') {
-        const selectedRec = recommendations.find(r => r.productId?._id === selectedProductId);
-        const selectedProduct = products.find(p => p._id === selectedProductId);
+        if (selectedProductId !== 'global') {
+            const selectedRec = recommendations.find(r => r.productId?._id === selectedProductId);
+            const selectedProduct = products.find(p => p._id === selectedProductId);
 
-        if (selectedRec && selectedRec.factors) {
-            const xai = [
-                { name: 'Competitor Pricing', impact: Math.abs(selectedRec.factors.competitorFactor || 35), type: (selectedRec.factors.competitorFactor || 1) >= 0 ? 'positive' : 'negative' },
-                { name: 'Demand Trend', impact: Math.abs(selectedRec.factors.demandFactor || 25), type: (selectedRec.factors.demandFactor || 1) >= 0 ? 'positive' : 'negative' },
-                { name: 'Stock Level', impact: Math.abs(selectedRec.factors.stockFactor || 15), type: (selectedRec.factors.stockFactor || 1) >= 0 ? 'positive' : 'negative' }
-            ];
-            currentFactors = xai.filter(f => f.impact > 0).sort((a,b) => b.impact - a.impact);
-        } else {
-            // Default factors for products that don't have an AI recommendation yet
-            currentFactors = [
-                { name: 'Base Cost', impact: 40, type: 'negative' },
-                { name: 'Market Demand', impact: 20, type: 'positive' }
-            ];
+            if (selectedRec && selectedRec.factors) {
+                const xai = [
+                    { name: 'Competitor Pricing', impact: Math.abs(selectedRec.factors.competitorFactor || 35), type: (selectedRec.factors.competitorFactor || 1) >= 0 ? 'positive' : 'negative' },
+                    { name: 'Demand Trend', impact: Math.abs(selectedRec.factors.demandFactor || 25), type: (selectedRec.factors.demandFactor || 1) >= 0 ? 'positive' : 'negative' },
+                    { name: 'Stock Level', impact: Math.abs(selectedRec.factors.stockFactor || 15), type: (selectedRec.factors.stockFactor || 1) >= 0 ? 'positive' : 'negative' }
+                ];
+                factors = xai.filter(f => f.impact > 0).sort((a,b) => b.impact - a.impact);
+            } else {
+                // Default factors for products that don't have an AI recommendation yet
+                factors = [
+                    { name: 'Base Cost', impact: 40, type: 'negative' },
+                    { name: 'Market Demand', impact: 20, type: 'positive' }
+                ];
+            }
+            
+            const basePrice = selectedRec?.recommendedPrice || selectedProduct?.currentPrice || 120;
+            simulations = {
+                basePrice: Math.round(basePrice),
+                scenarios: [
+                    { id: 'demand_surge', name: 'Social Media Trend Surge (+80% Demand)', price: Math.round(basePrice * 1.15) },
+                    { id: 'competitor_drop', name: 'Key Competitor Drops Price (-20%)', price: Math.round(basePrice * 0.85) },
+                    { id: 'stock_low', name: 'Supply Chain Delay (Stock < 5%)', price: Math.round(basePrice * 1.25) }
+                ]
+            };
         }
-        
-        const basePrice = selectedRec?.recommendedPrice || selectedProduct?.currentPrice || 120;
-        currentSimulations = {
-            basePrice: Math.round(basePrice),
-            scenarios: [
-                { id: 'demand_surge', name: 'Social Media Trend Surge (+80% Demand)', price: Math.round(basePrice * 1.15) },
-                { id: 'competitor_drop', name: 'Key Competitor Drops Price (-20%)', price: Math.round(basePrice * 0.85) },
-                { id: 'stock_low', name: 'Supply Chain Delay (Stock < 5%)', price: Math.round(basePrice * 1.25) }
-            ]
-        };
-    }
+        return { currentFactors: factors, currentSimulations: simulations };
+    }, [xaiData, recommendations, products, selectedProductId]);
 
     const { formatCurrency } = useCurrency();
     const [whatIfScenario, setWhatIfScenario] = useState('');
