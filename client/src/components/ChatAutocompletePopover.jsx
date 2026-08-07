@@ -78,6 +78,7 @@ export default function ChatAutocompletePopover({
 }) {
     const [products, setProducts] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const selectedItemRef = useRef(null);
 
     // Fetch products once for @ tagging
     useEffect(() => {
@@ -112,13 +113,17 @@ export default function ChatAutocompletePopover({
         setSelectedIndex(0);
     }, [query, activeTrigger]);
 
-    if (!isOpen || items.length === 0) return null;
+    // Scroll selected item into view smoothly
+    useEffect(() => {
+        if (selectedItemRef.current) {
+            selectedItemRef.current.scrollIntoView({ block: 'nearest' });
+        }
+    }, [selectedIndex]);
 
     const handleSelect = (item) => {
         if (!inputRef?.current) return;
 
         const val = input;
-        // Find last index of activeTrigger
         const lastTriggerIndex = val.lastIndexOf(activeTrigger);
 
         if (activeTrigger === '@') {
@@ -127,22 +132,52 @@ export default function ChatAutocompletePopover({
             const updated = before + tagText;
             setInput(updated);
         } else if (activeTrigger === '/') {
-            // For slash commands: insert the command prompt if input was just the slash command,
-            // or replace the slash command with the prompt
-            if (val.trim() === activeTrigger + query || val.trim() === activeTrigger) {
-                setInput(item.prompt);
-            } else {
-                const before = val.substring(0, lastTriggerIndex);
-                const updated = before + `${item.cmd} `;
-                setInput(updated);
-            }
+            // Insert ONLY the command string (e.g. "/analyze-competitors ")
+            const before = val.substring(0, lastTriggerIndex);
+            const updated = before + `${item.cmd} `;
+            setInput(updated);
         }
 
         setIsOpen(false);
         setActiveTrigger(null);
         setQuery('');
-        inputRef.current.focus();
+        setTimeout(() => inputRef.current?.focus(), 10);
     };
+
+    const handleSelectRef = useRef(handleSelect);
+    handleSelectRef.current = handleSelect;
+
+    // Keyboard Navigation Listener (ArrowUp, ArrowDown, Tab, Enter, Escape)
+    useEffect(() => {
+        if (!isOpen || items.length === 0) return;
+
+        const handleGlobalKeyDown = (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopPropagation();
+                setSelectedIndex((prev) => (prev + 1) % items.length);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopPropagation();
+                setSelectedIndex((prev) => (prev - 1 + items.length) % items.length);
+            } else if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) {
+                e.preventDefault();
+                e.stopPropagation();
+                const selected = items[selectedIndex] || items[0];
+                if (selected) {
+                    handleSelectRef.current(selected);
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setIsOpen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown, true);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown, true);
+    }, [isOpen, items, selectedIndex]);
+
+    if (!isOpen || items.length === 0) return null;
 
     return (
         <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-[rgba(99,102,241,0.2)] rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
@@ -151,7 +186,7 @@ export default function ChatAutocompletePopover({
                     {activeTrigger === '@' ? '🏷️ Tag Product' : '⚡ Mention Method'}
                 </span>
                 <span className="text-[10px] normal-case opacity-70">
-                    ↑↓ Navigate • Enter to select • Esc to dismiss
+                    ↑↓ Navigate • Tab / Enter to select • Esc to dismiss
                 </span>
             </div>
 
@@ -163,11 +198,12 @@ export default function ChatAutocompletePopover({
                         return (
                             <button
                                 key={item._id || item.sku}
+                                ref={isSelected ? selectedItemRef : null}
                                 type="button"
                                 onClick={() => handleSelect(item)}
                                 className={`w-full text-left p-2 rounded-lg flex items-center justify-between transition-colors ${
                                     isSelected
-                                        ? 'bg-primary/15 border border-primary/30 text-text'
+                                        ? 'bg-primary/15 border border-primary/30 text-text font-medium shadow-sm'
                                         : 'hover:bg-surface-lighter text-text-muted hover:text-text'
                                 }`}
                             >
@@ -197,11 +233,12 @@ export default function ChatAutocompletePopover({
                     return (
                         <button
                             key={item.cmd}
+                            ref={isSelected ? selectedItemRef : null}
                             type="button"
                             onClick={() => handleSelect(item)}
                             className={`w-full text-left p-2 rounded-lg flex items-center gap-3 transition-colors ${
                                 isSelected
-                                    ? 'bg-accent/15 border border-accent/30 text-text'
+                                    ? 'bg-accent/15 border border-accent/30 text-text font-medium shadow-sm'
                                     : 'hover:bg-surface-lighter text-text-muted hover:text-text'
                             }`}
                         >

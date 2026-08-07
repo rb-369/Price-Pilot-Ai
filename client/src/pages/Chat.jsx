@@ -243,10 +243,8 @@ const Chat = () => {
     };
 
     const handleKeyDown = (event) => {
-        if (popoverOpen && event.key === 'Escape') {
-            event.preventDefault();
-            setPopoverOpen(false);
-            return;
+        if (popoverOpen) {
+            return; // Popover handles keyboard navigation via capture listener
         }
 
         if (event.key === 'ArrowUp') {
