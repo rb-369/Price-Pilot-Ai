@@ -263,7 +263,7 @@ export default function ChatAutocompletePopover({
 /**
  * Helper function to format chat message text containing @tags and /commands with custom badges.
  */
-export function renderFormattedChatMessage(text) {
+export function renderFormattedChatMessage(text, isUser = false) {
     if (!text) return null;
 
     // Pattern to match @"Product Name" or @SKU or /command-name
@@ -276,7 +276,11 @@ export function renderFormattedChatMessage(text) {
             return (
                 <span
                     key={index}
-                    className="inline-flex items-center gap-1 bg-primary/20 text-primary-light border border-primary/30 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
+                    className={
+                        isUser
+                            ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-primary/20 text-indigo-300 border border-primary/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
+                    }
                 >
                     <HiOutlineCube className="w-3 h-3" /> {cleanName}
                 </span>
@@ -287,7 +291,11 @@ export function renderFormattedChatMessage(text) {
             return (
                 <span
                     key={index}
-                    className="inline-flex items-center gap-1 bg-accent/20 text-accent border border-accent/30 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
+                    className={
+                        isUser
+                            ? "inline-flex items-center gap-1 bg-cyan-400/30 text-cyan-100 border border-cyan-300/60 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
+                    }
                 >
                     <HiOutlineTag className="w-3 h-3" /> {part}
                 </span>

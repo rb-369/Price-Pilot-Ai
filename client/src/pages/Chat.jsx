@@ -432,7 +432,7 @@ const Chat = () => {
                                                 </div>
                                             )}
                                             <div className={`max-w-[86%] rounded-lg border px-4 py-3 sm:max-w-[76%] ${message.role === 'user' ? 'border-primary/30 bg-primary text-white' : 'border-border bg-surface-light text-text'}`}>
-                                                {message.role === 'user' ? <p className="whitespace-pre-wrap text-sm leading-6">{renderFormattedChatMessage(message.content)}</p> : <div>{formatMessageContent(message.content)}</div>}
+                                                {message.role === 'user' ? <p className="whitespace-pre-wrap text-sm leading-6">{renderFormattedChatMessage(message.content, true)}</p> : <div>{formatMessageContent(message.content)}</div>}
                                             </div>
                                         </article>
                                     ))}
@@ -452,7 +452,7 @@ const Chat = () => {
                         </div>
                     </div>
 
-                    <div className="shrink-0 border-t border-border bg-surface px-4 py-3 sm:px-6 relative">
+                    <div className="shrink-0 border-t border-border bg-surface px-4 pt-2 pb-2 sm:px-6 relative">
                         <div className="mx-auto max-w-4xl relative">
                             {/* Autocomplete Popover */}
                             <ChatAutocompletePopover
@@ -468,7 +468,7 @@ const Chat = () => {
                             />
 
                             {/* Quick Slash-Command Chips */}
-                            <div className="mb-2 flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-xs">
+                            <div className="mb-1.5 flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar text-xs">
                                 <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted shrink-0 mr-1">
                                     Quick Slash Commands:
                                 </span>
@@ -477,22 +477,22 @@ const Chat = () => {
                                         key={cmd.cmd}
                                         type="button"
                                         onClick={() => handleSend(null, cmd.prompt)}
-                                        className="shrink-0 inline-flex items-center gap-1 bg-surface-lighter hover:bg-primary/10 border border-border hover:border-primary/30 text-text-muted hover:text-primary-light px-2.5 py-1 rounded-full font-mono text-[11px] transition-colors"
+                                        className="shrink-0 inline-flex items-center gap-1 bg-surface-lighter hover:bg-primary/10 border border-border hover:border-primary/30 text-text-muted hover:text-primary-light px-2.5 py-0.5 rounded-full font-mono text-[11px] transition-colors"
                                     >
-                                        <HiOutlineTag className="w-3 h-3 text-accent" />
+                                        <HiOutlineTag className="w-3 h-3 text-cyan-400" />
                                         {cmd.cmd}
                                     </button>
                                 ))}
                             </div>
 
                             {attachedFile && (
-                                <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-primary-light">
+                                <div className="mb-1.5 inline-flex max-w-full items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs text-primary-light">
                                     <HiOutlineDocumentText className="h-4 w-4 shrink-0" />
                                     <span className="truncate font-medium">{attachedFile.name}</span>
                                     <button type="button" onClick={() => { setAttachedFile(null); setExtractedText(null); }} className="rounded p-0.5 text-text-muted transition-colors hover:bg-surface hover:text-text" aria-label="Remove attached file" title="Remove file"><HiOutlineX className="h-3.5 w-3.5" /></button>
                                 </div>
                             )}
-                            <form onSubmit={handleSend} className="flex items-center gap-2 rounded-xl border border-border bg-surface-light p-2 transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15">
+                            <form onSubmit={handleSend} className="flex items-center gap-2 rounded-xl border border-border bg-surface-light p-1.5 transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15">
                                 <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.txt,.csv" onChange={handleFileUpload} />
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-lighter hover:text-primary-light" aria-label="Attach PDF, TXT, or CSV file" title="Attach file"><HiOutlinePaperClip className="h-5 w-5" /></button>
                                 <input
@@ -502,11 +502,11 @@ const Chat = () => {
                                     onChange={handleInputChange}
                                     onKeyDown={handleKeyDown}
                                     placeholder={extractedText ? 'Ask about your attached file...' : 'Message PricePilot AI (Type @ for products, / for methods)...'}
-                                    className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-text outline-none placeholder:text-text-muted"
+                                    className="min-w-0 flex-1 bg-transparent px-1 py-1.5 text-sm text-text outline-none placeholder:text-text-muted"
                                 />
                                 <button type="submit" disabled={!input.trim() || isLoading} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send message" title="Send message"><HiOutlinePaperAirplane className="h-4 w-4" /></button>
                             </form>
-                            <p className="mt-2 text-center text-[10px] text-text-muted">PricePilot AI can make mistakes. Tag products with @ and invoke methods with /.</p>
+                            <p className="mt-1 text-center text-[10px] leading-none text-text-muted">PricePilot AI can make mistakes. Tag products with @ and invoke methods with /.</p>
                         </div>
                     </div>
                 </section>

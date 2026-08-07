@@ -72,7 +72,15 @@ exports.sendMessage = async (req, res) => {
         // Prepare context
         let contextContent = {
             userId: req.user._id,
-            products: products.map(p => ({ name: p.name, currentPrice: p.currentPrice, stockLevel: p.stockLevel })),
+            storeCurrency: "INR (₹)",
+            currencySymbol: "₹",
+            products: products.map(p => ({ 
+                name: p.name, 
+                currentPrice: `₹${p.currentPrice}`, 
+                priceNumeric: p.currentPrice,
+                currency: "INR (₹)", 
+                stockLevel: p.stockLevel 
+            })),
             alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
         };
 

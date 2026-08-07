@@ -273,7 +273,7 @@ const ChatWidget = () => {
                                     : 'bg-slate-800/80 backdrop-blur-md border border-white/5 text-slate-200 rounded-2xl rounded-tl-sm'
                                 }`}>
                                     <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
-                                        {renderFormattedChatMessage(msg.content)}
+                                        {renderFormattedChatMessage(msg.content, msg.role === 'user')}
                                     </p>
                                 </div>
                             </div>
