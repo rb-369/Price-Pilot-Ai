@@ -362,7 +362,7 @@ const Chat = () => {
     );
 
     return (
-        <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-background font-sans text-text">
+        <div className="flex h-full w-full overflow-hidden bg-background font-sans text-text">
             <div className="hidden md:block">{chatHistory}</div>
 
             {mobileHistoryOpen && (
