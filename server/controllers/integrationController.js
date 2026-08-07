@@ -100,3 +100,152 @@ exports.syncShopifyProducts = async (req, res) => {
         res.status(500).json({ message: 'Failed to sync Shopify products', error: error.message });
     }
 };
+
+/**
+ * POST /api/integrations/amazon/connect
+ * Connect Amazon SP-API with LWA credentials.
+ */
+exports.connectAmazon = async (req, res) => {
+    try {
+        const { accessToken, refreshToken, sellerId, marketplaceId } = req.body;
+        if (!accessToken || !sellerId) {
+            return res.status(400).json({ message: 'Access Token and Seller ID are required.' });
+        }
+
+        const integration = await Integration.findOneAndUpdate(
+            { userId: req.user._id, platform: 'amazon' },
+            {
+                accessToken,
+                refreshToken: refreshToken || '',
+                sellerId,
+                marketplaceId: marketplaceId || 'A21TJRUUN4KGV', // India default
+                status: 'active',
+            },
+            { new: true, upsert: true }
+        );
+
+        res.json({ message: 'Amazon SP-API connected successfully!', integration });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * POST /api/integrations/flipkart/connect
+ * Connect Flipkart Seller API with application credentials.
+ */
+exports.connectFlipkart = async (req, res) => {
+    try {
+        const { applicationId, applicationSecret } = req.body;
+        if (!applicationId || !applicationSecret) {
+            return res.status(400).json({ message: 'Application ID and Application Secret are required.' });
+        }
+
+        const integration = await Integration.findOneAndUpdate(
+            { userId: req.user._id, platform: 'flipkart' },
+            {
+                sellerId: applicationId,
+                accessToken: applicationSecret,
+                status: 'active',
+            },
+            { new: true, upsert: true }
+        );
+
+        res.json({ message: 'Flipkart connected successfully!', integration });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * POST /api/integrations/:id/test
+ * Test connectivity to the platform.
+ */
+exports.testConnection = async (req, res) => {
+    try {
+        const integration = await Integration.findOne({ _id: req.params.id, userId: req.user._id });
+        if (!integration) {
+            return res.status(404).json({ message: 'Integration not found.' });
+        }
+
+        const { getAdapter } = require('../services/adapters/adapterFactory');
+        const adapter = getAdapter(integration.platform);
+        const result = await adapter.testConnection(integration);
+
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * POST /api/integrations/:id/sync-now
+ * Trigger an immediate order poll for this integration.
+ */
+exports.syncNow = async (req, res) => {
+    try {
+        const integration = await Integration.findOne({ _id: req.params.id, userId: req.user._id });
+        if (!integration) {
+            return res.status(404).json({ message: 'Integration not found.' });
+        }
+
+        if (integration.status !== 'active') {
+            return res.status(400).json({ message: 'Integration is not active.' });
+        }
+
+        const { pollSingleIntegration } = require('../services/orderSyncService');
+        const result = await pollSingleIntegration(integration);
+
+        res.json({
+            success: true,
+            message: `Sync complete. New orders: ${result.newOrders}, Skipped: ${result.skipped}`,
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /api/integrations/:id/sync-logs
+ * Get sync history for an integration.
+ */
+exports.getSyncLogs = async (req, res) => {
+    try {
+        const SyncLog = require('../models/SyncLog');
+        const logs = await SyncLog.find({
+            userId: req.user._id,
+            $or: [
+                { integrationId: req.params.id },
+                { integrationId: { $exists: false } }, // Reconciliation logs
+            ],
+        })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .populate('productId', 'name sku');
+
+        res.json({ success: true, data: logs });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /api/integrations/sync-logs/all
+ * Get all sync logs for the authenticated user (for the activity feed).
+ */
+exports.getAllSyncLogs = async (req, res) => {
+    try {
+        const SyncLog = require('../models/SyncLog');
+        const limit = parseInt(req.query.limit) || 50;
+        const logs = await SyncLog.find({ userId: req.user._id })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .populate('productId', 'name sku');
+
+        res.json({ success: true, data: logs });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

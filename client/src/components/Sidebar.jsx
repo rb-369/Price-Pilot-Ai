@@ -6,7 +6,7 @@ import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
-    HiOutlineLink, HiOutlineBeaker
+    HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import logoIcon from '../assets/FINAL.png';
@@ -22,6 +22,7 @@ const links = [
     { to: '/dashboard/ab-tests', icon: HiOutlineBeaker, label: 'A/B Test Experiments' },
     { to: '/dashboard/chat', icon: HiOutlineChatAlt2, label: 'PricePilot AI' },
     { to: '/dashboard/integrations', icon: HiOutlineLink, label: 'Integrations' },
+    { to: '/dashboard/channel-mapping', icon: HiOutlineSwitchHorizontal, label: 'Channel Mapping' },
     { to: '/dashboard/alerts', icon: HiOutlineBell, label: 'Alerts' },
 ];
 

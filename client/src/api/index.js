@@ -108,7 +108,21 @@ export const markAllAlertsRead = () => api.put('/alerts/read-all');
 // Integrations
 export const getIntegrations = () => api.get('/integrations');
 export const connectShopify = (data) => api.post('/integrations/shopify', data);
+export const connectAmazon = (data) => api.post('/integrations/amazon/connect', data);
+export const connectFlipkart = (data) => api.post('/integrations/flipkart/connect', data);
 export const disconnectIntegration = (id) => api.delete(`/integrations/${id}`);
 export const syncShopifyProducts = () => api.post('/integrations/shopify/sync');
+export const testIntegrationConnection = (id) => api.post(`/integrations/${id}/test`);
+export const syncIntegrationNow = (id) => api.post(`/integrations/${id}/sync-now`);
+export const getSyncLogs = (id) => api.get(`/integrations/${id}/sync-logs`);
+export const getAllSyncLogs = (limit = 50) => api.get(`/integrations/sync-logs/all?limit=${limit}`);
+
+// Channel Mappings
+export const getProductMappings = () => api.get('/mappings');
+export const createProductMapping = (data) => api.post('/mappings', data);
+export const deleteProductMapping = (id) => api.delete(`/mappings/${id}`);
+export const autoMatchMappings = (platform, externalProducts) => api.post('/mappings/auto-match', { platform, externalProducts });
+export const confirmMapping = (id) => api.post(`/mappings/${id}/confirm`);
+export const rejectMapping = (id) => api.post(`/mappings/${id}/reject`);
 
 export default api;

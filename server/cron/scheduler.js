@@ -43,7 +43,30 @@ function initCronJobs() {
         }
     });
 
-    console.log('[CRON] Scheduled jobs initialized');
+    // ── Multi-Channel Order Sync: poll all platforms every 2 minutes ──
+    const { pollAllPlatforms } = require('../services/orderSyncService');
+    cron.schedule('*/2 * * * *', async () => {
+        console.log('[CRON] Polling all platforms for new orders...');
+        try {
+            await pollAllPlatforms();
+        } catch (err) {
+            console.error('[CRON] Order polling failed:', err.message);
+        }
+    });
+
+    // ── Stock Reconciliation: full sync every 30 minutes ──
+    const { reconcileAllUsers } = require('../services/stockSyncService');
+    cron.schedule('*/30 * * * *', async () => {
+        console.log('[CRON] Running stock reconciliation...');
+        try {
+            await reconcileAllUsers();
+        } catch (err) {
+            console.error('[CRON] Stock reconciliation failed:', err.message);
+        }
+    });
+
+    console.log('[CRON] Scheduled jobs initialized (including multi-channel sync)');
 }
 
 module.exports = { initCronJobs };
+

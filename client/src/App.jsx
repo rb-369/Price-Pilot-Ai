@@ -19,6 +19,7 @@ import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
 import Chat from './pages/Chat';
 import Integrations from './pages/Integrations';
+import ChannelMapping from './pages/ChannelMapping';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
@@ -69,6 +70,7 @@ function AppRoutes() {
         <Route path="chat" element={<Chat />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="integrations" element={<Integrations />} />
+        <Route path="channel-mapping" element={<ChannelMapping />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

@@ -26,6 +26,25 @@ const integrationSchema = new mongoose.Schema({
     },
     lastSyncedAt: {
         type: Date
+    },
+    lastOrderPollAt: {
+        type: Date                                     // Cursor for polling "orders created since X"
+    },
+    refreshToken: {
+        type: String                                   // OAuth refresh token (Amazon LWA)
+    },
+    tokenExpiresAt: {
+        type: Date                                     // When the current access token expires
+    },
+    sellerId: {
+        type: String                                   // Amazon Seller ID / Flipkart seller ID
+    },
+    marketplaceId: {
+        type: String                                   // Amazon marketplace (e.g., A21TJRUUN4KGV for India)
+    },
+    syncConfig: {
+        pollIntervalMinutes: { type: Number, default: 2 },
+        safetyBuffer: { type: Number, default: 2 },
     }
 }, { timestamps: true });
 

@@ -68,3 +68,5 @@ codebase-analysis-report.md
 .planning/*
 .lavish/*
 graphify-out/*
+.gstack/
+.gstack-reports/*

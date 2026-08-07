@@ -36,8 +36,14 @@ const orderSchema = new mongoose.Schema({
     },
     source: {
         type: String,
-        enum: ['manual_csv', 'shopify_webhook', 'amazon_webhook', 'simulator', 'unknown'],
+        enum: ['manual_csv', 'shopify_webhook', 'shopify_poll', 'amazon_poll', 'flipkart_poll', 'simulator', 'unknown'],
         default: 'unknown'
+    },
+    externalOrderId: {
+        type: String                                   // Raw order ID from the platform (before normalization)
+    },
+    platformData: {
+        type: Object                                   // Raw platform response snapshot for debugging
     }
 }, { timestamps: true });
 

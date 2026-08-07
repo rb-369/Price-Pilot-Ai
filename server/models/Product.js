@@ -23,6 +23,14 @@ const productSchema = new mongoose.Schema({
         flipkartFsn: { type: String, default: null }
     },
     source: { type: String, enum: ['manual', 'shopify', 'amazon', 'flipkart'], default: 'manual' },
+    safetyBuffer: { type: Number, default: 2 },           // Units held back from each platform to prevent overselling
+    lastSyncedAt: { type: Date },                          // Last successful cross-platform stock sync
+    syncEnabled: { type: Boolean, default: true },         // Master toggle for this product's multi-channel sync
+    salesVelocity: {
+        avgHourlySalesRate: { type: Number, default: 0 },  // Rolling average units sold per hour
+        lastCalculatedAt: { type: Date },                  // When velocity was last recalculated
+        peakHourlySalesRate: { type: Number, default: 0 }, // Max hourly rate seen (for spike detection)
+    },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

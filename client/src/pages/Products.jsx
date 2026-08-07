@@ -18,7 +18,7 @@ const STANDARD_CATEGORIES = [
 const DEFAULT_FORM_STATE = { 
     name: '', sku: '', category: 'General', 
     baseCost: '', currentPrice: '', minMargin: '10', 
-    stockLevel: '', reorderThreshold: '10',
+    stockLevel: '', reorderThreshold: '10', safetyBuffer: '2',
     description: '',
     productLinks: { amazon: '', flipkart: '', meesho: '', shopify: '' }
 };
@@ -93,6 +93,7 @@ export default function Products() {
             minMargin: p.minMargin ? (p.minMargin * 100).toString() : '10',
             stockLevel: p.stockLevel || '',
             reorderThreshold: p.reorderThreshold || '10',
+            safetyBuffer: p.safetyBuffer !== undefined ? p.safetyBuffer.toString() : '2',
             description: p.description || '',
             productLinks: p.productLinks || { amazon: '', flipkart: '', meesho: '', shopify: '' }
         });
@@ -117,7 +118,8 @@ export default function Products() {
                 currentPrice: +form.currentPrice, 
                 minMargin: (+form.minMargin) / 100, 
                 stockLevel: +form.stockLevel, 
-                reorderThreshold: +form.reorderThreshold 
+                reorderThreshold: +form.reorderThreshold,
+                safetyBuffer: +form.safetyBuffer || 2
             };
 
             if (editId) {
@@ -271,8 +273,18 @@ export default function Products() {
                                         <input className="input-field" type="number" value={form.stockLevel} onChange={e => setForm({ ...form, stockLevel: e.target.value })} required />
                                     </div>
                                     <div className="flex flex-col gap-1.5 col-span-2">
-                                        <label className="text-[13px] font-medium text-text">Reorder Threshold <span className="text-text/50 font-normal">(Low Stock Level)</span></label>
+                                        <label className="text-[13px] font-medium text-text flex items-center justify-between">
+                                            <span>Reorder Threshold</span>
+                                            <span className="text-text/50 font-normal text-xs">(Low Stock Alert Level)</span>
+                                        </label>
                                         <input className="input-field" type="number" value={form.reorderThreshold} onChange={e => setForm({ ...form, reorderThreshold: e.target.value })} />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 col-span-2">
+                                        <label className="text-[13px] font-medium text-text flex items-center justify-between">
+                                            <span>Sync Safety Buffer</span>
+                                            <span className="text-text/50 font-normal text-xs">(Holdback units to prevent overselling)</span>
+                                        </label>
+                                        <input className="input-field" type="number" value={form.safetyBuffer} onChange={e => setForm({ ...form, safetyBuffer: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
