@@ -3,13 +3,25 @@
  * 
  * Fetches orders from Shopify REST Admin API and pushes inventory updates.
  * In mock mode (SHOPIFY_MOCK=true or no credentials), returns realistic mock data.
+ * 
+ * Note on Custom App Scopes:
+ * Make sure your Shopify Custom App has all four required API access scopes enabled:
+ *   - read_orders     (for fetchNewOrders)
+ *   - read_products   (to map variant_id -> inventory_item_id)
+ *   - write_inventory (for inventory_levels/set)
+ *   - read_locations  (to resolve store location ID)
+ * 
+ * Note on REST vs GraphQL:
+ * REST Admin API is used here for simplicity in a custom app context.
+ * Default read_orders scope covers orders from the last 60 days, which is well within
+ * our 2-minute polling window.
  */
 
 const axios = require('axios');
 const logger = require('../../config/logger');
 
 const MOCK_MODE = process.env.SHOPIFY_MOCK !== 'false';
-const API_VERSION = '2024-01';
+const API_VERSION = '2026-04';
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 

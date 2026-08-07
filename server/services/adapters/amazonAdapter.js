@@ -4,16 +4,28 @@
  * Fetches orders from Amazon Selling Partner API and pushes inventory feeds.
  * In mock mode (default), returns realistic mock data matching SP-API schemas.
  * 
+ * Region Guidance:
+ * - India marketplace (A21TJRUUN4KGV) belongs to Far East (FE) region:
+ *   Production Base URL: https://sellingpartnerapi-fe.amazon.com
+ *   Sandbox Base URL:    https://sandbox.sellingpartnerapi-fe.amazon.com
+ * - NA region (US - ATVPDKIKX0DER):
+ *   Production Base URL: https://sellingpartnerapi-na.amazon.com
+ *   Sandbox Base URL:    https://sandbox.sellingpartnerapi-na.amazon.com
+ * 
  * Production mode requires:
- *   - LWA (Login with Amazon) client credentials
- *   - SP-API app registration
- *   - Seller authorization
+ *   - LWA (Login with Amazon) client credentials (AMAZON_LWA_CLIENT_ID & AMAZON_LWA_CLIENT_SECRET)
+ *   - SP-API app registration & seller authorization
  */
 
 const axios = require('axios');
 const logger = require('../../config/logger');
 
 const MOCK_MODE = process.env.AMAZON_MOCK !== 'false';
+const BASE_URL = process.env.AMAZON_SPAPI_BASE_URL || 'https://sellingpartnerapi-fe.amazon.com';
+
+// ─── In-Memory LWA Token Cache ──────────────────────────────────────────────
+// Caches access tokens per integration to avoid hitting api.amazon.com on every call
+const tokenCache = new Map();
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
@@ -88,25 +100,57 @@ function normalizeOrders(amazonOrders) {
 // ─── LWA Token Management ──────────────────────────────────────────────────
 
 /**
- * Refresh the LWA access token using the refresh token.
+ * Refresh the LWA access token using form-encoded HTTP body.
+ * Correct header: application/x-www-form-urlencoded
  */
 async function refreshAccessToken(integration) {
     try {
-        const response = await axios.post('https://api.amazon.com/auth/o2/token', {
+        const params = new URLSearchParams({
             grant_type: 'refresh_token',
-            refresh_token: integration.refreshToken,
-            client_id: process.env.AMAZON_LWA_CLIENT_ID,
-            client_secret: process.env.AMAZON_LWA_CLIENT_SECRET,
+            refresh_token: integration.refreshToken || integration.accessToken,
+            client_id: process.env.AMAZON_LWA_CLIENT_ID || '',
+            client_secret: process.env.AMAZON_LWA_CLIENT_SECRET || '',
         });
+
+        const response = await axios.post(
+            'https://api.amazon.com/auth/o2/token',
+            params.toString(),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            }
+        );
 
         return {
             accessToken: response.data.access_token,
-            expiresIn: response.data.expires_in,
+            expiresIn: response.data.expires_in || 3600,
         };
     } catch (error) {
-        logger.error('[AmazonAdapter] Token refresh failed:', error.message);
+        logger.error('[AmazonAdapter] LWA Token refresh failed:', error.response?.data || error.message);
         throw error;
     }
+}
+
+/**
+ * Get a valid LWA access token (uses in-memory caching with a 60-second buffer before expiry).
+ */
+async function getValidLwaToken(integration) {
+    const key = String(integration._id || integration.sellerId);
+    const cached = tokenCache.get(key);
+    const now = Date.now();
+
+    if (cached && cached.expiresAt > now + 60000) {
+        return cached.accessToken;
+    }
+
+    const tokenData = await refreshAccessToken(integration);
+    const expiresAt = now + tokenData.expiresIn * 1000;
+
+    tokenCache.set(key, {
+        accessToken: tokenData.accessToken,
+        expiresAt,
+    });
+
+    return tokenData.accessToken;
 }
 
 // ─── API Methods ────────────────────────────────────────────────────────────
@@ -119,15 +163,12 @@ async function fetchNewOrders(integration, sinceDate) {
     }
 
     try {
-        // Refresh token if needed
-        const tokenData = await refreshAccessToken(integration);
+        const accessToken = await getValidLwaToken(integration);
         const since = sinceDate ? new Date(sinceDate).toISOString() : new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-        // SP-API endpoint (NA region — adjust for India: sellingpartnerapi-fe.amazon.com)
-        const baseUrl = 'https://sellingpartnerapi-fe.amazon.com';
-        const ordersRes = await axios.get(`${baseUrl}/orders/v0/orders`, {
+        const ordersRes = await axios.get(`${BASE_URL}/orders/v0/orders`, {
             headers: {
-                'x-amz-access-token': tokenData.accessToken,
+                'x-amz-access-token': accessToken,
                 'Content-Type': 'application/json',
             },
             params: {
@@ -143,9 +184,9 @@ async function fetchNewOrders(integration, sinceDate) {
         for (const order of orders) {
             try {
                 const itemsRes = await axios.get(
-                    `${baseUrl}/orders/v0/orders/${order.AmazonOrderId}/orderItems`,
+                    `${BASE_URL}/orders/v0/orders/${order.AmazonOrderId}/orderItems`,
                     {
-                        headers: { 'x-amz-access-token': tokenData.accessToken },
+                        headers: { 'x-amz-access-token': accessToken },
                     }
                 );
                 order.OrderItems = itemsRes.data?.payload?.OrderItems || [];
@@ -162,6 +203,12 @@ async function fetchNewOrders(integration, sinceDate) {
     }
 }
 
+/**
+ * Push stock level to Amazon using the 3-step SP-API Feeds workflow:
+ * Step 1: Create Feed Document (POST /feeds/2021-06-30/documents)
+ * Step 2: Upload TSV inventory feed content to pre-signed S3 URL (PUT url)
+ * Step 3: Submit Feed (POST /feeds/2021-06-30/feeds with inputFeedDocumentId)
+ */
 async function pushStockLevel(integration, product, quantity) {
     if (MOCK_MODE) {
         logger.info(`[AmazonAdapter] MOCK MODE — would push stock ${quantity} for ${product.name} (ASIN: ${product.externalIds?.amazonAsin})`);
@@ -169,33 +216,47 @@ async function pushStockLevel(integration, product, quantity) {
     }
 
     try {
-        const asin = product.externalIds?.amazonAsin;
         const sku = product.sku;
         if (!sku) {
             logger.warn(`[AmazonAdapter] No SKU for product ${product.name}, skipping stock push`);
             return false;
         }
 
-        const tokenData = await refreshAccessToken(integration);
-        const baseUrl = 'https://sellingpartnerapi-fe.amazon.com';
+        const accessToken = await getValidLwaToken(integration);
 
-        // Use the Feeds API to submit inventory feed
-        // This is a simplified version — production would use the full feed workflow
+        // Step 1: Create Feed Document
+        const createDocRes = await axios.post(
+            `${BASE_URL}/feeds/2021-06-30/documents`,
+            { contentType: 'text/tab-separated-values; charset=UTF-8' },
+            { headers: { 'x-amz-access-token': accessToken } }
+        );
+
+        const { feedDocumentId, url } = createDocRes.data;
+        if (!feedDocumentId || !url) {
+            throw new Error('SP-API feed document creation failed to return URL/documentId');
+        }
+
+        // Step 2: Upload feed content (TSV format) to pre-signed S3 URL
         const feedContent = `sku\tquantity\n${sku}\t${Math.max(0, Math.floor(quantity))}`;
-
-        // Create feed document
-        const feedRes = await axios.post(`${baseUrl}/feeds/2021-06-30/feeds`, {
-            feedType: 'POST_INVENTORY_AVAILABILITY_DATA',
-            marketplaceIds: [integration.marketplaceId || 'A21TJRUUN4KGV'],
-            inputFeedDocumentId: feedContent, // Simplified — real implementation uses createFeedDocument first
-        }, {
-            headers: { 'x-amz-access-token': tokenData.accessToken },
+        await axios.put(url, feedContent, {
+            headers: { 'Content-Type': 'text/tab-separated-values; charset=UTF-8' },
         });
 
-        logger.info(`[AmazonAdapter] Stock push initiated for ${sku}: feed ${feedRes.data?.feedId}`);
+        // Step 3: Create Feed referencing the inputFeedDocumentId
+        const feedRes = await axios.post(
+            `${BASE_URL}/feeds/2021-06-30/feeds`,
+            {
+                feedType: 'POST_INVENTORY_AVAILABILITY_DATA',
+                marketplaceIds: [integration.marketplaceId || 'A21TJRUUN4KGV'],
+                inputFeedDocumentId: feedDocumentId,
+            },
+            { headers: { 'x-amz-access-token': accessToken } }
+        );
+
+        logger.info(`[AmazonAdapter] Stock push 3-step feed submitted for ${sku}: feed ${feedRes.data?.feedId}`);
         return true;
     } catch (error) {
-        logger.error(`[AmazonAdapter] pushStockLevel failed for ${product.sku}:`, error.message);
+        logger.error(`[AmazonAdapter] pushStockLevel failed for ${product.sku}:`, error.response?.data || error.message);
         return false;
     }
 }
@@ -206,17 +267,16 @@ async function testConnection(integration) {
     }
 
     try {
-        const tokenData = await refreshAccessToken(integration);
-        const baseUrl = 'https://sellingpartnerapi-fe.amazon.com';
+        const accessToken = await getValidLwaToken(integration);
 
         // Test by fetching seller participations
-        await axios.get(`${baseUrl}/sellers/v1/marketplaceParticipations`, {
-            headers: { 'x-amz-access-token': tokenData.accessToken },
+        await axios.get(`${BASE_URL}/sellers/v1/marketplaceParticipations`, {
+            headers: { 'x-amz-access-token': accessToken },
         });
 
         return { success: true, message: `Connected to Amazon Seller (${integration.sellerId})` };
     } catch (error) {
-        return { success: false, message: `Amazon connection failed: ${error.message}` };
+        return { success: false, message: `Amazon connection failed: ${error.response?.data?.message || error.message}` };
     }
 }
 
