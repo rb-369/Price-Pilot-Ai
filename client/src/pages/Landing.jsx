@@ -386,8 +386,8 @@ export default function Landing() {
 
                         <div className="rounded-[2rem] border border-primary/10 bg-surface/70 backdrop-blur-xl p-8 md:p-12 text-center space-y-6 shadow-2xl shadow-primary/5">
                             <div className="mx-auto flex items-center justify-center">
-                                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-indigo-500/20 via-primary/15 to-cyan-400/20 border border-primary/20 p-6 shadow-[0_0_40px_rgba(99,102,241,0.35)] flex items-center justify-center">
-                                    <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(99,102,241,0.55)]" />
+                                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-tr from-indigo-500/20 via-primary/15 to-cyan-400/20 border border-primary/20 p-2 shadow-[0_0_40px_rgba(99,102,241,0.35)] flex items-center justify-center relative overflow-hidden">
+                                    <img src={logoIcon} alt="PricePilot AI Logo" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-1.5 w-[260%] h-[260%] max-w-none object-contain drop-shadow-[0_0_12px_rgba(99,102,241,0.55)] pointer-events-none" />
                                 </div>
                             </div>
 
