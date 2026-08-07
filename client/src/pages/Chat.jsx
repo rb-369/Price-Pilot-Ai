@@ -16,7 +16,10 @@ import {
     HiOutlineTrash,
     HiOutlineTrendingUp,
     HiOutlineX,
+    HiOutlineTag,
+    HiOutlineCube,
 } from 'react-icons/hi';
+import ChatAutocompletePopover, { renderFormattedChatMessage, SLASH_COMMANDS } from '../components/ChatAutocompletePopover';
 
 const GREETING = "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?";
 
@@ -60,6 +63,11 @@ const Chat = () => {
     const [attachedFile, setAttachedFile] = useState(null);
     const [extractedText, setExtractedText] = useState(null);
     const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
+
+    // Autocomplete states for @ product tag and / slash commands
+    const [popoverOpen, setPopoverOpen] = useState(false);
+    const [activeTrigger, setActiveTrigger] = useState(null);
+    const [autocompleteQuery, setAutocompleteQuery] = useState('');
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -156,12 +164,35 @@ const Chat = () => {
         }
     };
 
+    const handleInputChange = (event) => {
+        const val = event.target.value;
+        setInput(val);
+
+        const words = val.split(/\s+/);
+        const lastWord = words[words.length - 1] || '';
+
+        if (lastWord.startsWith('@')) {
+            setActiveTrigger('@');
+            setAutocompleteQuery(lastWord.substring(1));
+            setPopoverOpen(true);
+        } else if (lastWord.startsWith('/')) {
+            setActiveTrigger('/');
+            setAutocompleteQuery(lastWord.substring(1));
+            setPopoverOpen(true);
+        } else {
+            setPopoverOpen(false);
+            setActiveTrigger(null);
+            setAutocompleteQuery('');
+        }
+    };
+
     const handleSend = async (event, customInput = null) => {
         if (event) event.preventDefault();
         const textToSend = customInput !== null ? customInput : input;
         if (!textToSend.trim() || isLoading) return;
 
         setIsLoading(true);
+        setPopoverOpen(false);
         let chatId = activeChatId;
 
         if (!chatId) {
@@ -212,7 +243,14 @@ const Chat = () => {
     };
 
     const handleKeyDown = (event) => {
+        if (popoverOpen && event.key === 'Escape') {
+            event.preventDefault();
+            setPopoverOpen(false);
+            return;
+        }
+
         if (event.key === 'ArrowUp') {
+            if (popoverOpen) return; // Let popover handle it
             event.preventDefault();
             if (inputHistory.length === 0) return;
             const nextIndex = historyIndex === -1 ? inputHistory.length - 1 : Math.max(0, historyIndex - 1);
@@ -220,6 +258,7 @@ const Chat = () => {
             setHistoryIndex(nextIndex);
             setInput(inputHistory[nextIndex]);
         } else if (event.key === 'ArrowDown') {
+            if (popoverOpen) return;
             event.preventDefault();
             if (historyIndex === -1) return;
             if (historyIndex === inputHistory.length - 1) {
@@ -242,11 +281,11 @@ const Chat = () => {
         while (remaining) {
             const match = remaining.match(regex);
             if (!match) {
-                parts.push(<span key={index}>{remaining}</span>);
+                parts.push(<span key={index}>{renderFormattedChatMessage(remaining)}</span>);
                 break;
             }
             if (match.index > 0) {
-                parts.push(<span key={index}>{remaining.substring(0, match.index)}</span>);
+                parts.push(<span key={index}>{renderFormattedChatMessage(remaining.substring(0, match.index))}</span>);
                 index += 1;
             }
             const matchedText = match[0];
@@ -298,53 +337,58 @@ const Chat = () => {
             <div className={`flex h-16 shrink-0 items-center border-b border-border px-3 ${!sidebarOpen ? 'pl-[68px] md:pl-3' : ''}`}>
                 <button type="button" onClick={handleNewChat} className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary-light transition-colors hover:bg-primary hover:text-white">
                     <HiOutlinePlus className="h-4 w-4" />
-                    New conversation
+                    New Chat
                 </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-2.5 custom-scrollbar">
-                <p className="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">Recent conversations</p>
+
+            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-wider text-text-muted">Chat History</p>
                 <div className="space-y-1">
-                    {chats.map((chat) => (
-                        <div key={chat._id} onClick={() => loadSingleChat(chat._id)} className={`group flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2.5 transition-colors ${activeChatId === chat._id ? 'border-primary/25 bg-primary/10 text-text' : 'border-transparent text-text-muted hover:bg-surface-lighter hover:text-text'}`}>
-                            <HiOutlineChatAlt2 className={`h-4 w-4 shrink-0 ${activeChatId === chat._id ? 'text-primary-light' : ''}`} />
-                            <span className="min-w-0 flex-1 truncate text-xs font-medium">{chat.title || 'New conversation'}</span>
-                            <button type="button" onClick={(event) => handleDeleteChat(event, chat._id)} className="rounded p-1 text-text-muted opacity-0 transition hover:bg-surface hover:text-danger group-hover:opacity-100 focus:opacity-100" aria-label={`Delete ${chat.title || 'conversation'}`} title="Delete conversation">
-                                <HiOutlineTrash className="h-3.5 w-3.5" />
-                            </button>
-                        </div>
-                    ))}
+                    {chats.map((chat) => {
+                        const isActive = chat._id === activeChatId;
+                        return (
+                            <div key={chat._id} onClick={() => loadSingleChat(chat._id)} className={`group relative flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors ${isActive ? 'bg-surface border border-border text-text font-medium' : 'text-text-muted hover:bg-surface-lighter hover:text-text'}`}>
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <HiOutlineChatAlt2 className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary-light' : 'text-text-muted'}`} />
+                                    <span className="truncate text-xs">{chat.title || 'Untitled Chat'}</span>
+                                </div>
+                                <button type="button" onClick={(event) => handleDeleteChat(event, chat._id)} className="opacity-0 transition-opacity hover:text-danger group-hover:opacity-100" title="Delete Chat" aria-label="Delete Chat">
+                                    <HiOutlineTrash className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </aside>
     );
 
     return (
-        <div className="flex h-full min-h-0 w-full overflow-hidden bg-surface font-sans">
-            <div className="hidden md:flex">{chatHistory}</div>
+        <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-background font-sans text-text">
+            <div className="hidden md:block">{chatHistory}</div>
 
             {mobileHistoryOpen && (
-                <div className="absolute inset-0 z-40 flex md:hidden">
-                    <button type="button" className="flex-1 bg-surface/75" aria-label="Close conversations" onClick={() => setMobileHistoryOpen(false)} />
-                    <div className="h-full shadow-2xl">{chatHistory}</div>
+                <div className="fixed inset-0 z-50 flex md:hidden">
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileHistoryOpen(false)} />
+                    <div className="relative z-10 w-72">{chatHistory}</div>
                 </div>
             )}
 
-            <main className="flex min-w-0 flex-1 flex-col bg-surface">
-                <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <button type="button" onClick={() => setMobileHistoryOpen(true)} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-lighter hover:text-primary-light md:hidden" aria-label="Show conversations" title="Show conversations">
+            <main className="flex min-w-0 flex-1 flex-col bg-background">
+                <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
+                    <div className="flex items-center gap-3">
+                        <button type="button" onClick={() => setMobileHistoryOpen(true)} className="rounded-lg p-1.5 text-text-muted hover:bg-surface-lighter hover:text-text md:hidden" aria-label="Open chat history">
                             <HiOutlineChatAlt2 className="h-5 w-5" />
                         </button>
-                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter">
-                            <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
-                            <span className="absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full border border-surface bg-success" aria-label="Online" />
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="truncate text-sm font-semibold text-text">PricePilot AI</h1>
-                            <p className="mt-0.5 text-[10px] font-medium text-text-muted">Pricing and inventory intelligence</p>
-                        </div>
+                        <h1 className="text-sm font-semibold text-text">PricePilot AI Assistant</h1>
                     </div>
-                    <span className="hidden items-center gap-1.5 text-xs font-medium text-success sm:flex"><span className="h-1.5 w-1.5 rounded-full bg-success" />Online</span>
+
+                    <div className="flex items-center gap-2">
+                        <button type="button" onClick={handleNewChat} className="flex items-center gap-1.5 rounded-lg border border-border bg-surface-light px-3 py-1.5 text-xs font-semibold text-text transition-colors hover:bg-surface-lighter">
+                            <HiOutlinePlus className="h-3.5 w-3.5" />
+                            <span>New</span>
+                        </button>
+                    </div>
                 </header>
 
                 <section className="relative flex min-h-0 flex-1 flex-col">
@@ -359,7 +403,9 @@ const Chat = () => {
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">AI workspace</p>
                                             <h2 className="mt-1 text-2xl font-bold text-text sm:text-3xl">What would you like to improve?</h2>
-                                            <p className="mt-2 max-w-xl text-sm leading-6 text-text-muted">Ask about pricing, inventory, competitors, or demand. Attach a CSV, TXT, or PDF when you want PricePilot to work from your data.</p>
+                                            <p className="mt-2 max-w-xl text-sm leading-6 text-text-muted">
+                                                Ask about pricing, inventory, competitors, or demand. Type <code className="text-primary font-mono text-xs font-bold">@</code> to tag products or <code className="text-accent font-mono text-xs font-bold">/</code> to use AI methods.
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -388,7 +434,7 @@ const Chat = () => {
                                                 </div>
                                             )}
                                             <div className={`max-w-[86%] rounded-lg border px-4 py-3 sm:max-w-[76%] ${message.role === 'user' ? 'border-primary/30 bg-primary text-white' : 'border-border bg-surface-light text-text'}`}>
-                                                {message.role === 'user' ? <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p> : <div>{formatMessageContent(message.content)}</div>}
+                                                {message.role === 'user' ? <p className="whitespace-pre-wrap text-sm leading-6">{renderFormattedChatMessage(message.content)}</p> : <div>{formatMessageContent(message.content)}</div>}
                                             </div>
                                         </article>
                                     ))}
@@ -408,8 +454,39 @@ const Chat = () => {
                         </div>
                     </div>
 
-                    <div className="shrink-0 border-t border-border bg-surface px-4 py-3 sm:px-6">
-                        <div className="mx-auto max-w-4xl">
+                    <div className="shrink-0 border-t border-border bg-surface px-4 py-3 sm:px-6 relative">
+                        <div className="mx-auto max-w-4xl relative">
+                            {/* Autocomplete Popover */}
+                            <ChatAutocompletePopover
+                                input={input}
+                                setInput={setInput}
+                                inputRef={inputRef}
+                                isOpen={popoverOpen}
+                                setIsOpen={setPopoverOpen}
+                                activeTrigger={activeTrigger}
+                                setActiveTrigger={setActiveTrigger}
+                                query={autocompleteQuery}
+                                setQuery={setAutocompleteQuery}
+                            />
+
+                            {/* Quick Slash-Command Chips */}
+                            <div className="mb-2 flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-xs">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted shrink-0 mr-1">
+                                    Quick Slash Commands:
+                                </span>
+                                {SLASH_COMMANDS.slice(0, 4).map(cmd => (
+                                    <button
+                                        key={cmd.cmd}
+                                        type="button"
+                                        onClick={() => handleSend(null, cmd.prompt)}
+                                        className="shrink-0 inline-flex items-center gap-1 bg-surface-lighter hover:bg-primary/10 border border-border hover:border-primary/30 text-text-muted hover:text-primary-light px-2.5 py-1 rounded-full font-mono text-[11px] transition-colors"
+                                    >
+                                        <HiOutlineTag className="w-3 h-3 text-accent" />
+                                        {cmd.cmd}
+                                    </button>
+                                ))}
+                            </div>
+
                             {attachedFile && (
                                 <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs text-primary-light">
                                     <HiOutlineDocumentText className="h-4 w-4 shrink-0" />
@@ -420,10 +497,18 @@ const Chat = () => {
                             <form onSubmit={handleSend} className="flex items-center gap-2 rounded-xl border border-border bg-surface-light p-2 transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/15">
                                 <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.txt,.csv" onChange={handleFileUpload} />
                                 <button type="button" onClick={() => fileInputRef.current?.click()} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-lighter hover:text-primary-light" aria-label="Attach PDF, TXT, or CSV file" title="Attach file"><HiOutlinePaperClip className="h-5 w-5" /></button>
-                                <input ref={inputRef} type="text" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={handleKeyDown} placeholder={extractedText ? 'Ask about your attached file...' : 'Message PricePilot AI...'} className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-text outline-none placeholder:text-text-muted" />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={input}
+                                    onChange={handleInputChange}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder={extractedText ? 'Ask about your attached file...' : 'Message PricePilot AI (Type @ for products, / for methods)...'}
+                                    className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-text outline-none placeholder:text-text-muted"
+                                />
                                 <button type="submit" disabled={!input.trim() || isLoading} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send message" title="Send message"><HiOutlinePaperAirplane className="h-4 w-4" /></button>
                             </form>
-                            <p className="mt-2 text-center text-[10px] text-text-muted">PricePilot can make mistakes. Verify important decisions.</p>
+                            <p className="mt-2 text-center text-[10px] text-text-muted">PricePilot AI can make mistakes. Tag products with @ and invoke methods with /.</p>
                         </div>
                     </div>
                 </section>
