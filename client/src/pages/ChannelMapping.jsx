@@ -30,8 +30,13 @@ export default function ChannelMapping() {
                 getProducts(1, 100),
                 getProductMappings(),
             ]);
-            setProducts(prodRes.data?.products || prodRes.data || []);
-            setMappings(mapRes.data?.data || []);
+            
+            // Fix: prodRes.data is { data: [...], page, limit, total }
+            const rawProds = prodRes.data?.data || prodRes.data?.products || (Array.isArray(prodRes.data) ? prodRes.data : []);
+            const rawMaps = mapRes.data?.data || (Array.isArray(mapRes.data) ? mapRes.data : []);
+
+            setProducts(Array.isArray(rawProds) ? rawProds : []);
+            setMappings(Array.isArray(rawMaps) ? rawMaps : []);
         } catch {
             setError(true);
         } finally {
@@ -124,9 +129,12 @@ export default function ChannelMapping() {
     }
 
     // Filter products & mappings
-    const filteredProducts = products.filter(p => {
+    const safeProducts = Array.isArray(products) ? products : [];
+    const safeMappings = Array.isArray(mappings) ? mappings : [];
+
+    const filteredProducts = safeProducts.filter(p => {
         const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || p.sku?.toLowerCase().includes(search.toLowerCase());
-        const prodMappings = mappings.filter(m => String(m.productId?._id || m.productId) === String(p._id));
+        const prodMappings = safeMappings.filter(m => String(m.productId?._id || m.productId) === String(p._id));
         
         if (filterStatus === 'confirmed') return matchesSearch && prodMappings.some(m => m.status === 'confirmed');
         if (filterStatus === 'suggested') return matchesSearch && prodMappings.some(m => m.status === 'suggested');
