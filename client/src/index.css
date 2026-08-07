@@ -65,6 +65,16 @@
 }
 .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
 
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 /* Staggered delays for card grids */
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.1s; }
@@ -123,7 +133,7 @@ body {
     0 4px 6px -1px rgba(0, 0, 0, 0.3),
     0 20px 40px -8px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-hover:hover {
@@ -145,7 +155,7 @@ body {
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.01em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-position 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   cursor: pointer;
   position: relative;
@@ -183,7 +193,7 @@ body {
   border-radius: 0.75rem;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   cursor: pointer;
 }
 .btn-secondary:hover {
@@ -199,7 +209,7 @@ body {
   border-radius: 0.75rem;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
   border: none;
   cursor: pointer;
 }
@@ -217,7 +227,7 @@ body {
   padding: 0.75rem 1rem;
   color: #f1f5f9;
   font-size: 0.875rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
 }
 .input-field:focus {
@@ -274,8 +284,7 @@ select option {
   font-weight: 800;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #f1f5f9 0%, #818cf8 50%, #06b6d4 100%);
-  background-size: 200% 200%;
-  animation: gradientShift 8s ease infinite;
+  background-size: 100% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -289,7 +298,7 @@ select option {
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   color: #64748b;
-  transition: all 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
   position: relative;
   border-left: 3px solid transparent;
@@ -313,7 +322,7 @@ select option {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.05));
   border-left: 3px solid #6366f1;
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.08);
 }
 
@@ -344,7 +353,7 @@ thead th {
   letter-spacing: 0.08em;
 }
 tbody tr {
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 tbody tr:hover {
   background: rgba(99, 102, 241, 0.04) !important;

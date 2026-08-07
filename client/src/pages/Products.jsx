@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil, HiOutlineChartBar } from 'react-icons/hi';
+import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil, HiOutlineChartBar, HiOutlineSparkles } from 'react-icons/hi';
 import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
@@ -221,7 +221,8 @@ export default function Products() {
                                                 disabled={isGenerating || !form.name}
                                                 className="text-[11px] font-semibold uppercase tracking-wider text-primary hover:text-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 active:scale-[0.98]"
                                             >
-                                                ✨ AI Optimize
+                                                <HiOutlineSparkles className="w-3.5 h-3.5" />
+                                                AI Optimize
                                             </button>
                                         </div>
                                         <input className="input-field w-full" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />

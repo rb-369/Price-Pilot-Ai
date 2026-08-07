@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { HiOutlineUserGroup, HiOutlineArrowLeft } from 'react-icons/hi';
+import { HiOutlineUserGroup, HiOutlineArrowLeft, HiOutlineLightningBolt } from 'react-icons/hi';
 import { FaGithub } from 'react-icons/fa';
 
 export default function About() {
@@ -19,7 +19,7 @@ export default function About() {
 
                 <div className="glass-card p-8 text-center space-y-6">
                     <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.5)] mb-6">
-                        <span className="text-4xl">🚀</span>
+                        <HiOutlineLightningBolt className="w-10 h-10 text-white" />
                     </div>
                     <h2 className="text-2xl font-bold text-white">PricePilot AI Team</h2>
                     <p className="text-slate-400 max-w-2xl mx-auto leading-relaxed">

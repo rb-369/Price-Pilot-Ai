@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon, HiOutlineUserGroup, HiOutlineMail, HiOutlineArrowUp } from 'react-icons/hi';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
@@ -97,10 +97,18 @@ export default function Landing() {
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All Questions');
     const [searchTerm, setSearchTerm] = useState('');
+    const [showBackToTop, setShowBackToTop] = useState(false);
 
     const toggleFaq = (index) => {
         setOpenFaqIndex(openFaqIndex === index ? null : index);
     };
+
+    useEffect(() => {
+        const onScroll = () => setShowBackToTop(window.scrollY >= 400);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     const filteredFaqs = faqData.filter((faq) => {
         const matchesCategory = activeCategory === 'All Questions' || faq.category === activeCategory;
@@ -189,7 +197,7 @@ export default function Landing() {
             <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-36 pb-20 relative z-10 w-full max-w-[1400px] mx-auto">
 
                 {/* Floating Decorative Elements */}
-                <div className="hidden lg:block absolute left-4 top-45 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '0s' }}>
+                <div className="hidden lg:block absolute left-4 top-[20%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '0s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
                             <HiOutlineTrendingUp className="w-5 h-5 text-green-500" />
@@ -201,7 +209,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute right-4 top-80 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '2s' }}>
+                <div className="hidden lg:block absolute right-4 top-[42%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '2s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
                             <HiOutlineShieldCheck className="w-5 h-5 text-indigo-500" />
@@ -213,7 +221,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute left-12 top-120 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
+                <div className="hidden lg:block absolute left-12 top-[68%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '4s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
                             <HiOutlineCubeTransparent className="w-5 h-5 text-cyan-500" />
@@ -225,7 +233,7 @@ export default function Landing() {
                     </div>
                 </div>
 
-                <div className="hidden lg:block absolute right-12 top-160 animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
+                <div className="hidden lg:block absolute right-12 top-[88%] animate-float glass-card p-4 rounded-2xl bg-surface/60 backdrop-blur-md border border-primary/10 shadow-2xl opacity-90" style={{ animationDelay: '1.5s' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
                             <HiOutlineLightningBolt className="w-5 h-5 text-purple-500" />
@@ -246,7 +254,7 @@ export default function Landing() {
                     PricePilot AI 1.0 is Live
                 </div>
 
-                <h1 className="text-6xl md:text-8xl font-extrabold tracking-tight mb-6 animate-slide-up max-w-5xl text-text">
+                <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-[-0.03em] leading-[0.95] mb-6 animate-slide-up max-w-5xl text-text">
                     Dynamic Pricing Powered by <br className="hidden md:block" />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-cyan-500 to-indigo-500">Generative AI</span>
                 </h1>
@@ -474,13 +482,16 @@ export default function Landing() {
                 </section>
 
                 {/* Back to Top Button */}
+                {showBackToTop && (
                 <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="fixed bottom-20 right-8 z-50 animate-float glass-card px-5 py-3 rounded-full bg-surface/70 backdrop-blur-md border border-primary/10 shadow-[0_0_20px_rgba(99,102,241,0.3)] flex items-center gap-2 text-text font-medium hover:border-primary/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-all"
+                    aria-label="Back to top"
+                    className="fixed bottom-24 right-6 z-50 glass-card px-5 py-3 rounded-full bg-surface/70 backdrop-blur-md border border-primary/10 shadow-[0_0_20px_rgba(99,102,241,0.3)] flex items-center gap-2 text-text font-medium hover:border-primary/30 hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] transition-[border-color,box-shadow,transform]"
                 >
                     <HiOutlineArrowUp className="w-4 h-4 text-primary" />
                     Back to Top
                 </button>
+                )}
 
             </main>
 
