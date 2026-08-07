@@ -62,11 +62,11 @@ export default function Dashboard() {
     const { formatCurrency } = useCurrency();
 
     const statCards = [
-        { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, gradient: 'from-green-500 to-emerald-600', borderColor: 'border-l-green-500', change: null },
-        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, gradient: 'from-primary to-primary-dark', borderColor: 'border-l-primary', change: null },
-        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', borderColor: 'border-l-accent', change: null },
-        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, gradient: 'from-warning to-orange-600', borderColor: 'border-l-warning', change: null },
-        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, gradient: 'from-purple-500 to-violet-600', borderColor: 'border-l-purple-500', change: `${stats?.acceptedRecommendations || 0} accepted` },
+        { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, gradient: 'from-green-500 to-emerald-600', topAccent: 'border-t-2 border-t-emerald-500', change: null },
+        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, gradient: 'from-primary to-primary-dark', topAccent: 'border-t-2 border-t-primary', change: null },
+        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, gradient: 'from-accent to-cyan-600', topAccent: 'border-t-2 border-t-accent', change: null },
+        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, gradient: 'from-warning to-orange-600', topAccent: 'border-t-2 border-t-warning', change: null },
+        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, gradient: 'from-purple-500 to-violet-600', topAccent: 'border-t-2 border-t-purple-500', change: `${stats?.acceptedRecommendations || 0} accepted` },
     ];
 
     return (
@@ -94,7 +94,7 @@ export default function Dashboard() {
                     {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {statCards.map((card, i) => (
-                    <div key={i} className={`glass-card-hover p-5 border-l-[3px] ${card.borderColor} animate-slide-up`}
+                    <div key={i} className={`glass-card-hover p-5 ${card.topAccent} animate-slide-up`}
                         style={{ animationDelay: `${i * 0.08}s` }}>
                         <div className="flex items-start justify-between mb-3">
                             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg`}>

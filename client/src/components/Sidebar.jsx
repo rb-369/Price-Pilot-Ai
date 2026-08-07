@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
                             </div>
                             <div className="relative z-10">
                                 <h1 className="font-bold text-text text-lg leading-tight tracking-tight">PricePilot</h1>
-                                <p className="text-[10px] text-primary-light font-medium tracking-widest uppercase">AI Platform</p>
+                                <p className="text-[11px] text-primary-light font-medium tracking-wide">AI Platform</p>
                             </div>
                         </div>
                         {/* Close button */}

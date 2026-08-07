@@ -143,20 +143,20 @@ export default function Landing() {
                             </div>
                             <span className="font-bold text-2xl tracking-tight text-text relative z-10">PricePilot AI</span>
                         </div>
-                        <div className="hidden md:flex items-center space-x-6">
-                            <Link to="/docs" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+                        <div className="hidden md:flex items-center space-x-4">
+                            <Link to="/docs" className="text-text-muted hover:text-text transition-colors text-sm font-medium min-h-[44px] inline-flex items-center px-2 py-1">
                                 Docs
                             </Link>
 
-                            <a href="#faq" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+                            <a href="#faq" className="text-text-muted hover:text-text transition-colors text-sm font-medium min-h-[44px] inline-flex items-center px-2 py-1">
                                 FAQ
                             </a>
 
-                            <a href="#about" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+                            <a href="#about" className="text-text-muted hover:text-text transition-colors text-sm font-medium min-h-[44px] inline-flex items-center px-2 py-1">
                                 About Us
                             </a>
 
-                            <Link to="/login" className="text-text-muted hover:text-text transition-colors text-sm font-medium">
+                            <Link to="/login" className="text-text-muted hover:text-text transition-colors text-sm font-medium min-h-[44px] inline-flex items-center px-2 py-1">
                                 Sign In
                             </Link>
 

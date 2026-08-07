@@ -113,7 +113,7 @@ export default function Alerts() {
 
                     return (
                         <div key={alert._id}
-                            className={`glass-card p-5 flex items-start gap-4 transition-all animate-slide-up ${!alert.read ? 'border-l-[3px] border-l-primary' : 'opacity-60'}`}
+                            className={`glass-card p-5 flex items-start gap-4 transition-all animate-slide-up ${!alert.read ? 'ring-1 ring-primary/35 bg-primary/5' : 'opacity-60'}`}
                             style={{ animationDelay: `${0.1 + i * 0.04}s` }}>
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${colorClass} ${!alert.read && alert.severity === 'critical' ? 'animate-pulse' : ''}`}>
                                 <Icon className="w-5 h-5" />

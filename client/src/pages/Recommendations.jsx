@@ -424,12 +424,12 @@ export default function Recommendations() {
               return (
                 <div
                   key={i}
-                  className={`glass-card p-6 border-l-4 animate-slide-up glass-card-hover ${
+                  className={`glass-card p-6 border-t-2 animate-slide-up glass-card-hover ${
                     rec.status === 'accepted'
-                      ? 'border-l-success'
+                      ? 'border-t-success'
                       : isIncrease
-                      ? 'border-l-primary'
-                      : 'border-l-accent'
+                      ? 'border-t-primary'
+                      : 'border-t-accent'
                   }`}
                   style={{ animationDelay: `${0.15 + i * 0.06}s` }}
                 >

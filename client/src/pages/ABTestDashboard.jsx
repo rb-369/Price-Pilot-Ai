@@ -251,7 +251,7 @@ export default function ABTestDashboard() {
                   const rpvB = vB.views > 0 ? (vB.revenue / vB.views) : 0;
 
                   return (
-                    <div key={test._id} className="glass-card p-6 border-l-4 border-l-primary flex flex-col justify-between">
+                    <div key={test._id} className="glass-card p-6 border-t-2 border-t-primary flex flex-col justify-between">
                       <div>
                         <div className="flex items-start justify-between mb-4">
                           <div>

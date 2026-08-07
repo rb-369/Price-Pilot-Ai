@@ -87,7 +87,7 @@ const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
     };
 
     return (
-        <div className="glass-card p-6 border-l-[3px] border-l-indigo-500 col-span-1 md:col-span-2">
+        <div className="glass-card p-6 border-t-2 border-t-indigo-500 col-span-1 md:col-span-2">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <div>
                     <h2 className="text-lg font-bold text-text flex items-center gap-2">
