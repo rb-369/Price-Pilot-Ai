@@ -26,22 +26,28 @@ function calculateSignificance(conversionsA, viewsA, conversionsB, viewsB) {
 exports.createTest = async (req, res) => {
     try {
         const { productId, variantBPrice, recommendationId } = req.body;
+        if (!productId || !variantBPrice) {
+            return res.status(400).json({ message: 'Product ID and target price are required' });
+        }
         
-        const product = await Product.findOne({ _id: productId, userId: req.user._id });
+        let product = await Product.findOne({ _id: productId, userId: req.user._id });
+        if (!product) {
+            product = await Product.findById(productId);
+        }
         if (!product) return res.status(404).json({ message: 'Product not found' });
         
         // Stop any existing active tests for this product
         await ABTest.updateMany(
-            { productId, status: 'active' },
+            { productId: product._id, status: 'active' },
             { status: 'completed', endDate: new Date() }
         );
         
         const test = await ABTest.create({
-            productId,
+            productId: product._id,
             userId: req.user._id,
             recommendationId: recommendationId || null,
             variantA: { price: product.currentPrice, label: 'control' },
-            variantB: { price: variantBPrice, label: 'ai_recommended' },
+            variantB: { price: Number(variantBPrice), label: 'ai_recommended' },
             status: 'active'
         });
 
@@ -52,7 +58,8 @@ exports.createTest = async (req, res) => {
         
         res.status(201).json(test);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error in createTest:', error);
+        res.status(500).json({ message: error.message || 'Failed to create A/B test' });
     }
 };
 

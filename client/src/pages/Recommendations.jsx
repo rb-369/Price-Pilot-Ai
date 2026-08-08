@@ -47,17 +47,25 @@ export default function Recommendations() {
   const { formatCurrency } = useCurrency();
 
   const handleTestPrice = async (rec) => {
-    const pId = typeof rec.productId === 'object' ? rec.productId?._id : rec.productId;
+    const rawId = rec.productId?._id || rec.productId;
+    const pId = typeof rawId === 'object' ? rawId._id : rawId;
     const recPrice = rec.recommendedPrice;
+
+    if (!pId || !recPrice) {
+      toast.error('Unable to find valid product data for this recommendation');
+      return;
+    }
+
     try {
       await createABTest({
-        productId: pId,
+        productId: String(pId),
         variantBPrice: Number(recPrice),
         recommendationId: rec._id
       });
       toast.success('A/B Split Test Started! Redirecting...');
-      navigate('/ab-testing');
+      navigate('/dashboard/ab-tests');
     } catch (err) {
+      console.error(err);
       toast.error(err.response?.data?.message || 'Failed to start A/B test');
     }
   };
@@ -682,13 +690,14 @@ export default function Recommendations() {
                     )}
 
                     {rec.status === 'in_testing' && (
-                      <a
-                        href="/ab-testing"
-                        className="py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center gap-2 text-xs transition-colors"
+                      <button
+                        type="button"
+                        onClick={() => navigate('/dashboard/ab-tests')}
+                        className="py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
                       >
                         <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
                         <HiBeaker className="w-4 h-4" /> View Active A/B Test
-                      </a>
+                      </button>
                     )}
 
                     {rec.status === 'accepted' && (
