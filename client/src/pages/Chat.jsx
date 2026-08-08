@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
-    createChat, deleteChat, getChat, getChats, sendChatMessage, uploadChatContext,
+    createChat, deleteChat, getChat, getChats, sendChatMessage, uploadChatContext, submitChatFeedback, editChatMessage
 } from '../api';
 import {
     HiOutlineArrowRight,
@@ -18,6 +18,11 @@ import {
     HiOutlineX,
     HiOutlineTag,
     HiOutlineCube,
+    HiOutlineDuplicate,
+    HiOutlinePencil,
+    HiOutlineCheck,
+    HiOutlineThumbUp,
+    HiOutlineThumbDown,
 } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage, SLASH_COMMANDS } from '../components/ChatAutocompletePopover';
 
@@ -69,9 +74,116 @@ const Chat = () => {
     const [activeTrigger, setActiveTrigger] = useState(null);
     const [autocompleteQuery, setAutocompleteQuery] = useState('');
 
+    // Message action & feedback states
+    const [copiedIndex, setCopiedIndex] = useState(null);
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editingText, setEditingText] = useState('');
+    const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+    const [feedbackTargetIndex, setFeedbackTargetIndex] = useState(null);
+    const [feedbackCategory, setFeedbackCategory] = useState('Incorrect Pricing Data');
+    const [feedbackComment, setFeedbackComment] = useState('');
+    const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+    const [toastMessage, setToastMessage] = useState(null);
+
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const inputRef = useRef(null);
+
+    const handleCopyText = (text, index) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
+    const handleStartEdit = (index, content) => {
+        setEditingIndex(index);
+        setEditingText(content);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null);
+        setEditingText('');
+    };
+
+    const handleSaveEdit = async (index) => {
+        if (!editingText.trim() || isLoading) return;
+        setIsLoading(true);
+        try {
+            const { data } = await editChatMessage(activeChatId, index, { message: editingText });
+            setMessages(data.chat.messages);
+            setEditingIndex(null);
+            setEditingText('');
+        } catch (err) {
+            console.error('Failed to edit message:', err);
+            setToastMessage({ type: 'error', text: 'Failed to update prompt. Please try again.' });
+            setTimeout(() => setToastMessage(null), 4000);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleQuickLike = async (index, message) => {
+        try {
+            const currentRating = message.feedback?.rating;
+            const newRating = currentRating === 'like' ? null : 'like';
+            const { data } = await submitChatFeedback(activeChatId, index, { rating: newRating });
+            
+            setMessages(prev => prev.map((m, idx) => idx === index ? { ...m, feedback: data.feedback } : m));
+            
+            if (data.accepted) {
+                setToastMessage({ type: 'success', text: 'Liked response! Feedback recorded.' });
+            } else {
+                setToastMessage({ type: 'info', text: data.message });
+            }
+            setTimeout(() => setToastMessage(null), 4000);
+        } catch (err) {
+            console.error('Feedback error:', err);
+        }
+    };
+
+    const handleOpenFeedbackModal = (index) => {
+        setFeedbackTargetIndex(index);
+        setFeedbackCategory('Incorrect Pricing Data');
+        setFeedbackComment('');
+        setFeedbackModalOpen(true);
+    };
+
+    const handleSubmitFeedbackModal = async (e) => {
+        if (e) e.preventDefault();
+        if (feedbackTargetIndex === null) return;
+        setFeedbackSubmitting(true);
+
+        try {
+            const { data } = await submitChatFeedback(activeChatId, feedbackTargetIndex, {
+                rating: 'dislike',
+                category: feedbackCategory,
+                comment: feedbackComment
+            });
+
+            setMessages(prev => prev.map((m, idx) => idx === feedbackTargetIndex ? { ...m, feedback: data.feedback } : m));
+            setFeedbackModalOpen(false);
+
+            if (data.accepted) {
+                setToastMessage({
+                    type: 'success',
+                    text: 'Feedback recorded! Thank you for helping improve PricePilot AI.'
+                });
+            } else {
+                setToastMessage({
+                    type: 'info',
+                    text: 'Feedback received. Note: Off-topic query feedback (e.g. travel/trivia unrelated to e-commerce) is automatically filtered out from model training.'
+                });
+            }
+            setTimeout(() => setToastMessage(null), 5000);
+        } catch (err) {
+            console.error('Submit feedback failed:', err);
+            setToastMessage({ type: 'error', text: 'Failed to submit feedback. Please try again.' });
+            setTimeout(() => setToastMessage(null), 4000);
+        } finally {
+            setFeedbackSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -425,14 +537,121 @@ const Chat = () => {
                             ) : (
                                 <div className="space-y-6 py-2">
                                     {messages.map((message, index) => (
-                                        <article key={`${message.role}-${index}`} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <article key={`${message.role}-${index}`} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
                                             {message.role !== 'user' && (
                                                 <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter">
                                                     <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
                                                 </div>
                                             )}
-                                            <div className={`max-w-[86%] rounded-lg border px-4 py-3 sm:max-w-[76%] ${message.role === 'user' ? 'border-primary/30 bg-primary text-white' : 'border-border bg-surface-light text-text'}`}>
-                                                {message.role === 'user' ? <p className="whitespace-pre-wrap text-sm leading-6">{renderFormattedChatMessage(message.content, true)}</p> : <div>{formatMessageContent(message.content)}</div>}
+                                            
+                                            <div className="max-w-[86%] sm:max-w-[76%] flex flex-col">
+                                                <div className={`rounded-xl border px-4 py-3 shadow-sm ${message.role === 'user' ? 'border-primary/30 bg-primary text-white self-end' : 'border-border bg-surface-light text-text self-start'}`}>
+                                                    {message.role === 'user' ? (
+                                                        editingIndex === index ? (
+                                                            <div className="space-y-2.5 min-w-[260px] sm:min-w-[340px]">
+                                                                <textarea
+                                                                    value={editingText}
+                                                                    onChange={(e) => setEditingText(e.target.value)}
+                                                                    className="w-full rounded-lg bg-black/20 border border-white/30 p-2.5 text-xs text-white outline-none focus:border-white focus:ring-1 focus:ring-white custom-scrollbar min-h-[60px]"
+                                                                />
+                                                                <div className="flex items-center justify-end gap-2 text-xs">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleCancelEdit}
+                                                                        className="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleSaveEdit(index)}
+                                                                        disabled={!editingText.trim() || isLoading}
+                                                                        className="px-2.5 py-1 rounded bg-white text-primary font-bold hover:bg-white/90 transition-colors disabled:opacity-50"
+                                                                    >
+                                                                        Save & Submit
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="whitespace-pre-wrap text-sm leading-6 font-normal">
+                                                                {renderFormattedChatMessage(message.content, true)}
+                                                            </p>
+                                                        )
+                                                    ) : (
+                                                        <div>{formatMessageContent(message.content)}</div>
+                                                    )}
+                                                </div>
+
+                                                {/* Action Bar (Copy, Edit Pencil for User / Copy, Like, Dislike for Assistant) */}
+                                                {editingIndex !== index && (
+                                                    <div className={`mt-1.5 flex items-center gap-1.5 text-xs ${message.role === 'user' ? 'justify-end text-text-muted' : 'justify-start text-text-muted'}`}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleCopyText(message.content, index)}
+                                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-surface-lighter hover:text-text transition-colors text-[11px]"
+                                                            title="Copy text"
+                                                        >
+                                                            {copiedIndex === index ? (
+                                                                <>
+                                                                    <HiOutlineCheck className="w-3.5 h-3.5 text-emerald-400" />
+                                                                    <span className="text-[10px] font-semibold text-emerald-400">Copied!</span>
+                                                                </>
+                                                            ) : (
+                                                                <HiOutlineDuplicate className="w-3.5 h-3.5" />
+                                                            )}
+                                                        </button>
+
+                                                        {message.role === 'user' ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleStartEdit(index, message.content)}
+                                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-surface-lighter hover:text-primary-light transition-colors text-[11px]"
+                                                                title="Edit prompt"
+                                                            >
+                                                                <HiOutlinePencil className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleQuickLike(index, message)}
+                                                                    className={`p-1 rounded transition-colors ${
+                                                                        message.feedback?.rating === 'like'
+                                                                            ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20'
+                                                                            : 'hover:text-emerald-400 hover:bg-surface-lighter'
+                                                                    }`}
+                                                                    title="Like response"
+                                                                >
+                                                                    <HiOutlineThumbUp className="w-3.5 h-3.5" />
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleOpenFeedbackModal(index)}
+                                                                    className={`p-1 rounded transition-colors ${
+                                                                        message.feedback?.rating === 'dislike'
+                                                                            ? 'text-rose-400 bg-rose-500/10 border border-rose-500/20'
+                                                                            : 'hover:text-rose-400 hover:bg-surface-lighter'
+                                                                    }`}
+                                                                    title="Dislike / Give feedback"
+                                                                >
+                                                                    <HiOutlineThumbDown className="w-3.5 h-3.5" />
+                                                                </button>
+
+                                                                {message.feedback?.status === 'ignored_offtopic' && (
+                                                                    <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium ml-1">
+                                                                        Off-topic (Filtered)
+                                                                    </span>
+                                                                )}
+                                                                {message.feedback?.status === 'accepted' && (
+                                                                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium ml-1">
+                                                                        Feedback Recorded
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </article>
                                     ))}
@@ -511,6 +730,106 @@ const Chat = () => {
                     </div>
                 </section>
             </main>
+
+            {/* Toast Notifications */}
+            {toastMessage && (
+                <div className="fixed bottom-20 right-6 z-50 animate-bounce-in">
+                    <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold ${
+                        toastMessage.type === 'success'
+                            ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'
+                            : toastMessage.type === 'info'
+                            ? 'bg-amber-950/90 border-amber-500/40 text-amber-200'
+                            : 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+                    }`}>
+                        <span>{toastMessage.text}</span>
+                        <button type="button" onClick={() => setToastMessage(null)} className="p-0.5 hover:opacity-80">
+                            <HiOutlineX className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Feedback Modal */}
+            {feedbackModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+                    <div className="relative w-full max-w-md bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                                    <HiOutlineThumbDown className="w-4 h-4" />
+                                </div>
+                                <h3 className="font-bold text-text text-sm sm:text-base">Provide Response Feedback</h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setFeedbackModalOpen(false)}
+                                className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
+                            >
+                                <HiOutlineX className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmitFeedbackModal} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">
+                                    What was the issue with this response?
+                                </label>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {[
+                                        'Incorrect Pricing Data',
+                                        'Vague Explanation',
+                                        'Off-Topic Response',
+                                        'Unhelpful Formatting',
+                                        'Other'
+                                    ].map((cat) => (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => setFeedbackCategory(cat)}
+                                            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                                feedbackCategory === cat
+                                                    ? 'bg-primary/20 border-primary/40 text-primary-light font-semibold'
+                                                    : 'bg-surface-lighter border-border text-text-muted hover:text-text'
+                                            }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1.5">
+                                    Additional details (optional)
+                                </label>
+                                <textarea
+                                    value={feedbackComment}
+                                    onChange={(e) => setFeedbackComment(e.target.value)}
+                                    placeholder="Tell us how PricePilot AI can provide better pricing or inventory recommendations..."
+                                    className="w-full rounded-xl bg-surface-light border border-border p-3 text-xs text-text placeholder:text-text-muted outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 min-h-[85px] custom-scrollbar"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+                                <button
+                                    type="button"
+                                    onClick={() => setFeedbackModalOpen(false)}
+                                    className="px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={feedbackSubmitting}
+                                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                    {feedbackSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

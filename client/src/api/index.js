@@ -95,6 +95,8 @@ export const getChat = (id) => api.get(`/chats/${id}`);
 export const createChat = (data) => api.post('/chats', data);
 export const deleteChat = (id) => api.delete(`/chats/${id}`);
 export const sendChatMessage = (id, data) => api.post(`/chats/${id}/message`, data);
+export const submitChatFeedback = (id, messageIndex, data) => api.post(`/chats/${id}/messages/${messageIndex}/feedback`, data);
+export const editChatMessage = (id, messageIndex, data) => api.put(`/chats/${id}/messages/${messageIndex}`, data);
 export const uploadChatContext = (formData) => api.post('/chats/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
 });

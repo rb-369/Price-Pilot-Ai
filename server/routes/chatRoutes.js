@@ -8,7 +8,9 @@ const {
     getChat,
     createChat,
     deleteChat,
-    sendMessage
+    sendMessage,
+    submitFeedback,
+    editMessage
 } = require('../controllers/chatController');
 
 // Multer setup for in-memory file handling
@@ -20,6 +22,8 @@ router.post('/', protect, createChat);
 router.get('/:id', protect, getChat);
 router.delete('/:id', protect, deleteChat);
 router.post('/:id/message', protect, sendMessage);
+router.post('/:id/messages/:messageIndex/feedback', protect, submitFeedback);
+router.put('/:id/messages/:messageIndex', protect, editMessage);
 
 // PDF Upload & Parse route
 router.post('/upload', protect, upload.single('file'), async (req, res) => {
