@@ -502,7 +502,17 @@ export default function Competitors() {
                                             return (
                                                 <div key={`${productId}-${competitor.name}-${index}`} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] md:items-center md:gap-4 md:px-5">
                                                     <div className="flex flex-col justify-center">
-                                                        <div className="flex items-center justify-between md:block"><span className="text-sm font-medium text-text">{competitor.name || 'Amazon'}</span><span className="text-xs text-text-muted md:hidden">{formatCurrency(competitor.price)}</span></div>
+                                                        <div className="flex items-center justify-between md:flex md:items-center md:gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-bold text-text">{competitor.name || 'Amazon'}</span>
+                                                                {!competitor.name?.toUpperCase().includes(data.product.brand?.toUpperCase() || '___NON_EXISTENT___') && competitor.name?.includes('(') && (
+                                                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary-light border border-primary/20">
+                                                                        Cross-Brand Rival
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-xs text-text-muted md:hidden">{formatCurrency(competitor.price)}</span>
+                                                        </div>
                                                         {competitor.productName ? (
                                                             <div className="mt-1">
                                                                 <a

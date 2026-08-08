@@ -23,8 +23,11 @@ class ScrapeByAsinRequest(BaseModel):
 class ScrapeByKeywordRequest(BaseModel):
     keyword: str
     amazonDomain: Optional[str] = "amazon.in"
-    maxResults: Optional[int] = 5
+    maxResults: Optional[int] = 6
     asin: Optional[str] = None
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    price: Optional[float] = None
 
 
 @router.post("/scrape/asins")
@@ -96,8 +99,11 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
     results = await search_competitors_by_keyword(
         keyword=request.keyword,
         amazon_domain=request.amazonDomain,
-        max_results=request.maxResults,
+        max_results=request.maxResults or 6,
         asin=request.asin,
+        brand=request.brand,
+        category=request.category,
+        price=request.price,
     )
 
     return {

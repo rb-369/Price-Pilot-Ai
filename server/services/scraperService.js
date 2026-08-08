@@ -12,9 +12,12 @@ async function fetchLiveCompetitorsForProduct(product) {
         response = await axios.post(
             `${AI_URL}/api/scrape/search`,
             { 
-                keyword: product.name, 
+                keyword: product.fullName || product.shortName || product.name, 
+                brand: product.brand || '',
+                category: product.category || 'General',
+                price: product.currentPrice,
                 amazonDomain: 'amazon.in', 
-                maxResults: 5,
+                maxResults: 6,
                 asin: product.externalIds?.amazonAsin || undefined
             },
             { timeout: 25000 },
@@ -41,15 +44,21 @@ async function fetchLiveCompetitorsForProduct(product) {
     }
 
     const checkedAt = new Date();
-    const records = await CompetitorPrice.insertMany(competitors.map((competitor) => ({
-        productId: product._id,
-        competitorName: competitor.platform || 'Amazon',
-        productName: competitor.productName.slice(0, 150),
-        competitorUrl: competitor.url,
-        competitorPrice: Number(competitor.price),
-        inStock: competitor.inStock !== false,
-        timestamp: checkedAt,
-    })));
+    const records = await CompetitorPrice.insertMany(competitors.map((competitor) => {
+        const platformStr = competitor.platform || 'Amazon';
+        const brandStr = competitor.brand && competitor.brand !== 'Other' ? competitor.brand : '';
+        const nameLabel = brandStr ? `${brandStr} (${platformStr})` : platformStr;
+
+        return {
+            productId: product._id,
+            competitorName: nameLabel,
+            productName: competitor.productName.slice(0, 150),
+            competitorUrl: competitor.url,
+            competitorPrice: Number(competitor.price),
+            inStock: competitor.inStock !== false,
+            timestamp: checkedAt,
+        };
+    }));
 
     for (const record of records) {
         if (record.competitorPrice < product.currentPrice * 0.95) {
