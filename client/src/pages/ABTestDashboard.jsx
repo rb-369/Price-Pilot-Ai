@@ -108,22 +108,44 @@ export default function ABTestDashboard() {
     }
   };
 
-  const handleEndTest = async (testId) => {
-    try {
-      const res = await completeABTest(testId);
-      const test = res.data;
-      const winner = test.winner;
-      const pName = test.productId?.name || 'Product';
-      
-      setCompletedWinnerModal({
-        test,
-        pName,
-        winner,
-        winningPrice: winner === 'B' ? test.variantB?.price : test.variantA?.price,
-        confidence: test.confidenceLevel || 0
-      });
+  const [pendingCompletionTest, setPendingCompletionTest] = useState(null);
 
-      toast.success(`Experiment completed! Winning price applied to catalog.`);
+  const handleOpenCompleteModal = (test) => {
+    const pName = test.productId?.name || 'Product';
+    const vA = test.results?.variantA || { views: 0, conversions: 0, revenue: 0 };
+    const vB = test.results?.variantB || { views: 0, conversions: 0, revenue: 0 };
+    const rpvA = vA.views > 0 ? (vA.revenue / vA.views) : 0;
+    const rpvB = vB.views > 0 ? (vB.revenue / vB.views) : 0;
+
+    let winner = 'tie';
+    if (rpvB > rpvA * 1.05) winner = 'B';
+    else if (rpvA > rpvB * 1.05) winner = 'A';
+
+    setPendingCompletionTest({
+      test,
+      pName,
+      winner,
+      winningPrice: winner === 'B' ? test.variantB?.price : test.variantA?.price,
+      variantAPrice: test.variantA?.price,
+      variantBPrice: test.variantB?.price,
+      confidence: test.confidenceLevel || 0,
+      rpvA,
+      rpvB
+    });
+  };
+
+  const handleConfirmComplete = async (action) => {
+    if (!pendingCompletionTest) return;
+    const testId = pendingCompletionTest.test._id;
+    try {
+      await completeABTest(testId, { action });
+      setPendingCompletionTest(null);
+
+      if (action === 'accept') {
+        toast.success('Winning price accepted and applied to catalog!');
+      } else {
+        toast.success('Tested price rejected. Preserved original catalog price.');
+      }
       fetchData();
     } catch {
       toast.error('Failed to complete experiment');
@@ -469,11 +491,11 @@ export default function ABTestDashboard() {
                         
                         <button
                           type="button"
-                          onClick={() => handleEndTest(test._id)}
+                          onClick={() => handleOpenCompleteModal(test)}
                           className="py-2 px-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-1.5 transition-colors"
                         >
                           <HiStop className="w-3.5 h-3.5 text-white" />
-                          Declare Winner & Apply
+                          Declare Winner & Finish
                         </button>
                       </div>
                     </div>
@@ -657,8 +679,8 @@ export default function ABTestDashboard() {
         </div>
       )}
 
-      {/* Completed Winner Modal */}
-      {completedWinnerModal && (
+      {/* Winner Decision Modal */}
+      {pendingCompletionTest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
           <div className="bg-surface-light border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-slide-up text-center">
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/20">
@@ -666,38 +688,51 @@ export default function ABTestDashboard() {
             </div>
             
             <div>
-              <h3 className="font-bold text-text text-lg">Experiment Completed!</h3>
-              <p className="text-xs text-text-muted mt-1">{completedWinnerModal.pName}</p>
+              <h3 className="font-bold text-text text-lg">Conclude A/B Experiment</h3>
+              <p className="text-xs text-text-muted mt-1">{pendingCompletionTest.pName}</p>
             </div>
             
             <div className="p-4 rounded-xl bg-surface-lighter/80 border border-border text-left space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-text-muted">Winning Variant:</span>
+                <span className="text-text-muted">Winning Performance:</span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">
-                  {completedWinnerModal.winner === 'B' ? 'Variant B (AI)' : completedWinnerModal.winner === 'A' ? 'Variant A (Control)' : 'Tie'}
+                  {pendingCompletionTest.winner === 'B' ? 'Variant B (AI Target)' : pendingCompletionTest.winner === 'A' ? 'Variant A (Control)' : 'Tie / Equal'}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-text-muted">Winning Catalog Price:</span>
-                <span className="font-bold text-primary text-sm">{formatCurrency(completedWinnerModal.winningPrice)}</span>
+                <span className="text-text-muted">Control Price (A):</span>
+                <span className="font-semibold text-text">{formatCurrency(pendingCompletionTest.variantAPrice)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted">AI Target Price (B):</span>
+                <span className="font-bold text-primary">{formatCurrency(pendingCompletionTest.variantBPrice)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-text-muted">Statistical Confidence:</span>
-                <span className="font-bold text-amber-500">{completedWinnerModal.confidence}%</span>
-              </div>
-              <div className="pt-2 border-t border-border text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
-                <HiCheckCircle className="w-4 h-4 shrink-0" />
-                Product price automatically updated to {formatCurrency(completedWinnerModal.winningPrice)} in live store catalog!
+                <span className="font-bold text-amber-500">{pendingCompletionTest.confidence}%</span>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setCompletedWinnerModal(null)}
-              className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors shadow-md shadow-primary/20"
-            >
-              Done
-            </button>
+            <div className="text-xs text-text-muted text-left">
+              Decide whether to update your live store catalog with the tested price or retain your baseline price.
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => handleConfirmComplete('reject')}
+                className="py-2.5 rounded-xl border border-danger/30 bg-danger/10 hover:bg-danger/20 text-danger text-xs font-bold transition-colors"
+              >
+                Reject & Keep ₹{pendingCompletionTest.variantAPrice}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleConfirmComplete('accept')}
+                className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-colors"
+              >
+                Accept & Apply Price
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getRecommendations,
   getProducts,
@@ -6,6 +7,7 @@ import {
   acceptRecommendation,
   rejectRecommendation,
   revertRecommendation,
+  createABTest,
   getJobStatus
 } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
@@ -24,7 +26,8 @@ import {
   HiOutlineDocumentText,
   HiX as HiOutlineXMark,
   HiOutlineExclamation as HiOutlineExclamationTriangle,
-  HiOutlineChartBar
+  HiOutlineChartBar,
+  HiBeaker
 } from 'react-icons/hi';
 import jsPDF from 'jspdf';
 import { SkeletonCard } from '../components/Skeleton';
@@ -32,6 +35,7 @@ import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 
 export default function Recommendations() {
+  const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +45,22 @@ export default function Recommendations() {
   const [searchQuery, setSearchQuery] = useState('');
   const [historyProduct, setHistoryProduct] = useState(null);
   const { formatCurrency } = useCurrency();
+
+  const handleTestPrice = async (rec) => {
+    const pId = typeof rec.productId === 'object' ? rec.productId?._id : rec.productId;
+    const recPrice = rec.recommendedPrice;
+    try {
+      await createABTest({
+        productId: pId,
+        variantBPrice: Number(recPrice),
+        recommendationId: rec._id
+      });
+      toast.success('A/B Split Test Started! Redirecting...');
+      navigate('/ab-testing');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to start A/B test');
+    }
+  };
 
   const fetchData = () => {
     setLoading(true);
@@ -465,10 +485,18 @@ export default function Recommendations() {
                             ? 'bg-success/15 text-success border border-success/20'
                             : rec.status === 'rejected'
                             ? 'bg-danger/15 text-danger border border-danger/20'
+                            : rec.status === 'in_testing'
+                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5'
                             : 'bg-warning/15 text-warning border border-warning/20'
                         }`}
                       >
-                        {rec.status}
+                        {rec.status === 'in_testing' ? (
+                          <>
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span> In Testing
+                          </>
+                        ) : (
+                          rec.status
+                        )}
                       </span>
                     </div>
                   </div>
@@ -628,6 +656,14 @@ export default function Recommendations() {
                         >
                           <HiOutlineCheck className="w-4 h-4" /> Accept &amp; Apply Price
                         </button>
+                        
+                        <button
+                          onClick={() => handleTestPrice(rec)}
+                          className="py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                        >
+                          <HiBeaker className="w-4 h-4 text-primary" /> Test Price (A/B)
+                        </button>
+
                         <button
                           onClick={async () => {
                             try {
@@ -643,6 +679,16 @@ export default function Recommendations() {
                           <HiOutlineXMark className="w-4 h-4" /> Reject
                         </button>
                       </>
+                    )}
+
+                    {rec.status === 'in_testing' && (
+                      <a
+                        href="/ab-testing"
+                        className="py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center gap-2 text-xs transition-colors"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
+                        <HiBeaker className="w-4 h-4" /> View Active A/B Test
+                      </a>
                     )}
 
                     {rec.status === 'accepted' && (

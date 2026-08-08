@@ -66,7 +66,7 @@ export const getABTests = () => api.get('/ab-tests');
 export const createABTest = (data) => api.post('/ab-tests', data);
 export const recordABTestEvent = (id, data) => api.post(`/ab-tests/${id}/record`, data);
 export const simulateABTestTraffic = (id, count = 50) => api.post(`/ab-tests/${id}/simulate`, { count });
-export const completeABTest = (id) => api.put(`/ab-tests/${id}/complete`);
+export const completeABTest = (id, data = {}) => api.put(`/ab-tests/${id}/complete`, data);
 
 // Competitor Prices
 export const getCompetitorPrices = (productId) => api.get(`/competitor-prices/${productId}`);

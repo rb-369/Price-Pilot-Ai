@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const abTestSchema = new mongoose.Schema({
     productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    recommendationId: { type: mongoose.Schema.Types.ObjectId, ref: 'PricingRecommendation' },
     
     variantA: {
         price: { type: Number, required: true },

@@ -1,5 +1,6 @@
 const ABTest = require('../models/ABTest');
 const Product = require('../models/Product');
+const PricingRecommendation = require('../models/PricingRecommendation');
 
 // Chi-Square test for statistical significance
 function calculateSignificance(conversionsA, viewsA, conversionsB, viewsB) {
@@ -8,14 +9,12 @@ function calculateSignificance(conversionsA, viewsA, conversionsB, viewsB) {
     const rateA = conversionsA / viewsA;
     const rateB = conversionsB / viewsB;
     
-    // Very simplified Z-test approximation for statistical significance
     const pPool = (conversionsA + conversionsB) / (viewsA + viewsB);
     if (pPool === 0 || pPool === 1) return 0;
     
     const se = Math.sqrt(pPool * (1 - pPool) * (1/viewsA + 1/viewsB));
     const z = Math.abs(rateA - rateB) / se;
     
-    // Z to roughly confidence %
     if (z >= 2.576) return 99;
     if (z >= 1.96) return 95;
     if (z >= 1.645) return 90;
@@ -26,7 +25,7 @@ function calculateSignificance(conversionsA, viewsA, conversionsB, viewsB) {
 
 exports.createTest = async (req, res) => {
     try {
-        const { productId, variantBPrice } = req.body;
+        const { productId, variantBPrice, recommendationId } = req.body;
         
         const product = await Product.findOne({ _id: productId, userId: req.user._id });
         if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -40,10 +39,16 @@ exports.createTest = async (req, res) => {
         const test = await ABTest.create({
             productId,
             userId: req.user._id,
+            recommendationId: recommendationId || null,
             variantA: { price: product.currentPrice, label: 'control' },
             variantB: { price: variantBPrice, label: 'ai_recommended' },
             status: 'active'
         });
+
+        // Update recommendation status to in_testing if recommendationId provided
+        if (recommendationId) {
+            await PricingRecommendation.findByIdAndUpdate(recommendationId, { status: 'in_testing' });
+        }
         
         res.status(201).json(test);
     } catch (error) {
@@ -76,7 +81,7 @@ exports.getTest = async (req, res) => {
 exports.recordEvent = async (req, res) => {
     try {
         const { id } = req.params;
-        const { variant, eventType } = req.body; // variant: 'A' or 'B', eventType: 'view' or 'conversion'
+        const { variant, eventType } = req.body;
         
         const test = await ABTest.findOne({ _id: id });
         if (!test || test.status !== 'active') return res.status(400).json({ message: 'Active test not found' });
@@ -90,7 +95,6 @@ exports.recordEvent = async (req, res) => {
             test.results[vKey].revenue += test[vKey].price;
         }
         
-        // Update statistical significance every 10 views to save CPU
         if (test.results.variantA.views % 10 === 0 || test.results.variantB.views % 10 === 0) {
             test.confidenceLevel = calculateSignificance(
                 test.results.variantA.conversions, test.results.variantA.views,
@@ -108,8 +112,9 @@ exports.recordEvent = async (req, res) => {
 exports.completeTest = async (req, res) => {
     try {
         const { id } = req.params;
-        const test = await ABTest.findOne({ _id: id, userId: req.user._id });
+        const { action } = req.body; // 'accept' or 'reject'
         
+        const test = await ABTest.findOne({ _id: id, userId: req.user._id });
         if (!test) return res.status(404).json({ message: 'Test not found' });
         
         test.status = 'completed';
@@ -125,10 +130,22 @@ exports.completeTest = async (req, res) => {
         
         await test.save();
         
-        // If there's a clear winner, update the product price automatically
-        if (test.winner === 'A' || test.winner === 'B') {
-            const winningPrice = test.winner === 'A' ? test.variantA.price : test.variantB.price;
+        const isAccept = action !== 'reject';
+        if (isAccept) {
+            // Apply winning price to store catalog
+            const winningPrice = test.winner === 'B' ? test.variantB.price : test.variantA.price;
             await Product.findByIdAndUpdate(test.productId, { currentPrice: winningPrice });
+            
+            if (test.recommendationId) {
+                await PricingRecommendation.findByIdAndUpdate(test.recommendationId, { status: 'accepted' });
+            }
+        } else {
+            // Retain original Control price (Variant A)
+            await Product.findByIdAndUpdate(test.productId, { currentPrice: test.variantA.price });
+            
+            if (test.recommendationId) {
+                await PricingRecommendation.findByIdAndUpdate(test.recommendationId, { status: 'rejected' });
+            }
         }
         
         res.json(test);

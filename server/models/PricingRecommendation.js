@@ -8,7 +8,7 @@ const pricingRecommendationSchema = new mongoose.Schema({
     reason: { type: String, required: true },
     expectedRevenueImpact: { type: Number, default: 0 }, // percentage
     confidenceScore: { type: Number, default: 0, min: 0, max: 1 },
-    status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'accepted', 'rejected', 'in_testing'], default: 'pending' },
     appliedAt: { type: Date },
     revenueBeforeChange: { type: Number },
     revenueAfterChange: { type: Number },
