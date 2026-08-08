@@ -47,10 +47,29 @@ exports.createProduct = async (req, res) => {
         delete safeBody.userId;
         delete safeBody._id;
 
-        const { name, sku, currentPrice, baseCost } = safeBody;
+        const { name, sku, currentPrice, baseCost, urlLivePrice } = safeBody;
         if (!name || !sku || currentPrice === undefined || baseCost === undefined) {
              return res.status(400).json({ message: 'Name, SKU, currentPrice, and baseCost are required fields.' });
         }
+
+        // Strict Price Mismatch Protection
+        if (urlLivePrice && Number(urlLivePrice) > 0) {
+            const livePrice = Number(urlLivePrice);
+            const enteredPrice = Number(currentPrice);
+            const percentDiff = (Math.abs(livePrice - enteredPrice) / livePrice) * 100;
+            if (percentDiff > 3) {
+                return res.status(400).json({
+                    code: 'PRICE_MISMATCH',
+                    livePrice,
+                    enteredPrice,
+                    message: `Price Mismatch Detected: The live price at the provided URL is ₹${livePrice.toLocaleString()}, but you entered ₹${enteredPrice.toLocaleString()}. Please resolve the price or URL before saving.`
+                });
+            }
+        }
+
+        // Set Short Name & Full Name fallbacks
+        safeBody.fullName = safeBody.fullName || safeBody.name;
+        safeBody.shortName = safeBody.shortName || safeBody.name.slice(0, 40);
 
         const product = await Product.create({ ...safeBody, userId: req.user._id });
 
@@ -63,7 +82,6 @@ exports.createProduct = async (req, res) => {
             timestamp: new Date(),
         }).catch(() => {});
 
-        // Return immediately — generate demand signals in background (non-blocking)
         res.status(201).json(product);
 
         // --- Fire-and-forget: Generate historical demand signals so graphs work immediately ---
@@ -87,6 +105,23 @@ exports.updateProduct = async (req, res) => {
         const oldProduct = await Product.findOne({ _id: req.params.id, userId: req.user._id });
         if (!oldProduct) return res.status(404).json({ message: 'Product not found' });
 
+        const { currentPrice, urlLivePrice } = safeBody;
+
+        // Strict Price Mismatch Protection on update
+        if (urlLivePrice && Number(urlLivePrice) > 0 && currentPrice) {
+            const livePrice = Number(urlLivePrice);
+            const enteredPrice = Number(currentPrice);
+            const percentDiff = (Math.abs(livePrice - enteredPrice) / livePrice) * 100;
+            if (percentDiff > 3) {
+                return res.status(400).json({
+                    code: 'PRICE_MISMATCH',
+                    livePrice,
+                    enteredPrice,
+                    message: `Price Mismatch Detected: The live price at the provided URL is ₹${livePrice.toLocaleString()}, but you entered ₹${enteredPrice.toLocaleString()}. Please resolve the price or URL before saving.`
+                });
+            }
+        }
+
         const product = await Product.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
             safeBody,
@@ -104,12 +139,123 @@ exports.updateProduct = async (req, res) => {
             }).catch(() => {});
         }
 
-        // --- Fire-and-forget: Check for low stock immediately ---
         checkProductForLowStock(product, req.user).catch(() => {});
 
         res.json(product);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.extractUrlMetadata = async (req, res) => {
+    try {
+        const { url } = req.body;
+        if (!url || typeof url !== 'string') {
+            return res.status(400).json({ message: 'Product URL is required.' });
+        }
+
+        let platform = 'generic';
+        const lowercaseUrl = url.toLowerCase();
+
+        if (lowercaseUrl.includes('amazon')) {
+            platform = 'amazon';
+        } else if (lowercaseUrl.includes('flipkart')) {
+            platform = 'flipkart';
+        } else if (lowercaseUrl.includes('shopify') || lowercaseUrl.includes('myshopify')) {
+            platform = 'shopify';
+        }
+
+        let metadata = {
+            fullName: '',
+            shortName: '',
+            currentPrice: null,
+            imageUrl: '',
+            category: 'Electronics',
+            description: '',
+            brand: '',
+            modelNumber: '',
+            keySpecs: [],
+            platform,
+            productLinks: {}
+        };
+
+        if (platform === 'amazon') metadata.productLinks.amazon = url;
+        if (platform === 'flipkart') metadata.productLinks.flipkart = url;
+        if (platform === 'shopify') metadata.productLinks.shopify = url;
+
+        try {
+            const htmlRes = await axios.get(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept-Language': 'en-US,en;q=0.9'
+                },
+                timeout: 8000
+            });
+            const html = htmlRes.data || '';
+
+            const titleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
+                               html.match(/<title>([^<]+)<\/title>/i);
+            if (titleMatch && titleMatch[1]) {
+                const rawTitle = titleMatch[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim();
+                metadata.fullName = rawTitle;
+                const shortTitle = rawTitle.split(/[,|\-–—(]/)[0].trim();
+                metadata.shortName = shortTitle.length >= 3 ? shortTitle : rawTitle.slice(0, 40);
+            }
+
+            const imageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+            if (imageMatch && imageMatch[1]) {
+                metadata.imageUrl = imageMatch[1];
+            }
+
+            const priceMatch = html.match(/<meta\s+property=["']og:price:amount["']\s+content=["']([\d.]+)/i) ||
+                               html.match(/["']price["']\s*:\s*["']?([\d.,]+)/i) ||
+                               html.match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{2})?)/i);
+            if (priceMatch && priceMatch[1]) {
+                const parsedPrice = parseFloat(priceMatch[1].replace(/,/g, ''));
+                if (!isNaN(parsedPrice) && parsedPrice > 0) {
+                    metadata.currentPrice = parsedPrice;
+                }
+            }
+
+            const brandMatch = html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
+                               html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
+            if (brandMatch && brandMatch[1]) {
+                metadata.brand = brandMatch[1].replace(/["'}]/g, '').trim();
+            } else if (metadata.fullName) {
+                const knownBrands = ['ASUS', 'Apple', 'Dell', 'HP', 'Lenovo', 'Samsung', 'Sony', 'Milton', 'Boat', 'Nike', 'Adidas', 'Puma', 'Logitech'];
+                const matched = knownBrands.find(b => metadata.fullName.toUpperCase().includes(b.toUpperCase()));
+                if (matched) metadata.brand = matched;
+            }
+
+            if (metadata.fullName) {
+                const specRegexes = [
+                    /\b\d+\s*GB\b/gi,
+                    /\b\d+\s*TB\b/gi,
+                    /\b(?:Core\s+i[3579]|Ryzen\s+[3579]|M[1234]\s*(?:Pro|Max)?)\b/gi,
+                    /\bRTX\s*\d{4}\b/gi,
+                    /\b\d{2,3}Hz\b/gi,
+                    /\bFHD\+?|4K|QHD\b/gi
+                ];
+                const foundSpecs = new Set();
+                specRegexes.forEach(rgx => {
+                    const matches = metadata.fullName.match(rgx);
+                    if (matches) matches.forEach(m => foundSpecs.add(m.trim()));
+                });
+                metadata.keySpecs = Array.from(foundSpecs);
+            }
+        } catch (fetchErr) {
+            console.warn('[URL Extraction Fallback]: Limited response, fallback url title used:', fetchErr.message);
+        }
+
+        if (!metadata.fullName) {
+            const cleanUrlName = url.split('/').filter(Boolean).pop()?.replace(/[-_]/g, ' ') || 'Imported Product';
+            metadata.fullName = cleanUrlName.slice(0, 100);
+            metadata.shortName = cleanUrlName.slice(0, 30);
+        }
+
+        res.json(metadata);
+    } catch (error) {
+        res.status(500).json({ message: error.message || 'Failed to extract product URL metadata' });
     }
 };
 

@@ -1,8 +1,20 @@
 import { useState, useEffect } from 'react';
-import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription } from '../api';
+import { getProducts, createProduct, deleteProduct, updateProduct, generateProductDescription, extractProductUrlMetadata } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineCube, HiOutlineX, HiOutlinePencil, HiOutlineChartBar, HiOutlineSparkles } from 'react-icons/hi';
+import { 
+  HiOutlinePlus, 
+  HiOutlineTrash, 
+  HiOutlineCube, 
+  HiOutlineX, 
+  HiOutlinePencil, 
+  HiOutlineChartBar, 
+  HiOutlineSparkles,
+  HiOutlineLink,
+  HiOutlineShieldCheck,
+  HiOutlineExclamation,
+  HiOutlineLightBulb
+} from 'react-icons/hi';
 import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
@@ -16,7 +28,9 @@ const STANDARD_CATEGORIES = [
 ];
 
 const DEFAULT_FORM_STATE = { 
-    name: '', sku: '', category: 'General', 
+    name: '', shortName: '', fullName: '',
+    brand: '', modelNumber: '', keySpecs: '',
+    sku: '', category: 'General', 
     baseCost: '', currentPrice: '', minMargin: '10', 
     stockLevel: '', reorderThreshold: '10', safetyBuffer: '2',
     description: '',
@@ -36,6 +50,13 @@ export default function Products() {
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // URL Importer & Mismatch States
+    const [formMode, setFormMode] = useState('url'); // 'url' or 'manual'
+    const [importUrl, setImportUrl] = useState('');
+    const [extractingUrl, setExtractingUrl] = useState(false);
+    const [urlLivePrice, setUrlLivePrice] = useState(null);
+    const [mismatchError, setMismatchError] = useState(null);
+
     const fetchProducts = () => {
         setLoading(true);
         setError(false);
@@ -45,8 +66,76 @@ export default function Products() {
             .finally(() => setLoading(false));
     };
 
+    const calculatePrecision = () => {
+        let precision = 50;
+        if (form.brand || form.modelNumber) precision += 15;
+        if (form.keySpecs) precision += 10;
+        if (form.productLinks?.amazon || form.productLinks?.flipkart || form.productLinks?.shopify) precision += 23;
+        return Math.min(98, precision);
+    };
+
+    const handleExtractUrl = async () => {
+        if (!importUrl) {
+            toast.error('Please enter a product URL from Amazon, Flipkart, or Shopify');
+            return;
+        }
+        setExtractingUrl(true);
+        const toastId = toast.loading('Extracting product metadata & live price...');
+        try {
+            const res = await extractProductUrlMetadata(importUrl);
+            const data = res.data;
+            toast.success('Metadata extracted successfully!', { id: toastId });
+
+            const isStandard = STANDARD_CATEGORIES.includes(data.category);
+
+            setForm(prev => ({
+                ...prev,
+                name: data.shortName || data.fullName || prev.name,
+                shortName: data.shortName || prev.shortName,
+                fullName: data.fullName || prev.fullName,
+                brand: data.brand || prev.brand,
+                modelNumber: data.modelNumber || prev.modelNumber,
+                keySpecs: Array.isArray(data.keySpecs) ? data.keySpecs.join(', ') : prev.keySpecs,
+                currentPrice: data.currentPrice ? String(data.currentPrice) : prev.currentPrice,
+                category: isStandard ? data.category : 'Electronics',
+                description: data.description || prev.description,
+                productLinks: {
+                    ...prev.productLinks,
+                    ...(data.productLinks || {})
+                }
+            }));
+
+            if (data.currentPrice) {
+                setUrlLivePrice(data.currentPrice);
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to extract URL metadata', { id: toastId });
+        } finally {
+            setExtractingUrl(false);
+        }
+    };
+
+    useEffect(() => {
+        if (urlLivePrice && form.currentPrice) {
+            const live = Number(urlLivePrice);
+            const entered = Number(form.currentPrice);
+            if (live > 0 && entered > 0) {
+                const percentDiff = (Math.abs(live - entered) / live) * 100;
+                if (percentDiff > 3) {
+                    setMismatchError(`Price Mismatch Detected: Live price at URL is ${formatCurrency(live)}, but entered price is ${formatCurrency(entered)}. Please reconcile before saving.`);
+                } else {
+                    setMismatchError(null);
+                }
+            } else {
+                setMismatchError(null);
+            }
+        } else {
+            setMismatchError(null);
+        }
+    }, [urlLivePrice, form.currentPrice, formatCurrency]);
+
     const handleGenerateAiCopy = async () => {
-        if (!form.name) {
+        if (!form.name && !form.fullName) {
             toast.error('Please enter a Product Name first');
             return;
         }
@@ -54,16 +143,13 @@ export default function Products() {
         const toastId = toast.loading('Generating AI description & SEO tags...');
         try {
             const finalCategory = form.category === 'Other' ? customCategory : form.category;
-            const res = await generateProductDescription({ productName: form.name, category: finalCategory });
+            const res = await generateProductDescription({ productName: form.fullName || form.name, category: finalCategory });
             toast.success('AI description generated!', { id: toastId });
             setForm(prev => ({
                 ...prev,
                 name: res.data.title || prev.name,
                 description: res.data.description || prev.description
             }));
-            if (res.data.description) {
-                toast.success('Description filled automatically!', { duration: 3000 });
-            }
         } catch {
             toast.error('AI generation failed', { id: toastId });
         } finally {
@@ -76,6 +162,10 @@ export default function Products() {
     const openAddForm = () => {
         setForm(DEFAULT_FORM_STATE);
         setCustomCategory('');
+        setImportUrl('');
+        setUrlLivePrice(null);
+        setMismatchError(null);
+        setFormMode('url');
         setEditId(null);
         setShowForm(!showForm);
     };
@@ -86,6 +176,11 @@ export default function Products() {
         
         setForm({
             name: p.name || '',
+            shortName: p.shortName || p.name || '',
+            fullName: p.fullName || p.name || '',
+            brand: p.brand || '',
+            modelNumber: p.modelNumber || '',
+            keySpecs: Array.isArray(p.keySpecs) ? p.keySpecs.join(', ') : (p.keySpecs || ''),
             sku: p.sku || '',
             category: isStandard ? p.category : 'Other',
             baseCost: p.baseCost || '',
@@ -104,22 +199,37 @@ export default function Products() {
             setCustomCategory('');
         }
         
+        setFormMode('manual');
         setShowForm(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (mismatchError) {
+            toast.error('Please resolve the Price Mismatch before submitting');
+            return;
+        }
+
         try {
             const finalCategory = form.category === 'Other' ? customCategory : form.category;
+            const parsedSpecs = typeof form.keySpecs === 'string' 
+                ? form.keySpecs.split(',').map(s => s.trim()).filter(Boolean)
+                : form.keySpecs;
+
             const payload = { 
-                ...form, 
+                ...form,
+                name: form.shortName || form.name,
+                shortName: form.shortName || form.name,
+                fullName: form.fullName || form.name,
+                keySpecs: parsedSpecs,
                 category: finalCategory,
                 baseCost: +form.baseCost, 
                 currentPrice: +form.currentPrice, 
                 minMargin: (+form.minMargin) / 100, 
                 stockLevel: +form.stockLevel, 
                 reorderThreshold: +form.reorderThreshold,
-                safetyBuffer: +form.safetyBuffer || 2
+                safetyBuffer: +form.safetyBuffer || 2,
+                urlLivePrice: urlLivePrice ? Number(urlLivePrice) : undefined
             };
 
             if (editId) {
@@ -134,6 +244,9 @@ export default function Products() {
             setEditId(null);
             setForm(DEFAULT_FORM_STATE);
             setCustomCategory('');
+            setImportUrl('');
+            setUrlLivePrice(null);
+            setMismatchError(null);
             fetchProducts();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed');
@@ -192,45 +305,183 @@ export default function Products() {
 
             {showForm && (
                 <div className="glass-card p-6 md:p-8 animate-slide-up mb-8 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-accent"></div>
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-amber-500 to-emerald-500"></div>
+                    <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h3 className="text-xl font-medium text-text tracking-tight">
-                                {editId ? 'Edit Product' : 'New Product'}
+                            <h3 className="text-xl font-bold text-text tracking-tight flex items-center gap-2">
+                                <HiOutlineCube className="w-5 h-5 text-primary" /> {editId ? 'Edit Product' : 'New Product'}
                             </h3>
-                            <p className="text-sm text-text-muted mt-1.5">
-                                {editId ? 'Update product details and inventory.' : 'Add a new product to your catalog.'}
+                            <p className="text-sm text-text-muted mt-1">
+                                {editId ? 'Update product details and specifications.' : 'Add a new product manually or auto-import metadata directly via URL.'}
                             </p>
                         </div>
                         <button onClick={() => { setShowForm(false); setEditId(null); }} className="p-2 rounded-full text-text-muted hover:text-text hover:bg-surface-lighter transition-colors">
                             <HiOutlineX className="w-5 h-5" />
                         </button>
                     </div>
+
+                    {/* Mode Tabs (Import via URL vs Manual Creation) */}
+                    {!editId && (
+                        <div className="flex items-center gap-3 p-1 rounded-xl bg-surface-lighter/60 border border-border w-fit mb-6">
+                            <button
+                                type="button"
+                                onClick={() => setFormMode('url')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                                    formMode === 'url'
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-text-muted hover:text-text'
+                                }`}
+                            >
+                                <HiOutlineLink className="w-4 h-4" /> 1-Click URL Importer
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormMode('manual')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                                    formMode === 'manual'
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-text-muted hover:text-text'
+                                }`}
+                            >
+                                <HiOutlinePencil className="w-4 h-4" /> Manual Product Entry
+                            </button>
+                        </div>
+                    )}
+
+                    {/* URL Importer Section */}
+                    {formMode === 'url' && !editId && (
+                        <div className="p-5 rounded-2xl bg-surface-lighter/40 border border-border mb-6 space-y-3">
+                            <div className="flex items-center gap-2 text-xs font-bold text-text">
+                                <HiOutlineLink className="w-4 h-4 text-primary" /> Paste Product URL (Amazon / Flipkart / Shopify)
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <input
+                                    type="url"
+                                    value={importUrl}
+                                    onChange={e => setImportUrl(e.target.value)}
+                                    placeholder="https://www.amazon.in/dp/B0CX587PMP or Flipkart/Shopify product URL..."
+                                    className="input-field flex-1 text-xs"
+                                />
+                                <button
+                                    type="button"
+                                    disabled={extractingUrl || !importUrl}
+                                    onClick={handleExtractUrl}
+                                    className="py-2.5 px-5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+                                >
+                                    {extractingUrl ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                            Fetching Metadata...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <HiOutlineSparkles className="w-4 h-4" /> Fetch &amp; Auto-Fill
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2.5 text-xs text-primary-light">
+                                <HiOutlineLightBulb className="w-4 h-4 shrink-0 text-amber-500" />
+                                <span>Pasting a product URL auto-fills title, live selling price, specs, category, and sales channel links!</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Dynamic AI Competitor Precision Gauge */}
+                    <div className="p-4 rounded-xl bg-surface-lighter/60 border border-border mb-6 space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                                <HiOutlineShieldCheck className="w-4 h-4 text-primary" /> AI Competitor Matching Precision
+                            </span>
+                            <span className={`font-bold ${calculatePrecision() >= 90 ? 'text-emerald-500' : calculatePrecision() >= 70 ? 'text-amber-500' : 'text-primary'}`}>
+                                {calculatePrecision()}% {calculatePrecision() >= 90 ? 'High Precision' : 'Basic Precision'}
+                            </span>
+                        </div>
+                        <div className="w-full bg-surface border border-border h-2 rounded-full overflow-hidden">
+                            <div 
+                                className="bg-gradient-to-r from-primary via-amber-500 to-emerald-500 h-full transition-all duration-500" 
+                                style={{ width: `${calculatePrecision()}%` }}
+                            />
+                        </div>
+                        <p className="text-[11px] text-text-muted">
+                            {calculatePrecision() < 90 
+                                ? '💡 Tip: Adding Amazon/Flipkart product links, brand name, and tech specs boosts AI competitor precision up to 98%.'
+                                : '✨ Maximum AI precision! Complete brand specifications and live channel links provided.'}
+                        </p>
+                    </div>
+
+                    {/* Strict Price Mismatch Alert */}
+                    {mismatchError && (
+                        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-xs font-semibold flex items-start gap-2.5 mb-6 animate-slide-up">
+                            <HiOutlineExclamation className="w-5 h-5 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="font-bold text-sm">Price Mismatch Detected</p>
+                                <p className="mt-0.5 leading-relaxed">{mismatchError}</p>
+                            </div>
+                        </div>
+                    )}
                     
                     <form onSubmit={handleSubmit} className="space-y-8">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Basic Info */}
                             <div className="lg:col-span-2 space-y-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    
+                                    {/* Short Name */}
                                     <div className="flex flex-col gap-1.5 md:col-span-2">
                                         <div className="flex justify-between items-center">
-                                            <label className="text-[13px] font-medium text-text">Product Name</label>
+                                            <label className="text-[13px] font-medium text-text">Short Name (For Clean UI Display)</label>
                                             <button 
                                                 type="button" 
                                                 onClick={handleGenerateAiCopy} 
-                                                disabled={isGenerating || !form.name}
+                                                disabled={isGenerating || (!form.name && !form.fullName)}
                                                 className="text-[11px] font-semibold uppercase tracking-wider text-primary hover:text-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 active:scale-[0.98]"
                                             >
                                                 <HiOutlineSparkles className="w-3.5 h-3.5" />
-                                                AI Optimize
+                                                AI Optimize Copy
                                             </button>
                                         </div>
-                                        <input className="input-field w-full" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                                        <input 
+                                            className="input-field w-full" 
+                                            placeholder="e.g. ASUS ROG Strix G16"
+                                            value={form.shortName || form.name} 
+                                            onChange={e => setForm({ ...form, shortName: e.target.value, name: e.target.value })} 
+                                            required 
+                                        />
                                     </div>
+
+                                    {/* Full Official Title */}
+                                    <div className="flex flex-col gap-1.5 md:col-span-2">
+                                        <label className="text-[13px] font-medium text-text">Full Official Name (For AI Matching &amp; Invoices)</label>
+                                        <textarea 
+                                            className="input-field w-full min-h-[60px] py-2 text-xs" 
+                                            placeholder="e.g. ASUS ROG Strix G16 (2024) Gaming Laptop, 16' 165Hz FHD+ Display, Intel Core i7-13650HX, RTX 4060, 16GB RAM, 1TB SSD"
+                                            value={form.fullName || form.name} 
+                                            onChange={e => setForm({ ...form, fullName: e.target.value })} 
+                                        />
+                                    </div>
+
+                                    {/* Brand & Model */}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Brand</label>
+                                        <input className="input-field" placeholder="e.g. ASUS, Apple, Dell" value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-medium text-text">Model Number / Variant</label>
+                                        <input className="input-field" placeholder="e.g. G16-2024 / G614J" value={form.modelNumber} onChange={e => setForm({ ...form, modelNumber: e.target.value })} />
+                                    </div>
+
+                                    {/* Key Specs */}
+                                    <div className="flex flex-col gap-1.5 md:col-span-2">
+                                        <label className="text-[13px] font-medium text-text">Key Specifications (Comma-separated)</label>
+                                        <input className="input-field" placeholder="e.g. 16GB RAM, 1TB SSD, RTX 4060, 165Hz" value={form.keySpecs} onChange={e => setForm({ ...form, keySpecs: e.target.value })} />
+                                    </div>
+
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-medium text-text">SKU</label>
                                         <input className="input-field" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} required />
                                     </div>
+                                    
                                     <div className="flex flex-col gap-1.5 relative">
                                         <label className="text-[13px] font-medium text-text">Category</label>
                                         <select className="input-field w-full" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
@@ -240,30 +491,39 @@ export default function Products() {
                                             <option value="Other">Other (Custom)</option>
                                         </select>
                                     </div>
+
                                     {form.category === 'Other' && (
                                         <div className="flex flex-col gap-1.5 md:col-span-2">
                                             <label className="text-[13px] font-medium text-text">Custom Category</label>
                                             <input className="input-field w-full" value={customCategory} onChange={e => setCustomCategory(e.target.value)} required />
                                         </div>
                                     )}
+
                                     <div className="flex flex-col gap-1.5 md:col-span-2">
                                         <label className="text-[13px] font-medium text-text">Description</label>
-                                        <textarea className="input-field w-full min-h-[100px] resize-y py-3" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                                        <textarea className="input-field w-full min-h-[90px] resize-y py-2.5" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Pricing & Stock */}
                             <div className="space-y-5 bg-surface-lighter/30 p-5 rounded-2xl ring-1 ring-border/50 shadow-sm">
-                                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">Pricing & Inventory</h4>
+                                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">Pricing &amp; Inventory</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-medium text-text">Cost ({config.symbol})</label>
                                         <input className="input-field" type="number" step="0.01" value={form.baseCost} onChange={e => setForm({ ...form, baseCost: e.target.value })} required />
                                     </div>
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[13px] font-medium text-text">Price ({config.symbol})</label>
-                                        <input className="input-field" type="number" step="0.01" value={form.currentPrice} onChange={e => setForm({ ...form, currentPrice: e.target.value })} required />
+                                        <label className="text-[13px] font-medium text-text">Selling Price ({config.symbol})</label>
+                                        <input 
+                                            className={`input-field ${mismatchError ? 'border-danger focus:border-danger ring-1 ring-danger/30' : ''}`} 
+                                            type="number" 
+                                            step="0.01" 
+                                            value={form.currentPrice} 
+                                            onChange={e => setForm({ ...form, currentPrice: e.target.value })} 
+                                            required 
+                                        />
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="text-[13px] font-medium text-text">Min Margin %</label>
@@ -293,12 +553,12 @@ export default function Products() {
 
                         {/* Product Links */}
                         <div className="space-y-4 pt-6 border-t border-border">
-                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Sales Channels</h4>
+                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted">Sales Channels &amp; Benchmark Links</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Amazon URL</label><input className="input-field" value={form.productLinks.amazon} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, amazon: e.target.value } })} /></div>
-                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Flipkart URL</label><input className="input-field" value={form.productLinks.flipkart} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, flipkart: e.target.value } })} /></div>
-                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Meesho URL</label><input className="input-field" value={form.productLinks.meesho} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, meesho: e.target.value } })} /></div>
-                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Shopify URL</label><input className="input-field" value={form.productLinks.shopify} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, shopify: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Amazon URL</label><input className="input-field text-xs" value={form.productLinks.amazon} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, amazon: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Flipkart URL</label><input className="input-field text-xs" value={form.productLinks.flipkart} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, flipkart: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Meesho URL</label><input className="input-field text-xs" value={form.productLinks.meesho} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, meesho: e.target.value } })} /></div>
+                                <div className="flex flex-col gap-1.5"><label className="text-[12px] text-text-muted">Shopify URL</label><input className="input-field text-xs" value={form.productLinks.shopify} onChange={e => setForm({ ...form, productLinks: { ...form.productLinks, shopify: e.target.value } })} /></div>
                             </div>
                         </div>
 
@@ -306,7 +566,11 @@ export default function Products() {
                             <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="btn-secondary px-6 active:scale-[0.98] transition-transform">
                                 Cancel
                             </button>
-                            <button type="submit" className="btn-primary px-6 active:scale-[0.98] transition-transform">
+                            <button 
+                                type="submit" 
+                                disabled={Boolean(mismatchError)}
+                                className="btn-primary px-6 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 {editId ? 'Save Changes' : 'Create Product'}
                             </button>
                         </div>
@@ -331,6 +595,10 @@ export default function Products() {
                     <div className="md:hidden divide-y divide-border">
                         {products.map((p) => {
                             const status = getStockStatus(p);
+                            const displayName = p.shortName || p.name;
+                            const fullTitle = p.fullName || p.name;
+                            const specsList = Array.isArray(p.keySpecs) ? p.keySpecs : [];
+
                             return (
                                 <div key={p._id} className="p-5 flex flex-col gap-4 hover:bg-surface-lighter/30 transition-colors">
                                     <div className="flex justify-between items-start gap-4">
@@ -339,9 +607,13 @@ export default function Products() {
                                                 <HiOutlineCube className="w-5 h-5 text-text-muted" />
                                             </div>
                                             <div>
-                                                <p className="font-semibold text-text leading-tight">{p.name}</p>
-                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                <p className="font-bold text-text leading-tight">{displayName}</p>
+                                                {fullTitle !== displayName && (
+                                                    <p className="text-[11px] text-text-muted line-clamp-1 mt-0.5" title={fullTitle}>{fullTitle}</p>
+                                                )}
+                                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                                     <span className="text-xs font-mono text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border">{p.sku}</span>
+                                                    {p.brand && <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase">{p.brand}</span>}
                                                     <span className="text-xs text-text-muted">{p.category}</span>
                                                 </div>
                                             </div>
@@ -390,6 +662,10 @@ export default function Products() {
                                 {products.map((p, i) => {
                                     const status = getStockStatus(p);
                                     const margin = ((p.currentPrice - p.baseCost) / p.currentPrice * 100).toFixed(1);
+                                    const displayName = p.shortName || p.name;
+                                    const fullTitle = p.fullName || p.name;
+                                    const specsList = Array.isArray(p.keySpecs) ? p.keySpecs : [];
+
                                     return (
                                         <tr key={p._id} className="group hover:bg-surface-lighter/20 transition-colors animate-fade-in"
                                             style={{ animationDelay: `${i * 0.03}s` }}>
@@ -398,9 +674,27 @@ export default function Products() {
                                                     <div className="w-9 h-9 rounded-lg bg-surface-lighter/50 border border-border/50 flex items-center justify-center shrink-0 shadow-sm">
                                                         <HiOutlineCube className="w-4 h-4 text-text-muted" />
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[13px] font-medium text-text tracking-tight">{p.name}</span>
-                                                        <span className="text-[11px] text-text-muted mt-0.5">{p.category}</span>
+                                                    <div className="flex flex-col max-w-xs">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[13px] font-bold text-text tracking-tight truncate">{displayName}</span>
+                                                            {p.brand && (
+                                                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                                                    {p.brand}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {fullTitle !== displayName && (
+                                                            <span className="text-[11px] text-text-muted truncate mt-0.5" title={fullTitle}>{fullTitle}</span>
+                                                        )}
+                                                        {specsList.length > 0 && (
+                                                            <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                                {specsList.slice(0, 3).map((spec, sIdx) => (
+                                                                    <span key={sIdx} className="text-[9px] font-semibold text-text-muted bg-surface-lighter px-1.5 py-0.5 rounded border border-border">
+                                                                        {spec}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>

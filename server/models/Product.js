@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
+    shortName: { type: String, trim: true },
+    fullName: { type: String, trim: true },
+    brand: { type: String, trim: true, default: '' },
+    modelNumber: { type: String, trim: true, default: '' },
+    keySpecs: [{ type: String, trim: true }],
     sku: { type: String, required: true },
     category: { type: String, default: 'general' },
     baseCost: { type: Number, required: true },
