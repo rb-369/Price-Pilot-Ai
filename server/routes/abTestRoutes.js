@@ -9,6 +9,7 @@ router.post('/', abTestController.createTest);
 router.get('/', abTestController.getTests);
 router.get('/:id', abTestController.getTest);
 router.post('/:id/record', abTestController.recordEvent);
+router.post('/:id/simulate', abTestController.simulateTraffic);
 router.put('/:id/complete', abTestController.completeTest);
 
 module.exports = router;

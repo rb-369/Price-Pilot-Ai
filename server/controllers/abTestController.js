@@ -136,3 +136,42 @@ exports.completeTest = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.simulateTraffic = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const count = parseInt(req.body.count || 50, 10);
+        
+        const test = await ABTest.findOne({ _id: id, userId: req.user._id });
+        if (!test || test.status !== 'active') return res.status(400).json({ message: 'Active test not found' });
+        
+        // Simulate batch shopper traffic split 50/50 between Variant A and Variant B
+        const countA = Math.floor(count / 2);
+        const countB = count - countA;
+        
+        // Variant A ~ 8-12% conversion rate, Variant B ~ 12-18% conversion rate
+        const convRateA = 0.08 + Math.random() * 0.04;
+        const convRateB = 0.12 + Math.random() * 0.06;
+        
+        const convsA = Math.round(countA * convRateA);
+        const convsB = Math.round(countB * convRateB);
+        
+        test.results.variantA.views += countA;
+        test.results.variantA.conversions += convsA;
+        test.results.variantA.revenue += convsA * test.variantA.price;
+        
+        test.results.variantB.views += countB;
+        test.results.variantB.conversions += convsB;
+        test.results.variantB.revenue += convsB * test.variantB.price;
+        
+        test.confidenceLevel = calculateSignificance(
+            test.results.variantA.conversions, test.results.variantA.views,
+            test.results.variantB.conversions, test.results.variantB.views
+        );
+        
+        await test.save();
+        res.json({ message: `Simulated ${count} visitor sessions`, test });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

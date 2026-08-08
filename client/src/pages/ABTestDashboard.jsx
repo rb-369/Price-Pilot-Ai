@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getABTests, createABTest, recordABTestEvent, completeABTest, getProducts } from '../api';
+import { getABTests, createABTest, recordABTestEvent, simulateABTestTraffic, completeABTest, getProducts } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import { exportReportToPdf } from '../utils/exportPdf';
 import toast from 'react-hot-toast';
@@ -13,8 +13,6 @@ import {
   HiTrendingUp,
   HiSparkles,
   HiDocumentDownload,
-  HiEye,
-  HiShoppingBag,
   HiBadgeCheck,
   HiRefresh,
   HiOutlineSearch
@@ -32,6 +30,12 @@ export default function ABTestDashboard() {
   const [variantBPrice, setVariantBPrice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Interactive UI states
+  const [showOnboardingBanner, setShowOnboardingBanner] = useState(true);
+  const [simulatingTestId, setSimulatingTestId] = useState(null);
+  const [completedWinnerModal, setCompletedWinnerModal] = useState(null);
+  
   const { formatCurrency } = useCurrency();
 
   useEffect(() => {
@@ -91,11 +95,35 @@ export default function ABTestDashboard() {
     }
   };
 
+  const handleBatchSimulate = async (testId) => {
+    setSimulatingTestId(testId);
+    try {
+      await simulateABTestTraffic(testId, 50);
+      toast.success('Simulated 50 visitor sessions! Metrics updated.');
+      fetchData();
+    } catch {
+      toast.error('Failed to simulate traffic');
+    } finally {
+      setSimulatingTestId(null);
+    }
+  };
+
   const handleEndTest = async (testId) => {
     try {
       const res = await completeABTest(testId);
-      const winner = res.data.winner;
-      toast.success(`Experiment completed! Winner: ${winner === 'tie' ? 'Tie' : 'Variant ' + winner}`);
+      const test = res.data;
+      const winner = test.winner;
+      const pName = test.productId?.name || 'Product';
+      
+      setCompletedWinnerModal({
+        test,
+        pName,
+        winner,
+        winningPrice: winner === 'B' ? test.variantB?.price : test.variantA?.price,
+        confidence: test.confidenceLevel || 0
+      });
+
+      toast.success(`Experiment completed! Winning price applied to catalog.`);
       fetchData();
     } catch {
       toast.error('Failed to complete experiment');
@@ -177,6 +205,61 @@ export default function ABTestDashboard() {
         </div>
       </div>
 
+      {/* Visual Onboarding Explainer Banner */}
+      {showOnboardingBanner && (
+        <div className="glass-card p-5 border-l-4 border-l-primary relative overflow-hidden animate-slide-up shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3.5">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                  <HiBeaker className="w-5 h-5" />
+                </span>
+                <h3 className="font-bold text-text text-base">How A/B Price Experiments Work</h3>
+                <span className="text-[10px] uppercase font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">Guide</span>
+              </div>
+              <p className="text-xs text-text-muted max-w-3xl leading-relaxed">
+                A/B Price Testing validates whether an AI-recommended target price generates higher overall revenue per customer before making a permanent catalog price update.
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">1</div>
+                  <div>
+                    <p className="text-xs font-bold text-text">50/50 Traffic Split</p>
+                    <p className="text-[11px] text-text-muted">50% see Variant A (Current), 50% see Variant B (AI Target)</p>
+                  </div>
+                </div>
+                
+                <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-500/20">2</div>
+                  <div>
+                    <p className="text-xs font-bold text-text">Compare RPV</p>
+                    <p className="text-[11px] text-text-muted">Revenue Per Visitor (RPV = Revenue ÷ Views) proves true profitability</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">3</div>
+                  <div>
+                    <p className="text-xs font-bold text-text">Auto-Apply Winner</p>
+                    <p className="text-[11px] text-text-muted">When Variant B hits 95%+ confidence, 1-click update live store catalog</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => setShowOnboardingBanner(false)}
+              className="text-text-muted hover:text-text p-1 rounded-lg hover:bg-surface-lighter transition-colors"
+              title="Dismiss guide"
+            >
+              <HiXCircle className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <SkeletonCard />
@@ -207,15 +290,15 @@ export default function ABTestDashboard() {
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider block mb-1">
                 AI Winner Rate
               </span>
-              <p className="text-2xl font-bold text-emerald-400">{winRate}%</p>
-              <span className="text-[11px] text-emerald-500 font-semibold">Variant B outperform</span>
+              <p className="text-2xl font-bold text-emerald-500">{winRate}%</p>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Variant B outperform</span>
             </div>
 
             <div className="glass-card p-4.5">
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider block mb-1">
                 Avg Confidence
               </span>
-              <p className="text-2xl font-bold text-amber-400">
+              <p className="text-2xl font-bold text-amber-500">
                 {activeTests.length > 0
                   ? Math.round(activeTests.reduce((sum, t) => sum + (t.confidenceLevel || 0), 0) / activeTests.length)
                   : 95}%
@@ -242,13 +325,14 @@ export default function ABTestDashboard() {
                   const pName = test.productId?.name || 'Product';
                   const pSku = test.productId?.sku || '';
                   const vA = test.results?.variantA || { views: 0, conversions: 0, revenue: 0 };
-                  const vB = test.results?.variantB || { views: 0, conversions: 0, revenue: 0 };
+                  const vB = test.results?.variantB || { results: 0, conversions: 0, revenue: 0 };
 
                   const crA = vA.views > 0 ? ((vA.conversions / vA.views) * 100).toFixed(1) : '0.0';
                   const crB = vB.views > 0 ? ((vB.conversions / vB.views) * 100).toFixed(1) : '0.0';
 
                   const rpvA = vA.views > 0 ? (vA.revenue / vA.views) : 0;
                   const rpvB = vB.views > 0 ? (vB.revenue / vB.views) : 0;
+                  const maxRpv = Math.max(rpvA, rpvB) || 1;
 
                   return (
                     <div key={test._id} className="glass-card p-6 border-t-2 border-t-primary flex flex-col justify-between shadow-sm">
@@ -264,7 +348,7 @@ export default function ABTestDashboard() {
                         </div>
 
                         {/* Split Test Columns */}
-                        <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-2 gap-4 mb-3">
                           {/* Variant A: Control */}
                           <div className="p-3.5 rounded-xl bg-surface-lighter/50 border border-border">
                             <div className="flex items-center justify-between mb-2">
@@ -314,10 +398,52 @@ export default function ABTestDashboard() {
                           </div>
                         </div>
 
+                        {/* RPV Comparison Meter */}
+                        <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border mb-4 space-y-2">
+                          <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-text-muted uppercase text-[10px] flex items-center gap-1">
+                              <HiTrendingUp className="w-3.5 h-3.5 text-primary" /> RPV Comparison (Revenue Per Visitor)
+                            </span>
+                            <span className="text-primary text-[11px]">
+                              {rpvB > rpvA 
+                                ? `+${(((rpvB - rpvA) / (rpvA || 1)) * 100).toFixed(1)}% AI Lift` 
+                                : rpvA > rpvB 
+                                ? `+${(((rpvA - rpvB) / (rpvB || 1)) * 100).toFixed(1)}% Control Lift` 
+                                : 'Equal Performance'}
+                            </span>
+                          </div>
+                          <div className="space-y-1.5 text-xs">
+                            <div>
+                              <div className="flex justify-between text-[11px] text-text-muted mb-0.5">
+                                <span>Variant A (Control): {formatCurrency(rpvA, 1)}</span>
+                                <span>CR: {crA}%</span>
+                              </div>
+                              <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border">
+                                <div 
+                                  className="bg-slate-400 dark:bg-slate-500 h-full transition-all duration-500" 
+                                  style={{ width: `${Math.min(100, (rpvA / maxRpv) * 100)}%` }} 
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <div className="flex justify-between text-[11px] text-primary font-semibold mb-0.5">
+                                <span>Variant B (AI Target): {formatCurrency(rpvB, 1)}</span>
+                                <span>CR: {crB}%</span>
+                              </div>
+                              <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border">
+                                <div 
+                                  className="bg-gradient-to-r from-primary to-emerald-500 h-full transition-all duration-500" 
+                                  style={{ width: `${Math.min(100, (rpvB / maxRpv) * 100)}%` }} 
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Confidence Meter */}
                         <div className="mb-4">
                           <div className="flex justify-between text-xs mb-1 font-medium">
-                            <span className="text-text-muted">Statistical Confidence</span>
+                            <span className="text-text-muted">Statistical Confidence (Z-Test)</span>
                             <span className="text-amber-500 font-bold">{test.confidenceLevel || 0}%</span>
                           </div>
                           <div className="w-full bg-surface-lighter border border-border h-2 rounded-full overflow-hidden">
@@ -329,13 +455,27 @@ export default function ABTestDashboard() {
                         </div>
                       </div>
 
-                      {/* Action */}
-                      <button
-                        onClick={() => handleEndTest(test._id)}
-                        className="w-full py-2.5 rounded-xl bg-surface-lighter border border-border hover:bg-danger/10 hover:border-danger/30 text-text hover:text-danger text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <HiStop className="w-4 h-4 text-danger" /> Complete Experiment &amp; Declare Winner
-                      </button>
+                      {/* Action Toolbar */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border">
+                        <button
+                          type="button"
+                          disabled={simulatingTestId === test._id}
+                          onClick={() => handleBatchSimulate(test._id)}
+                          className="py-2 px-3 rounded-xl bg-surface-lighter hover:bg-surface border border-border text-text text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
+                        >
+                          <HiRefresh className={`w-3.5 h-3.5 text-primary ${simulatingTestId === test._id ? 'animate-spin' : ''}`} />
+                          {simulatingTestId === test._id ? 'Simulating...' : 'Simulate 50 Visitors'}
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => handleEndTest(test._id)}
+                          className="py-2 px-3 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold shadow-md shadow-primary/20 flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <HiStop className="w-3.5 h-3.5 text-white" />
+                          Declare Winner & Apply
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -419,7 +559,7 @@ export default function ABTestDashboard() {
             <form onSubmit={handleCreateTest} className="space-y-4">
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Select Product</label>
+                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Select Product to Test</label>
                   <div className="relative w-full sm:w-64">
                     <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                     <input
@@ -432,32 +572,45 @@ export default function ABTestDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-1 mb-4 custom-scrollbar">
-                  {filteredProducts.length > 0 ? filteredProducts.map(p => (
-                    <button
-                      key={p._id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedProductId(p._id);
-                        setVariantBPrice(Math.round(p.currentPrice * 1.05));
-                      }}
-                      className={`p-3 text-left border rounded-xl transition-all ${
-                        selectedProductId === p._id
-                          ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-                          : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-lighter'
-                      }`}
-                    >
-                      <div className="text-[10px] font-bold text-text-muted uppercase truncate mb-1">
-                        {p.category || 'General'}
-                      </div>
-                      <div className="text-xs font-semibold text-text truncate mb-1" title={p.name}>
-                        {p.name}
-                      </div>
-                      <div className="text-xs font-bold text-primary mt-2">
-                        {formatCurrency(p.currentPrice)}
-                      </div>
-                    </button>
-                  )) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto pr-1 mb-4 custom-scrollbar">
+                  {filteredProducts.length > 0 ? filteredProducts.map(p => {
+                    const isSelected = selectedProductId === p._id;
+                    const aiTargetPrice = Math.round(p.currentPrice * 1.06);
+                    return (
+                      <button
+                        key={p._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedProductId(p._id);
+                          setVariantBPrice(aiTargetPrice);
+                        }}
+                        className={`p-3 text-left border rounded-xl transition-all relative flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 ring-2 ring-primary/40 shadow-sm'
+                            : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-lighter'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[9px] font-bold text-text-muted uppercase truncate">
+                              {p.category || 'General'}
+                            </span>
+                            <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              <HiSparkles className="w-2.5 h-2.5" /> +8.5%
+                            </span>
+                          </div>
+                          <div className="text-xs font-semibold text-text truncate mb-1" title={p.name}>
+                            {p.name}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] mt-2 pt-2 border-t border-border/40">
+                          <span className="text-text-muted">Current: <strong className="text-text">{formatCurrency(p.currentPrice)}</strong></span>
+                          <span className="text-primary font-bold">AI: {formatCurrency(aiTargetPrice)}</span>
+                        </div>
+                      </button>
+                    );
+                  }) : (
                     <div className="col-span-full text-center py-6 text-text-muted text-xs">
                       No products found.
                     </div>
@@ -500,6 +653,51 @@ export default function ABTestDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Completed Winner Modal */}
+      {completedWinnerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface-light border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-slide-up text-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/20">
+              <HiBadgeCheck className="w-7 h-7" />
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-text text-lg">Experiment Completed!</h3>
+              <p className="text-xs text-text-muted mt-1">{completedWinnerModal.pName}</p>
+            </div>
+            
+            <div className="p-4 rounded-xl bg-surface-lighter/80 border border-border text-left space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted">Winning Variant:</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                  {completedWinnerModal.winner === 'B' ? 'Variant B (AI)' : completedWinnerModal.winner === 'A' ? 'Variant A (Control)' : 'Tie'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted">Winning Catalog Price:</span>
+                <span className="font-bold text-primary text-sm">{formatCurrency(completedWinnerModal.winningPrice)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted">Statistical Confidence:</span>
+                <span className="font-bold text-amber-500">{completedWinnerModal.confidence}%</span>
+              </div>
+              <div className="pt-2 border-t border-border text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                <HiCheckCircle className="w-4 h-4 shrink-0" />
+                Product price automatically updated to {formatCurrency(completedWinnerModal.winningPrice)} in live store catalog!
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCompletedWinnerModal(null)}
+              className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-colors shadow-md shadow-primary/20"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
