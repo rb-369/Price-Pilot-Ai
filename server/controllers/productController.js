@@ -149,19 +149,50 @@ exports.updateProduct = async (req, res) => {
 
 exports.extractUrlMetadata = async (req, res) => {
     try {
-        const { url } = req.body;
-        if (!url || typeof url !== 'string') {
+        const { url: rawUrl } = req.body;
+        if (!rawUrl || typeof rawUrl !== 'string') {
             return res.status(400).json({ message: 'Product URL is required.' });
         }
 
+        const url = rawUrl.trim();
         let platform = 'generic';
-        const lowercaseUrl = url.toLowerCase();
+        let amazonAsin = null;
+        let flipkartFsn = null;
 
-        if (lowercaseUrl.includes('amazon')) {
+        // Follow redirects to resolve short links like amzn.in/d/..., amzn.to/..., bit.ly/...
+        let finalUrl = url;
+        let html = '';
+
+        try {
+            const fetchRes = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8',
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            });
+            finalUrl = fetchRes.url || url;
+            html = await fetchRes.text();
+        } catch (fetchErr) {
+            console.warn('[URL Extraction] Fetch error, using original URL:', fetchErr.message);
+        }
+
+        const lowercaseFinalUrl = finalUrl.toLowerCase();
+        const lowercaseOriginalUrl = url.toLowerCase();
+
+        if (lowercaseFinalUrl.includes('amazon') || lowercaseOriginalUrl.includes('amzn')) {
             platform = 'amazon';
-        } else if (lowercaseUrl.includes('flipkart')) {
+            const asinMatch = finalUrl.match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i) || url.match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i);
+            if (asinMatch) amazonAsin = asinMatch[1];
+        } else if (lowercaseFinalUrl.includes('flipkart')) {
             platform = 'flipkart';
-        } else if (lowercaseUrl.includes('shopify') || lowercaseUrl.includes('myshopify')) {
+            const fsnMatch = finalUrl.match(/pid=([A-Z0-9]{16})/i) || finalUrl.match(/\/p\/itm([a-z0-9]+)/i);
+            if (fsnMatch) flipkartFsn = fsnMatch[1];
+        } else if (lowercaseFinalUrl.includes('shopify') || lowercaseFinalUrl.includes('myshopify')) {
             platform = 'shopify';
         }
 
@@ -176,39 +207,54 @@ exports.extractUrlMetadata = async (req, res) => {
             modelNumber: '',
             keySpecs: [],
             platform,
-            productLinks: {}
+            amazonAsin,
+            flipkartFsn,
+            productLinks: {
+                amazon: platform === 'amazon' ? finalUrl : '',
+                flipkart: platform === 'flipkart' ? finalUrl : '',
+                shopify: platform === 'shopify' ? finalUrl : '',
+                meesho: platform === 'meesho' ? finalUrl : ''
+            }
         };
 
-        if (platform === 'amazon') metadata.productLinks.amazon = url;
-        if (platform === 'flipkart') metadata.productLinks.flipkart = url;
-        if (platform === 'shopify') metadata.productLinks.shopify = url;
+        const cleanText = (str) => {
+            if (!str) return '';
+            return str
+                .replace(/&amp;/g, '&')
+                .replace(/&#39;/g, "'")
+                .replace(/&#x27;/g, "'")
+                .replace(/&quot;/g, '"')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/\s+/g, ' ')
+                .trim();
+        };
 
-        try {
-            const htmlRes = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept-Language': 'en-US,en;q=0.9'
-                },
-                timeout: 8000
-            });
-            const html = htmlRes.data || '';
+        if (html) {
+            const titleMatch = html.match(/<span\s+id=["']productTitle["'][^>]*>\s*([^<]+)\s*<\/span>/i) ||
+                               html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
+                               html.match(/<title>([^<]+)<\/title>/i) ||
+                               html.match(/<meta\s+name=["']title["']\s+content=["']([^"']+)["']/i);
 
-            const titleMatch = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
-                               html.match(/<title>([^<]+)<\/title>/i);
             if (titleMatch && titleMatch[1]) {
-                const rawTitle = titleMatch[1].replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim();
+                let rawTitle = cleanText(titleMatch[1]);
+                rawTitle = rawTitle.replace(/\s*:\s*Amazon\.in.*$/i, '').replace(/\s*-\s*Amazon\.in.*$/i, '').trim();
                 metadata.fullName = rawTitle;
+
                 const shortTitle = rawTitle.split(/[,|\-–—(]/)[0].trim();
                 metadata.shortName = shortTitle.length >= 3 ? shortTitle : rawTitle.slice(0, 40);
             }
 
-            const imageMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+            const imageMatch = html.match(/data-old-hires=["']([^"']+)["']/i) ||
+                               html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
+                               html.match(/["']large["']\s*:\s*["']([^"']+\.(?:jpg|png|webp))["']/i);
             if (imageMatch && imageMatch[1]) {
                 metadata.imageUrl = imageMatch[1];
             }
 
-            const priceMatch = html.match(/<meta\s+property=["']og:price:amount["']\s+content=["']([\d.]+)/i) ||
-                               html.match(/["']price["']\s*:\s*["']?([\d.,]+)/i) ||
+            const priceMatch = html.match(/class=["']a-price-whole["']>([\d,]+)/i) ||
+                               html.match(/<meta\s+property=["']og:price:amount["']\s+content=["']([\d.]+)/i) ||
+                               html.match(/["']priceAmount["']\s*:\s*([\d.]+)/i) ||
                                html.match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{2})?)/i);
             if (priceMatch && priceMatch[1]) {
                 const parsedPrice = parseFloat(priceMatch[1].replace(/,/g, ''));
@@ -217,24 +263,31 @@ exports.extractUrlMetadata = async (req, res) => {
                 }
             }
 
-            const brandMatch = html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
+            const brandMatch = html.match(/<a\s+id=["']bylineInfo["'][^>]*>\s*(?:Visit the|Brand:)?\s*([^<]+)\s*<\/a>/i) ||
+                               html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
                                html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
+
             if (brandMatch && brandMatch[1]) {
-                metadata.brand = brandMatch[1].replace(/["'}]/g, '').trim();
-            } else if (metadata.fullName) {
-                const knownBrands = ['ASUS', 'Apple', 'Dell', 'HP', 'Lenovo', 'Samsung', 'Sony', 'Milton', 'Boat', 'Nike', 'Adidas', 'Puma', 'Logitech'];
-                const matched = knownBrands.find(b => metadata.fullName.toUpperCase().includes(b.toUpperCase()));
-                if (matched) metadata.brand = matched;
+                const cleanBrand = cleanText(brandMatch[1]).replace(/Visit the|Store|Brand:/gi, '').trim();
+                if (cleanBrand.length < 30) metadata.brand = cleanBrand;
+            }
+
+            if (!metadata.brand && metadata.fullName) {
+                const knownBrands = ['REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO', 'SAMSUNG', 'SONY', 'MILTON', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH', 'ONEPLUS', 'REALME', 'POCO'];
+                const upperName = metadata.fullName.toUpperCase();
+                const matched = knownBrands.find(b => upperName.includes(b));
+                if (matched) metadata.brand = matched.charAt(0) + matched.slice(1).toLowerCase();
             }
 
             if (metadata.fullName) {
                 const specRegexes = [
                     /\b\d+\s*GB\b/gi,
                     /\b\d+\s*TB\b/gi,
-                    /\b(?:Core\s+i[3579]|Ryzen\s+[3579]|M[1234]\s*(?:Pro|Max)?)\b/gi,
+                    /\b5G\b/gi,
+                    /\b(?:Core\s+i[3579]|Ryzen\s+[3579]|M[1234]\s*(?:Pro|Max)?|Snapdragon\s*\d*)\b/gi,
                     /\bRTX\s*\d{4}\b/gi,
                     /\b\d{2,3}Hz\b/gi,
-                    /\bFHD\+?|4K|QHD\b/gi
+                    /\bFHD\+?|4K|QHD|AMOLED|OLED\b/gi
                 ];
                 const foundSpecs = new Set();
                 specRegexes.forEach(rgx => {
@@ -243,14 +296,18 @@ exports.extractUrlMetadata = async (req, res) => {
                 });
                 metadata.keySpecs = Array.from(foundSpecs);
             }
-        } catch (fetchErr) {
-            console.warn('[URL Extraction Fallback]: Limited response, fallback url title used:', fetchErr.message);
         }
 
-        if (!metadata.fullName) {
-            const cleanUrlName = url.split('/').filter(Boolean).pop()?.replace(/[-_]/g, ' ') || 'Imported Product';
-            metadata.fullName = cleanUrlName.slice(0, 100);
-            metadata.shortName = cleanUrlName.slice(0, 30);
+        if (!metadata.fullName && finalUrl) {
+            const slugMatch = finalUrl.match(/amazon\.[a-z.]+\/([^/]+)\/dp\//i);
+            if (slugMatch && slugMatch[1]) {
+                const cleanSlug = slugMatch[1].replace(/[-_]/g, ' ').trim();
+                metadata.fullName = cleanSlug;
+                metadata.shortName = cleanSlug.split(/[,|\-–—(]/)[0].trim();
+            } else {
+                metadata.fullName = amazonAsin ? `Amazon Product (${amazonAsin})` : 'Imported Product';
+                metadata.shortName = amazonAsin ? `Amazon ${amazonAsin}` : 'Imported Product';
+            }
         }
 
         res.json(metadata);
