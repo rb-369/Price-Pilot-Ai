@@ -227,13 +227,13 @@ export default function ABTestDashboard() {
           {/* Active Experiments List */}
           <div>
             <h2 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
-              <HiPlay className="w-5 h-5 text-emerald-400" /> Active Experiments ({activeTests.length})
+              <HiPlay className="w-5 h-5 text-emerald-500" /> Active Experiments ({activeTests.length})
             </h2>
 
             {activeTests.length === 0 ? (
               <div className="glass-card p-8 text-center text-text-muted">
                 <HiBeaker className="w-10 h-10 mx-auto mb-2 opacity-40 text-primary" />
-                <p className="text-sm font-medium">No active price experiments right now.</p>
+                <p className="text-sm font-medium text-text">No active price experiments right now.</p>
                 <p className="text-xs text-text-muted mt-1">Click "New Price Experiment" above to start testing an AI recommendation against your current price.</p>
               </div>
             ) : (
@@ -251,22 +251,22 @@ export default function ABTestDashboard() {
                   const rpvB = vB.views > 0 ? (vB.revenue / vB.views) : 0;
 
                   return (
-                    <div key={test._id} className="glass-card p-6 border-t-2 border-t-primary flex flex-col justify-between">
+                    <div key={test._id} className="glass-card p-6 border-t-2 border-t-primary flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <h3 className="font-bold text-text text-base">{pName}</h3>
                             <p className="text-xs text-text-muted">SKU: {pSku} • Started {new Date(test.startDate).toLocaleDateString()}</p>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active
                           </span>
                         </div>
 
                         {/* Split Test Columns */}
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           {/* Variant A: Control */}
-                          <div className="p-3.5 rounded-xl bg-surface border border-border">
+                          <div className="p-3.5 rounded-xl bg-surface-lighter/50 border border-border">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-[11px] font-bold text-text-muted uppercase">Variant A (Control)</span>
                               <span className="font-bold text-text">{formatCurrency(test.variantA?.price)}</span>
@@ -274,24 +274,24 @@ export default function ABTestDashboard() {
                             <div className="space-y-1 text-xs text-text-muted">
                               <div className="flex justify-between"><span>Views:</span> <span className="text-text font-medium">{vA.views}</span></div>
                               <div className="flex justify-between"><span>Conversions:</span> <span className="text-text font-medium">{vA.conversions} ({crA}%)</span></div>
-                              <div className="flex justify-between font-semibold pt-1 border-t border-border/50 text-text">
+                              <div className="flex justify-between font-semibold pt-1 border-t border-border text-text">
                                 <span>RPV:</span> <span>{formatCurrency(rpvA, 1)}</span>
                               </div>
                             </div>
-                            <div className="mt-3 flex gap-1">
-                              <button onClick={() => handleSimulateEvent(test._id, 'A', 'view')} className="flex-1 text-[10px] py-1 bg-surface-header hover:bg-primary/20 rounded border border-border text-text transition">
+                            <div className="mt-3 flex gap-1.5">
+                              <button onClick={() => handleSimulateEvent(test._id, 'A', 'view')} className="flex-1 text-[10px] py-1 bg-surface hover:bg-surface-lighter rounded-lg border border-border text-text font-medium transition-colors">
                                 + View
                               </button>
-                              <button onClick={() => handleSimulateEvent(test._id, 'A', 'conversion')} className="flex-1 text-[10px] py-1 bg-primary/20 hover:bg-primary/30 text-primary font-semibold rounded border border-primary/30 transition">
+                              <button onClick={() => handleSimulateEvent(test._id, 'A', 'conversion')} className="flex-1 text-[10px] py-1 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-lg border border-primary/30 transition-colors">
                                 + Sale
                               </button>
                             </div>
                           </div>
 
                           {/* Variant B: AI Recommended */}
-                          <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30">
+                          <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/30">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-[11px] font-bold text-primary-light uppercase flex items-center gap-1">
+                              <span className="text-[11px] font-bold text-primary uppercase flex items-center gap-1">
                                 <HiSparkles className="w-3 h-3" /> Variant B (AI)
                               </span>
                               <span className="font-bold text-primary">{formatCurrency(test.variantB?.price)}</span>
@@ -299,15 +299,15 @@ export default function ABTestDashboard() {
                             <div className="space-y-1 text-xs text-text-muted">
                               <div className="flex justify-between"><span>Views:</span> <span className="text-text font-medium">{vB.views}</span></div>
                               <div className="flex justify-between"><span>Conversions:</span> <span className="text-text font-medium">{vB.conversions} ({crB}%)</span></div>
-                              <div className="flex justify-between font-semibold pt-1 border-t border-primary/20 text-primary-light">
+                              <div className="flex justify-between font-semibold pt-1 border-t border-primary/20 text-primary">
                                 <span>RPV:</span> <span>{formatCurrency(rpvB, 1)}</span>
                               </div>
                             </div>
-                            <div className="mt-3 flex gap-1">
-                              <button onClick={() => handleSimulateEvent(test._id, 'B', 'view')} className="flex-1 text-[10px] py-1 bg-surface-header hover:bg-primary/20 rounded border border-border text-text transition">
+                            <div className="mt-3 flex gap-1.5">
+                              <button onClick={() => handleSimulateEvent(test._id, 'B', 'view')} className="flex-1 text-[10px] py-1 bg-surface hover:bg-surface-lighter rounded-lg border border-border text-text font-medium transition-colors">
                                 + View
                               </button>
-                              <button onClick={() => handleSimulateEvent(test._id, 'B', 'conversion')} className="flex-1 text-[10px] py-1 bg-primary/30 hover:bg-primary/40 text-primary-light font-semibold rounded border border-primary/40 transition">
+                              <button onClick={() => handleSimulateEvent(test._id, 'B', 'conversion')} className="flex-1 text-[10px] py-1 bg-primary text-white hover:bg-primary-dark font-bold rounded-lg border border-primary transition-colors">
                                 + Sale
                               </button>
                             </div>
@@ -318,11 +318,11 @@ export default function ABTestDashboard() {
                         <div className="mb-4">
                           <div className="flex justify-between text-xs mb-1 font-medium">
                             <span className="text-text-muted">Statistical Confidence</span>
-                            <span className="text-amber-400 font-bold">{test.confidenceLevel || 0}%</span>
+                            <span className="text-amber-500 font-bold">{test.confidenceLevel || 0}%</span>
                           </div>
-                          <div className="w-full bg-surface border border-border h-2 rounded-full overflow-hidden">
+                          <div className="w-full bg-surface-lighter border border-border h-2 rounded-full overflow-hidden">
                             <div
-                              className="bg-gradient-to-r from-primary to-emerald-400 h-full transition-all duration-500"
+                              className="bg-gradient-to-r from-primary to-emerald-500 h-full transition-all duration-500"
                               style={{ width: `${Math.min(100, test.confidenceLevel || 0)}%` }}
                             />
                           </div>
@@ -332,7 +332,7 @@ export default function ABTestDashboard() {
                       {/* Action */}
                       <button
                         onClick={() => handleEndTest(test._id)}
-                        className="w-full py-2.5 rounded-xl bg-surface border border-border hover:bg-danger/10 hover:border-danger/30 text-text hover:text-danger text-xs font-semibold flex items-center justify-center gap-2 transition"
+                        className="w-full py-2.5 rounded-xl bg-surface-lighter border border-border hover:bg-danger/10 hover:border-danger/30 text-text hover:text-danger text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
                       >
                         <HiStop className="w-4 h-4 text-danger" /> Complete Experiment &amp; Declare Winner
                       </button>
@@ -348,13 +348,13 @@ export default function ABTestDashboard() {
             <div className="glass-card overflow-hidden">
               <div className="p-5 border-b border-border">
                 <h3 className="font-bold text-text text-base flex items-center gap-2">
-                  <HiBadgeCheck className="w-5 h-5 text-amber-400" /> Completed Experiments History
+                  <HiBadgeCheck className="w-5 h-5 text-amber-500" /> Completed Experiments History
                 </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border text-[11px] font-semibold uppercase text-text-muted bg-surface-header">
+                    <tr className="border-b border-border text-[11px] font-semibold uppercase text-text-muted bg-surface-lighter">
                       <th className="p-4">Product</th>
                       <th className="p-4">Variant A Price</th>
                       <th className="p-4">Variant B Price</th>
@@ -370,7 +370,7 @@ export default function ABTestDashboard() {
                       const rpvB = t.results?.variantB?.views > 0 ? (t.results.variantB.revenue / t.results.variantB.views) : 0;
 
                       return (
-                        <tr key={t._id} className="hover:bg-surface-header/50 transition">
+                        <tr key={t._id} className="hover:bg-surface-lighter/50 transition-colors">
                           <td className="p-4 font-medium text-text">{t.productId?.name || 'Product'}</td>
                           <td className="p-4 text-text-muted">{formatCurrency(t.variantA?.price)}</td>
                           <td className="p-4 text-primary font-semibold">{formatCurrency(t.variantB?.price)}</td>
@@ -379,15 +379,15 @@ export default function ABTestDashboard() {
                           <td className="p-4 text-center">
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
                               t.winner === 'B'
-                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                                 : t.winner === 'A'
-                                ? 'bg-primary/15 text-primary border-primary/30'
-                                : 'bg-slate-500/15 text-slate-400 border-slate-500/30'
+                                ? 'bg-primary/10 text-primary border-primary/30'
+                                : 'bg-slate-500/10 text-text-muted border-border'
                             }`}>
                               {t.winner === 'B' ? 'Variant B (AI)' : t.winner === 'A' ? 'Variant A (Control)' : 'Tie'}
                             </span>
                           </td>
-                          <td className="p-4 text-right font-semibold text-amber-400">{t.confidenceLevel || 0}%</td>
+                          <td className="p-4 text-right font-semibold text-amber-500">{t.confidenceLevel || 0}%</td>
                         </tr>
                       );
                     })}
@@ -401,33 +401,38 @@ export default function ABTestDashboard() {
 
       {/* Create New Test Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-          <div className="bg-surface-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface-light border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-lg font-bold text-text flex items-center gap-2">
                 <HiBeaker className="w-5 h-5 text-primary" /> Start A/B Price Experiment
               </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-text-muted hover:text-text">✕</button>
+              <button 
+                type="button" 
+                onClick={() => setShowCreateModal(false)} 
+                className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
+              >
+                ✕
+              </button>
             </div>
 
             <form onSubmit={handleCreateTest} className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-xs font-semibold text-text-muted uppercase">Select Product</label>
-                  <div className="relative w-64">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">Select Product</label>
+                  <div className="relative w-full sm:w-64">
                     <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search products..."
-                      className="w-full bg-surface border border-border text-xs rounded-lg py-2 pr-3 text-text focus:outline-none focus:border-primary"
-                      style={{ paddingLeft: '2.25rem' }}
+                      className="w-full bg-surface-lighter border border-border text-xs rounded-xl py-2 pl-9 pr-3 text-text placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-1 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-60 overflow-y-auto pr-1 mb-4 custom-scrollbar">
                   {filteredProducts.length > 0 ? filteredProducts.map(p => (
                     <button
                       key={p._id}
@@ -438,8 +443,8 @@ export default function ABTestDashboard() {
                       }}
                       className={`p-3 text-left border rounded-xl transition-all ${
                         selectedProductId === p._id
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-header'
+                          ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+                          : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-lighter'
                       }`}
                     >
                       <div className="text-[10px] font-bold text-text-muted uppercase truncate mb-1">
@@ -461,8 +466,8 @@ export default function ABTestDashboard() {
               </div>
 
               {selectedProductId && (
-                <div className="bg-surface p-4 rounded-xl border border-border mt-2">
-                  <label className="text-xs font-semibold text-text-muted uppercase block mb-1.5">Variant B Price (AI / Test Target)</label>
+                <div className="bg-surface-lighter/60 p-4 rounded-xl border border-border mt-2 space-y-2">
+                  <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">Variant B Price (AI / Test Target)</label>
                   <input
                     type="number"
                     value={variantBPrice}
@@ -470,26 +475,26 @@ export default function ABTestDashboard() {
                     required
                     min="1"
                     placeholder="Enter test price"
-                    className="w-full bg-surface-header border border-border text-text rounded-lg p-3 text-sm focus:outline-none focus:border-primary font-semibold"
+                    className="w-full bg-surface border border-border text-text rounded-xl p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 font-semibold transition-colors"
                   />
-                  <span className="text-[11px] text-text-muted mt-2 block">
+                  <span className="text-[11px] text-text-muted block">
                     Variant A will remain at current price: <strong className="text-text">{formatCurrency(products.find(p => p._id === selectedProductId)?.currentPrice)}</strong>
                   </span>
                 </div>
               )}
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-3 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-border text-text text-sm font-semibold hover:bg-surface-header transition"
+                  className="flex-1 py-2.5 rounded-xl border border-border text-text-muted hover:text-text hover:bg-surface-lighter text-sm font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !selectedProductId}
-                  className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition"
+                  className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-md shadow-primary/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {submitting ? 'Starting...' : 'Launch Experiment'}
                 </button>
