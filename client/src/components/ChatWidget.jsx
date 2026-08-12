@@ -429,7 +429,15 @@ const ChatWidget = () => {
                                             )
                                         ) : (
                                             <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
-                                                {renderFormattedChatMessage(msg.content, false)}
+                                                {renderFormattedChatMessage(msg.content, false, (payload) => {
+                                                    if (location.pathname !== '/dashboard') {
+                                                        navigate('/dashboard');
+                                                    }
+                                                    setTimeout(() => {
+                                                        const event = new CustomEvent('launch_what_if_simulator', { detail: payload });
+                                                        window.dispatchEvent(event);
+                                                    }, 200);
+                                                })}
                                             </p>
                                         )}
                                     </div>

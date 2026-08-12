@@ -275,16 +275,29 @@ export default function ChatAutocompletePopover({
 }
 
 /**
- * Helper function to format chat message text containing @tags and /commands with custom badges.
+ * Helper function to format chat message text containing @tags, /commands, and What-If action cards.
  */
-export function renderFormattedChatMessage(text, isUser = false) {
+export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator = null) {
     if (!text) return null;
+
+    let mainContent = text;
+    let actionPayload = null;
+
+    if (text.includes('---ACTION_REDIRECT_WHAT_IF---')) {
+        const parts = text.split('---ACTION_REDIRECT_WHAT_IF---');
+        mainContent = parts[0].trim();
+        try {
+            actionPayload = JSON.parse(parts[1].trim());
+        } catch (e) {
+            console.error('Failed to parse what-if payload:', e);
+        }
+    }
 
     // Pattern to match @"Product Name" or @SKU or /command-name
     const regex = /(@"[^"]+"|\b\/[a-zA-Z0-9_-]+)/g;
-    const parts = text.split(regex);
+    const proseParts = mainContent.split(regex);
 
-    return parts.map((part, index) => {
+    const renderedProse = proseParts.map((part, index) => {
         if (part.startsWith('@')) {
             const cleanName = part.replace(/^@"|"$/g, '').replace(/^@/, '');
             return (
@@ -318,4 +331,41 @@ export function renderFormattedChatMessage(text, isUser = false) {
 
         return part;
     });
+
+    return (
+        <span className="block space-y-2">
+            <span>{renderedProse}</span>
+            {actionPayload && (
+                <span className="block mt-3 pt-3 border-t border-white/10">
+                    <span className="flex flex-col gap-2 p-3 rounded-xl bg-gradient-to-br from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 shadow-lg text-slate-100">
+                        <span className="flex items-center justify-between text-xs font-bold text-indigo-300">
+                            <span className="flex items-center gap-1.5">
+                                <HiOutlineLightningBolt className="w-4 h-4 text-warning animate-pulse" />
+                                Interactive Scenario Ready
+                            </span>
+                        </span>
+                        <span className="text-[11px] text-slate-300 leading-snug">
+                            {actionPayload.productQuery ? `Product: "${actionPayload.productQuery}"` : ''} {actionPayload.priceChange ? `• Proposed Change: ${actionPayload.priceChange}` : ''}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onOpenSimulator) {
+                                    onOpenSimulator(actionPayload);
+                                } else {
+                                    const event = new CustomEvent('launch_what_if_simulator', { detail: actionPayload });
+                                    window.dispatchEvent(event);
+                                }
+                            }}
+                            className="mt-1 w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        >
+                            <span>🚀 See Details in What-If Simulator</span>
+                            <span>→</span>
+                        </button>
+                    </span>
+                </span>
+            )}
+        </span>
+    );
 }

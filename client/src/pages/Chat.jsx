@@ -56,7 +56,17 @@ const suggestions = [
 ];
 
 const Chat = () => {
+    const navigate = useNavigate();
     const { sidebarOpen } = useOutletContext() || {};
+
+    const handleOpenSimulator = (payload) => {
+        navigate('/dashboard');
+        setTimeout(() => {
+            const event = new CustomEvent('launch_what_if_simulator', { detail: payload });
+            window.dispatchEvent(event);
+        }, 200);
+    };
+
     const [chats, setChats] = useState([]);
     const [activeChatId, setActiveChatId] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -391,11 +401,11 @@ const Chat = () => {
         while (remaining) {
             const match = remaining.match(regex);
             if (!match) {
-                parts.push(<span key={index}>{renderFormattedChatMessage(remaining)}</span>);
+                parts.push(<span key={index}>{renderFormattedChatMessage(remaining, false, handleOpenSimulator)}</span>);
                 break;
             }
             if (match.index > 0) {
-                parts.push(<span key={index}>{renderFormattedChatMessage(remaining.substring(0, match.index))}</span>);
+                parts.push(<span key={index}>{renderFormattedChatMessage(remaining.substring(0, match.index), false, handleOpenSimulator)}</span>);
                 index += 1;
             }
             const matchedText = match[0];

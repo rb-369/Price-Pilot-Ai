@@ -66,6 +66,52 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [activeProduct]);
 
+    // Listen for launch_what_if_simulator events from AI Chat Assistant
+    useEffect(() => {
+        const handleLaunch = (e) => {
+            const { productQuery, priceChange: newPrice } = e.detail || {};
+            let matched = null;
+            if (productQuery && products.length > 0) {
+                const q = String(productQuery).toLowerCase().trim();
+                matched = products.find(p => p.name?.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q));
+            }
+            const pId = matched ? matched._id : selectedProductId;
+            if (matched) {
+                setSelectedProductId(matched._id);
+            }
+
+            let parsedPrice = targetPrice;
+            if (newPrice) {
+                const numericPrice = parseFloat(String(newPrice).replace(/[^0-9.]/g, ''));
+                if (numericPrice && !isNaN(numericPrice)) {
+                    parsedPrice = numericPrice;
+                    setTargetPrice(numericPrice);
+                }
+            }
+
+            // Scroll to simulator section
+            const elem = document.getElementById('what-if-simulator-section');
+            if (elem) {
+                elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // Trigger simulation
+            setTimeout(() => {
+                handleRunSimulation({
+                    productId: pId || null,
+                    targetPrice: Number(parsedPrice),
+                    cogs: matched ? (matched.baseCost || Math.round(matched.currentPrice * 0.6)) : cogs,
+                    competitorStrategy,
+                    demandMultiplier,
+                    timeHorizonDays
+                });
+            }, 250);
+        };
+
+        window.addEventListener('launch_what_if_simulator', handleLaunch);
+        return () => window.removeEventListener('launch_what_if_simulator', handleLaunch);
+    }, [products, selectedProductId, cogs, competitorStrategy, demandMultiplier, timeHorizonDays, targetPrice, handleRunSimulation]);
+
     // Run simulation via API
     const handleRunSimulation = useCallback(async (customParams = null) => {
         setSimulating(true);
