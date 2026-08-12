@@ -51,6 +51,9 @@ export const register = (data) => api.post('/auth/register', data);
 export const getProfile = () => api.get('/auth/profile');
 export const forgotPassword = (data) => api.post('/auth/forgot-password', data);
 export const resetPassword = (token, data) => api.post(`/auth/reset-password/${token}`, data);
+export const sendOtp = (data) => api.post('/auth/send-otp', data);
+export const verifyOtp = (data) => api.post('/auth/verify-otp', data);
+export const googleLogin = (data) => api.post('/auth/google', data);
 
 // Products (paginated)
 export const getProducts = (page = 1, limit = 20) => api.get(`/products?page=${page}&limit=${limit}`);

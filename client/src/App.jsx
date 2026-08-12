@@ -22,6 +22,7 @@ import Integrations from './pages/Integrations';
 import ChannelMapping from './pages/ChannelMapping';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import LoginPhone from './pages/Login-phone';
 
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/about" element={<About />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/login-phone" element={<LoginPhone />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
       <Route path="/reset-password/:token" element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} />
