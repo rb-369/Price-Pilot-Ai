@@ -6,7 +6,7 @@ const { apiLimiter, aiGenerationLimiter } = require('../middleware/rateLimiter')
 
 router.use(apiLimiter);
 
-router.post('/run', protect, aiGenerationLimiter, runSimulation);
+router.post('/run', protect, runSimulation);
 router.post('/commit', protect, commitPriceChange);
 
 module.exports = router;

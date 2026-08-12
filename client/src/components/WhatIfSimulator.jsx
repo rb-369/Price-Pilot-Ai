@@ -67,11 +67,11 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
     }, [activeProduct]);
 
     // Run simulation via API
-    const handleRunSimulation = useCallback(async () => {
+    const handleRunSimulation = useCallback(async (customParams = null) => {
         setSimulating(true);
         setError(null);
         try {
-            const payload = {
+            const payload = customParams || {
                 productId: selectedProductId || null,
                 targetPrice: Number(targetPrice),
                 cogs: Number(cogs),
@@ -89,23 +89,38 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
-    // Auto-run simulation when params change (debounced)
+    // Initial run when active product changes
     useEffect(() => {
-        const timer = setTimeout(() => {
+        if (selectedProductId) {
             handleRunSimulation();
-        }, 350);
-        return () => clearTimeout(timer);
-    }, [handleRunSimulation]);
+        }
+    }, [selectedProductId]);
 
     // Apply Scenario Presets
     const applyPreset = (presetKey) => {
         if (!simulation?.presets?.[presetKey]) return;
         const preset = simulation.presets[presetKey];
+        const newTarget = preset.targetPrice || targetPrice;
+        const newCogs = preset.cogs || cogs;
+        const newStance = preset.competitorStrategy || competitorStrategy;
+        const newMult = preset.demandMultiplier || demandMultiplier;
+
         if (preset.targetPrice) setTargetPrice(preset.targetPrice);
         if (preset.cogs) setCogs(preset.cogs);
         if (preset.competitorStrategy) setCompetitorStrategy(preset.competitorStrategy);
         if (preset.demandMultiplier) setDemandMultiplier(preset.demandMultiplier);
+
         toast.success(`Applied "${preset.name}" scenario`);
+
+        // Run simulation immediately with preset params
+        handleRunSimulation({
+            productId: selectedProductId || null,
+            targetPrice: Number(newTarget),
+            cogs: Number(newCogs),
+            competitorStrategy: newStance,
+            demandMultiplier: Number(newMult),
+            timeHorizonDays: Number(timeHorizonDays)
+        });
     };
 
     // Commit Price Change
@@ -401,16 +416,37 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                         </div>
                     </div>
 
-                    {/* Commit Action Button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowCommitModal(true)}
-                        disabled={!selectedProductId}
-                        className="w-full btn-primary py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/25 disabled:opacity-50"
-                    >
-                        <HiOutlineCheckCircle className="w-5 h-5" />
-                        Commit Price Change ({formatCurrency(targetPrice)})
-                    </button>
+                    {/* Action Buttons: Run Simulation & Commit Price */}
+                    <div className="space-y-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => handleRunSimulation()}
+                            disabled={simulating}
+                            className="w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-gradient-to-r from-indigo-600 via-purple-600 to-accent text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                        >
+                            {simulating ? (
+                                <>
+                                    <HiOutlineRefresh className="w-4 h-4 animate-spin text-white" />
+                                    Calculating Simulation...
+                                </>
+                            ) : (
+                                <>
+                                    <HiOutlineSparkles className="w-4 h-4 text-warning animate-bounce" />
+                                    Run AI Simulation ({formatCurrency(targetPrice)})
+                                </>
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowCommitModal(true)}
+                            disabled={!selectedProductId}
+                            className="w-full bg-surface border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                        >
+                            <HiOutlineCheckCircle className="w-4 h-4" />
+                            Commit Price Change
+                        </button>
+                    </div>
                     {!selectedProductId && (
                         <p className="text-[11px] text-warning text-center">
                             Select a product above to commit price changes.
