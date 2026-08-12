@@ -7,11 +7,12 @@ import asyncio
 import hashlib
 from typing import List, Dict
 
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
+from langgraph.prebuilt import create_react_agent
 
 from services.vector_store import get_retriever, ingest_data
 
