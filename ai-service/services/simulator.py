@@ -226,6 +226,29 @@ def run_predictive_simulation(
         }
     }
 
+    # Determine AI Verdict Badge for Normal Sellers
+    if profit_uplift_pct >= 2.5 and target_eval["undercutRisk"] < 65.0:
+        verdict = "GOOD_DECISION font-bold text-emerald-400"
+        verdict_label = "OVERALL GOOD DECISION"
+        verdict_type = "positive"
+    elif profit_uplift_pct <= -2.5 or target_eval["undercutRisk"] >= 75.0 or target_eval["marginPct"] < 5.0:
+        verdict_label = "OVERALL RISKY / POOR DECISION"
+        verdict_type = "negative"
+    else:
+        verdict_label = "NEUTRAL / NEGLIGIBLE IMPACT"
+        verdict_type = "neutral"
+
+    prod_name = product.get("name", "Product")
+    p_diff = target_price - base_price
+    p_diff_str = f"+₹{abs(p_diff):,.0f}" if p_diff >= 0 else f"-₹{abs(p_diff):,.0f}"
+
+    if verdict_type == "positive":
+        summary_text = f"Verdict: {verdict_label}. Changing price for '{prod_name}' by {p_diff_str} is expected to boost monthly net profit by +₹{abs(profit_uplift):,.0f} (+{profit_uplift_pct:.1f}%) with a manageable sales volume shift of {volume_change_pct:+.1f}%."
+    elif verdict_type == "negative":
+        summary_text = f"Verdict: {verdict_label}. Changing price for '{prod_name}' by {p_diff_str} is risky. Net profit drops by ₹{abs(profit_uplift):,.0f} ({profit_uplift_pct:.1f}%) or competitor undercut risk rises to {target_eval['undercutRisk']:.0f}%."
+    else:
+        summary_text = f"Verdict: {verdict_label}. Changing price for '{prod_name}' by {p_diff_str} results in minimal profit impact (₹{profit_uplift:,.0f}, {profit_uplift_pct:.1f}%)."
+
     return {
         "product": {
             "name": product.get("name", "Product"),
@@ -240,6 +263,11 @@ def run_predictive_simulation(
             "competitorStrategy": competitor_strategy,
             "demandMultiplier": demand_multiplier,
             "timeHorizonDays": time_horizon_days,
+        },
+        "aiVerdict": {
+            "label": verdict_label,
+            "type": verdict_type,
+            "summary": summary_text
         },
         "baseline": {
             "price": base_price,

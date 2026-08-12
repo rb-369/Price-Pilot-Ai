@@ -170,11 +170,34 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return "Web search is currently disabled."
             tools.append(dummy_search)
 
-        # 5. Create LangGraph Agent
-        from langgraph.prebuilt import create_react_agent
-        from langchain_core.messages import SystemMessage
-        
-        full_system_prompt = SYSTEM_PROMPT.format(context=context_str)
+        # Special handling for slash commands: /explain-simply and /what-if
+        is_explain_simply = latest_query.lower().startswith('/explain-simply')
+        is_what_if = latest_query.lower().startswith('/what-if')
+
+        command_instructions = ""
+        if is_explain_simply:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /explain-simply:\n"
+                "Explain the user's query in 2 plain-English bullet points for a normal seller with zero technical background.\n"
+                "1. Focus on what this means for their net profit (in ₹ INR).\n"
+                "2. Focus on what exact practical action the seller should take.\n"
+                "DO NOT use jargon like elasticity, variance, regression, or logit."
+            )
+        elif is_what_if:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /what-if:\n"
+                "The user is asking a What-If scenario (e.g. '/what-if i increased @redmi A7 price by 2000rs').\n"
+                "1. Answer briefly in 2 sentences if this is an OVERALL GOOD DECISION or RISKY DECISION, stating expected monthly profit impact in ₹ INR.\n"
+                "2. At the VERY END of your response, append exact line:\n"
+                "---ACTION_REDIRECT_WHAT_IF---\n"
+                "followed by a valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted price change or new target price>\"}\n"
+                "Example format:\n"
+                "Raising Redmi A7 price by ₹2,000 is an OVERALL GOOD DECISION. Net profit increases by +₹14,500 (+12.4%) with minimal sales volume drop.\n\n"
+                "---ACTION_REDIRECT_WHAT_IF---\n"
+                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Redmi A7\", \"priceChange\": \"+2000\"}"
+            )
+
+        full_system_prompt = SYSTEM_PROMPT.format(context=context_str) + command_instructions
         # We pass tools, but remove state_modifier to support older langgraph versions
         agent = create_react_agent(llm, tools)
         

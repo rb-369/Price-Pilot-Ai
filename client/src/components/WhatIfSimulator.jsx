@@ -1,23 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getProducts, runSimulation, commitSimulationPrice } from '../api';
-import {
-    AreaChart, Area, BarChart, Bar, LineChart, Line,
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
-} from 'recharts';
-import {
-    HiOutlineAdjustments, HiOutlineLightningBolt, HiOutlineCheckCircle,
-    HiOutlineExclamation, HiOutlineTrendingUp, HiOutlineTrendingDown,
-    HiOutlineCurrencyDollar, HiOutlineCube, HiOutlineScale,
-    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineSparkles
-} from 'react-icons/hi';
-import { useCurrency } from '../context/CurrencyContext';
-import toast from 'react-hot-toast';
+import ExplainWithAITag from './ExplainWithAITag';
 
 export default function WhatIfSimulator({ initialProductId = null, onPriceCommitted = null }) {
     const { formatCurrency } = useCurrency();
     const [products, setProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState(initialProductId || '');
     const [loadingProducts, setLoadingProducts] = useState(false);
+    const [viewMode, setViewMode] = useState('simple'); // 'simple' or 'advanced'
 
     // Simulation Input Parameters
     const [targetPrice, setTargetPrice] = useState(100);
@@ -129,7 +117,6 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             toast.success(`Price committed! Updated ${res.data.product?.name || 'Product'} to ${formatCurrency(targetPrice)}`);
             setShowCommitModal(false);
             if (onPriceCommitted) onPriceCommitted(res.data);
-            // Refresh product list
             getProducts(1, 100).then(r => setProducts(r.data?.data || r.data || []));
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to commit price change');
@@ -143,9 +130,10 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
     const deltas = simulation?.deltas;
     const opt = simulation?.optimalPricePoint;
     const comps = simulation?.competitorSummary;
+    const verdict = simulation?.aiVerdict;
 
     return (
-        <div className="glass-card p-6 border border-primary/20 space-y-6 animate-slide-up">
+        <div className="glass-card p-6 border border-primary/20 space-y-6 animate-slide-up" id="what-if-simulator-section">
             {/* Simulator Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/50">
                 <div className="flex items-center gap-3">
@@ -155,9 +143,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                     <div>
                         <h2 className="text-xl font-bold text-text flex items-center gap-2">
                             AI What-If Price Simulator
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary-light border border-primary/30 uppercase tracking-widest">
-                                High Precision
-                            </span>
+                            <ExplainWithAITag title="Explain with AI" contextData={{ type: 'simulator', simulation }} />
                         </h2>
                         <p className="text-xs text-text-muted">
                             Model demand elasticity, profit margins, and competitor response risk before committing price changes.
@@ -165,14 +151,31 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                     </div>
                 </div>
 
-                {/* Product Selector */}
-                <div className="flex items-center gap-2 min-w-[240px]">
-                    <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">Product:</span>
+                {/* Mode Toggle & Product Selector */}
+                <div className="flex items-center gap-3">
+                    {/* Simple vs Advanced View Toggle */}
+                    <div className="bg-surface/80 p-1 rounded-xl border border-border flex items-center gap-1 text-xs">
+                        <button
+                            type="button"
+                            onClick={() => setViewMode('simple')}
+                            className={`px-2.5 py-1 rounded-lg font-bold transition-all ${viewMode === 'simple' ? 'bg-primary text-white shadow' : 'text-text-muted hover:text-text'}`}
+                        >
+                            Simple View
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setViewMode('advanced')}
+                            className={`px-2.5 py-1 rounded-lg font-bold transition-all ${viewMode === 'advanced' ? 'bg-primary text-white shadow' : 'text-text-muted hover:text-text'}`}
+                        >
+                            Advanced View
+                        </button>
+                    </div>
+
                     <select
                         value={selectedProductId}
                         onChange={(e) => setSelectedProductId(e.target.value)}
                         disabled={loadingProducts}
-                        className="flex-1 bg-surface border border-border text-xs font-medium text-text rounded-xl px-3 py-2 focus:outline-none focus:border-primary cursor-pointer shadow-inner"
+                        className="bg-surface border border-border text-xs font-medium text-text rounded-xl px-3 py-2 focus:outline-none focus:border-primary cursor-pointer shadow-inner min-w-[200px]"
                     >
                         <option value="">-- Sandbox Mode (Custom) --</option>
                         {products.map(p => (
@@ -183,6 +186,39 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                     </select>
                 </div>
             </div>
+
+            {/* AI Executive Summary & Verdict Banner */}
+            {verdict && (
+                <div className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                    verdict.type === 'positive'
+                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        : verdict.type === 'negative'
+                        ? 'bg-danger/10 border-danger/30'
+                        : 'bg-warning/10 border-warning/30'
+                }`}>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
+                                verdict.type === 'positive'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                    : verdict.type === 'negative'
+                                    ? 'bg-danger/20 text-danger border border-danger/40'
+                                    : 'bg-warning/20 text-warning border border-warning/40'
+                            }`}>
+                                {verdict.label}
+                            </span>
+                            <span className="text-xs text-text-muted font-medium">AI Decision Summary</span>
+                        </div>
+                        <p className="text-sm font-semibold text-text leading-snug">
+                            {verdict.summary}
+                        </p>
+                    </div>
+                    <ExplainWithAITag
+                        title="Why this decision?"
+                        contextData={{ type: 'simulator_verdict', verdict, product: activeProduct?.name || 'Product', targetPrice }}
+                    />
+                </div>
+            )}
 
             {/* Quick Presets Bar */}
             {simulation?.presets && (

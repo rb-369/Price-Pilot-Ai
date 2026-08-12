@@ -8,6 +8,20 @@ import {
 
 export const SLASH_COMMANDS = [
     {
+        cmd: '/explain-simply',
+        label: 'Explain with AI (Simple Seller Terms)',
+        description: 'Translates complex pricing metrics & AI suggestions into simple 2-bullet seller guidance',
+        prompt: '/explain-simply Explain this pricing recommendation in simple seller terms.',
+        icon: HiOutlineLightBulb,
+    },
+    {
+        cmd: '/what-if',
+        label: 'What-If Simulation Scenario',
+        description: 'Simulate price changes (e.g. /what-if i increased @Product price by 2000rs)',
+        prompt: '/what-if i increased price by 500rs',
+        icon: HiOutlineLightningBolt,
+    },
+    {
         cmd: '/analyze-competitors',
         label: 'Analyze Competitors',
         description: 'Compare current pricing against market competitors & price gaps',

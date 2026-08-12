@@ -33,6 +33,7 @@ import jsPDF from 'jspdf';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
+import ExplainWithAITag from '../components/ExplainWithAITag';
 
 export default function Recommendations() {
   const navigate = useNavigate();
@@ -477,8 +478,9 @@ export default function Recommendations() {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-bold text-text text-base leading-tight">
+                        <h3 className="font-bold text-text text-base leading-tight flex items-center gap-2">
                           {productName}
+                          <ExplainWithAITag title="Explain with AI" contextData={{ type: 'recommendation', productName, sku, currentPrice, recommendedPrice: recPrice, expectedRevenueImpact: rec.expectedRevenueImpact, insight: rec.insight }} />
                         </h3>
                         <p className="text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                           SKU: {sku}
