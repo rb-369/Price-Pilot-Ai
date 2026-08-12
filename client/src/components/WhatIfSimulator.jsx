@@ -66,6 +66,29 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [activeProduct]);
 
+    // Run simulation via API — MUST be defined before any useEffect that references it
+    const handleRunSimulation = useCallback(async (customParams = null) => {
+        setSimulating(true);
+        setError(null);
+        try {
+            const payload = customParams || {
+                productId: selectedProductId || null,
+                targetPrice: Number(targetPrice),
+                cogs: Number(cogs),
+                competitorStrategy,
+                demandMultiplier: Number(demandMultiplier),
+                timeHorizonDays: Number(timeHorizonDays)
+            };
+            const res = await runSimulation(payload);
+            setSimulation(res.data);
+        } catch (err) {
+            console.error('Simulation error:', err);
+            setError('Failed to run simulation. Please try again.');
+        } finally {
+            setSimulating(false);
+        }
+    }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
+
     // Listen for launch_what_if_simulator events from AI Chat Assistant
     useEffect(() => {
         const handleLaunch = (e) => {
@@ -111,29 +134,6 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         window.addEventListener('launch_what_if_simulator', handleLaunch);
         return () => window.removeEventListener('launch_what_if_simulator', handleLaunch);
     }, [products, selectedProductId, cogs, competitorStrategy, demandMultiplier, timeHorizonDays, targetPrice, handleRunSimulation]);
-
-    // Run simulation via API
-    const handleRunSimulation = useCallback(async (customParams = null) => {
-        setSimulating(true);
-        setError(null);
-        try {
-            const payload = customParams || {
-                productId: selectedProductId || null,
-                targetPrice: Number(targetPrice),
-                cogs: Number(cogs),
-                competitorStrategy,
-                demandMultiplier: Number(demandMultiplier),
-                timeHorizonDays: Number(timeHorizonDays)
-            };
-            const res = await runSimulation(payload);
-            setSimulation(res.data);
-        } catch (err) {
-            console.error('Simulation error:', err);
-            setError('Failed to run simulation. Please try again.');
-        } finally {
-            setSimulating(false);
-        }
-    }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
     // Initial run when active product changes
     useEffect(() => {

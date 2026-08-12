@@ -60,20 +60,22 @@ class WorkingMemory:
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
             semantic_retriever = get_retriever(k=5, collection_name=self._collection_name_semantic)
-            semantic_docs = await semantic_retriever.ainvoke(latest_query)
-            if semantic_docs:
-                semantic_text = "\n".join([d.page_content for d in semantic_docs])
-                context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
+            if semantic_retriever:
+                semantic_docs = await semantic_retriever.ainvoke(latest_query)
+                if semantic_docs:
+                    semantic_text = "\n".join([d.page_content for d in semantic_docs])
+                    context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
         except Exception as e:
             print(f"Semantic RAG error: {e}")
 
         # 3. RAG from Episodic Memory (Past events)
         try:
             episodic_retriever = get_retriever(k=5, collection_name=self._collection_name_episodic)
-            episodic_docs = await episodic_retriever.ainvoke(latest_query)
-            if episodic_docs:
-                episodic_text = "\n".join([d.page_content for d in episodic_docs])
-                context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
+            if episodic_retriever:
+                episodic_docs = await episodic_retriever.ainvoke(latest_query)
+                if episodic_docs:
+                    episodic_text = "\n".join([d.page_content for d in episodic_docs])
+                    context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
         except Exception as e:
             print(f"Episodic RAG error: {e}")
 

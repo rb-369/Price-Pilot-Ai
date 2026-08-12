@@ -11,20 +11,32 @@ def get_vectorstore(collection_name="ecommerce_data"):
     if not api_key:
         print("Warning: No Gemini API key found. Vectorstore will fail.")
         return None
-        
-    try:
-        embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004",
-            google_api_key=api_key
-        )
-        return Chroma(
-            collection_name=collection_name,
-            embedding_function=embeddings,
-            persist_directory=CHROMA_PATH
-        )
-    except Exception as e:
-        print(f"Failed to initialize vectorstore: {e}")
-        return None
+
+    # Try multiple embedding models in order of preference
+    embedding_models = [
+        "models/text-embedding-004",
+        "models/embedding-001",
+    ]
+
+    for model_name in embedding_models:
+        try:
+            embeddings = GoogleGenerativeAIEmbeddings(
+                model=model_name,
+                google_api_key=api_key
+            )
+            # Quick test to verify the model works
+            embeddings.embed_query("test")
+            return Chroma(
+                collection_name=collection_name,
+                embedding_function=embeddings,
+                persist_directory=CHROMA_PATH
+            )
+        except Exception as e:
+            print(f"Embedding model {model_name} failed: {e}")
+            continue
+
+    print("All embedding models failed. Vectorstore unavailable.")
+    return None
 
 def ingest_data(data_list, data_type="product", collection_name="ecommerce_data"):
     """
