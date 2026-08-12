@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getProducts, runSimulation, commitSimulationPrice } from '../api';
 import {
     AreaChart, Area, BarChart, Bar, LineChart, Line,
