@@ -74,21 +74,32 @@ exports.sendMessage = async (req, res) => {
             userId: req.user._id,
             storeCurrency: "INR (₹)",
             currencySymbol: "₹",
-            products: products.map(p => ({ 
-                name: p.name, 
-                sku: p.sku,
-                category: p.category,
-                currentPrice: `₹${p.currentPrice}`, 
-                priceNumeric: p.currentPrice,
-                baseCost: p.baseCost,
-                baseCostFormatted: `₹${p.baseCost}`,
-                marginPercent: p.currentPrice > 0 ? (((p.currentPrice - p.baseCost) / p.currentPrice) * 100).toFixed(1) + '%' : '0%',
-                minMargin: p.minMargin,
-                currency: "INR (₹)", 
-                stockLevel: p.stockLevel,
-                salesVelocity: p.salesVelocity?.avgHourlySalesRate || 0,
-                peakSalesRate: p.salesVelocity?.peakHourlySalesRate || 0,
-            })),
+            products: products.map(p => {
+                const currentPrice = Number(p.currentPrice) || 100;
+                const baseCost = (typeof p.baseCost === 'number' && !isNaN(p.baseCost) && p.baseCost > 0)
+                    ? p.baseCost
+                    : Math.round(currentPrice * 0.6);
+                const marginPct = currentPrice > 0
+                    ? (((currentPrice - baseCost) / currentPrice) * 100).toFixed(1) + '%'
+                    : '40.0%';
+                const salesRate = p.salesVelocity?.avgHourlySalesRate || 0;
+
+                return { 
+                    name: p.name, 
+                    sku: p.sku || 'N/A',
+                    category: p.category || 'General',
+                    currentPrice: `₹${currentPrice}`, 
+                    priceNumeric: currentPrice,
+                    baseCost: baseCost,
+                    baseCostFormatted: `₹${baseCost}`,
+                    marginPercent: marginPct,
+                    minMargin: p.minMargin || 0.1,
+                    currency: "INR (₹)", 
+                    stockLevel: p.stockLevel || 0,
+                    salesVelocity: salesRate,
+                    peakSalesRate: p.salesVelocity?.peakHourlySalesRate || 0,
+                };
+            }),
             alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
         };
 

@@ -50,7 +50,18 @@ def get_vectorstore(collection_name="ecommerce_data"):
     if qdrant_url and qdrant_key:
         try:
             from qdrant_client import QdrantClient
+            from qdrant_client.models import VectorParams, Distance
             client = QdrantClient(url=qdrant_url, api_key=qdrant_key)
+
+            # Ensure collection exists before querying/storing (FastEmbed bge-small is 384 dim)
+            try:
+                if not client.collection_exists(collection_name):
+                    client.create_collection(
+                        collection_name=collection_name,
+                        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+                    )
+            except Exception as collection_err:
+                print(f"Qdrant collection creation check notice: {collection_err}")
 
             try:
                 from langchain_qdrant import QdrantVectorStore
