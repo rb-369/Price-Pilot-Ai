@@ -113,10 +113,7 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            {/* AI Powered What-If Simulator Section */}
-            <WhatIfSimulator onPriceCommitted={fetchData} />
-
-            {/* Charts Row — now powered by real aggregated data */}
+            {/* Charts Row — Demand Trend & Search Trend Signals */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Demand Trend (real data) */}
                 <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
@@ -184,6 +181,9 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* AI Powered What-If Simulator Section */}
+            <WhatIfSimulator onPriceCommitted={fetchData} />
 
             {/* Explainability Panel */}
             <div className="grid grid-cols-1 gap-6">
