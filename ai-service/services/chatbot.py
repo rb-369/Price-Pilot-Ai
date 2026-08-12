@@ -187,16 +187,17 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         elif is_what_if:
             command_instructions = (
                 "\n\nSPECIAL INSTRUCTION FOR /what-if:\n"
-                "The user is asking a What-If scenario (e.g. '/what-if i increased @redmi A7 price by 2000rs').\n"
-                "IMPORTANT: Do NOT say 'I don't have enough information'. PricePilot has a built-in predictive simulation model.\n"
-                "1. Answer in 2 encouraging sentences summarizing the scenario (e.g. 'Changing price for Redmi A7 by +₹2,000 requires analyzing demand elasticity, unit margin, and competitor risk. See below to run the high-precision simulation.').\n"
-                "2. At the VERY END of your response, append exact line:\n"
+                "The user is asking a What-If scenario (e.g. '/what-if i changed @Redmi A7 price to 800rs').\n"
+                "You MUST provide a clear, helpful, 2-sentence seller summary of the expected price change impact right in the message:\n"
+                "1. State whether this is an OVERALL GOOD DECISION, RISKY DECISION, or NEUTRAL DECISION.\n"
+                "2. Explain in plain seller English the projected net profit change in ₹ INR and sales volume impact.\n"
+                "3. At the VERY END of your response, append exact line:\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
-                "followed by a valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted price change or new target price>\"}\n"
-                "Example format:\n"
-                "Analyzing a price increase of ₹2,000 for Redmi A7. Click below to view the interactive profit margin & elasticity simulation.\n\n"
+                "followed on a new line by a single valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted target price value>\"}\n"
+                "Example response format:\n"
+                "Changing the price of 'Premium Steel Hot and Cold Bottle 750ml' to ₹800 is an OVERALL GOOD DECISION. Lowering the price from ₹900 to ₹800 is estimated to boost sales volume by +18%, generating +₹4,500 (+8.2%) in net monthly profit.\n\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
-                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Redmi A7\", \"priceChange\": \"+2000\"}"
+                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Premium Steel Hot and Cold Bottle 750ml\", \"priceChange\": \"800\"}"
             )
 
         full_system_prompt = SYSTEM_PROMPT.format(context=context_str) + command_instructions

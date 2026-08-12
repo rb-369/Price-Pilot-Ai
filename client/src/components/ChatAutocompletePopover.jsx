@@ -286,13 +286,25 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
     if (text.includes('---ACTION_REDIRECT_WHAT_IF---')) {
         const parts = text.split('---ACTION_REDIRECT_WHAT_IF---');
         mainContent = parts[0].trim();
-        try {
-            actionPayload = JSON.parse(parts[1].trim());
-        } catch (e) {
-            console.error('Failed to parse what-if payload:', e);
+        const jsonCandidate = parts[1] ? parts[1].trim() : '';
+        if (jsonCandidate) {
+            try {
+                actionPayload = JSON.parse(jsonCandidate);
+            } catch (e) {
+                console.error('Failed to parse what-if payload:', e);
+                const pMatch = jsonCandidate.match(/"productQuery"\s*:\s*"([^"]+)"/i);
+                const prMatch = jsonCandidate.match(/"priceChange"\s*:\s*"([^"]+)"/i);
+                if (pMatch || prMatch) {
+                    actionPayload = {
+                        action: "redirect_what_if",
+                        productQuery: pMatch ? pMatch[1] : "",
+                        priceChange: prMatch ? prMatch[1] : ""
+                    };
+                }
+            }
         }
     } else {
-        // Fallback regex to catch raw {"action": "redirect_what_if", ...} JSON objects
+        // Fallback regex to catch raw {"action": "redirect_what_if", ...} JSON objects anywhere in text
         const jsonMatch = text.match(/{\s*"action"\s*:\s*"redirect_what_if"[\s\S]*}/i);
         if (jsonMatch) {
             try {
@@ -300,6 +312,16 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                 mainContent = text.replace(jsonMatch[0], '').trim();
             } catch (e) {
                 console.error('Failed to parse regex what-if payload:', e);
+                const pMatch = jsonMatch[0].match(/"productQuery"\s*:\s*"([^"]+)"/i);
+                const prMatch = jsonMatch[0].match(/"priceChange"\s*:\s*"([^"]+)"/i);
+                if (pMatch || prMatch) {
+                    actionPayload = {
+                        action: "redirect_what_if",
+                        productQuery: pMatch ? pMatch[1] : "",
+                        priceChange: prMatch ? prMatch[1] : ""
+                    };
+                    mainContent = text.replace(jsonMatch[0], '').trim();
+                }
             }
         }
     }
