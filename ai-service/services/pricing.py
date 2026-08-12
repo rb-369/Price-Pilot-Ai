@@ -7,7 +7,7 @@ Key improvements over v1:
   - Separate Buy Box targeting mode for Amazon sellers
 """
 import numpy as np
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 
 
 # ── Elasticity estimation (ML-powered with heuristic fallback) ────────────────
