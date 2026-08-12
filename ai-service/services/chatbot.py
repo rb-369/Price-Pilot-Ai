@@ -241,6 +241,19 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         
         # Save to episodic memory asynchronously (fire-and-forget for now)
         memory.save_episodic_interaction(latest_query, response)
+
+        # Enforce ---ACTION_REDIRECT_WHAT_IF--- payload for /what-if queries if LLM omitted it
+        if is_what_if and "---ACTION_REDIRECT_WHAT_IF---" not in response:
+            import re
+            import json
+            p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+            pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+)', latest_query, re.IGNORECASE) or re.search(r'(\d+)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+            
+            extracted_prod = p_match.group(1).strip() if p_match else "Product"
+            extracted_price = pr_match.group(1).strip() if pr_match else ""
+            
+            payload_json = json.dumps({"action": "redirect_what_if", "productQuery": extracted_prod, "priceChange": extracted_price})
+            response += f"\n\n---ACTION_REDIRECT_WHAT_IF---\n{payload_json}"
         
         return response
     except Exception as e:
