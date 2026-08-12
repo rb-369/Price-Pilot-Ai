@@ -26,3 +26,5 @@ tavily-python
 fastembed
 qdrant-client
 langchain-qdrant
+xgboost
+lightgbm

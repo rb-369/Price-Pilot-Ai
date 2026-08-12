@@ -78,3 +78,37 @@ async def validate_competitors(product_name: str, competitors: List[Dict]) -> Li
     except Exception as e:
         print(f"[Validator] Error during validation: {e}. Returning original list.")
         return competitors
+
+
+def validate_price_margin_guardrail(
+    candidate_price: float,
+    cogs: float,
+    min_margin: float = 0.10
+) -> Dict[str, Any]:
+    """
+    Financial Margin Guardrail & Fallback.
+    Asserts candidate_price >= cogs * (1 + min_margin).
+    If breached, returns floorPrice = cogs * (1 + min_margin) with margin_breach_warning: true.
+    """
+    min_allowed_price = float(np.ceil(cogs * (1.0 + min_margin)))
+    
+    if candidate_price < min_allowed_price:
+        return {
+            "valid": False,
+            "recommendedPrice": min_allowed_price,
+            "requestedPrice": candidate_price,
+            "cogs": cogs,
+            "minMargin": min_margin,
+            "margin_breach_warning": True,
+            "reason": f"Candidate price ₹{candidate_price} breaches minMargin ({min_margin * 100}%). Floor price ₹{min_allowed_price} applied."
+        }
+
+    return {
+        "valid": True,
+        "recommendedPrice": candidate_price,
+        "cogs": cogs,
+        "minMargin": min_margin,
+        "margin_breach_warning": False,
+        "reason": "Price satisfies financial margin guardrail."
+    }
+

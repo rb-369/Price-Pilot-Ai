@@ -63,7 +63,7 @@ def run_predictive_simulation(
     else:
         composite_demand = 0.5
 
-    # Fetch dynamic baseline elasticity from Elasticity Model
+    # Fetch dynamic baseline elasticity from Elasticity Model with Quantile Bounds
     model = get_elasticity_model(user_id)
     features = {
         "demand_score": composite_demand,
@@ -71,8 +71,12 @@ def run_predictive_simulation(
         "stock_ratio": stock_level / float(product.get("reorderThreshold", 10) or 10),
         "price_level": base_price,
         "margin_pct": (base_price - unit_cogs) / base_price if base_price > 0 else 0.2,
+        "sales_count": float(product.get("totalSold", 0) or 0),
+        "category": str(product.get("category", "general")),
     }
-    base_elasticity, elast_source = model.predict(features)
+    bounds = model.predict_quantile_bounds(features)
+    base_elasticity = bounds["p50"]
+    elast_source = bounds["source"]
 
     # Function to simulate metrics for any given price P
     def evaluate_price_point(price_point: float) -> Dict[str, Any]:

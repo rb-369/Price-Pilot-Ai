@@ -460,4 +460,59 @@ def suggest_promotion(product: Dict, demand_signals: List[Dict]) -> Dict:
         "expectedVolumeIncrease": volume_uplift,
         "elasticityUsed": elasticity,
         "elasticitySource": elasticity_source,
-    }
+    }
+
+
+def select_bandit_price_arm(
+    candidate_prices: List[float],
+    cogs: float,
+    arm_stats: Optional[Dict[str, Dict]] = None,
+    exploration_floor: float = 0.15,
+    discount_factor: float = 0.95
+) -> Dict[str, Any]:
+    """
+    Thompson Sampling Multi-Armed Bandit price selection.
+    
+    Math Specifications:
+      - Reward Signal R = P * (ConversionRate) * Margin% (Margin-Adjusted Net Revenue)
+      - Minimum Exploration Floor: epsilon = 0.15 (15% random exploration minimum)
+      - Non-Stationary Adaptation: Exponential decay (gamma = 0.95) applied to pseudo-counts
+    """
+    if not candidate_prices:
+        return {"selectedPrice": cogs * 1.25, "exploration": True, "armIndex": 0}
+
+    # Epsilon exploration floor check
+    if np.random.rand() < exploration_floor:
+        selected_price = float(np.random.choice(candidate_prices))
+        return {
+            "selectedPrice": selected_price,
+            "exploration": True,
+            "rewardSignal": "epsilon_exploration_floor",
+            "confidence": exploration_floor
+        }
+
+    sampled_values = []
+    for price in candidate_prices:
+        margin_pct = max(0.01, (price - cogs) / max(price, 1.0))
+        stats = (arm_stats or {}).get(str(price), {"alpha": 1.0, "beta": 1.0})
+        
+        # Apply exponential decay discount factor (gamma = 0.95) for non-stationary demand
+        alpha = max(1.0, stats.get("alpha", 1.0) * discount_factor)
+        beta = max(1.0, stats.get("beta", 1.0) * discount_factor)
+
+        # Sample conversion probability from Beta distribution
+        sampled_conv = np.random.beta(alpha, beta)
+        # Reward = Price * sampled_conv * margin_pct
+        reward = price * sampled_conv * margin_pct
+        sampled_values.append((reward, price))
+
+    sampled_values.sort(key=lambda x: x[0], reverse=True)
+    best_reward, best_price = sampled_values[0]
+
+    return {
+        "selectedPrice": float(best_price),
+        "exploration": False,
+        "sampledReward": float(best_reward),
+        "confidence": 1.0 - exploration_floor
+    }
+
