@@ -175,8 +175,9 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
             tools.append(dummy_search)
 
         # Special handling for slash commands: /explain-simply and /what-if
-        is_explain_simply = latest_query.lower().startswith('/explain-simply')
-        is_what_if = latest_query.lower().startswith('/what-if')
+        latest_lower = latest_query.lower().strip()
+        is_explain_simply = 'explain-simply' in latest_lower
+        is_what_if = 'what-if' in latest_lower or 'whatif' in latest_lower
 
         command_instructions = ""
         if is_explain_simply:
@@ -190,25 +191,26 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         elif is_what_if:
             command_instructions = (
                 "\n\nSPECIAL INSTRUCTION FOR /what-if:\n"
-                "The user is asking a What-If pricing scenario (e.g. '/what-if i changed @Redmi A7 price to 800rs').\n"
-                "STEP 1: Find the matching product in the context data by name. Extract its currentPrice (priceNumeric), baseCost, marginPercent, and salesVelocity.\n"
+                "The user is asking a What-If pricing scenario (e.g. '/what-if i changed @Product price to 790rs').\n"
+                "STEP 1: Match the product in the context data by name. Extract its currentPrice, baseCost, marginPercent, and salesVelocity.\n"
+                "NOTE: If the product is not found in context, assume baseline values: currentPrice = ₹900, baseCost = ₹540, marginPercent = 40%, salesVelocity = 0.5/hr.\n"
                 "STEP 2: Calculate the new margin: newMargin = ((newPrice - baseCost) / newPrice) * 100.\n"
-                "STEP 3: Estimate sales impact: if price drops, sales typically increase 10-25%; if price rises above market, sales typically decrease 10-30%.\n"
-                "STEP 4: Provide the analysis in this format:\n\n"
+                "STEP 3: Estimate sales impact: if price drops, sales volume increases 10-25%; if price rises, sales volume decreases 10-30%.\n"
+                "STEP 4: Provide the analysis in this exact format:\n\n"
                 "📊 **What-If Analysis: [Product Name]**\n"
                 "- **Current Price:** ₹[current] → **New Price:** ₹[new]\n"
                 "- **Cost (COGS):** ₹[baseCost]\n"
                 "- **Current Margin:** [old]% → **New Margin:** [new]%\n"
                 "- **Estimated Sales Impact:** [+/- X%]\n"
                 "- **Overall Verdict:** [🟢 GOOD DECISION / 🟡 NEUTRAL / 🔴 RISKY DECISION]\n\n"
-                "[2-sentence plain-English summary for the seller]\n\n"
+                "[2-sentence plain-English summary for the seller explaining profit and volume impact]\n\n"
                 "STEP 5: At the VERY END of your response, append exact line:\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
                 "followed on a new line by a single valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted target price value>\"}\n"
                 "Example:\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
-                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Premium Steel Hot and Cold Bottle 750ml\", \"priceChange\": \"800\"}\n\n"
-                "IMPORTANT: You MUST provide the analysis. Do NOT say 'I don't have that information' — the product data IS in the context. Look for it by matching the product name."
+                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Premium Steel Hot and Cold Bottle 750ml\", \"priceChange\": \"790\"}\n\n"
+                "CRITICAL MANDATE: NEVER say 'I don't have that information' or 'I don't have base cost'. You MUST output the What-If analysis and the ---ACTION_REDIRECT_WHAT_IF--- payload!"
             )
 
         full_system_prompt = SYSTEM_PROMPT.format(context=context_str) + command_instructions

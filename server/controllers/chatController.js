@@ -66,7 +66,25 @@ exports.sendMessage = async (req, res) => {
         chat.messages.push(userMsg);
 
         // Gather real context for the chatbot (RAG)
-        const products = await Product.find({ userId: req.user._id }).limit(20);
+        let products = await Product.find({ userId: req.user._id }).limit(20);
+        
+        // Fallback: If user has no custom products associated, fetch general products
+        if (!products || products.length === 0) {
+            products = await Product.find({}).limit(20);
+        }
+
+        // If message contains a tagged product like @"Product Name" or @ProductName, explicitly search & append it
+        const tagMatch = (message || '').match(/@"?([^"\n\r?]+)"?/);
+        if (tagMatch && tagMatch[1]) {
+            const taggedName = tagMatch[1].trim();
+            const specificProduct = await Product.findOne({
+                name: { $regex: taggedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
+            });
+            if (specificProduct && !products.some(p => String(p._id) === String(specificProduct._id))) {
+                products.unshift(specificProduct);
+            }
+        }
+
         const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
         
         // Prepare context
