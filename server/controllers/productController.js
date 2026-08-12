@@ -168,7 +168,7 @@ exports.extractUrlMetadata = async (req, res) => {
                 method: 'GET',
                 redirect: 'follow',
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
                     'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8',
                     'Cache-Control': 'no-cache',
@@ -186,7 +186,9 @@ exports.extractUrlMetadata = async (req, res) => {
 
         if (lowercaseFinalUrl.includes('amazon') || lowercaseOriginalUrl.includes('amzn')) {
             platform = 'amazon';
-            const asinMatch = finalUrl.match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i) || url.match(/(?:dp|gp\/product)\/([A-Z0-9]{10})/i);
+            const asinMatch = finalUrl.match(/(?:dp|gp\/product|d|ASIN)\/([A-Z0-9]{10})/i) ||
+                              url.match(/(?:dp|gp\/product|d|ASIN)\/([A-Z0-9]{10})/i) ||
+                              html.match(/["']asin["']\s*:\s*["']([A-Z0-9]{10})["']/i);
             if (asinMatch) amazonAsin = asinMatch[1];
         } else if (lowercaseFinalUrl.includes('flipkart')) {
             platform = 'flipkart';
@@ -201,7 +203,7 @@ exports.extractUrlMetadata = async (req, res) => {
             shortName: '',
             currentPrice: null,
             imageUrl: '',
-            category: 'Electronics',
+            category: 'General',
             description: '',
             brand: '',
             modelNumber: '',
@@ -220,6 +222,7 @@ exports.extractUrlMetadata = async (req, res) => {
         const cleanText = (str) => {
             if (!str) return '';
             return str
+                .replace(/<[^>]+>/g, '')
                 .replace(/&amp;/g, '&')
                 .replace(/&#39;/g, "'")
                 .replace(/&#x27;/g, "'")
@@ -230,11 +233,43 @@ exports.extractUrlMetadata = async (req, res) => {
                 .trim();
         };
 
+        // If Shopify URL, try fetching cleanly formatted Shopify product JSON
+        if (platform === 'shopify' || lowercaseFinalUrl.includes('/products/')) {
+            try {
+                const jsonUrl = finalUrl.split('?')[0].replace(/\/+$/, '') + '.json';
+                const shopifyRes = await fetch(jsonUrl, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+                });
+                if (shopifyRes.ok) {
+                    const shopifyData = await shopifyRes.json();
+                    if (shopifyData?.product) {
+                        const p = shopifyData.product;
+                        metadata.fullName = cleanText(p.title);
+                        metadata.shortName = metadata.fullName.split(/[,|\-–—(]/)[0].trim();
+                        metadata.brand = p.vendor || '';
+                        metadata.description = cleanText(p.body_html || '').slice(0, 300);
+                        if (p.variants && p.variants.length > 0) {
+                            const val = parseFloat(p.variants[0].price);
+                            if (!isNaN(val) && val > 0) metadata.currentPrice = val;
+                        }
+                        if (p.images && p.images.length > 0) {
+                            metadata.imageUrl = p.images[0].src;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('[URL Extraction] Shopify JSON fetch failed, using HTML fallback:', err.message);
+            }
+        }
+
+        // HTML Parsing
         if (html) {
-            const titleMatch = html.match(/<span\s+id=["']productTitle["'][^>]*>\s*([^<]+)\s*<\/span>/i) ||
+            // 1. Full Title / Product Name
+            const titleMatch = html.match(/<span\s+id=["']productTitle["'][^>]*>([\s\S]*?)<\/span>/i) ||
+                               html.match(/<h1[^>]*class=["'][^"']*B_NuCI[^"']*["'][^>]*>([\s\S]*?)<\/h1>/i) ||
+                               html.match(/<meta\s+name=["']title["']\s+content=["']([^"']+)["']/i) ||
                                html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i) ||
-                               html.match(/<title>([^<]+)<\/title>/i) ||
-                               html.match(/<meta\s+name=["']title["']\s+content=["']([^"']+)["']/i);
+                               html.match(/<title>([\s\S]*?)<\/title>/i);
 
             if (titleMatch && titleMatch[1]) {
                 let rawTitle = cleanText(titleMatch[1]);
@@ -245,49 +280,101 @@ exports.extractUrlMetadata = async (req, res) => {
                 metadata.shortName = shortTitle.length >= 3 ? shortTitle : rawTitle.slice(0, 40);
             }
 
-            const imageMatch = html.match(/data-old-hires=["']([^"']+)["']/i) ||
-                               html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i) ||
-                               html.match(/["']large["']\s*:\s*["']([^"']+\.(?:jpg|png|webp))["']/i);
-            if (imageMatch && imageMatch[1]) {
-                metadata.imageUrl = imageMatch[1];
-            }
+            // 2. Image URL
+            const dynImageMatch = html.match(/data-a-dynamic-image=["']([^"']+)["']/i);
+            const landingImgMatch = html.match(/id=["']landingImage["'][^>]*src=["']([^"']+)["']/i);
+            const ogImgMatch = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
+            const rawAmazonImgMatch = html.match(/https:\/\/m\.media-amazon\.com\/images\/I\/([A-Za-z0-9%\-_+\.]+)\.jpg/i);
 
-            const priceMatch = html.match(/class=["']a-price-whole["']>([\d,]+)/i) ||
-                               html.match(/<meta\s+property=["']og:price:amount["']\s+content=["']([\d.]+)/i) ||
-                               html.match(/["']priceAmount["']\s*:\s*([\d.]+)/i) ||
-                               html.match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{2})?)/i);
-            if (priceMatch && priceMatch[1]) {
-                const parsedPrice = parseFloat(priceMatch[1].replace(/,/g, ''));
-                if (!isNaN(parsedPrice) && parsedPrice > 0) {
-                    metadata.currentPrice = parsedPrice;
+            if (dynImageMatch && dynImageMatch[1]) {
+                try {
+                    const parsed = JSON.parse(dynImageMatch[1].replace(/&quot;/g, '"'));
+                    metadata.imageUrl = Object.keys(parsed)[0] || '';
+                } catch (e) {
+                    if (landingImgMatch) metadata.imageUrl = landingImgMatch[1];
+                }
+            }
+            if (!metadata.imageUrl && landingImgMatch) metadata.imageUrl = landingImgMatch[1];
+            if (!metadata.imageUrl && ogImgMatch) metadata.imageUrl = ogImgMatch[1];
+            if (!metadata.imageUrl && rawAmazonImgMatch) metadata.imageUrl = rawAmazonImgMatch[0];
+
+            // 3. Price
+            if (!metadata.currentPrice) {
+                const offscreenMatch = html.match(/class=["'][^"']*a-offscreen[^"']*["'][^>]*>\s*(?:₹|Rs\.?|INR|\$)?\s*([\d,]+(?:\.\d{2})?)/i);
+                const wholeMatch = html.match(/class=["'][^"']*a-price-whole[^"']*["'][^>]*>\s*([\d,]+)/i);
+                const fkPriceMatch = html.match(/class=["'][^"']*_30jeq3[^"']*["'][^>]*>\s*(?:₹|Rs\.?|INR|\$)?\s*([\d,]+)/i);
+                const metaPrice = html.match(/<meta\s+property=["'](?:og:price:amount|product:price:amount)["']\s+content=["']([\d.]+)/i);
+                const generalPrice = html.match(/(?:₹|Rs\.?|INR|\$)\s*([\d,]+(?:\.\d{2})?)/i);
+
+                if (offscreenMatch && parseFloat(offscreenMatch[1].replace(/,/g, '')) > 0) {
+                    metadata.currentPrice = parseFloat(offscreenMatch[1].replace(/,/g, ''));
+                } else if (wholeMatch && parseFloat(wholeMatch[1].replace(/,/g, '')) > 0) {
+                    metadata.currentPrice = parseFloat(wholeMatch[1].replace(/,/g, ''));
+                } else if (fkPriceMatch && parseFloat(fkPriceMatch[1].replace(/,/g, '')) > 0) {
+                    metadata.currentPrice = parseFloat(fkPriceMatch[1].replace(/,/g, ''));
+                } else if (metaPrice && parseFloat(metaPrice[1]) > 0) {
+                    metadata.currentPrice = parseFloat(metaPrice[1]);
+                } else if (generalPrice && parseFloat(generalPrice[1].replace(/,/g, '')) > 0) {
+                    metadata.currentPrice = parseFloat(generalPrice[1].replace(/,/g, ''));
                 }
             }
 
-            const brandMatch = html.match(/<a\s+id=["']bylineInfo["'][^>]*>\s*(?:Visit the|Brand:)?\s*([^<]+)\s*<\/a>/i) ||
-                               html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
-                               html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
+            // 4. Brand
+            const bylineMatch = html.match(/id=["']bylineInfo["'][^>]*>([\s\S]*?)<\/a>/i) ||
+                                html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
+                                html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
 
-            if (brandMatch && brandMatch[1]) {
-                const cleanBrand = cleanText(brandMatch[1]).replace(/Visit the|Store|Brand:/gi, '').trim();
-                if (cleanBrand.length < 30) metadata.brand = cleanBrand;
+            if (bylineMatch && bylineMatch[1]) {
+                const cleanBrand = cleanText(bylineMatch[1]).replace(/Visit the|Store|Brand:|Brand\s*-/gi, '').trim();
+                if (cleanBrand.length > 0 && cleanBrand.length < 40) metadata.brand = cleanBrand;
             }
 
             if (!metadata.brand && metadata.fullName) {
-                const knownBrands = ['REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO', 'SAMSUNG', 'SONY', 'MILTON', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH', 'ONEPLUS', 'REALME', 'POCO'];
+                const knownBrands = ['REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO', 'SAMSUNG', 'SONY', 'MILTON', 'PEXPO', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH', 'ONEPLUS', 'REALME', 'POCO', 'NOISE', 'FIRE-BOLTT', 'ZEBRONICS', 'CROMTON', 'BAJAJ', 'PHILIPS', 'STANLEY', 'PRESTIGE'];
                 const upperName = metadata.fullName.toUpperCase();
                 const matched = knownBrands.find(b => upperName.includes(b));
-                if (matched) metadata.brand = matched.charAt(0) + matched.slice(1).toLowerCase();
+                if (matched) {
+                    metadata.brand = matched.charAt(0) + matched.slice(1).toLowerCase();
+                } else {
+                    const firstWord = metadata.fullName.split(' ')[0];
+                    if (firstWord && firstWord.length >= 3 && /^[A-Za-z0-9]+$/.test(firstWord)) {
+                        metadata.brand = firstWord;
+                    }
+                }
             }
 
+            // 5. Category Detection
+            const breadcrumbMatch = html.match(/id=["']wayfinding-breadcrumbs_feature_div["']([\s\S]*?)<\/div>/i);
+            const combinedText = ((breadcrumbMatch ? breadcrumbMatch[1] : '') + ' ' + metadata.fullName).toLowerCase();
+
+            if (/kitchen|bottle|cookware|home|storage|kettle|mixer|juicer|furniture/i.test(combinedText)) {
+                metadata.category = 'Home & Kitchen';
+            } else if (/phone|mobile|laptop|earbud|headphone|watch|camera|tv|speaker|tablet|pc|monitor|electronic/i.test(combinedText)) {
+                metadata.category = 'Electronics';
+            } else if (/shoe|sneaker|sandal|boot|footwear|heel|slipper/i.test(combinedText)) {
+                metadata.category = 'Footwear';
+            } else if (/shirt|pant|t-shirt|dress|jacket|jeans|hoodie|apparel|cloth/i.test(combinedText)) {
+                metadata.category = 'Apparel';
+            } else if (/gym|dumbbell|protein|treadmill|workout|fitness|yoga/i.test(combinedText)) {
+                metadata.category = 'Fitness';
+            } else if (/shampoo|serum|cream|perfume|lotion|beauty|personal care/i.test(combinedText)) {
+                metadata.category = 'Beauty & Personal Care';
+            } else if (/book|novel|comic|magazine/i.test(combinedText)) {
+                metadata.category = 'Books & Media';
+            } else {
+                metadata.category = 'General';
+            }
+
+            // 6. Key Specs Extraction
             if (metadata.fullName) {
                 const specRegexes = [
-                    /\b\d+\s*GB\b/gi,
-                    /\b\d+\s*TB\b/gi,
+                    /\b\d+\s*(?:ml|L|litres|liter|kg|g|GB|TB)\b/gi,
                     /\b5G\b/gi,
                     /\b(?:Core\s+i[3579]|Ryzen\s+[3579]|M[1234]\s*(?:Pro|Max)?|Snapdragon\s*\d*)\b/gi,
                     /\bRTX\s*\d{4}\b/gi,
                     /\b\d{2,3}Hz\b/gi,
-                    /\bFHD\+?|4K|QHD|AMOLED|OLED\b/gi
+                    /\bFHD\+?|4K|QHD|AMOLED|OLED\b/gi,
+                    /\b(?:Stainless Steel|Leakproof|BPA Free|Triple Wall|Wireless|Bluetooth|Noise Cancellation|Fast Charge)\b/gi
                 ];
                 const foundSpecs = new Set();
                 specRegexes.forEach(rgx => {
@@ -296,18 +383,32 @@ exports.extractUrlMetadata = async (req, res) => {
                 });
                 metadata.keySpecs = Array.from(foundSpecs);
             }
+
+            // 7. Description
+            const metaDesc = html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i) ||
+                             html.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i);
+            if (metaDesc && metaDesc[1]) {
+                metadata.description = cleanText(metaDesc[1]).slice(0, 350);
+            }
         }
 
+        // Fallback title / slug resolution if fullName is missing
         if (!metadata.fullName && finalUrl) {
-            const slugMatch = finalUrl.match(/amazon\.[a-z.]+\/([^/]+)\/dp\//i);
+            const slugMatch = finalUrl.match(/amazon\.[a-z.]+\/([^/]+)\/dp\//i) ||
+                              finalUrl.match(/flipkart\.com\/([^/]+)\/p\//i) ||
+                              finalUrl.match(/\/products\/([^/?#]+)/i);
             if (slugMatch && slugMatch[1]) {
-                const cleanSlug = slugMatch[1].replace(/[-_]/g, ' ').trim();
+                const cleanSlug = decodeURIComponent(slugMatch[1]).replace(/[-_]/g, ' ').trim();
                 metadata.fullName = cleanSlug;
                 metadata.shortName = cleanSlug.split(/[,|\-–—(]/)[0].trim();
             } else {
-                metadata.fullName = amazonAsin ? `Amazon Product (${amazonAsin})` : 'Imported Product';
-                metadata.shortName = amazonAsin ? `Amazon ${amazonAsin}` : 'Imported Product';
+                metadata.fullName = amazonAsin ? `Amazon Product (${amazonAsin})` : (flipkartFsn ? `Flipkart Product (${flipkartFsn})` : 'Imported Product');
+                metadata.shortName = amazonAsin ? `Amazon ${amazonAsin}` : (flipkartFsn ? `Flipkart ${flipkartFsn}` : 'Imported Product');
             }
+        }
+
+        if (!metadata.description) {
+            metadata.description = `${metadata.fullName}. Features: ${metadata.keySpecs.join(', ') || 'High quality material, official brand product'}.`;
         }
 
         res.json(metadata);

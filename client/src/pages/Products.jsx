@@ -95,13 +95,14 @@ export default function Products() {
                 fullName: data.fullName || prev.fullName,
                 brand: data.brand || prev.brand,
                 modelNumber: data.modelNumber || prev.modelNumber,
-                keySpecs: Array.isArray(data.keySpecs) ? data.keySpecs.join(', ') : prev.keySpecs,
+                keySpecs: Array.isArray(data.keySpecs) ? data.keySpecs.join(', ') : (data.keySpecs || prev.keySpecs),
                 currentPrice: data.currentPrice ? String(data.currentPrice) : prev.currentPrice,
-                category: isStandard ? data.category : 'Electronics',
+                category: isStandard ? data.category : 'General',
                 description: data.description || prev.description,
                 productLinks: {
                     ...prev.productLinks,
-                    ...(data.productLinks || {})
+                    ...(data.productLinks || {}),
+                    ...(data.platform && importUrl ? { [data.platform]: data.productLinks?.[data.platform] || importUrl } : {})
                 }
             }));
 
