@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { sendOtp } from '../api';
 
 export default function LoginPhone() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [otpSent, setOtpSent] = useState(false);

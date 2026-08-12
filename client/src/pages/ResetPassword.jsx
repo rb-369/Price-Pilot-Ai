@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../api';
+import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 export default function ResetPassword() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const { token } = useParams();
     const navigate = useNavigate();
 

@@ -9,7 +9,8 @@ import {
     HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
-import logoIcon from '../assets/FINAL.png';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 const links = [
     { to: '/dashboard', icon: HiOutlineChartBar, label: 'Dashboard' },
@@ -29,6 +30,7 @@ const links = [
 export default function Sidebar({ isOpen, onClose }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    const logoIcon = theme === 'dark' ? newDarkLogo : newLightLogo;
     const { currency, setCurrency, currencies } = useCurrency();
     const navigate = useNavigate();
 

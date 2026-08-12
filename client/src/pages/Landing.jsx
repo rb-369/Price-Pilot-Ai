@@ -2,12 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon, HiOutlineUserGroup, HiOutlineMail, HiOutlineArrowUp } from 'react-icons/hi';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
-import landingBgDark from '../assets/BG_dark2.png';
-import landingBgLight from '../assets/BG_light2.png';
-import logoIcon from '../assets/FINAL.png';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 import { useTheme } from '../context/ThemeContext';
 import HeroDashboard from '../components/HeroDashboard';
-
 
 const faqCategories = ['All Questions', 'Pricing & AI', 'Security & Privacy', 'Integrations'];
 
@@ -142,6 +140,7 @@ function ExpandableDarkPanel({ children }) {
 
 export default function Landing() {
     const { theme, toggleTheme } = useTheme();
+    const logoIcon = theme === 'dark' ? newDarkLogo : newLightLogo;
 
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All Questions');

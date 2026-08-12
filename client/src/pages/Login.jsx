@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 import { SiGoogle } from 'react-icons/si';
 import { HiOutlinePhone } from 'react-icons/hi';
 import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

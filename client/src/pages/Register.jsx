@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 const storeTypes = [
     { value: 'general', label: 'General Store' },
@@ -24,6 +26,8 @@ const storeTypes = [
 ];
 
 export default function Register() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [form, setForm] = useState({ name: '', email: '', password: '', storeType: 'general', customStoreType: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
