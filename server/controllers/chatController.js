@@ -76,10 +76,18 @@ exports.sendMessage = async (req, res) => {
             currencySymbol: "₹",
             products: products.map(p => ({ 
                 name: p.name, 
+                sku: p.sku,
+                category: p.category,
                 currentPrice: `₹${p.currentPrice}`, 
                 priceNumeric: p.currentPrice,
+                baseCost: p.baseCost,
+                baseCostFormatted: `₹${p.baseCost}`,
+                marginPercent: p.currentPrice > 0 ? (((p.currentPrice - p.baseCost) / p.currentPrice) * 100).toFixed(1) + '%' : '0%',
+                minMargin: p.minMargin,
                 currency: "INR (₹)", 
-                stockLevel: p.stockLevel 
+                stockLevel: p.stockLevel,
+                salesVelocity: p.salesVelocity?.avgHourlySalesRate || 0,
+                peakSalesRate: p.salesVelocity?.peakHourlySalesRate || 0,
             })),
             alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
         };
