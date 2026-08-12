@@ -1,3 +1,17 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { getProducts, runSimulation, commitSimulationPrice } from '../api';
+import {
+    AreaChart, Area, BarChart, Bar, LineChart, Line,
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+} from 'recharts';
+import {
+    HiOutlineAdjustments, HiOutlineLightningBolt, HiOutlineCheckCircle,
+    HiOutlineExclamation, HiOutlineTrendingUp, HiOutlineTrendingDown,
+    HiOutlineCurrencyDollar, HiOutlineCube, HiOutlineScale,
+    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineSparkles
+} from 'react-icons/hi';
+import { useCurrency } from '../context/CurrencyContext';
+import toast from 'react-hot-toast';
 import ExplainWithAITag from './ExplainWithAITag';
 
 export default function WhatIfSimulator({ initialProductId = null, onPriceCommitted = null }) {
