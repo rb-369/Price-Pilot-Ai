@@ -1,6 +1,6 @@
 import os
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 
 VALIDATION_PROMPT = """You are an e-commerce data validation expert.
 Your job is to compare a user's product with a list of scraped competitor products, and filter out any competitor products that are NOT actually competing items.
