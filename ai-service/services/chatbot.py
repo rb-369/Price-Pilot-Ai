@@ -188,12 +188,13 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
             command_instructions = (
                 "\n\nSPECIAL INSTRUCTION FOR /what-if:\n"
                 "The user is asking a What-If scenario (e.g. '/what-if i increased @redmi A7 price by 2000rs').\n"
-                "1. Answer briefly in 2 sentences if this is an OVERALL GOOD DECISION or RISKY DECISION, stating expected monthly profit impact in ₹ INR.\n"
+                "IMPORTANT: Do NOT say 'I don't have enough information'. PricePilot has a built-in predictive simulation model.\n"
+                "1. Answer in 2 encouraging sentences summarizing the scenario (e.g. 'Changing price for Redmi A7 by +₹2,000 requires analyzing demand elasticity, unit margin, and competitor risk. See below to run the high-precision simulation.').\n"
                 "2. At the VERY END of your response, append exact line:\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
                 "followed by a valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted price change or new target price>\"}\n"
                 "Example format:\n"
-                "Raising Redmi A7 price by ₹2,000 is an OVERALL GOOD DECISION. Net profit increases by +₹14,500 (+12.4%) with minimal sales volume drop.\n\n"
+                "Analyzing a price increase of ₹2,000 for Redmi A7. Click below to view the interactive profit margin & elasticity simulation.\n\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
                 "{\"action\": \"redirect_what_if\", \"productQuery\": \"Redmi A7\", \"priceChange\": \"+2000\"}"
             )

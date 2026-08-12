@@ -291,6 +291,17 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         } catch (e) {
             console.error('Failed to parse what-if payload:', e);
         }
+    } else {
+        // Fallback regex to catch raw {"action": "redirect_what_if", ...} JSON objects
+        const jsonMatch = text.match(/{\s*"action"\s*:\s*"redirect_what_if"[\s\S]*}/i);
+        if (jsonMatch) {
+            try {
+                actionPayload = JSON.parse(jsonMatch[0].trim());
+                mainContent = text.replace(jsonMatch[0], '').trim();
+            } catch (e) {
+                console.error('Failed to parse regex what-if payload:', e);
+            }
+        }
     }
 
     // Pattern to match @"Product Name" or @SKU or /command-name
