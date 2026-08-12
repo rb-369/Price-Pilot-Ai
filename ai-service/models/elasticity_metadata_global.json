@@ -1,15 +1,19 @@
 {
-  "version": "20260812_171501",
-  "trained_at": "2026-08-12T17:15:01.422031+00:00",
+  "version": "20260812_182726",
+  "trained_at": "2026-08-12T18:27:26.446120+00:00",
   "samples": 40,
-  "r2_mean": -1.5694,
-  "r2_std": 1.8749,
+  "r2_mean": -4.2385,
+  "mae": 0.0472,
+  "validation_split": "walk_forward_chronological",
   "feature_importances": {
     "demand_score": 1.0,
     "competitor_spread": 0.0,
     "stock_ratio": 0.0,
     "price_level": 0.0,
     "margin_pct": 0.0,
-    "search_trend_normalized": 0.0
+    "search_trend_normalized": 0.0,
+    "price_ratio_vs_competitor": 0.0,
+    "discount_pct": 0.0,
+    "sentiment_polarity": 0.0
   }
 }

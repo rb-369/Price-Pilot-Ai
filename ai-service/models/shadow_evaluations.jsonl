@@ -1,0 +1,13 @@
+{"timestamp": "2026-08-12T18:25:33.403443+00:00", "product_id": "unknown", "baseline_prediction": -1.5, "ml_prediction": -1.5021625757217407, "actual_demand": null, "delta": 0.0021625757217407227}
+{"timestamp": "2026-08-12T18:25:52.927949+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:25:53.387007+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:25:53.658729+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:25:53.679980+00:00", "product_id": "unknown", "baseline_prediction": -2.5, "ml_prediction": -1.5021625757217407, "actual_demand": null, "delta": 0.9978374242782593}
+{"timestamp": "2026-08-12T18:25:55.182639+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:27:15.997739+00:00", "product_id": "unknown", "baseline_prediction": -1.5, "ml_prediction": -1.5021625757217407, "actual_demand": null, "delta": 0.0021625757217407227}
+{"timestamp": "2026-08-12T18:27:26.466068+00:00", "product_id": "unknown", "baseline_prediction": -1.5, "ml_prediction": -1.5021625757217407, "actual_demand": null, "delta": 0.0021625757217407227}
+{"timestamp": "2026-08-12T18:27:27.028861+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:27:27.110424+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:27:27.142380+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}
+{"timestamp": "2026-08-12T18:27:27.189969+00:00", "product_id": "unknown", "baseline_prediction": -2.5, "ml_prediction": -1.5021625757217407, "actual_demand": null, "delta": 0.9978374242782593}
+{"timestamp": "2026-08-12T18:27:27.689291+00:00", "product_id": "unknown", "baseline_prediction": -0.8, "ml_prediction": -1.6999484300613403, "actual_demand": null, "delta": 0.8999484300613403}

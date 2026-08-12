@@ -261,7 +261,7 @@ def _optimize_for_margin(
     unimodal profit function. Falls back to heuristic if scipy is unavailable.
     """
     min_price = base_cost * (1 + min_margin)
-    max_allowed = current_price * 1.20  # Never raise more than 20% at once
+    max_allowed = current_price if raw_adjustment < 0 else current_price * 1.20
 
     # Candidate starting point from heuristic
     candidate = current_price * (1 + raw_adjustment)
