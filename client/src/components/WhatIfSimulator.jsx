@@ -53,6 +53,42 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             .finally(() => setLoadingProducts(false));
     }, []);
 
+    // Fuzzy product matching helper (matches by tokens, substrings, and SKUs)
+    const findBestProductMatch = useCallback((queryStr, prodList) => {
+        if (!queryStr || !prodList || prodList.length === 0) return null;
+        const cleanQ = String(queryStr).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim();
+        const qTokens = cleanQ.split(/\s+/).filter(t => t.length > 1 && !['the', 'and', 'for', 'to', 'price', 'of', 'rs', 'inr', 'bottle'].includes(t));
+
+        let bestMatch = null;
+        let maxScore = 0;
+
+        for (const p of prodList) {
+            const pName = (p.name || '').toLowerCase();
+            const pSku = (p.sku || '').toLowerCase();
+
+            // 1. Exact or substring match (highest priority)
+            if (pName.includes(cleanQ) || cleanQ.includes(pName) || (pSku && pSku === cleanQ)) {
+                return p;
+            }
+
+            // 2. Token overlap score
+            const pTokens = pName.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+            let score = 0;
+            for (const qt of qTokens) {
+                if (pTokens.some(pt => pt.includes(qt) || qt.includes(pt))) {
+                    score += 1;
+                }
+            }
+
+            if (score > maxScore) {
+                maxScore = score;
+                bestMatch = p;
+            }
+        }
+
+        return maxScore > 0 ? bestMatch : null;
+    }, []);
+
     // Active product data
     const activeProduct = useMemo(() => {
         return products.find(p => p._id === selectedProductId) || null;
@@ -89,51 +125,74 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
+    // Track pending launch event if products are still fetching
+    const pendingLaunchRef = useRef(null);
+
+    const executeLaunch = useCallback((detail, prodList) => {
+        const { productQuery, priceChange: newPrice } = detail || {};
+        let matched = findBestProductMatch(productQuery, prodList);
+        
+        const pId = matched ? matched._id : selectedProductId;
+        if (matched) {
+            setSelectedProductId(matched._id);
+        }
+
+        let parsedPrice = matched ? matched.currentPrice : targetPrice;
+        if (newPrice) {
+            const numericPrice = parseFloat(String(newPrice).replace(/[^0-9.]/g, ''));
+            if (numericPrice && !isNaN(numericPrice)) {
+                parsedPrice = numericPrice;
+                setTargetPrice(numericPrice);
+            }
+        }
+
+        const calculatedCogs = matched
+            ? (matched.baseCost || Math.round(matched.currentPrice * 0.6))
+            : cogs;
+        setCogs(calculatedCogs);
+
+        // Scroll to simulator section
+        const elem = document.getElementById('what-if-simulator-section');
+        if (elem) {
+            elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Trigger simulation
+        setTimeout(() => {
+            handleRunSimulation({
+                productId: pId || null,
+                targetPrice: Number(parsedPrice),
+                cogs: Number(calculatedCogs),
+                competitorStrategy,
+                demandMultiplier,
+                timeHorizonDays
+            });
+        }, 250);
+    }, [findBestProductMatch, selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays, handleRunSimulation]);
+
+    // Handle launch when products finish loading
+    useEffect(() => {
+        if (products.length > 0 && pendingLaunchRef.current) {
+            const detail = pendingLaunchRef.current;
+            pendingLaunchRef.current = null;
+            executeLaunch(detail, products);
+        }
+    }, [products, executeLaunch]);
+
     // Listen for launch_what_if_simulator events from AI Chat Assistant
     useEffect(() => {
         const handleLaunch = (e) => {
-            const { productQuery, priceChange: newPrice } = e.detail || {};
-            let matched = null;
-            if (productQuery && products.length > 0) {
-                const q = String(productQuery).toLowerCase().trim();
-                matched = products.find(p => p.name?.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q));
+            const detail = e.detail || {};
+            if (products.length > 0) {
+                executeLaunch(detail, products);
+            } else {
+                pendingLaunchRef.current = detail;
             }
-            const pId = matched ? matched._id : selectedProductId;
-            if (matched) {
-                setSelectedProductId(matched._id);
-            }
-
-            let parsedPrice = targetPrice;
-            if (newPrice) {
-                const numericPrice = parseFloat(String(newPrice).replace(/[^0-9.]/g, ''));
-                if (numericPrice && !isNaN(numericPrice)) {
-                    parsedPrice = numericPrice;
-                    setTargetPrice(numericPrice);
-                }
-            }
-
-            // Scroll to simulator section
-            const elem = document.getElementById('what-if-simulator-section');
-            if (elem) {
-                elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-
-            // Trigger simulation
-            setTimeout(() => {
-                handleRunSimulation({
-                    productId: pId || null,
-                    targetPrice: Number(parsedPrice),
-                    cogs: matched ? (matched.baseCost || Math.round(matched.currentPrice * 0.6)) : cogs,
-                    competitorStrategy,
-                    demandMultiplier,
-                    timeHorizonDays
-                });
-            }, 250);
         };
 
         window.addEventListener('launch_what_if_simulator', handleLaunch);
         return () => window.removeEventListener('launch_what_if_simulator', handleLaunch);
-    }, [products, selectedProductId, cogs, competitorStrategy, demandMultiplier, timeHorizonDays, targetPrice, handleRunSimulation]);
+    }, [products, executeLaunch]);
 
     // Initial run when active product changes
     useEffect(() => {
