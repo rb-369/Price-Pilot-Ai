@@ -1,42 +1,86 @@
 import os
-from langchain_chroma import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from typing import Optional
 from langchain_core.documents import Document
 
-CHROMA_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "chroma_db")
+_embeddings_cache = None
+
+def _get_embeddings():
+    global _embeddings_cache
+    if _embeddings_cache is not None:
+        return _embeddings_cache
+
+    # 1. Primary: Try FastEmbed (Local ONNX, zero API cost, BAAI/bge-small-en-v1.5)
+    try:
+        from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+        embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+        # Quick test to verify model works
+        embeddings.embed_query("test query")
+        _embeddings_cache = embeddings
+        return _embeddings_cache
+    except Exception as e:
+        print(f"FastEmbed initialization warning: {e}")
+
+    # 2. Fallback: GoogleGenerativeAIEmbeddings
+    api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
+    if api_key:
+        for model_name in ["models/text-embedding-004", "models/embedding-001"]:
+            try:
+                from langchain_google_genai import GoogleGenerativeAIEmbeddings
+                embeddings = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
+                embeddings.embed_query("test query")
+                _embeddings_cache = embeddings
+                return _embeddings_cache
+            except Exception as ex:
+                print(f"Gemini embedding model {model_name} failed: {ex}")
+
+    print("Warning: No working embedding model found.")
+    return None
 
 def get_vectorstore(collection_name="ecommerce_data"):
-    # Use LLM_API_KEY as the primary key since it's the standard Gemini key (AIzaSy...)
-    api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
-    if not api_key:
-        print("Warning: No Gemini API key found. Vectorstore will fail.")
+    # Read Qdrant credentials from environment
+    qdrant_url = os.getenv("QUADRANT_ENDPOINT_URL") or os.getenv("QDRANT_ENDPOINT_URL") or os.getenv("QDRANT_URL")
+    qdrant_key = os.getenv("QUADRANT_API_KEY") or os.getenv("QDRANT_API_KEY")
+
+    embeddings = _get_embeddings()
+    if not embeddings:
+        print("Warning: No embedding provider available. Vectorstore disabled.")
         return None
 
-    # Try multiple embedding models in order of preference
-    embedding_models = [
-        "models/text-embedding-004",
-        "models/embedding-001",
-    ]
-
-    for model_name in embedding_models:
+    # Primary: Qdrant Cloud VectorStore
+    if qdrant_url and qdrant_key:
         try:
-            embeddings = GoogleGenerativeAIEmbeddings(
-                model=model_name,
-                google_api_key=api_key
-            )
-            # Quick test to verify the model works
-            embeddings.embed_query("test")
-            return Chroma(
-                collection_name=collection_name,
-                embedding_function=embeddings,
-                persist_directory=CHROMA_PATH
-            )
-        except Exception as e:
-            print(f"Embedding model {model_name} failed: {e}")
-            continue
+            from qdrant_client import QdrantClient
+            client = QdrantClient(url=qdrant_url, api_key=qdrant_key)
 
-    print("All embedding models failed. Vectorstore unavailable.")
-    return None
+            try:
+                from langchain_qdrant import QdrantVectorStore
+                return QdrantVectorStore(
+                    client=client,
+                    collection_name=collection_name,
+                    embedding=embeddings
+                )
+            except ImportError:
+                from langchain_community.vectorstores import Qdrant
+                return Qdrant(
+                    client=client,
+                    collection_name=collection_name,
+                    embeddings=embeddings
+                )
+        except Exception as e:
+            print(f"Qdrant Cloud vectorstore connection error (falling back to Chroma): {e}")
+
+    # Secondary Fallback: Local ChromaDB
+    try:
+        from langchain_chroma import Chroma
+        chroma_path = os.path.join(os.path.dirname(__file__), "..", "models", "chroma_db")
+        return Chroma(
+            collection_name=collection_name,
+            embedding_function=embeddings,
+            persist_directory=chroma_path
+        )
+    except Exception as e:
+        print(f"ChromaDB fallback error: {e}")
+        return None
 
 def ingest_data(data_list, data_type="product", collection_name="ecommerce_data"):
     """
