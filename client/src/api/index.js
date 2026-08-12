@@ -129,4 +129,8 @@ export const autoMatchMappings = (platform, externalProducts) => api.post('/mapp
 export const confirmMapping = (id) => api.post(`/mappings/${id}/confirm`);
 export const rejectMapping = (id) => api.post(`/mappings/${id}/reject`);
 
+// What-If Simulator
+export const runSimulation = (data) => api.post('/simulator/run', data);
+export const commitSimulationPrice = (data) => api.post('/simulator/commit', data);
+
 export default api;

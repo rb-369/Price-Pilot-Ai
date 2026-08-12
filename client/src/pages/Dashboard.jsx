@@ -4,6 +4,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { HiOutlineCube, HiOutlineCurrencyDollar, HiOutlineTrendingUp, HiOutlineExclamation, HiOutlineLightBulb, HiOutlineChartBar } from 'react-icons/hi';
 import { useCurrency } from '../context/CurrencyContext';
 import ExplainabilityPanel from '../components/ExplainabilityPanel';
+import WhatIfSimulator from '../components/WhatIfSimulator';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 
@@ -111,6 +112,9 @@ export default function Dashboard() {
                     </div>
                 ))}
             </div>
+
+            {/* AI Powered What-If Simulator Section */}
+            <WhatIfSimulator onPriceCommitted={fetchData} />
 
             {/* Charts Row — now powered by real aggregated data */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

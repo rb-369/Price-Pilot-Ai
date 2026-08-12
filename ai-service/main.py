@@ -13,6 +13,7 @@ from routes.product_gen import router as product_gen_router
 from routes.sentiment import router as sentiment_router
 from routes.data_pipeline import router as data_pipeline_router  # Real data pipeline
 from routes.retrain import router as retrain_router  # ML model retraining
+from routes.simulator import router as simulator_router
 
 app = FastAPI(
     title="EcomAI Intelligence Service",
@@ -37,6 +38,7 @@ app.include_router(product_gen_router, prefix="/api", tags=["Product Gen"])
 app.include_router(sentiment_router, prefix="/api", tags=["Sentiment"])
 app.include_router(data_pipeline_router, prefix="/api", tags=["Data Pipeline"])
 app.include_router(retrain_router, prefix="/api", tags=["ML Retraining"])
+app.include_router(simulator_router, prefix="/api", tags=["Simulator"])
 
 
 @app.get("/")
