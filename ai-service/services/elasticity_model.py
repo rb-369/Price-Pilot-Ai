@@ -92,11 +92,12 @@ class ElasticityModel:
         """
         Predict price elasticity with cold-start category prior routing.
         """
+        has_count = ("sales_count" in features) or ("order_count" in features)
         sales_count = features.get("sales_count", features.get("order_count", 0))
         category = str(features.get("category", "general")).lower()
 
-        # Cold-Start Routing (<10 sales observations): Use Category Baseline Prior
-        if sales_count < 10:
+        # Cold-Start Routing (<10 sales observations): Only trigger if sales_count is explicitly provided
+        if has_count and sales_count < 10:
             prior = CATEGORY_PRIORS.get(category, -1.2)
             heuristic_val = self._heuristic_fallback(features)
             blended = round(float(0.7 * prior + 0.3 * heuristic_val), 3)

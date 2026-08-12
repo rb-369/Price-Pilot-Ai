@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 from typing import List, Dict, Any
 
 VALIDATION_PROMPT = """You are an e-commerce data validation expert.
