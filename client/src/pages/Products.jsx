@@ -55,7 +55,10 @@ export default function Products() {
     const [importUrl, setImportUrl] = useState('');
     const [extractingUrl, setExtractingUrl] = useState(false);
     const [urlLivePrice, setUrlLivePrice] = useState(null);
+    const [livePlatform, setLivePlatform] = useState('');
     const [mismatchError, setMismatchError] = useState(null);
+    const [overrideMismatch, setOverrideMismatch] = useState(false);
+    const [verifyingPrice, setVerifyingPrice] = useState(false);
 
     const fetchProducts = () => {
         setLoading(true);
@@ -80,6 +83,7 @@ export default function Products() {
             return;
         }
         setExtractingUrl(true);
+        setOverrideMismatch(false);
         const toastId = toast.loading('Extracting product metadata & live price...');
         try {
             const res = await extractProductUrlMetadata(importUrl);
@@ -108,6 +112,7 @@ export default function Products() {
 
             if (data.currentPrice) {
                 setUrlLivePrice(data.currentPrice);
+                setLivePlatform(data.platform || '');
             }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to extract URL metadata', { id: toastId });
@@ -116,6 +121,34 @@ export default function Products() {
         }
     };
 
+    // Auto-fetch live price when any channel URL is entered or modified in manual/url mode
+    useEffect(() => {
+        const activeUrl = form.productLinks?.amazon || 
+                         form.productLinks?.flipkart || 
+                         form.productLinks?.shopify || 
+                         importUrl;
+
+        if (!activeUrl || !showForm) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                setVerifyingPrice(true);
+                const res = await extractProductUrlMetadata(activeUrl);
+                if (res.data?.currentPrice) {
+                    setUrlLivePrice(res.data.currentPrice);
+                    setLivePlatform(res.data.platform || '');
+                }
+            } catch (err) {
+                // Silently ignore background real-time fetch errors
+            } finally {
+                setVerifyingPrice(false);
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [form.productLinks?.amazon, form.productLinks?.flipkart, form.productLinks?.shopify, importUrl, showForm]);
+
+    // Check for price mismatch whenever urlLivePrice or selling price changes
     useEffect(() => {
         if (urlLivePrice && form.currentPrice) {
             const live = Number(urlLivePrice);
@@ -123,7 +156,8 @@ export default function Products() {
             if (live > 0 && entered > 0) {
                 const percentDiff = (Math.abs(live - entered) / live) * 100;
                 if (percentDiff > 3) {
-                    setMismatchError(`Price Mismatch Detected: Live price at URL is ${formatCurrency(live)}, but entered price is ${formatCurrency(entered)}. Please reconcile before saving.`);
+                    const platformLabel = livePlatform ? (livePlatform.charAt(0).toUpperCase() + livePlatform.slice(1)) : 'Live Channel Link';
+                    setMismatchError(`Price Mismatch Detected: Live price at ${platformLabel} is ${formatCurrency(live)}, but entered price is ${formatCurrency(entered)} (${percentDiff.toFixed(1)}% variance). Please reconcile before saving.`);
                 } else {
                     setMismatchError(null);
                 }
@@ -133,7 +167,7 @@ export default function Products() {
         } else {
             setMismatchError(null);
         }
-    }, [urlLivePrice, form.currentPrice, formatCurrency]);
+    }, [urlLivePrice, form.currentPrice, livePlatform, formatCurrency]);
 
     const handleGenerateAiCopy = async () => {
         if (!form.name && !form.fullName) {
@@ -165,7 +199,9 @@ export default function Products() {
         setCustomCategory('');
         setImportUrl('');
         setUrlLivePrice(null);
+        setLivePlatform('');
         setMismatchError(null);
+        setOverrideMismatch(false);
         setFormMode('url');
         setEditId(null);
         setShowForm(!showForm);
@@ -200,14 +236,18 @@ export default function Products() {
             setCustomCategory('');
         }
         
+        setUrlLivePrice(null);
+        setLivePlatform('');
+        setMismatchError(null);
+        setOverrideMismatch(false);
         setFormMode('manual');
         setShowForm(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (mismatchError) {
-            toast.error('Please resolve the Price Mismatch before submitting');
+        if (mismatchError && !overrideMismatch) {
+            toast.error('Please resolve the Price Mismatch or toggle "Use Custom Price" before submitting');
             return;
         }
 
@@ -411,13 +451,47 @@ export default function Products() {
                         </p>
                     </div>
 
-                    {/* Strict Price Mismatch Alert */}
+                    {/* Strict Price Mismatch Alert Banner */}
                     {mismatchError && (
-                        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-xs font-semibold flex items-start gap-2.5 mb-6 animate-slide-up">
-                            <HiOutlineExclamation className="w-5 h-5 shrink-0 mt-0.5" />
-                            <div>
-                                <p className="font-bold text-sm">Price Mismatch Detected</p>
-                                <p className="mt-0.5 leading-relaxed">{mismatchError}</p>
+                        <div className={`p-4 rounded-xl border text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 animate-slide-up transition-all ${
+                            overrideMismatch 
+                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
+                                : 'bg-danger/10 border-danger/30 text-danger'
+                        }`}>
+                            <div className="flex items-start gap-3">
+                                <HiOutlineExclamation className="w-5 h-5 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-sm">
+                                        {overrideMismatch ? 'Price Mismatch Acknowledged (Override Active)' : 'Price Mismatch Detected'}
+                                    </p>
+                                    <p className="mt-0.5 leading-relaxed">{mismatchError}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                                {urlLivePrice && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setForm(prev => ({ ...prev, currentPrice: String(urlLivePrice) }));
+                                            setOverrideMismatch(false);
+                                        }}
+                                        className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 shrink-0"
+                                    >
+                                        <HiOutlineSparkles className="w-3.5 h-3.5" />
+                                        Sync to Live Price ({formatCurrency(urlLivePrice)})
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setOverrideMismatch(!overrideMismatch)}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all border shrink-0 ${
+                                        overrideMismatch
+                                            ? 'bg-surface-lighter text-text border-border hover:bg-surface'
+                                            : 'bg-danger/20 text-danger border-danger/30 hover:bg-danger/30'
+                                    }`}
+                                >
+                                    {overrideMismatch ? 'Remove Override' : 'Use Custom Price'}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -569,7 +643,7 @@ export default function Products() {
                             </button>
                             <button 
                                 type="submit" 
-                                disabled={Boolean(mismatchError)}
+                                disabled={Boolean(mismatchError && !overrideMismatch)}
                                 className="btn-primary px-6 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {editId ? 'Save Changes' : 'Create Product'}
