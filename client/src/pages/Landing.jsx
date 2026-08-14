@@ -323,77 +323,119 @@ export default function Landing() {
                     </div>
                 </ExpandableDarkPanel>
 
-                {/* Features Grid */}
-                <div className="grid md:grid-cols-3 gap-8 max-w-7xl w-full mt-24 animate-slide-up relative z-10 mx-auto" style={{ animationDelay: '0.3s' }}>
-                    {/* Card 1 */}
-                    <div className="rounded-[2rem] border border-purple-100 dark:border-blue-900/40 bg-white dark:bg-[#0B1528] p-8 flex flex-col transition-all duration-300 hover:border-indigo-300 dark:hover:border-blue-500/50 shadow-[0_10px_30px_rgba(147,51,234,0.06)] hover:shadow-[0_15px_40px_rgba(147,51,234,0.12)]">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6 text-xl">
-                            <HiOutlineLightningBolt className="w-6 h-6" />
+                {/* Asymmetric Bento Features Grid (Anti-Slop Redesign) */}
+                <div id="features" className="max-w-7xl w-full mt-24 animate-slide-up relative z-10 mx-auto" style={{ animationDelay: '0.3s' }}>
+                    <div className="text-center md:text-left mb-12">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+                            <HiOutlineLightningBolt className="w-4 h-4" />
+                            Core Intelligence Suite
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Introducing Real-Time Algorithms</h3>
-                        <p className="text-slate-600 dark:text-blue-100/70 leading-relaxed mb-6">
-                            Binary-search margin optimization paired with dynamic elasticity models to find the perfect price instantly.
+                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Engineered for Precision & Margin Protection
+                        </h2>
+                        <p className="text-slate-600 dark:text-text-muted mt-2 max-w-2xl text-sm md:text-base">
+                            Replace arbitrary guesswork with deterministic price elasticity models, multi-signal demand forecasts, and transparent generative AI reasoning.
                         </p>
-                        <a href="#" className="text-sm font-semibold text-indigo-600 dark:text-blue-400 hover:opacity-80 transition-opacity mb-6 inline-flex items-center gap-1">
-                            Feature details <span>→</span>
-                        </a>
-
-                        <div className="mt-auto">
-                            <div className="flex items-center justify-between border-t border-purple-100 dark:border-blue-900/40 pt-4 mb-6">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-blue-400/70">Category</span>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-blue-200">Pricing & AI</span>
-                            </div>
-                            <button className="w-full bg-indigo-600 dark:bg-blue-600 text-white rounded-full py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-indigo-700 dark:hover:bg-blue-700 transition-colors shadow-md shadow-indigo-500/20">
-                                Read announcement <span>→</span>
-                            </button>
-                        </div>
                     </div>
 
-                    {/* Card 2 */}
-                    <div className="rounded-[2rem] border border-purple-100 dark:border-purple-900/40 bg-white dark:bg-[#170C28] p-8 flex flex-col transition-all duration-300 hover:border-indigo-300 dark:hover:border-purple-500/50 shadow-[0_10px_30px_rgba(147,51,234,0.06)] hover:shadow-[0_15px_40px_rgba(147,51,234,0.12)]">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-purple-950/80 text-indigo-600 dark:text-purple-400 flex items-center justify-center mb-6 text-xl">
-                            <HiOutlineCubeTransparent className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Introducing Multi-Signal Demand</h3>
-                        <p className="text-slate-600 dark:text-purple-100/70 leading-relaxed mb-6">
-                            Forecast inventory leveraging social sentiment, weather events, and search trends across the web.
-                        </p>
-                        <a href="#" className="text-sm font-semibold text-indigo-600 dark:text-purple-400 hover:opacity-80 transition-opacity mb-6 inline-flex items-center gap-1">
-                            Feature details <span>→</span>
-                        </a>
+                    <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+                        {/* Large Bento Card (7 Columns): Dynamic Margin Engine */}
+                        <div className="lg:col-span-7 rounded-[2rem] border border-slate-200 dark:border-blue-900/40 bg-white/90 dark:bg-[#0B1528] p-8 md:p-10 flex flex-col justify-between shadow-xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-all duration-300">
+                            <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-sm">
+                                        <HiOutlineLightningBolt className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
+                                        Deterministic + ML
+                                    </span>
+                                </div>
 
-                        <div className="mt-auto">
-                            <div className="flex items-center justify-between border-t border-purple-100 dark:border-purple-900/40 pt-4 mb-6">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-purple-400/70">Category</span>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-purple-200">Forecasting</span>
+                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                                    Real-Time Price Elasticity & Margin Optimization
+                                </h3>
+                                <p className="text-slate-600 dark:text-blue-100/70 leading-relaxed mb-6">
+                                    Binary-search margin optimization paired with dynamic log-linear elasticity models to pinpoint the exact price where revenue and profit curves maximize.
+                                </p>
+
+                                {/* Micro visualizer inside the card */}
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-3 mb-6">
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="font-semibold text-slate-600 dark:text-slate-400">Elasticity Curve ($e = -1.85$)</span>
+                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">+18.4% Projected Margin</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                                        <div className="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full w-[78%] rounded-full" />
+                                    </div>
+                                    <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                        <span>Cost: ₹840</span>
+                                        <span className="font-bold text-slate-800 dark:text-white">Optimal Price: ₹1,299</span>
+                                        <span>Competitor: ₹1,349</span>
+                                    </div>
+                                </div>
                             </div>
-                            <button className="w-full bg-indigo-600 dark:bg-purple-600 text-white rounded-full py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-indigo-700 dark:hover:bg-purple-700 transition-colors shadow-md shadow-indigo-500/20">
-                                Read announcement <span>→</span>
-                            </button>
-                        </div>
-                    </div>
 
-                    {/* Card 3 */}
-                    <div className="rounded-[2rem] border border-purple-100 dark:border-emerald-900/40 bg-white dark:bg-[#071C12] p-8 flex flex-col transition-all duration-300 hover:border-indigo-300 dark:hover:border-emerald-500/50 shadow-[0_10px_30px_rgba(147,51,234,0.06)] hover:shadow-[0_15px_40px_rgba(147,51,234,0.12)]">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-emerald-950/80 text-indigo-600 dark:text-emerald-400 flex items-center justify-center mb-6 text-xl">
-                            <HiOutlineShieldCheck className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Announcing Explainable AI</h3>
-                        <p className="text-slate-600 dark:text-emerald-100/70 leading-relaxed mb-6">
-                            Never guess why a price changed. Our Gemini-powered XAI dashboard gives you total transparency.
-                        </p>
-                        <a href="#" className="text-sm font-semibold text-indigo-600 dark:text-emerald-400 hover:opacity-80 transition-opacity mb-6 inline-flex items-center gap-1">
-                            Feature details <span>→</span>
-                        </a>
-
-                        <div className="mt-auto">
-                            <div className="flex items-center justify-between border-t border-purple-100 dark:border-emerald-900/40 pt-4 mb-6">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-emerald-400/70">Category</span>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-emerald-200">Insights</span>
+                            <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <Link to="/demo" className="text-sm font-bold text-indigo-600 dark:text-blue-400 hover:text-indigo-800 dark:hover:text-blue-300 inline-flex items-center gap-1.5">
+                                    Launch interactive simulator <span>→</span>
+                                </Link>
+                                <Link to="/demo" className="w-full sm:w-auto bg-indigo-600 dark:bg-blue-600 hover:bg-indigo-700 dark:hover:bg-blue-700 text-white rounded-xl py-2.5 px-6 text-xs font-bold transition-all shadow-md shadow-indigo-500/20 text-center">
+                                    Try What-If Simulator
+                                </Link>
                             </div>
-                            <button className="w-full bg-indigo-600 dark:bg-emerald-600 text-white rounded-full py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 hover:bg-indigo-700 dark:hover:bg-emerald-700 transition-colors shadow-md shadow-indigo-500/20">
-                                Read announcement <span>→</span>
-                            </button>
+                        </div>
+
+                        {/* Right Stacked Bento Cards (5 Columns) */}
+                        <div className="lg:col-span-5 flex flex-col gap-6">
+                            {/* Card A: Multi-Signal Demand */}
+                            <div className="rounded-[2rem] border border-slate-200 dark:border-purple-900/40 bg-white/90 dark:bg-[#170C28] p-7 flex flex-col justify-between shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 transition-all duration-300 flex-1">
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
+                                            <HiOutlineCubeTransparent className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20">
+                                            Prophet Forecasts
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                        Multi-Signal Demand Intelligence
+                                    </h3>
+                                    <p className="text-xs text-slate-600 dark:text-purple-100/70 leading-relaxed mb-4">
+                                        Forecast sales velocity combining historical checkout patterns with Google Trends search volumes, seasonal trends, and competitor stockouts.
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-100 dark:border-purple-900/30 flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 inline-flex items-center gap-1">
+                                        View documentation <span>→</span>
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Card B: Explainable AI */}
+                            <div className="rounded-[2rem] border border-slate-200 dark:border-emerald-900/40 bg-white/90 dark:bg-[#071C12] p-7 flex flex-col justify-between shadow-xl shadow-emerald-500/5 hover:shadow-emerald-500/10 transition-all duration-300 flex-1">
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                                            <HiOutlineShieldCheck className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20">
+                                            Google Gemini XAI
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                        Explainable AI (XAI)
+                                    </h3>
+                                    <p className="text-xs text-slate-600 dark:text-emerald-100/70 leading-relaxed mb-4">
+                                        Never guess why an algorithm made a recommendation. Natural language executive summaries outline the exact competitors and market signals driving every rupee change.
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-100 dark:border-emerald-900/30 flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 inline-flex items-center gap-1">
+                                        Explore XAI framework <span>→</span>
+                                    </Link>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

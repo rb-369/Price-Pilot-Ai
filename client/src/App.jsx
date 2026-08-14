@@ -29,6 +29,8 @@ import Landing from './pages/Landing';
 import Docs from './pages/Docs';
 import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import Demo from './pages/Demo';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -53,8 +55,10 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/docs" element={<Docs />} />
+      <Route path="/demo" element={<Demo />} />
       <Route path="/about" element={<About />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />

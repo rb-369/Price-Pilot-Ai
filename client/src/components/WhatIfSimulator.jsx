@@ -97,8 +97,12 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
     // When active product changes, sync base price & cogs
     useEffect(() => {
         if (activeProduct) {
-            setTargetPrice(activeProduct.currentPrice || 100);
-            setCogs(activeProduct.baseCost || Math.round((activeProduct.currentPrice || 100) * 0.6));
+            const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
+            const cost = typeof activeProduct.baseCost === 'number'
+                ? Math.round(activeProduct.baseCost * 100) / 100
+                : Math.round(price * 0.6 * 100) / 100;
+            setTargetPrice(price);
+            setCogs(cost);
         }
     }, [activeProduct]);
 
