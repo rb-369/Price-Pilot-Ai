@@ -133,7 +133,7 @@ export default function NotificationDropdown() {
             {/* Dropdown panel */}
             {isOpen && (
                 <div 
-                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-indigo-500/20 shadow-2xl z-50 overflow-hidden text-slate-800 dark:text-slate-100 animate-scale-up"
+                    className="fixed sm:absolute right-3 sm:right-0 mt-2 w-[calc(100vw-24px)] max-w-sm sm:w-96 rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-indigo-500/20 shadow-2xl z-50 overflow-hidden text-slate-800 dark:text-slate-100 animate-scale-up"
                     style={{ transformOrigin: 'top right' }}
                 >
                     {/* Header */}

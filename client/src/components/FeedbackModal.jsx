@@ -60,7 +60,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <div 
-                className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-indigo-500/20 shadow-2xl p-6 sm:p-8 text-slate-900 dark:text-slate-100 overflow-hidden"
+                className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-indigo-500/20 shadow-2xl p-5 sm:p-8 text-slate-900 dark:text-slate-100"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header glow */}

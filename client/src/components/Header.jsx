@@ -29,7 +29,7 @@ const routeTitles = {
     '/dashboard/settings': 'Store Settings & Profile'
 };
 
-export default function Header({ sidebarOpen, setSidebarOpen }) {
+export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
@@ -41,26 +41,26 @@ export default function Header({ sidebarOpen, setSidebarOpen }) {
 
     return (
         <>
-            <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0a0f1e]/90 px-4 sm:px-8 backdrop-blur-md transition-colors duration-200 shadow-sm dark:shadow-none">
+            <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0a0f1e]/90 px-3 sm:px-6 lg:px-8 backdrop-blur-md transition-colors duration-200 shadow-sm dark:shadow-none">
                 {/* Left section: Hamburger + Page Title */}
-                <div className="flex items-center gap-3 sm:gap-4">
-                    {!sidebarOpen && (
+                <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                    {(!sidebarOpen || !isDesktop) && (
                         <button
                             type="button"
                             onClick={() => setSidebarOpen(true)}
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:border-slate-800 text-slate-700 dark:text-slate-300 dark:hover:text-white dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm"
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:border-slate-800 text-slate-700 dark:text-slate-300 dark:hover:text-white dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm flex-shrink-0"
                             aria-label="Open sidebar"
                         >
-                            <HiOutlineMenu size={20} />
+                            <HiOutlineMenu size={19} />
                         </button>
                     )}
 
-                    <div>
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                            <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                            <h1 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[300px] md:max-w-none">
                                 {currentTitle}
                             </h1>
-                            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+                            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 flex-shrink-0">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                                 Live AI Sync
                             </span>

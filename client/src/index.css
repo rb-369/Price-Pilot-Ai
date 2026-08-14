@@ -669,14 +669,25 @@ tbody tr:hover {
   background-clip: text;
 }
 
-/* ─── Touch Target Minimums (Mobile) ─── */
+/* ─── Touch Target Minimums & Responsive Utilities (Mobile) ─── */
 @media (max-width: 768px) {
-  nav a, nav button, .btn-primary, .btn-secondary, button {
+  nav a, nav button, .btn-primary, .btn-secondary {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
+}
+
+/* ─── Scrollbar Hide Utility ─── */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 html {
