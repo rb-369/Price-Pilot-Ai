@@ -25,77 +25,142 @@ exports.sendWelcomeEmail = async (user) => {
 
     const userName = user.name || 'Merchant';
     const clientUrl = (process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app').trim();
-    const subject = `Welcome to PricePilot AI — Powering Your Autonomous Dynamic Pricing`;
+    const subject = `Welcome to PricePilot AI — Powering Your Autonomous Dynamic Pricing 🚀`;
     const html = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Welcome to PricePilot AI</title>
         </head>
-        <body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0b0f19; padding: 40px 20px;">
+        <body style="margin: 0; padding: 0; background-color: #060913; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9; -webkit-font-smoothing: antialiased;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060913; padding: 40px 16px;">
                 <tr>
                     <td align="center">
-                        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #111827; border-radius: 16px; border: 1px solid rgba(99, 102, 241, 0.2); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
-                            <!-- Header Gradient Accent -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #0d1326; border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.25); overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);">
+                            <!-- Top Brand Gradient Bar -->
                             <tr>
-                                <td height="6" style="background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);"></td>
+                                <td height="5" style="background: linear-gradient(90deg, #6366f1 0%, #06b6d4 50%, #10b981 100%);"></td>
                             </tr>
-                            <!-- Header Section -->
+
+                            <!-- Brand Header -->
                             <tr>
-                                <td style="padding: 36px 36px 20px 36px;">
-                                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
-                                        Welcome aboard, ${userName}! 🚀
-                                    </h1>
-                                    <p style="margin: 0; font-size: 15px; color: #94a3b8; line-height: 1.5;">
-                                        Your autonomous dynamic pricing copilot is ready to protect margins and scale profits.
-                                    </p>
-                                </td>
-                            </tr>
-                            <!-- Feature Highlight Cards -->
-                            <tr>
-                                <td style="padding: 0 36px 24px 36px;">
-                                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px; margin-bottom: 20px;">
+                                <td style="padding: 36px 36px 16px 36px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
                                         <tr>
-                                            <td style="padding: 20px;">
-                                                <h3 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.5px;">
-                                                    ⚡ What you can do right now:
-                                                </h3>
-                                                <ul style="margin: 0; padding-left: 20px; color: #cbd5e1; font-size: 14px; line-height: 1.8;">
-                                                    <li><strong>Sync Products & Channels:</strong> Connect Amazon, Shopify, Flipkart, or WooCommerce.</li>
-                                                    <li><strong>Real-time Competitor Scraping:</strong> Track competitor prices with live undercut alerts.</li>
-                                                    <li><strong>AI Price Optimization:</strong> Discover elasticity curve pricing to maximize net revenue.</li>
-                                                    <li><strong>Ask AI Copilot:</strong> Query revenue insights & forecasts across your entire catalog.</li>
-                                                </ul>
+                                            <td>
+                                                <div style="display: inline-block; padding: 6px 14px; border-radius: 20px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.28); color: #818cf8; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 16px;">
+                                                    ⚡ Autonomous Intelligence Platform
+                                                </div>
+                                                <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.6px; line-height: 1.25;">
+                                                    Welcome aboard, ${userName}! 🚀
+                                                </h1>
+                                                <p style="margin: 0; font-size: 15px; color: #94a3b8; line-height: 1.6;">
+                                                    Your autonomous pricing copilot is configured and ready to maximize profit margins, defend market share, and automate multi-channel inventory.
+                                                </p>
                                             </td>
                                         </tr>
                                     </table>
                                 </td>
                             </tr>
-                            <!-- CTA Button -->
+
+                            <!-- 3 Step Quickstart Guide -->
                             <tr>
-                                <td align="center" style="padding: 0 36px 36px 36px;">
-                                    <table cellpadding="0" cellspacing="0">
+                                <td style="padding: 10px 36px 24px 36px;">
+                                    <div style="background-color: rgba(19, 27, 46, 0.7); border: 1px solid rgba(99, 102, 241, 0.16); border-radius: 16px; padding: 22px; margin-bottom: 24px;">
+                                        <h2 style="margin: 0 0 16px 0; font-size: 13px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.6px;">
+                                            🎯 3 Quick Steps to Launch:
+                                        </h2>
+
+                                        <!-- Step 1 -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 14px;">
+                                            <tr>
+                                                <td width="36" valign="top">
+                                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.4); color: #818cf8; font-size: 12px; font-weight: 800; text-align: center; line-height: 26px;">1</div>
+                                                </td>
+                                                <td valign="top" style="padding-left: 8px;">
+                                                    <strong style="color: #f1f5f9; font-size: 14px;">Import Products &amp; SKU Links</strong>
+                                                    <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #94a3b8; line-height: 1.45;">
+                                                        Paste product URLs from Amazon, Flipkart, or Shopify to auto-extract live selling prices and specs in 1 click.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Step 2 -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 14px;">
+                                            <tr>
+                                                <td width="36" valign="top">
+                                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #22d3ee; font-size: 12px; font-weight: 800; text-align: center; line-height: 26px;">2</div>
+                                                </td>
+                                                <td valign="top" style="padding-left: 8px;">
+                                                    <strong style="color: #f1f5f9; font-size: 14px;">Review AI Repricing &amp; Elasticity</strong>
+                                                    <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #94a3b8; line-height: 1.45;">
+                                                        Gemini AI monitors competitor undercuts and computes revenue-maximizing prices backed by XAI explainability.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Step 3 -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td width="36" valign="top">
+                                                    <div style="width: 26px; height: 26px; border-radius: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 12px; font-weight: 800; text-align: center; line-height: 26px;">3</div>
+                                                </td>
+                                                <td valign="top" style="padding-left: 8px;">
+                                                    <strong style="color: #f1f5f9; font-size: 14px;">Simulate What-If Revenue Impacts</strong>
+                                                    <p style="margin: 3px 0 0 0; font-size: 12.5px; color: #94a3b8; line-height: 1.45;">
+                                                        Interactive A/B pricing experiments let you test margin changes risk-free before syncing live to customers.
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Action Button Call to Action -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
                                         <tr>
-                                            <td align="center" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);">
-                                                <a href="${clientUrl}/dashboard" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">
-                                                    Open Your Dashboard &rarr;
-                                                </a>
+                                            <td align="center">
+                                                <table cellpadding="0" cellspacing="0" border="0">
+                                                    <tr>
+                                                        <td align="center" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 10px 25px -4px rgba(99, 102, 241, 0.45);">
+                                                            <a href="${clientUrl}/dashboard" target="_blank" style="display: inline-block; padding: 15px 36px; font-size: 15px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 12px; letter-spacing: 0.2px;">
+                                                                Launch Your Command Center &rarr;
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                             </td>
                                         </tr>
                                     </table>
                                 </td>
                             </tr>
-                            <!-- Footer -->
+
+                            <!-- Need Help & Quick Links Bar -->
                             <tr>
-                                <td style="background-color: #0d1322; padding: 24px 36px; border-top: 1px solid rgba(255, 255, 255, 0.05); text-align: center;">
-                                    <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
-                                        PricePilot AI &bull; Autonomous Pricing & Inventory Intelligence
+                                <td style="padding: 16px 36px 28px 36px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px;">
+                                        <tr>
+                                            <td align="center" style="font-size: 12px; color: #94a3b8;">
+                                                Need assistance or looking for API docs? Explore the
+                                                <a href="${clientUrl}/docs" target="_blank" style="color: #818cf8; text-decoration: underline; font-weight: 600;">Documentation Hub</a>
+                                                or reply directly to this email.
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Footer Section -->
+                            <tr>
+                                <td style="background-color: #070b16; padding: 22px 36px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                                    <p style="margin: 0 0 6px 0; font-size: 12px; font-weight: 600; color: #64748b;">
+                                        PricePilot AI &bull; Autonomous Pricing &amp; Multi-Channel Inventory Intelligence
                                     </p>
                                     <p style="margin: 0; font-size: 11px; color: #475569;">
-                                        Need help getting set up? Reply directly to this email to reach our support team.
+                                        Protected by 256-bit encryption &bull; Real-time Market Defense
                                     </p>
                                 </td>
                             </tr>
@@ -121,69 +186,75 @@ exports.sendLowStockAlert = async (user, product) => {
     const threshold = product.reorderThreshold !== undefined ? product.reorderThreshold : 10;
     const html = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Low Stock Alert</title>
         </head>
-        <body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0b0f19; padding: 40px 20px;">
+        <body style="margin: 0; padding: 0; background-color: #060913; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060913; padding: 40px 16px;">
                 <tr>
                     <td align="center">
-                        <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #111827; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.3); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #0d1326; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.35); overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);">
                             <!-- Red Header Gradient Accent -->
                             <tr>
-                                <td height="6" style="background: linear-gradient(90deg, #ef4444, #f97316);"></td>
+                                <td height="5" style="background: linear-gradient(90deg, #ef4444 0%, #f97316 100%);"></td>
                             </tr>
-                            <!-- Content -->
+
+                            <!-- Content Section -->
                             <tr>
-                                <td style="padding: 36px 36px 20px 36px;">
-                                    <div style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
-                                        Stockout Risk Detected
+                                <td style="padding: 36px 36px 16px 36px;">
+                                    <div style="display: inline-block; padding: 5px 12px; border-radius: 20px; background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;">
+                                        🚨 Urgent Stockout Risk Detected
                                     </div>
-                                    <h1 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #ffffff;">
-                                        Inventory Running Low: ${product.name}
+                                    <h1 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                                        ${product.name}
                                     </h1>
-                                    <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.5;">
-                                        SKU: <code style="background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">${product.sku || 'N/A'}</code>
+                                    <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                                        SKU: <code style="background: #1e293b; padding: 3px 8px; border-radius: 6px; color: #38bdf8; font-weight: 700; font-size: 13px;">${product.sku || 'N/A'}</code>
                                     </p>
                                 </td>
                             </tr>
-                            <!-- Details Box -->
+
+                            <!-- Inventory Gauge Numbers -->
                             <tr>
-                                <td style="padding: 0 36px 24px 36px;">
-                                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 12px;">
+                                <td style="padding: 10px 36px 24px 36px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 14px; margin-bottom: 22px;">
                                         <tr>
-                                            <td width="50%" style="padding: 16px; border-right: 1px solid rgba(239, 68, 68, 0.1);">
-                                                <div style="font-size: 12px; color: #94a3b8;">Current Units Left</div>
-                                                <div style="font-size: 28px; font-weight: 900; color: #ef4444; margin-top: 4px;">
+                                            <td width="50%" style="padding: 18px; border-right: 1px solid rgba(239, 68, 68, 0.15); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Current Stock</div>
+                                                <div style="font-size: 32px; font-weight: 900; color: #ef4444; margin-top: 4px;">
                                                     ${product.stockLevel || 0}
                                                 </div>
                                             </td>
-                                            <td width="50%" style="padding: 16px;">
-                                                <div style="font-size: 12px; color: #94a3b8;">Reorder Threshold</div>
-                                                <div style="font-size: 28px; font-weight: 900; color: #f59e0b; margin-top: 4px;">
+                                            <td width="50%" style="padding: 18px; text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Reorder Threshold</div>
+                                                <div style="font-size: 32px; font-weight: 900; color: #f59e0b; margin-top: 4px;">
                                                     ${threshold}
                                                 </div>
                                             </td>
                                         </tr>
                                     </table>
+
+                                    <!-- CTA -->
+                                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="${clientUrl}/dashboard/products" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 14px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 8px 20px -3px rgba(239, 68, 68, 0.4);">
+                                                    Restock Inventory in Dashboard &rarr;
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
-                            <!-- CTA -->
-                            <tr>
-                                <td align="center" style="padding: 0 36px 36px 36px;">
-                                    <a href="${clientUrl}/dashboard/products" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px; background: linear-gradient(135deg, #ef4444, #dc2626);">
-                                        Manage Inventory in Dashboard &rarr;
-                                    </a>
-                                </td>
-                            </tr>
+
                             <!-- Footer -->
                             <tr>
-                                <td style="background-color: #0d1322; padding: 20px 36px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                                <td style="background-color: #070b16; padding: 20px 36px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
                                     <p style="margin: 0; font-size: 12px; color: #64748b;">
-                                        PricePilot Inventory Monitor &bull; Real-time Stock Protection
+                                        PricePilot Inventory Monitor &bull; Automated Out-of-Stock Prevention
                                     </p>
                                 </td>
                             </tr>
@@ -204,18 +275,65 @@ exports.sendLowStockAlert = async (user, product) => {
 exports.sendPasswordResetEmail = async (email, resetUrl) => {
     if (!email) return;
 
-    const subject = `Reset Your PricePilot AI Password`;
+    const subject = `🔐 Reset Your PricePilot AI Password`;
     const html = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; background: #0b0f19; color: #f1f5f9; border-radius: 12px;">
-            <h2 style="color: #6366f1;">PricePilot AI Password Reset</h2>
-            <p>You requested to reset your password. Click the link below to set a new password:</p>
-            <p style="margin: 24px 0;">
-                <a href="${resetUrl}" style="background: #6366f1; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-                    Reset Password
-                </a>
-            </p>
-            <p style="color: #94a3b8; font-size: 12px;">If you did not request this, please ignore this email. The link expires in 1 hour.</p>
-        </div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reset Password</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #060913; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060913; padding: 40px 16px;">
+                <tr>
+                    <td align="center">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 540px; background-color: #0d1326; border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.25); overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);">
+                            <tr>
+                                <td height="5" style="background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 36px 36px 20px 36px;">
+                                    <div style="display: inline-block; padding: 5px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.14); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px;">
+                                        Security Verification
+                                    </div>
+                                    <h1 style="margin: 0 0 10px 0; font-size: 22px; font-weight: 800; color: #ffffff;">
+                                        Reset Your Password
+                                    </h1>
+                                    <p style="margin: 0; font-size: 14px; color: #94a3b8; line-height: 1.6;">
+                                        We received a request to reset the password associated with <strong style="color: #f1f5f9;">${email}</strong>. Click below to choose a new password:
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="padding: 10px 36px 30px 36px;">
+                                    <table cellpadding="0" cellspacing="0" border="0">
+                                        <tr>
+                                            <td align="center" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 10px 20px -3px rgba(99, 102, 241, 0.4);">
+                                                <a href="${resetUrl}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 12px;">
+                                                    Set New Password &rarr;
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style="margin: 22px 0 0 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+                                        This reset link is valid for <strong>1 hour</strong>. If you did not request this change, you can safely ignore this email.
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color: #070b16; padding: 20px 36px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+                                    <p style="margin: 0; font-size: 12px; color: #475569;">
+                                        PricePilot AI &bull; Autonomous Pricing Defense
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
     `;
 
     return _sendMail(email, subject, html);
@@ -225,7 +343,7 @@ exports.sendPasswordResetEmail = async (email, resetUrl) => {
  * Send generic notification email (e.g. feedback/report alerts)
  */
 exports.sendNotificationEmail = async (subject, htmlContent, recipient = null) => {
-    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || 'notifications@pricepilot.ai').trim();
+    const fromEmail = (process.env.BREVO_FROM_EMAIL || process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
     const to = recipient || process.env.ADMIN_NOTIFICATION_EMAIL || fromEmail;
     return _sendMail(to, subject, htmlContent);
 };
@@ -236,11 +354,41 @@ exports.sendNotificationEmail = async (subject, htmlContent, recipient = null) =
 exports.sendTestEmail = async (targetEmail) => {
     const subject = `🧪 PricePilot AI Brevo Delivery Test (${new Date().toLocaleTimeString()})`;
     const html = `
-        <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 24px; background: #0b0f19; color: #f1f5f9; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.3);">
-            <h2 style="color: #6366f1; margin-top: 0;">Brevo Email Delivery Operational! ✅</h2>
-            <p>This confirms that your PricePilot AI Brevo configuration (300 emails/day) is working properly.</p>
-            <p style="color: #94a3b8; font-size: 13px;">Timestamp: ${new Date().toISOString()}</p>
-        </div>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Brevo Email Delivery Test</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #060913; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f1f5f9;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #060913; padding: 40px 16px;">
+                <tr>
+                    <td align="center">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px; background-color: #0d1326; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.35); overflow: hidden; box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);">
+                            <tr>
+                                <td height="5" style="background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%);"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 32px 32px 24px 32px; text-align: center;">
+                                    <div style="font-size: 38px; margin-bottom: 12px;">✅</div>
+                                    <h1 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #ffffff;">
+                                        Brevo Email Delivery Active!
+                                    </h1>
+                                    <p style="margin: 0 0 16px 0; font-size: 14px; color: #94a3b8; line-height: 1.5;">
+                                        Your PricePilot AI transactional email pipeline is operating normally via Brevo's REST API (300 free emails/day).
+                                    </p>
+                                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 12px; font-size: 12px; color: #34d399; font-weight: 600;">
+                                        Timestamp: ${new Date().toISOString()}
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
     `;
     return _sendMail(targetEmail, subject, html);
 };
