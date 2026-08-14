@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useMemo, useCallback } 
 
 const ThemeContext = createContext();
 
-// Suppress CSS transitions for 1 frame during theme flip to prevent main-thread style thrashing (INP optimization)
+// Suppress CSS transitions during theme flip to prevent main-thread style thrashing (INP optimization)
 function disableTransitionsTemporarily() {
     const css = document.createElement('style');
     css.appendChild(
@@ -12,7 +12,7 @@ function disableTransitionsTemporarily() {
     );
     document.head.appendChild(css);
     return () => {
-        // Force style recalculation
+        // Force reflow
         (() => window.getComputedStyle(document.body))();
         requestAnimationFrame(() => {
             if (css.parentNode) {
@@ -22,29 +22,38 @@ function disableTransitionsTemporarily() {
     };
 }
 
+function applyThemeClass(theme) {
+    const root = document.documentElement;
+    if (theme === 'light') {
+        root.classList.add('light');
+        root.classList.remove('dark');
+    } else {
+        root.classList.remove('light');
+        root.classList.add('dark');
+    }
+}
+
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        return localStorage.getItem('theme') || 'dark';
+        const saved = localStorage.getItem('theme') || 'dark';
+        applyThemeClass(saved);
+        return saved;
     });
 
     useEffect(() => {
-        const root = document.documentElement;
-        const cleanup = disableTransitionsTemporarily();
-        
-        if (theme === 'light') {
-            root.classList.add('light');
-            root.classList.remove('dark');
-        } else {
-            root.classList.remove('light');
-            root.classList.add('dark');
-        }
+        applyThemeClass(theme);
         localStorage.setItem('theme', theme);
-        
-        cleanup();
     }, [theme]);
 
     const toggleTheme = useCallback(() => {
-        setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+        setTheme(prev => {
+            const next = prev === 'dark' ? 'light' : 'dark';
+            const cleanup = disableTransitionsTemporarily();
+            applyThemeClass(next);
+            localStorage.setItem('theme', next);
+            cleanup();
+            return next;
+        });
     }, []);
 
     const value = useMemo(() => ({

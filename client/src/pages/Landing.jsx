@@ -4,8 +4,6 @@ import {
     HiOutlineLightningBolt, 
     HiOutlineCubeTransparent, 
     HiOutlineShieldCheck, 
-    HiOutlineSun, 
-    HiOutlineMoon, 
     HiOutlineMail, 
     HiOutlineArrowUp,
     HiOutlineSparkles,
@@ -17,7 +15,7 @@ import { SiShopify, SiStripe, SiWoocommerce, SiAmazon } from 'react-icons/si';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import newLightLogo from '../assets/new_light_logo.png';
 import newDarkLogo from '../assets/new_dark_logo.png';
-import { useTheme } from '../context/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 import HeroDashboard from '../components/HeroDashboard';
 
 const faqCategories = ['All Questions', 'Pricing & AI', 'Security & Privacy', 'Integrations'];
@@ -112,9 +110,6 @@ const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }
 });
 
 export default function Landing() {
-    const { theme, toggleTheme } = useTheme();
-    const logoIcon = theme === 'dark' ? newDarkLogo : newLightLogo;
-
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All Questions');
     const [searchTerm, setSearchTerm] = useState('');
@@ -167,19 +162,20 @@ export default function Landing() {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-hidden font-sans transition-colors duration-300">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-hidden font-sans">
             {/* Ambient Background Grid and Atmosphere */}
             <div className="fixed inset-0 bg-grid-dark pointer-events-none opacity-40 dark:opacity-30 z-0" />
             <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-indigo-200/40 via-sky-100/30 to-transparent dark:from-indigo-500/10 dark:via-cyan-500/5 dark:to-transparent blur-[120px] pointer-events-none z-0" />
 
             {/* Navbar */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#070B14]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] transition-colors duration-300">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#070B14]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
                         {/* Brand Logo */}
                         <Link to="/" className="flex items-center gap-3 group">
                             <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1.5 shadow-sm group-hover:border-indigo-500/50 transition-colors">
-                                <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm" />
+                                <img src={newDarkLogo} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm hidden dark:block" />
+                                <img src={newLightLogo} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm block dark:hidden" />
                             </div>
                             <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white">
                                 PricePilot <span className="text-indigo-600 dark:text-indigo-400">AI</span>
@@ -211,19 +207,8 @@ export default function Landing() {
                                     Sign In
                                 </Link>
 
-                                {/* Theme Toggle */}
-                                <button
-                                    onClick={toggleTheme}
-                                    className="p-2 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 transition-colors"
-                                    title="Toggle Theme"
-                                    aria-label="Toggle Theme"
-                                >
-                                    {theme === 'dark' ? (
-                                        <HiOutlineSun className="w-4 h-4 text-amber-400" />
-                                    ) : (
-                                        <HiOutlineMoon className="w-4 h-4 text-indigo-600" />
-                                    )}
-                                </button>
+                                {/* Isolated Theme Toggle Button */}
+                                <ThemeToggle />
 
                                 {/* Primary CTA */}
                                 <Link
@@ -623,7 +608,8 @@ export default function Landing() {
                 <section id="about" className="max-w-4xl w-full mx-auto mb-20">
                     <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl p-8 sm:p-12 shadow-xl dark:shadow-2xl text-center transition-colors duration-300">
                         <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 p-3 shadow-inner flex items-center justify-center mb-6">
-                            <img src={logoIcon} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm" />
+                            <img src={newDarkLogo} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm hidden dark:block" />
+                            <img src={newLightLogo} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm block dark:hidden" />
                         </div>
 
                         <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
@@ -698,7 +684,8 @@ export default function Landing() {
                     <div className="col-span-2">
                         <div className="flex items-center gap-2.5 mb-4">
                             <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1 flex items-center justify-center shadow-sm">
-                                <img src={logoIcon} alt="Logo" className="w-full h-full object-contain" />
+                                <img src={newDarkLogo} alt="Logo" className="w-full h-full object-contain hidden dark:block" />
+                                <img src={newLightLogo} alt="Logo" className="w-full h-full object-contain block dark:hidden" />
                             </div>
                             <span className="font-display font-bold text-lg text-slate-900 dark:text-white">PricePilot AI</span>
                         </div>
