@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, register as apiRegister, getProfile } from '../api';
+import { login as apiLogin, register as apiRegister, googleLogin as apiGoogleLogin, getProfile } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -27,6 +27,14 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
+    const loginWithGoogle = async (tokenOrData) => {
+        const payload = typeof tokenOrData === 'string' ? { access_token: tokenOrData } : tokenOrData;
+        const res = await apiGoogleLogin(payload);
+        localStorage.setItem('token', res.data.token);
+        setUser(res.data);
+        return res.data;
+    };
+
     const registerUser = async (data) => {
         const res = await apiRegister(data);
         localStorage.setItem('token', res.data.token);
@@ -40,7 +48,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register: registerUser, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register: registerUser, loginWithGoogle, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

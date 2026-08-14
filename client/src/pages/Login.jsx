@@ -37,17 +37,6 @@ export default function Login() {
         onSuccess: async (tokenResponse) => {
             setLoading(true);
             try {
-                // Fetch user info using the access token
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                const userInfo = await userInfoResponse.json();
-                
-                // We'll send the email and name to our backend to login/register.
-                // We can modify the backend to accept email/name directly. 
-                // Or wait, since we wrote the backend to expect a credential to verify, 
-                // we can also modify the backend to accept access_token. Let's just modify the backend.
-                
                 await loginWithGoogle(tokenResponse.access_token);
                 toast.success('Welcome back!');
                 navigate('/');

@@ -52,6 +52,54 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.googleLogin = async (req, res) => {
+    try {
+        const { access_token, email, name } = req.body;
+        let userEmail = email;
+        let userName = name;
+
+        if (access_token) {
+            try {
+                const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${access_token}` }
+                });
+                if (response.ok) {
+                    const info = await response.json();
+                    userEmail = info.email;
+                    userName = info.name || info.given_name || 'Google User';
+                }
+            } catch (err) {
+                console.error('Google userinfo fetch error:', err.message);
+            }
+        }
+
+        if (!userEmail) {
+            return res.status(400).json({ message: 'Could not obtain email from Google authentication' });
+        }
+
+        let user = await User.findOne({ email: userEmail });
+        if (!user) {
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            user = await User.create({
+                name: userName || 'Google User',
+                email: userEmail,
+                password: randomPassword,
+                storeType: 'Other'
+            });
+        }
+
+        const token = generateToken(user._id);
+        console.log(`Google login successful for: ${userEmail}`);
+        res.json({
+            _id: user._id, name: user.name, email: user.email,
+            role: user.role, storeType: user.storeType, token,
+        });
+    } catch (error) {
+        console.error('GOOGLE LOGIN ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getProfile = async (req, res) => {
     res.json(req.user);
 };
