@@ -18,6 +18,8 @@ const typeIcons = {
     competitor_stockout: HiOutlineShoppingCart,
     promotion: HiOutlineShoppingCart,
     reorder: HiOutlineShoppingCart,
+    recommendation: HiOutlineLightBulb,
+    demand: HiOutlineTrendingDown,
 };
 
 const typeColors = {
@@ -27,6 +29,8 @@ const typeColors = {
     competitor_stockout: 'text-success bg-success/10 border-success/20',
     promotion: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
     reorder: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+    recommendation: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+    demand: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
 };
 
 export default function Alerts() {

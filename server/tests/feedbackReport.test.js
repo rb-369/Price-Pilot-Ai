@@ -27,7 +27,7 @@ describe('Feedback & Report Endpoints', () => {
             .post('/api/feedback')
             .send({
                 rating: 5,
-                category: 'features',
+                category: 'feature_request',
                 comment: 'PricePilot dynamic simulator is exceptional!'
             });
 
@@ -41,7 +41,7 @@ describe('Feedback & Report Endpoints', () => {
         const res = await request(app)
             .post('/api/feedback')
             .send({
-                category: 'features'
+                category: 'feature_request'
             });
 
         expect(res.statusCode).toEqual(400);

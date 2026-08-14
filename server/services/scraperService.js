@@ -2,6 +2,7 @@ const axios = require('axios');
 const Alert = require('../models/Alert');
 const CompetitorPrice = require('../models/CompetitorPrice');
 const Product = require('../models/Product');
+const { sendUserStreamEvent } = require('../routes/stream');
 
 const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
@@ -62,19 +63,31 @@ async function fetchLiveCompetitorsForProduct(product) {
 
     for (const record of records) {
         if (record.competitorPrice < product.currentPrice * 0.95) {
+            const title = `Price Alert: ${product.name}`;
+            const message = `${record.competitorName} is selling at Rs. ${record.competitorPrice} (undercutting your Rs. ${product.currentPrice})`;
+
             await Alert.create({
                 productId: product._id,
                 userId: product.userId,
                 type: 'competitor_undercut',
                 severity: 'high',
-                title: `Price Alert: ${product.name}`,
-                message: `${record.competitorName} is selling at Rs. ${record.competitorPrice}`,
+                title,
+                message,
                 metadata: {
                     competitor: record.competitorName,
                     competitorPrice: record.competitorPrice,
                     ourPrice: product.currentPrice,
                     source: 'rainforest_api',
                 },
+            });
+
+            sendUserStreamEvent(product.userId, {
+                type: 'alert',
+                severity: 'high',
+                title,
+                message,
+                productId: product._id,
+                actionUrl: '/dashboard/competitors'
             });
         }
     }

@@ -5,7 +5,7 @@ exports.submitFeedback = async (req, res) => {
     try {
         const { rating, category, comment, pageUrl, name, email } = req.body;
         if (!comment) {
-            return res.status(400).json({ message: 'Feedback comment is required' });
+            return res.status(400).json({ success: false, message: 'Feedback comment is required' });
         }
 
         const userId = req.user ? req.user._id : null;
@@ -40,7 +40,8 @@ exports.submitFeedback = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Thank you for your feedback! It helps us improve PricePilot AI.',
-            feedback
+            feedback,
+            data: feedback
         });
     } catch (error) {
         console.error('[FeedbackController Error]', error);

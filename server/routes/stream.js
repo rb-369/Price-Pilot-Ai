@@ -1,48 +1,73 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const EventEmitter = require('events');
 
-// Create a global event emitter for SSE
+// Global event emitter for streaming user-scoped events
 const streamEvents = new EventEmitter();
+streamEvents.setMaxListeners(500);
 
-// Export it so other routes/services can emit events
-// e.g. streamEvents.emit('update', { type: 'recommendation', data: ... })
+// Helper function to dispatch real-time events to a specific user
+const sendUserStreamEvent = (userId, data) => {
+    if (!userId) return;
+    const channel = `user:${userId.toString()}`;
+    streamEvents.emit(channel, data);
+};
+
 router.streamEvents = streamEvents;
-
-// Simulate real-time events for demonstration purposes
-setInterval(() => {
-    const events = [
-        { type: 'alert', message: 'Competitor dropped price by 15% on Wireless Earbuds!' },
-        { type: 'recommendation', message: 'New AI Pricing Recommendation generated for Smart Watch.' },
-        { type: 'demand', message: 'Demand signal spiked for Running Shoes due to upcoming marathon.' }
-    ];
-    const randomEvent = events[Math.floor(Math.random() * events.length)];
-    streamEvents.emit('update', randomEvent);
-}, 45000); // every 45s
+router.sendUserStreamEvent = sendUserStreamEvent;
 
 router.get('/', (req, res) => {
-    // Set headers for SSE
+    // Extract token from query param or Authorization header
+    let token = req.query.token;
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+        return res.status(401).json({ message: 'Authentication token required for real-time notification stream' });
+    }
+
+    let userId;
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id;
+    } catch (err) {
+        return res.status(401).json({ message: 'Invalid or expired stream authentication token' });
+    }
+
+    // Set headers for Server-Sent Events (SSE)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    // Send an initial connected message
-    res.write('data: {"type": "connected"}\n\n');
+    // Send initial connected confirmation
+    res.write(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
 
-    const onUpdate = (data) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    const userEventChannel = `user:${userId.toString()}`;
+
+    const onUserUpdate = (data) => {
+        try {
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (e) {
+            // Connection may have terminated
+        }
     };
 
-    streamEvents.on('update', onUpdate);
+    streamEvents.on(userEventChannel, onUserUpdate);
 
-    // Ping every 30 seconds to keep connection alive
+    // Keepalive heartbeat ping every 30 seconds
     const pingInterval = setInterval(() => {
-        res.write('data: {"type": "ping"}\n\n');
+        try {
+            res.write('data: {"type": "ping"}\n\n');
+        } catch (e) {
+            clearInterval(pingInterval);
+        }
     }, 30000);
 
     req.on('close', () => {
-        streamEvents.removeListener('update', onUpdate);
+        streamEvents.removeListener(userEventChannel, onUserUpdate);
         clearInterval(pingInterval);
     });
 });

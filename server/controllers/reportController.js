@@ -5,7 +5,7 @@ exports.submitReport = async (req, res) => {
     try {
         const { type, severity, title, description, pageUrl, systemInfo, name, email } = req.body;
         if (!title || !description) {
-            return res.status(400).json({ message: 'Title and description are required' });
+            return res.status(400).json({ success: false, message: 'Title and description are required' });
         }
 
         const userId = req.user ? req.user._id : null;
@@ -42,7 +42,8 @@ exports.submitReport = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Report submitted successfully. Our engineering team will review it shortly.',
-            report
+            report,
+            data: report
         });
     } catch (error) {
         console.error('[ReportController Error]', error);

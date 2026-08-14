@@ -8,7 +8,9 @@ import {
     HiOutlineExclamation, 
     HiOutlineTrendingDown, 
     HiOutlineShoppingCart,
-    HiOutlineExternalLink
+    HiOutlineExternalLink,
+    HiOutlineLightBulb,
+    HiOutlineLightningBolt
 } from 'react-icons/hi';
 
 const typeIcons = {
@@ -18,13 +20,16 @@ const typeIcons = {
     competitor_stockout: HiOutlineShoppingCart,
     promotion: HiOutlineShoppingCart,
     reorder: HiOutlineShoppingCart,
+    recommendation: HiOutlineLightBulb,
+    demand: HiOutlineLightningBolt,
 };
 
 const severityStyles = {
-    critical: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20',
-    high: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20',
-    medium: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20',
-    low: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:text-indigo-400 dark:bg-indigo-500/10 dark:border-indigo-500/20',
+    critical: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/15 dark:border-red-500/30',
+    high: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/15 dark:border-amber-500/30',
+    opportunity: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/15 dark:border-emerald-500/30',
+    medium: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:text-indigo-400 dark:bg-indigo-500/15 dark:border-indigo-500/30',
+    low: 'text-slate-600 bg-slate-100 border-slate-200 dark:text-slate-400 dark:bg-slate-800/40 dark:border-slate-700/50',
 };
 
 export default function NotificationDropdown() {
