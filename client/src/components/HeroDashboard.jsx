@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { HiOutlineLightningBolt, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSparkles } from 'react-icons/hi';
+import { HiOutlineLightningBolt, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineChip } from 'react-icons/hi';
 
 const HeroDashboard = memo(function HeroDashboard() {
   const reduceMotion = useReducedMotion();
@@ -76,7 +76,7 @@ const HeroDashboard = memo(function HeroDashboard() {
         transition={{ delay: 0.4, duration: 0.5 }}
         className="hidden sm:flex absolute -top-5 right-4 z-30 items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#070b14]/95 border border-indigo-200 dark:border-indigo-500/30 backdrop-blur-xl shadow-lg dark:shadow-xl text-indigo-700 dark:text-indigo-300 text-xs font-medium"
       >
-        <HiOutlineSparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+        <HiOutlineChip className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
         <span>Gemini XAI Active</span>
       </motion.div>
 
@@ -271,7 +271,7 @@ const HeroDashboard = memo(function HeroDashboard() {
 
           {/* Gemini XAI Live Audit Pill */}
           <div className={`p-3 rounded-xl border flex items-start gap-2.5 transition-all ${xai.color}`}>
-            <HiOutlineSparkles className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <HiOutlineChip className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <div className="text-xs leading-relaxed">
               <span className="font-bold block mb-0.5">{xai.tag}</span>
               <span className="opacity-95">{xai.text}</span>

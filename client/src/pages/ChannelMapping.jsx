@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProductMappings, getProducts, createProductMapping, deleteProductMapping, autoMatchMappings, confirmMapping, rejectMapping } from '../api';
 import toast from 'react-hot-toast';
-import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineSparkles, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
+import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineChip, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
 import ErrorState from '../components/ErrorState';
 
 export default function ChannelMapping() {
@@ -160,7 +160,7 @@ export default function ChannelMapping() {
                         disabled={isAutoMatching}
                         className="btn-secondary flex items-center gap-2 text-primary border-primary/30 hover:bg-primary/10"
                     >
-                        <HiOutlineSparkles className={`w-4 h-4 ${isAutoMatching ? 'animate-spin' : ''}`} />
+                        <HiOutlineChip className={`w-4 h-4 ${isAutoMatching ? 'animate-spin' : ''}`} />
                         {isAutoMatching ? 'Scanning...' : 'Scan with AI Match'}
                     </button>
                 </div>
@@ -405,7 +405,7 @@ function ChannelCell({ mapping, externalId, platform, onConfirm, onReject, onDel
                 <div className="flex items-center gap-1.5">
                     <span className="font-mono text-xs text-text font-medium">{displayId || 'SKU Match'}</span>
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                        <HiOutlineSparkles className="w-3 h-3" /> {confPercent}% Match
+                        <HiOutlineChip className="w-3 h-3" /> {confPercent}% Match
                     </span>
                 </div>
                 <div className="flex items-center gap-1">

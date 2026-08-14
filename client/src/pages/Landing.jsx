@@ -6,7 +6,7 @@ import {
     HiOutlineShieldCheck, 
     HiOutlineMail, 
     HiOutlineArrowUp,
-    HiOutlineSparkles,
+    HiOutlineChip,
     HiOutlineSearch,
     HiOutlineCheckCircle,
     HiOutlineArrowRight
@@ -440,7 +440,7 @@ export default function Landing() {
                     <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/95 dark:bg-slate-950/80 backdrop-blur-2xl p-8 sm:p-12 relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors duration-300">
                         <div className="text-center max-w-2xl mx-auto mb-12">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold uppercase tracking-wider mb-3">
-                                <HiOutlineSparkles className="w-4 h-4" />
+                                <HiOutlineChip className="w-4 h-4" />
                                 Autonomous Execution Pipeline
                             </div>
                             <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">

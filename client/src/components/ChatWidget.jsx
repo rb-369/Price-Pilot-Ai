@@ -149,14 +149,20 @@ const ChatWidget = () => {
     // Load chat history on mount & listen for Explain with AI events
     useEffect(() => {
         const handleExplainWithAI = (e) => {
-            const { title, contextData } = e.detail || {};
+            const { title, prompt: customPrompt, contextData, autoSubmit } = e.detail || {};
             setIsOpen(true);
-            const prompt = `/explain-simply explain ${title || 'item'}: ${JSON.stringify(contextData || {})}`;
+            const prompt = customPrompt 
+                ? (contextData && Object.keys(contextData).length > 0 
+                    ? `${customPrompt}\nContext: ${JSON.stringify(contextData)}` 
+                    : customPrompt)
+                : `/explain-simply explain ${title || 'item'}: ${JSON.stringify(contextData || {})}`;
             setInput(prompt);
-            setTimeout(() => {
-                const sendBtn = document.getElementById('chat-widget-submit-btn');
-                if (sendBtn) sendBtn.click();
-            }, 100);
+            if (autoSubmit) {
+                setTimeout(() => {
+                    const sendBtn = document.getElementById('chat-widget-submit-btn');
+                    if (sendBtn) sendBtn.click();
+                }, 150);
+            }
         };
 
         window.addEventListener('open_explain_with_ai', handleExplainWithAI);

@@ -20,6 +20,7 @@ import { exportToCSV } from '../utils/export';
 import { exportReportToPdf } from '../utils/exportPdf';
 import { useCurrency } from '../context/CurrencyContext';
 import ExplainWithAITag from '../components/ExplainWithAITag';
+import AskAIButton from '../components/AskAIButton';
 
 const competitorColors = {
     Amazon: '#FF9900',
@@ -344,9 +345,15 @@ export default function Competitors() {
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">Market intelligence</p>
-                    <h1 className="page-header mt-1 text-3xl flex items-center gap-3">
-                        Competitor comparison
+                    <h1 className="page-header mt-1 text-3xl flex items-center gap-3 flex-wrap">
+                        <span>Competitor comparison</span>
                         <ExplainWithAITag title="Explain with AI" contextData={{ type: 'competitors', summary }} />
+                        <AskAIButton
+                            variant="chip"
+                            label="Ask Copilot Defense"
+                            prompt={`Analyze competitor positioning for our store: We have ${summary.products} products tracked with ${summary.offers} competitor offers. ${summary.lowerPriced} competitor offers are currently undercutting our price. What is the optimal margin defense stance?`}
+                            contextData={{ summary }}
+                        />
                     </h1>
                     <p className="mt-2 text-sm text-text-muted">Monitor price position and availability across your tracked catalog.</p>
                 </div>

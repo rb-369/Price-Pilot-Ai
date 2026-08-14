@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
+const { sendWelcomeEmail } = require('../services/emailService');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -20,6 +21,11 @@ exports.register = async (req, res) => {
         const token = generateToken(user._id);
 
         console.log(`Registration successful for: ${email}`);
+
+        // Send welcome email (fire-and-forget)
+        sendWelcomeEmail(user).catch(err => {
+            console.error('[Welcome Email Error]', err.message);
+        });
         res.status(201).json({
             _id: user._id, name: user.name, email: user.email,
             role: user.role, storeType: user.storeType, token,
@@ -71,6 +77,11 @@ exports.googleAuth = async (req, res) => {
                 storeType: 'general',
             });
             console.log(`Google registration created new user for: ${email}`);
+
+            // Send welcome email (fire-and-forget)
+            sendWelcomeEmail(user).catch(err => {
+                console.error('[Welcome Email Error - Google Auth]', err.message);
+            });
         } else {
             console.log(`Google login matched existing user for: ${email}`);
         }

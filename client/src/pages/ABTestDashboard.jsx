@@ -11,7 +11,7 @@ import {
   HiPlay,
   HiStop,
   HiTrendingUp,
-  HiSparkles,
+  HiChip,
   HiDocumentDownload,
   HiBadgeCheck,
   HiRefresh,
@@ -20,6 +20,7 @@ import {
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import ExplainWithAITag from '../components/ExplainWithAITag';
+import AskAIButton from '../components/AskAIButton';
 
 export default function ABTestDashboard() {
   const [tests, setTests] = useState([]);
@@ -400,7 +401,7 @@ export default function ABTestDashboard() {
                           <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/30">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-[11px] font-bold text-primary uppercase flex items-center gap-1">
-                                <HiSparkles className="w-3 h-3" /> Variant B (AI)
+                                <HiChip className="w-3.5 h-3.5" /> Variant B (Optimized)
                               </span>
                               <span className="font-bold text-primary">{formatCurrency(test.variantB?.price)}</span>
                             </div>
@@ -620,7 +621,7 @@ export default function ABTestDashboard() {
                               {p.category || 'General'}
                             </span>
                             <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                              <HiSparkles className="w-2.5 h-2.5" /> +8.5%
+                              <HiChip className="w-2.5 h-2.5" /> +8.5%
                             </span>
                           </div>
                           <div className="text-xs font-semibold text-text truncate mb-1" title={p.name}>

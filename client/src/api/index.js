@@ -136,4 +136,10 @@ export const rejectMapping = (id) => api.post(`/mappings/${id}/reject`);
 export const runSimulation = (data) => api.post('/simulator/run', data);
 export const commitSimulationPrice = (data) => api.post('/simulator/commit', data);
 
+// Platform Feedback & Issue Reporting
+export const submitFeedback = (data) => api.post('/feedback', data);
+export const getFeedbackList = () => api.get('/feedback');
+export const submitReport = (data) => api.post('/reports', data);
+export const getReportsList = () => api.get('/reports');
+
 export default api;

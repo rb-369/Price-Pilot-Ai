@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { HiOutlineMenu, HiOutlineSparkles } from 'react-icons/hi';
+import Header from './Header';
 import useRealTimeUpdates from '../hooks/useRealTimeUpdates';
 
 export default function Layout() {
@@ -11,69 +11,30 @@ export default function Layout() {
     useRealTimeUpdates();
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden bg-surface">
+        <div className="flex h-screen overflow-hidden bg-surface">
             {/* Top accent gradient bar */}
             <div className="accent-bar fixed top-0 left-0 right-0 z-[100]" />
 
             {/* Sidebar */}
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            {/* Main content */}
+            {/* Main content area */}
             <div
-                className="flex min-h-0 flex-col flex-1 h-full"
+                className="flex min-h-0 flex-col flex-1 h-full w-full"
                 style={{
                     marginLeft: sidebarOpen ? '260px' : '0',
                     transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
             >
-                {/* Hamburger button when sidebar is closed */}
-                {!sidebarOpen && (
-                    <div style={{
-                        position: isChatPage ? 'absolute' : 'sticky',
-                        top: isChatPage ? '16px' : '4px',
-                        left: isChatPage ? '16px' : 'auto',
-                        zIndex: 50,
-                        padding: isChatPage ? '0' : '12px 16px 8px',
-                    }}>
-                        <button
-                            type="button"
-                            onClick={() => setSidebarOpen(true)}
-                            style={{
-                                width: '42px',
-                                height: '42px',
-                                borderRadius: '12px',
-                                background: 'rgba(19,27,46,0.9)',
-                                backdropFilter: 'blur(12px)',
-                                border: '1px solid rgba(99,102,241,0.15)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#94a3b8',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-                                transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#818cf8';
-                                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.color = '#94a3b8';
-                                e.currentTarget.style.borderColor = 'rgba(99,102,241,0.15)';
-                            }}
-                            aria-label="Open sidebar"
-                            title="Open sidebar"
-                        >
-                            <HiOutlineMenu size={20} />
-                        </button>
-                    </div>
-                )}
+                {/* Persistent Top Header */}
+                <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-                <div className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-5 sm:p-8'}>
-                    <div className={isChatPage ? 'h-full w-full' : 'mx-auto w-full max-w-[1400px] animate-fade-in'}>
-                    <Outlet context={{ sidebarOpen, setSidebarOpen }} />
+                {/* Page Content Container */}
+                <main className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8'}>
+                    <div className={isChatPage ? 'h-full w-full' : 'mx-auto w-full max-w-[1440px] animate-fade-in'}>
+                        <Outlet context={{ sidebarOpen, setSidebarOpen }} />
                     </div>
-                </div>
+                </main>
             </div>
         </div>
     );

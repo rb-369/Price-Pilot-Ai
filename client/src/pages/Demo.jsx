@@ -9,7 +9,7 @@ import {
     HiOutlineTrendingUp,
     HiOutlineChartBar,
     HiOutlineCube,
-    HiOutlineSparkles,
+    HiOutlineChip,
     HiOutlineAdjustments,
     HiOutlineArrowRight,
     HiOutlineCheckCircle
@@ -132,7 +132,7 @@ export default function Demo() {
             {/* Sandbox Banner */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-4 text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
-                    <HiOutlineSparkles className="w-4 h-4" />
+                    <HiOutlineChip className="w-4 h-4" />
                     Live Algorithm Sandbox
                 </div>
                 <h1 className="text-3xl sm:text-5xl font-extrabold text-text tracking-tight mb-3">
@@ -282,7 +282,7 @@ export default function Demo() {
                         {/* AI Elasticity Explainer */}
                         <div className="text-xs text-text-muted bg-surface-lighter/40 p-4 rounded-2xl border border-border/40 space-y-1.5 leading-relaxed">
                             <div className="font-bold text-text flex items-center gap-1.5 text-xs text-primary">
-                                <HiOutlineSparkles className="w-4 h-4" />
+                                <HiOutlineChip className="w-4 h-4" />
                                 Model Insights: Elasticity {selectedProduct.elasticity}
                             </div>
                             <p>
