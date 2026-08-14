@@ -6,9 +6,9 @@ try {
     // optional fallback
 }
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_FROM || 'notifications@pricepilot.ai';
-const CLIENT_URL = process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app';
+const SENDGRID_API_KEY = (process.env.SENDGRID_API_KEY || '').trim();
+const FROM_EMAIL = (process.env.SENDGRID_FROM_EMAIL || process.env.EMAIL_FROM || 'notifications@pricepilot.ai').trim();
+const CLIENT_URL = (process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app').trim();
 
 if (SENDGRID_API_KEY) {
     sgMail.setApiKey(SENDGRID_API_KEY);
@@ -247,7 +247,7 @@ async function _sendMail(to, subject, html) {
             console.log(`[EmailService/SendGrid] Sent email "${subject}" to ${to}`);
             return { success: true, provider: 'sendgrid' };
         } catch (err) {
-            console.error('[EmailService/SendGrid Error]', err.message);
+            console.error('[EmailService/SendGrid Error]', err.message, err.response?.body?.errors ? JSON.stringify(err.response.body.errors) : '');
         }
     }
 
