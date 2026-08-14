@@ -1,214 +1,282 @@
-import { motion } from 'framer-motion';
-import { HiOutlineLightningBolt, HiOutlineTrendingUp, HiOutlineShieldCheck } from 'react-icons/hi';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { HiOutlineLightningBolt, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSparkles } from 'react-icons/hi';
 
 export default function HeroDashboard() {
-  const [revenue, setRevenue] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const [price, setPrice] = useState(1299);
+  const [scenario, setScenario] = useState('profit'); // 'profit' | 'volume' | 'defend'
+  const cogs = 840;
+  const competitorPrice = 1349;
 
-  useEffect(() => {
-    // Animate revenue counter
-    const duration = 2000;
-    const target = 124500;
-    const interval = 20;
-    const steps = duration / interval;
-    const increment = target / steps;
+  // Elasticity calculations (e = -1.85)
+  const baseUnits = 145;
+  const priceRatio = price / 1299;
+  const estimatedUnits = Math.round(baseUnits * Math.pow(priceRatio, -1.85));
+  const projectedRevenue = price * estimatedUnits;
+  const unitMargin = price - cogs;
+  const marginPct = ((unitMargin / price) * 100).toFixed(1);
+  const totalProfit = unitMargin * estimatedUnits;
 
-    let current = 0;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setRevenue(target);
-        clearInterval(timer);
-      } else {
-        setRevenue(Math.floor(current));
-      }
-    }, interval);
+  // Dynamic XAI Insight based on slider
+  const getXAIExplanation = () => {
+    if (price < 1150) {
+      return {
+        tag: 'Market Share Capture',
+        text: 'Volume boost: Undercutting competitor (₹1,349) increases checkout velocity by +28%.',
+        color: 'text-sky-800 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/20',
+      };
+    }
+    if (price > 1450) {
+      return {
+        tag: 'Premium Margin Capture',
+        text: 'Max profit per unit: High product rating sustains ₹' + price.toLocaleString('en-IN') + ' with minimal demand decay.',
+        color: 'text-purple-800 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20',
+      };
+    }
+    return {
+      tag: 'Optimal Profit Frontier',
+      text: 'Peak equilibrium: ₹1,299 maximizes total net profit (₹' + totalProfit.toLocaleString('en-IN') + ') at 35.3% margin.',
+      color: 'text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
+    };
+  };
 
-    return () => clearInterval(timer);
-  }, []);
+  const xai = getXAIExplanation();
+
+  const handleScenarioPreset = (type) => {
+    setScenario(type);
+    if (type === 'profit') setPrice(1299);
+    if (type === 'volume') setPrice(1120);
+    if (type === 'defend') setPrice(1329);
+  };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto mt-12 lg:mt-0 lg:ml-auto select-none pointer-events-none">
-      {/* Background Aura */}
-      <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full transform -translate-y-12"></div>
+    <div className="relative w-full max-w-xl mx-auto select-none">
+      {/* Ambient Glow */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/10 via-sky-500/10 to-emerald-500/10 dark:from-indigo-500/20 dark:via-sky-500/15 dark:to-emerald-500/20 blur-2xl rounded-3xl pointer-events-none opacity-90 dark:opacity-100" />
 
-      {/* Floating Badges */}
+      {/* Floating Live Telemetry Badge (Top Left) */}
       <motion.div
-        initial={{ opacity: 0, x: -40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className="absolute -left-16 top-12 z-20 bg-slate-900/90 backdrop-blur-md border border-indigo-500/20 px-4 py-2 rounded-xl shadow-xl flex items-center gap-2"
-      >
-        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-        <span className="text-sm font-semibold text-white">+24% Revenue</span>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, x: 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, duration: 0.6 }}
-        className="absolute -right-8 top-12 z-20 bg-slate-900/90 backdrop-blur-md border border-indigo-500/20 px-4 py-2 rounded-xl shadow-xl flex items-center gap-2"
-      >
-        <HiOutlineTrendingUp className="text-indigo-400 w-4 h-4" />
-        <span className="text-sm font-semibold text-white">Demand ↑</span>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={reduceMotion ? false : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
-        className="absolute -left-6 bottom-27 z-20 bg-slate-900/90 backdrop-blur-md border border-indigo-500/20 px-4 py-2 rounded-xl shadow-xl flex items-center gap-2"
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="hidden sm:flex absolute -top-5 left-4 z-30 items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#070b14]/95 border border-slate-200/90 dark:border-white/10 backdrop-blur-xl shadow-lg dark:shadow-xl text-slate-800 dark:text-white"
       >
-        <HiOutlineShieldCheck className="text-emerald-400 w-4 h-4" />
-        <span className="text-sm font-semibold text-white">Stock Healthy</span>
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span className="text-xs font-semibold tracking-wide">Live Elasticity: e = -1.85</span>
       </motion.div>
 
+      {/* Floating Status Pill (Top Right) */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.4, duration: 0.6 }}
-        className="absolute -right-6 bottom-8 z-20 bg-slate-900/90 backdrop-blur-md border border-indigo-500/20 px-4 py-2 rounded-xl shadow-xl flex items-center gap-2"
-      >
-        <HiOutlineLightningBolt className="text-purple-400 w-4 h-4" />
-        <span className="text-sm font-semibold text-white">AI Prediction</span>
-      </motion.div>
-
-      {/* Main Dashboard Container */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={reduceMotion ? false : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        whileHover={{ scale: 1.02 }}
-        className="relative z-10 w-full rounded-[2rem] bg-slate-900/60 backdrop-blur-2xl border border-white/10 shadow-[0_20px_60px_-15px_rgba(79,70,229,0.3)] overflow-hidden"
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="hidden sm:flex absolute -top-5 right-4 z-30 items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#070b14]/95 border border-indigo-200 dark:border-indigo-500/30 backdrop-blur-xl shadow-lg dark:shadow-xl text-indigo-700 dark:text-indigo-300 text-xs font-medium"
       >
-        {/* Subtle grid pattern background */}
-        <div
-          className="absolute inset-0 opacity-[0.05]"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}
-        ></div>
+        <HiOutlineSparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+        <span>Gemini XAI Active</span>
+      </motion.div>
 
-        {/* Top Navigation Bar */}
-        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-slate-900/40 relative z-10">
+      {/* Main Terminal Window */}
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full rounded-3xl bg-white/95 dark:bg-[#0B1120]/90 backdrop-blur-2xl border border-slate-200/90 dark:border-white/10 shadow-2xl dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden"
+      >
+        {/* Terminal Header */}
+        <div className="px-5 py-3.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/90 dark:bg-black/40">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
-            <div className="w-3 h-3 rounded-full bg-amber-400/80"></div>
-            <div className="w-3 h-3 rounded-full bg-emerald-400/80"></div>
+            <div className="w-3 h-3 rounded-full bg-rose-500/80" />
+            <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+            <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+            <span className="ml-2 text-xs font-mono text-slate-500 dark:text-slate-400 tracking-wider">pricepilot.simulator.v1</span>
           </div>
-          <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-            <HiOutlineLightningBolt className="w-3 h-3 text-indigo-400" />
-            <span className="text-xs font-medium text-indigo-300">AI Insights Active</span>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-slate-200/70 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-300/60 dark:border-white/5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
+            <span>Real-Time Sync</span>
           </div>
         </div>
 
-        {/* Dashboard Content */}
-        <div className="p-6 space-y-6 relative z-10">
+        {/* Terminal Body */}
+        <div className="p-5 sm:p-6 space-y-5">
+          {/* Top KPI Metrics Row */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* Projected Revenue */}
+            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Proj. Revenue</span>
+              <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-mono tracking-tight mt-1">
+                ₹{projectedRevenue.toLocaleString('en-IN')}
+              </span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 mt-1 font-semibold">
+                <HiOutlineTrendingUp className="w-3 h-3" />
+                {estimatedUnits} units/wk
+              </span>
+            </div>
 
-          {/* Top Row: Revenue & Progress */}
-          <div className="flex gap-4">
-            <div className="flex-1 bg-slate-800/50 rounded-2xl border border-white/5 p-5">
-              <p className="text-xs text-slate-400 font-medium mb-1 uppercase tracking-wider">Projected Revenue</p>
-              <h3 className="text-3xl font-bold text-white tracking-tight">
-                ₹{revenue.toLocaleString()}
-              </h3>
-              <div className="mt-4 h-12 w-full flex items-end gap-1">
-                {/* Mini Bar Chart */}
-                {[40, 70, 45, 90, 65, 80, 100].map((height, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    transition={{ delay: 0.5 + i * 0.1, duration: 0.5 }}
-                    className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-indigo-500' : 'bg-slate-700'}`}
-                  ></motion.div>
-                ))}
+            {/* Profit Margin */}
+            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Net Margin</span>
+              <span className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight mt-1">
+                {marginPct}%
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-mono font-medium">
+                +₹{unitMargin.toLocaleString('en-IN')}/unit
+              </span>
+            </div>
+
+            {/* Stock Health Gauge */}
+            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5 flex flex-col justify-between items-center text-center">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stock Risk</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <HiOutlineShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span className="text-sm font-bold text-slate-900 dark:text-white">Optimal</span>
+              </div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">28 days cover</span>
+            </div>
+          </div>
+
+          {/* Interactive Price Slider & Scenario Controls */}
+          <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/5 space-y-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">Simulate Target Price:</span>
+                <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-mono font-bold text-sm border border-indigo-200 dark:border-indigo-500/30">
+                  ₹{price.toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              {/* Scenario Preset Buttons */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleScenarioPreset('volume')}
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
+                    scenario === 'volume' 
+                      ? 'bg-sky-100 text-sky-800 border border-sky-300 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-500/30 font-semibold' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5'
+                  }`}
+                >
+                  Max Vol
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleScenarioPreset('profit')}
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
+                    scenario === 'profit' 
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-semibold' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5'
+                  }`}
+                >
+                  Max Margin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleScenarioPreset('defend')}
+                  className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
+                    scenario === 'defend' 
+                      ? 'bg-purple-100 text-purple-800 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 font-semibold' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5'
+                  }`}
+                >
+                  Defend
+                </button>
               </div>
             </div>
 
-            <div className="w-36 bg-slate-800/50 rounded-2xl border border-white/5 p-4 flex flex-col items-center justify-center text-center">
-              <p className="text-[10px] text-slate-400 font-medium mb-2 uppercase tracking-wider">Inventory Health</p>
-              <div className="relative w-16 h-16">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="32" cy="32" r="28" stroke="rgba(255,255,255,0.1)" strokeWidth="6" fill="none" />
-                  <motion.circle
-                    cx="32" cy="32" r="28"
-                    stroke="#818cf8"
-                    strokeWidth="6"
-                    fill="none"
-                    strokeDasharray="175"
-                    initial={{ strokeDashoffset: 175 }}
-                    animate={{ strokeDashoffset: 175 - (175 * 0.85) }}
-                    transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-bold text-white">85%</span>
-                </div>
+            {/* Slider Input */}
+            <div className="space-y-1.5">
+              <input
+                type="range"
+                min="950"
+                max="1750"
+                step="10"
+                value={price}
+                onChange={(e) => {
+                  setPrice(Number(e.target.value));
+                  setScenario('custom');
+                }}
+                className="w-full h-2 bg-slate-200 dark:bg-slate-700/80 rounded-lg appearance-none cursor-pointer accent-indigo-600 dark:accent-indigo-500"
+              />
+              <div className="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                <span>Cost: ₹{cogs}</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-semibold">Current: ₹{price}</span>
+                <span>Comp: ₹{competitorPrice}</span>
               </div>
             </div>
           </div>
 
-          {/* Bottom Chart Card */}
-          <div className="w-full bg-slate-800/50 rounded-2xl border border-white/5 p-5">
-            <div className="flex justify-between items-center mb-8 relative z-20">
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Dynamic Pricing Forecast</p>
-              <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded shadow-sm">+12.5% Margin</span>
+          {/* Dynamic Elasticity Graph Preview */}
+          <div className="p-4 rounded-2xl bg-slate-50/80 dark:bg-black/30 border border-slate-200/80 dark:border-white/5 space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <HiOutlineLightningBolt className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                Dynamic Profit vs. Demand Curve
+              </span>
+              <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">Confidence: 95% (P10-P90)</span>
             </div>
 
-            {/* Animated SVG Line Chart */}
-            <div className="w-full h-24 relative overflow-hidden -mt-4">
-              <svg viewBox="0 0 400 100" className="w-full h-full preserve-aspect-ratio-none">
-                {/* Background Line */}
-                <path
-                  d="M0,80 Q50,70 100,50 T200,60 T300,20 T400,30"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.05)"
-                  strokeWidth="3"
-                />
-
-                {/* AI Optimized Line */}
-                <motion.path
-                  d="M0,60 Q50,50 100,30 T200,40 T300,10 T400,15"
-                  fill="none"
-                  stroke="url(#gradient)"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ delay: 0.8, duration: 1.5, ease: "easeInOut" }}
-                />
-
-                {/* Fill Gradient */}
-                <motion.path
-                  d="M0,60 Q50,50 100,30 T200,40 T300,10 T400,15 L400,100 L0,100 Z"
-                  fill="url(#fillGradient)"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.5, duration: 1 }}
-                />
-
+            <div className="w-full h-16 relative overflow-hidden">
+              <svg viewBox="0 0 400 80" className="w-full h-full preserve-aspect-ratio-none">
                 <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#818cf8" />
-                    <stop offset="100%" stopColor="#c084fc" />
+                  <linearGradient id="heroGradient" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="50%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#10b981" />
                   </linearGradient>
-                  <linearGradient id="fillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(129, 140, 248, 0.2)" />
-                    <stop offset="100%" stopColor="rgba(129, 140, 248, 0)" />
+                  <linearGradient id="heroAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(99, 102, 241, 0.25)" />
+                    <stop offset="100%" stopColor="rgba(99, 102, 241, 0)" />
                   </linearGradient>
                 </defs>
-              </svg>
 
-              {/* Data points */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 2, duration: 0.3 }}
-                className="absolute top-2 right-12 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] border-2 border-purple-500"
-              ></motion.div>
+                {/* Benchmark Line */}
+                <path
+                  d="M0,65 Q100,55 200,45 T400,30"
+                  fill="none"
+                  stroke="rgba(100, 116, 139, 0.25)"
+                  strokeWidth="2"
+                  strokeDasharray="4 4"
+                />
+
+                {/* Main Curve Area */}
+                <path
+                  d="M0,60 Q80,45 180,20 T400,35 L400,80 L0,80 Z"
+                  fill="url(#heroAreaGradient)"
+                />
+
+                {/* Main Curve Stroke */}
+                <path
+                  d="M0,60 Q80,45 180,20 T400,35"
+                  fill="none"
+                  stroke="url(#heroGradient)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                />
+
+                {/* Active Indicator Point */}
+                <circle
+                  cx={Math.min(380, Math.max(20, ((price - 950) / 800) * 400))}
+                  cy={25 + Math.sin(((price - 950) / 800) * Math.PI) * -15}
+                  r="5"
+                  className="fill-emerald-500 dark:fill-emerald-400 stroke-white stroke-2 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+                />
+              </svg>
             </div>
           </div>
 
+          {/* Gemini XAI Live Audit Pill */}
+          <div className={`p-3 rounded-xl border flex items-start gap-2.5 transition-all ${xai.color}`}>
+            <HiOutlineSparkles className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="text-xs leading-relaxed">
+              <span className="font-bold block mb-0.5">{xai.tag}</span>
+              <span className="opacity-95">{xai.text}</span>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>

@@ -1,6 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { HiOutlineLightningBolt, HiOutlineChartBar, HiOutlineCubeTransparent, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSun, HiOutlineMoon, HiOutlineUserGroup, HiOutlineMail, HiOutlineArrowUp } from 'react-icons/hi';
+import { 
+    HiOutlineLightningBolt, 
+    HiOutlineCubeTransparent, 
+    HiOutlineShieldCheck, 
+    HiOutlineSun, 
+    HiOutlineMoon, 
+    HiOutlineMail, 
+    HiOutlineArrowUp,
+    HiOutlineSparkles,
+    HiOutlineSearch,
+    HiOutlineCheckCircle,
+    HiOutlineArrowRight
+} from 'react-icons/hi';
+import { SiShopify, SiStripe, SiWoocommerce, SiAmazon } from 'react-icons/si';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import newLightLogo from '../assets/new_light_logo.png';
 import newDarkLogo from '../assets/new_dark_logo.png';
@@ -45,28 +58,38 @@ const faqData = [
 const teamMembers = [
     {
         name: 'Aryan Desale',
-        role: 'Design & Frontend Development'
+        role: 'Design & Frontend Engineering',
+        linkedin: 'https://www.linkedin.com/in/aryan-desale-18330a377'
     },
     {
         name: 'Rudra Babar',
-        role: 'Backend & AI Integration'
+        role: 'Backend & AI Systems Architecture',
+        linkedin: 'http://www.linkedin.com/in/rudra-babar-8594a8379'
     }
+];
+
+const integrationLogos = [
+    { name: 'Shopify', icon: SiShopify },
+    { name: 'Stripe', icon: SiStripe },
+    { name: 'WooCommerce', icon: SiWoocommerce },
+    { name: 'Amazon', icon: SiAmazon },
 ];
 
 function FaqAccordionItem({ faq, isOpen, onClick }) {
     return (
-        <div className="rounded-3xl border border-purple-100 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:shadow-lg hover:bg-white/90 dark:hover:bg-black/80">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-[#0B1120]/80 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:shadow-lg">
             <button
                 type="button"
                 onClick={onClick}
-                className="w-full flex items-center justify-between gap-4 p-6 text-left"
+                className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left"
             >
-                <span className="text-lg font-semibold text-slate-900 dark:text-white">
+                <span className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {faq.question}
                 </span>
                 <span
-                    className={`flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-purple-50 dark:bg-white/10 border border-purple-100 dark:border-white/10 text-xl text-indigo-600 dark:text-white transition-transform duration-300 ${isOpen ? 'rotate-45' : ''
-                        }`}
+                    className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-lg text-indigo-600 dark:text-indigo-300 transition-transform duration-300 ${
+                        isOpen ? 'rotate-45' : ''
+                    }`}
                 >
                     +
                 </span>
@@ -77,61 +100,11 @@ function FaqAccordionItem({ faq, isOpen, onClick }) {
                 style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
             >
                 <div className="overflow-hidden">
-                    <div className="px-6 pb-6">
-                        <div className="border-t border-purple-100 dark:border-white/10 pt-6 text-slate-600 dark:text-white/70 leading-relaxed">
+                    <div className="px-5 sm:px-6 pb-6">
+                        <div className="border-t border-slate-200 dark:border-white/10 pt-4 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                             {faq.answer}
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function ExpandableDarkPanel({ children }) {
-    const containerRef = useRef(null);
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsExpanded(true);
-                } else if (entry.boundingClientRect.top > 0) {
-                    setIsExpanded(false);
-                }
-            },
-            {
-                threshold: 0.2,
-                rootMargin: '0px 0px -50px 0px'
-            }
-        );
-
-        const currentRef = containerRef.current;
-        if (currentRef) {
-            observer.observe(currentRef);
-        }
-
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
-            }
-        };
-    }, []);
-
-    return (
-        <div ref={containerRef} className="w-full relative mt-12 mb-24 flex justify-center">
-            <div
-                className="bg-slate-950 dark:bg-black rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden border border-slate-800 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                style={{
-                    width: isExpanded ? 'calc(100vw - 2.5rem)' : '100%',
-                    marginLeft: isExpanded ? 'calc(-50vw + 50% + 1.25rem)' : '0px',
-                    marginRight: isExpanded ? 'calc(-50vw + 50% + 1.25rem)' : '0px',
-                    maxWidth: isExpanded ? '100vw' : '100%'
-                }}
-            >
-                <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
-                    {children}
                 </div>
             </div>
         </div>
@@ -145,242 +118,277 @@ export default function Landing() {
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All Questions');
     const [searchTerm, setSearchTerm] = useState('');
+    const [activePipelineStep, setActivePipelineStep] = useState(0);
 
     const toggleFaq = (index) => {
         setOpenFaqIndex(openFaqIndex === index ? null : index);
     };
 
-    const filteredFaqs = faqData.filter((faq) => {
-        const matchesCategory = activeCategory === 'All Questions' || faq.category === activeCategory;
-        const matchesSearch =
-            searchTerm.trim() === '' ||
-            faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    const filteredFaqs = useMemo(() => {
+        return faqData.filter((faq) => {
+            const matchesCategory = activeCategory === 'All Questions' || faq.category === activeCategory;
+            const matchesSearch =
+                searchTerm.trim() === '' ||
+                faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+    }, [activeCategory, searchTerm]);
+
+    const pipelineSteps = [
+        {
+            step: '01',
+            title: 'Multi-Signal Data Ingestion',
+            badge: 'Scraping + API',
+            desc: 'Continuous real-time ingestion of competitor catalog prices, Google Trends search intensity, and live inventory levels.',
+            metric: '350+ Signals/min',
+        },
+        {
+            step: '02',
+            title: 'Deterministic Elasticity Engine',
+            badge: 'ML Elasticity',
+            desc: 'Binary search optimization paired with log-linear demand modeling to calculate profit-maximizing price equilibrium.',
+            metric: 'e = -1.85 Curve',
+        },
+        {
+            step: '03',
+            title: 'Google Gemini Explainable AI',
+            badge: 'XAI Reasoning',
+            desc: 'Natural language executive explanations provide instant transparency behind every single price recommendation.',
+            metric: '100% Auditable',
+        },
+        {
+            step: '04',
+            title: 'Autonomous Storefront Sync',
+            badge: 'Instant Execution',
+            desc: 'Automatic two-way synchronization updates price points across Shopify, Amazon, and WooCommerce with zero manual latency.',
+            metric: '< 150ms Sync',
+        },
+    ];
 
     return (
-        <div className="min-h-screen bg-surface flex flex-col text-text overflow-hidden relative transition-colors duration-300">
-            {/* Background Halo Arch for Light Mode */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140vw] max-w-[1600px] h-[650px] bg-gradient-to-b from-white/90 via-purple-200/30 to-transparent rounded-b-[100%] blur-3xl pointer-events-none opacity-100 dark:opacity-0 z-0" />
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-hidden font-sans transition-colors duration-300">
+            {/* Ambient Background Grid and Atmosphere */}
+            <div className="fixed inset-0 bg-grid-dark pointer-events-none opacity-40 dark:opacity-30 z-0" />
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-indigo-200/40 via-sky-100/30 to-transparent dark:from-indigo-500/10 dark:via-cyan-500/5 dark:to-transparent blur-[120px] pointer-events-none z-0" />
 
             {/* Navbar */}
-            <nav className="fixed w-full z-50 bg-surface border-b border-purple-100 dark:border-black/5">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#070B14]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08] transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
-                                <img src={logoIcon} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm" />
+                        {/* Brand Logo */}
+                        <Link to="/" className="flex items-center gap-3 group">
+                            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1.5 shadow-sm group-hover:border-indigo-500/50 transition-colors">
+                                <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm" />
                             </div>
-                            <span className="font-extrabold text-2xl tracking-tight text-text relative z-10">PricePilot AI</span>
-                        </div>
-                        <div className="hidden md:flex items-center space-x-6">
-                            <Link to="/docs" className="text-text-muted hover:text-primary transition-colors text-sm font-medium">
-                                Docs
-                            </Link>
-
-                            <a href="#faq" className="text-text-muted hover:text-primary transition-colors text-sm font-medium">
-                                FAQ
-                            </a>
-
-                            <a href="#about" className="text-text-muted hover:text-primary transition-colors text-sm font-medium">
-                                About Us
-                            </a>
-
-                            <Link to="/login" className="text-text-muted hover:text-primary transition-colors text-sm font-medium">
-                                Sign In
-                            </Link>
-
-                            {/* Theme Toggle Button */}
-                            <button
-                                onClick={toggleTheme}
-                                className="p-2.5 rounded-full text-text-muted hover:text-primary hover:bg-purple-100/50 dark:hover:bg-surface/50 transition-colors border border-purple-200 dark:border-transparent"
-                                title="Toggle Theme"
-                            >
-                                {theme === "dark" ? (
-                                    <HiOutlineSun className="w-5 h-5" />
-                                ) : (
-                                    <HiOutlineMoon className="w-5 h-5" />
-                                )}
-                            </button>
-
-                            {/* See Demo Button */}
-                            <Link
-                                to="/demo"
-                                className="btn-primary py-2.5 px-6 rounded-full text-sm shadow-md"
-                            >
-                                See Demo
-                            </Link>
-
-                            {/* Get Started Button */}
-                            <Link
-                                to="/register"
-                                className="btn-primary py-2.5 px-6 rounded-full text-sm shadow-md"
-                            >
-                                Get Started
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {/* Hero Section */}
-            <main className="flex-1 flex flex-col px-4 pt-36 pb-20 relative z-10 w-full max-w-[1400px] mx-auto">
-
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center mb-24">
-                    {/* Left Column: Text & CTA */}
-                    <div className="text-center lg:text-left flex flex-col items-center lg:items-start animate-fade-in">
-                        <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-50 dark:bg-surface-light border border-indigo-200 dark:border-black/10 text-indigo-600 dark:text-primary font-semibold mb-8 shadow-sm">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 dark:bg-primary-light opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600 dark:bg-primary"></span>
+                            <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white">
+                                PricePilot <span className="text-indigo-600 dark:text-indigo-400">AI</span>
                             </span>
-                            PricePilot AI 1.0 is Live
-                        </div>
+                        </Link>
 
-                        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-text mb-6">
-                            Dynamic Pricing<br />
-                            Powered by <br className="hidden md:block" />
-                            <span className="bg-gradient-to-r from-indigo-600 via-blue-500 to-indigo-400 bg-clip-text text-transparent font-extrabold">Generative AI</span>
-                        </h1>
+                        {/* Navigation Links & Actions */}
+                        <div className="flex items-center space-x-2 sm:space-x-6">
+                            <nav className="hidden md:flex items-center space-x-6">
+                                <Link to="/docs" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                    Docs
+                                </Link>
+                                <a href="#features" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                    Features
+                                </a>
+                                <a href="#pipeline" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                    Architecture
+                                </a>
+                                <a href="#faq" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                    FAQ
+                                </a>
+                                <a href="#about" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                    About
+                                </a>
+                            </nav>
 
-                        <p className="text-xl text-slate-600 dark:text-text-muted mb-10 max-w-lg leading-relaxed">
-                            Manage inventory, forecast demand, and improve profitability with intelligent insights designed for modern businesses.
-                        </p>
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <Link to="/login" className="text-slate-700 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white text-sm font-medium px-3 py-2 rounded-lg dark:hover:bg-white/5 transition-colors">
+                                    Sign In
+                                </Link>
 
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link to="/register" className="btn-primary text-lg px-8 py-3.5 rounded-full shadow-[0_8px_25px_rgba(84,82,246,0.35)]">
-                                Start Optimizing Now
-                            </Link>
-                            <Link to="/demo" className="btn-secondary text-lg px-8 py-3.5 rounded-full flex items-center justify-center gap-2 border border-purple-200 dark:border-black/10 bg-white/80 dark:bg-transparent hover:bg-purple-50 dark:hover:bg-black/5">
-                                See Demo <span className="text-sm">→</span>
-                            </Link>
-                        </div>
-                    </div>
+                                {/* Theme Toggle */}
+                                <button
+                                    onClick={toggleTheme}
+                                    className="p-2 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 transition-colors"
+                                    title="Toggle Theme"
+                                    aria-label="Toggle Theme"
+                                >
+                                    {theme === 'dark' ? (
+                                        <HiOutlineSun className="w-4 h-4 text-amber-400" />
+                                    ) : (
+                                        <HiOutlineMoon className="w-4 h-4 text-indigo-600" />
+                                    )}
+                                </button>
 
-                    {/* Right Column: Hero Dashboard */}
-                    <div className="w-full flex justify-center lg:justify-end animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                        <HeroDashboard />
-                    </div>
-                </div>
-
-                {/* Dark Panel */}
-                <ExpandableDarkPanel>
-                    {/* Left: Illustrative Diagram */}
-                    <div className="flex-1 w-full relative min-h-[300px] md:min-h-[400px] flex items-center justify-center">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="relative w-full max-w-sm h-full font-sans">
-                                {/* Center Node */}
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10 bg-black p-5 rounded-2xl shadow-xl border border-white/10">
-                                    <p className="text-white/60 text-sm mb-1 font-medium">How does</p>
-                                    <p className="text-white text-2xl font-bold tracking-wide">AI work?</p>
-                                </div>
-
-                                {/* Connecting lines */}
-                                <svg className="absolute inset-0 w-full h-full text-white/10" stroke="currentColor" strokeWidth={1.5}>
-                                    <line x1="50%" y1="50%" x2="20%" y2="20%" />
-                                    <line x1="50%" y1="50%" x2="80%" y2="20%" />
-                                    <line x1="50%" y1="50%" x2="90%" y2="35%" />
-                                    <line x1="50%" y1="50%" x2="90%" y2="50%" />
-                                    <line x1="50%" y1="50%" x2="80%" y2="80%" />
-                                    <line x1="50%" y1="50%" x2="50%" y2="90%" />
-                                    <line x1="50%" y1="50%" x2="20%" y2="80%" />
-                                    <line x1="50%" y1="50%" x2="10%" y2="50%" />
-                                    <line x1="50%" y1="50%" x2="40%" y2="10%" />
-                                </svg>
-
-                                {/* Node labels */}
-                                <div className="absolute top-[15%] left-[15%] -translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Processing</div>
-                                <div className="absolute top-[15%] right-[15%] translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Analysis</div>
-                                <div className="absolute top-[50%] right-[5%] translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Input</div>
-                                <div className="absolute bottom-[15%] right-[15%] translate-x-1/2 translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Output</div>
-                                <div className="absolute bottom-[5%] left-[50%] -translate-x-1/2 translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Collection</div>
-                                <div className="absolute bottom-[15%] left-[15%] -translate-x-1/2 translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Optimize</div>
-                                <div className="absolute top-[50%] left-[5%] -translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Learning</div>
-                                <div className="absolute top-[5%] left-[40%] -translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Prediction</div>
-                                <div className="absolute top-[35%] right-[10%] translate-x-1/2 -translate-y-1/2 bg-[#2A2A2A] px-4 py-2.5 rounded-xl text-sm font-medium text-white/90 shadow-md border border-white/5 hover:bg-[#333333] hover:scale-105 transition-all">Training</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right: Text and CTA */}
-                    <div className="flex-1 text-center md:text-left flex flex-col justify-center items-center md:items-start pl-0 md:pl-8">
-                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                            Built for <span className="italic text-gray-300">businesses.</span><br />
-                            Powered by <span className="italic text-gray-300">AI.</span>
-                        </h2>
-                        <p className="text-white/70 text-lg mb-8 max-w-md">
-                            Manage inventory, forecast demand, and improve profitability with intelligent insights designed for modern businesses.
-                        </p>
-                        <div className="flex gap-4">
-                            <div className="relative group inline-block">
-                                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-400 via-yellow-400 to-blue-500 rounded-full blur-sm opacity-80 group-hover:opacity-100 transition duration-500"></div>
-                                <Link to="/demo" className="relative bg-white text-black px-6 py-2.5 rounded-full font-medium hover:bg-gray-200 transition-colors flex items-center gap-2">
-                                    See Demo <span className="text-sm">→</span>
+                                {/* Primary CTA */}
+                                <Link
+                                    to="/register"
+                                    className="btn-primary py-2 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/20"
+                                >
+                                    Get Started
                                 </Link>
                             </div>
                         </div>
                     </div>
-                </ExpandableDarkPanel>
+                </div>
+            </header>
 
-                {/* Asymmetric Bento Features Grid (Anti-Slop Redesign) */}
-                <div id="features" className="max-w-7xl w-full mt-24 animate-slide-up relative z-10 mx-auto" style={{ animationDelay: '0.3s' }}>
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col pt-28 pb-20 relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+                
+                {/* Hero Section */}
+                <section className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center mb-20 min-h-[calc(100dvh-10rem)]">
+                    {/* Left Column: Value Prop & CTAs */}
+                    <div className="lg:col-span-6 text-center lg:text-left flex flex-col items-center lg:items-start animate-fade-in">
+                        {/* Status Eyebrow Badge */}
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-6 shadow-sm">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600 dark:bg-indigo-500"></span>
+                            </span>
+                            <span>PricePilot 1.0 Live</span>
+                            <span className="text-slate-400 dark:text-slate-500">|</span>
+                            <span className="text-slate-600 dark:text-slate-300">Autonomous Pricing</span>
+                        </div>
+
+                        {/* Display Headline */}
+                        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6">
+                            Dynamic Pricing.<br />
+                            <span className="bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600 dark:from-indigo-400 dark:via-sky-300 dark:to-emerald-400 bg-clip-text text-transparent">
+                                Engineered for Profit.
+                            </span>
+                        </h1>
+
+                        {/* Value Prop Subtext */}
+                        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-lg leading-relaxed">
+                            Autonomous elasticity modeling, real-time competitor tracking, and explainable AI to protect margins and accelerate revenue.
+                        </p>
+
+                        {/* CTA Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto">
+                            <Link 
+                                to="/register" 
+                                className="btn-primary text-sm sm:text-base px-7 py-3 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+                            >
+                                <span>Start Optimizing Now</span>
+                                <HiOutlineArrowRight className="w-4 h-4" />
+                            </Link>
+                            <Link 
+                                to="/demo" 
+                                className="btn-secondary text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700/60 hover:border-indigo-500/40 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 shadow-sm"
+                            >
+                                <span>Live Sandbox</span>
+                                <span className="text-xs text-indigo-600 dark:text-indigo-400">→</span>
+                            </Link>
+                        </div>
+
+                        {/* Quick Trust Highlights */}
+                        <div className="mt-8 flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-1.5">
+                                <HiOutlineCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span>No credit card required</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <HiOutlineCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span>5-minute catalog sync</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Hero Live Pricing Terminal Preview */}
+                    <div className="lg:col-span-6 w-full flex justify-center lg:justify-end animate-slide-up">
+                        <HeroDashboard />
+                    </div>
+                </section>
+
+                {/* Social Proof & Integration Logo Bar */}
+                <section className="py-8 border-y border-slate-200/80 dark:border-white/[0.08] bg-white/40 dark:bg-transparent mb-24 relative transition-colors duration-300">
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center md:text-left">
+                            Seamless 2-Way Sync Across Modern Commerce Platforms
+                        </span>
+
+                        <div className="flex items-center gap-8 sm:gap-12 flex-wrap justify-center opacity-85 hover:opacity-100 transition-opacity">
+                            {integrationLogos.map((item) => {
+                                const IconComponent = item.icon;
+                                return (
+                                    <div key={item.name} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">
+                                        <IconComponent className="w-6 h-6" />
+                                        <span className="text-sm font-semibold tracking-wide">{item.name}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Asymmetric Bento Intelligence Suite */}
+                <section id="features" className="max-w-7xl w-full mx-auto mb-28">
                     <div className="text-center md:text-left mb-12">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3">
                             <HiOutlineLightningBolt className="w-4 h-4" />
                             Core Intelligence Suite
                         </div>
-                        <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                            Engineered for Precision & Margin Protection
+                        <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            Engineered for Precision and Margin Protection
                         </h2>
-                        <p className="text-slate-600 dark:text-text-muted mt-2 max-w-2xl text-sm md:text-base">
+                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl text-sm sm:text-base leading-relaxed">
                             Replace arbitrary guesswork with deterministic price elasticity models, multi-signal demand forecasts, and transparent generative AI reasoning.
                         </p>
                     </div>
 
-                    <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+                    <div className="grid lg:grid-cols-12 gap-6 items-stretch">
                         {/* Large Bento Card (7 Columns): Dynamic Margin Engine */}
-                        <div className="lg:col-span-7 rounded-[2rem] border border-slate-200 dark:border-blue-900/40 bg-white/90 dark:bg-[#0B1528] p-8 md:p-10 flex flex-col justify-between shadow-xl shadow-indigo-500/5 hover:shadow-indigo-500/10 transition-all duration-300">
+                        <div className="lg:col-span-7 rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-8 sm:p-10 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-indigo-500/30 transition-all duration-300">
                             <div>
                                 <div className="flex items-center justify-between mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-sm">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-sm">
                                         <HiOutlineLightningBolt className="w-6 h-6" />
                                     </div>
-                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20">
+                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 font-mono">
                                         Deterministic + ML
                                     </span>
                                 </div>
 
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-                                    Real-Time Price Elasticity & Margin Optimization
+                                <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                                    Real-Time Price Elasticity and Margin Optimization
                                 </h3>
-                                <p className="text-slate-600 dark:text-blue-100/70 leading-relaxed mb-6">
-                                    Binary-search margin optimization paired with dynamic log-linear elasticity models to pinpoint the exact price where revenue and profit curves maximize.
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 text-sm sm:text-base">
+                                    Binary search margin optimization paired with dynamic log-linear elasticity models to pinpoint the exact price where revenue and profit curves maximize.
                                 </p>
 
                                 {/* Micro visualizer inside the card */}
                                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-3 mb-6">
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="font-semibold text-slate-600 dark:text-slate-400">Elasticity Curve ($e = -1.85$)</span>
-                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">+18.4% Projected Margin</span>
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">Elasticity Curve (e = -1.85)</span>
+                                        <span className="font-bold text-emerald-700 dark:text-emerald-400">+18.4% Projected Margin</span>
                                     </div>
                                     <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                                        <div className="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full w-[78%] rounded-full" />
+                                        <div className="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full w-[78%] rounded-full" />
                                     </div>
-                                    <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                                        <span>Cost: ₹840</span>
-                                        <span className="font-bold text-slate-800 dark:text-white">Optimal Price: ₹1,299</span>
+                                    <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                                        <span>COGS: ₹840</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">Optimal Price: ₹1,299</span>
                                         <span>Competitor: ₹1,349</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <Link to="/demo" className="text-sm font-bold text-indigo-600 dark:text-blue-400 hover:text-indigo-800 dark:hover:text-blue-300 inline-flex items-center gap-1.5">
-                                    Launch interactive simulator <span>→</span>
-                                </Link>
-                                <Link to="/demo" className="w-full sm:w-auto bg-indigo-600 dark:bg-blue-600 hover:bg-indigo-700 dark:hover:bg-blue-700 text-white rounded-xl py-2.5 px-6 text-xs font-bold transition-all shadow-md shadow-indigo-500/20 text-center">
-                                    Try What-If Simulator
+                            <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    Simulate pricing across 10,000+ catalog SKUs
+                                </span>
+                                <Link 
+                                    to="/demo" 
+                                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2.5 px-5 text-xs font-bold transition-all shadow-md shadow-indigo-500/20 text-center flex items-center justify-center gap-1.5"
+                                >
+                                    <span>Try What-If Simulator</span>
+                                    <HiOutlineArrowRight className="w-3.5 h-3.5" />
                                 </Link>
                             </div>
                         </div>
@@ -388,133 +396,202 @@ export default function Landing() {
                         {/* Right Stacked Bento Cards (5 Columns) */}
                         <div className="lg:col-span-5 flex flex-col gap-6">
                             {/* Card A: Multi-Signal Demand */}
-                            <div className="rounded-[2rem] border border-slate-200 dark:border-purple-900/40 bg-white/90 dark:bg-[#170C28] p-7 flex flex-col justify-between shadow-xl shadow-purple-500/5 hover:shadow-purple-500/10 transition-all duration-300 flex-1">
+                            <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-purple-500/30 transition-all duration-300 flex-1">
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
                                             <HiOutlineCubeTransparent className="w-5 h-5" />
                                         </div>
-                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20">
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20 font-mono">
                                             Prophet Forecasts
                                         </span>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white mb-2">
                                         Multi-Signal Demand Intelligence
                                     </h3>
-                                    <p className="text-xs text-slate-600 dark:text-purple-100/70 leading-relaxed mb-4">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
                                         Forecast sales velocity combining historical checkout patterns with Google Trends search volumes, seasonal trends, and competitor stockouts.
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t border-slate-100 dark:border-purple-900/30 flex justify-between items-center">
-                                    <Link to="/docs" className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 inline-flex items-center gap-1">
-                                        View documentation <span>→</span>
+                                <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 inline-flex items-center gap-1">
+                                        <span>View Documentation</span>
+                                        <span>→</span>
                                     </Link>
                                 </div>
                             </div>
 
                             {/* Card B: Explainable AI */}
-                            <div className="rounded-[2rem] border border-slate-200 dark:border-emerald-900/40 bg-white/90 dark:bg-[#071C12] p-7 flex flex-col justify-between shadow-xl shadow-emerald-500/5 hover:shadow-emerald-500/10 transition-all duration-300 flex-1">
+                            <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-emerald-500/30 transition-all duration-300 flex-1">
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
                                             <HiOutlineShieldCheck className="w-5 h-5" />
                                         </div>
-                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20">
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 font-mono">
                                             Google Gemini XAI
                                         </span>
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white mb-2">
                                         Explainable AI (XAI)
                                     </h3>
-                                    <p className="text-xs text-slate-600 dark:text-emerald-100/70 leading-relaxed mb-4">
-                                        Never guess why an algorithm made a recommendation. Natural language executive summaries outline the exact competitors and market signals driving every rupee change.
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                        Never guess why an algorithm made a recommendation. Natural language executive summaries outline the exact market signals driving every rupee change.
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t border-slate-100 dark:border-emerald-900/30 flex justify-between items-center">
-                                    <Link to="/docs" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 inline-flex items-center gap-1">
-                                        Explore XAI framework <span>→</span>
+                                <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1">
+                                        <span>Explore XAI Framework</span>
+                                        <span>→</span>
                                     </Link>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                {/* Mission statement + resource list */}
-                <div className="w-full max-w-7xl mx-auto mt-24 text-left grid md:grid-cols-2 gap-12 md:gap-24 border-t border-purple-100 dark:border-border pt-16">
-                    <div>
-                        <h3 className="text-2xl md:text-3xl font-extrabold leading-snug text-slate-900 dark:text-text">
-                            At PricePilot AI, we build<br />
-                            AI to serve your business's<br />
-                            long-term profitability.
-                        </h3>
-                    </div>
-                    <div className="flex flex-col gap-0">
-                        {[
-                            { title: 'Core views on AI safety', category: 'Announcements' },
-                            { title: "PricePilot's Responsible Scaling Policy", category: 'Alignment Science' },
-                            { title: 'PricePilot Academy: Build and Learn', category: 'Education' },
-                            { title: "PricePilot's Economic Index", category: 'Economic Research' },
-                        ].map((item, idx) => (
-                            <div
-                                key={idx}
-                                className="flex justify-between items-center border-b border-purple-100 dark:border-border py-5 group cursor-pointer"
-                            >
-                                <span className="text-sm font-semibold text-slate-900 dark:text-text group-hover:text-indigo-600 dark:group-hover:text-primary transition-colors">{item.title}</span>
-                                <span className="text-sm text-slate-500 dark:text-text-muted">{item.category}</span>
+                {/* Dynamic Engine Architecture Pipeline */}
+                <section id="pipeline" className="max-w-7xl w-full mx-auto mb-28">
+                    <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/95 dark:bg-slate-950/80 backdrop-blur-2xl p-8 sm:p-12 relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors duration-300">
+                        <div className="text-center max-w-2xl mx-auto mb-12">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold uppercase tracking-wider mb-3">
+                                <HiOutlineSparkles className="w-4 h-4" />
+                                Autonomous Execution Pipeline
                             </div>
-                        ))}
+                            <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                                How PricePilot Generates Maximum Margin
+                            </h2>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
+                                From competitor price scraping to automated catalog checkout synchronization.
+                            </p>
+                        </div>
+
+                        {/* Pipeline Steps Grid */}
+                        <div className="grid md:grid-cols-4 gap-4 sm:gap-6 relative">
+                            {pipelineSteps.map((item, index) => (
+                                <div
+                                    key={item.step}
+                                    onClick={() => setActivePipelineStep(index)}
+                                    className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                        activePipelineStep === index
+                                            ? 'bg-indigo-50/90 dark:bg-slate-900/90 border-indigo-500/60 shadow-lg shadow-indigo-500/10 -translate-y-1'
+                                            : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-100 dark:hover:bg-slate-900/60'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                                            {item.step}
+                                        </span>
+                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-medium">
+                                            {item.badge}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-2">
+                                        {item.title}
+                                    </h4>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                        {item.desc}
+                                    </p>
+                                    <div className="pt-3 border-t border-slate-200 dark:border-white/5 text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold flex items-center justify-between">
+                                        <span>Status:</span>
+                                        <span>{item.metric}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                </section>
+
+                {/* Research & Economic Insights */}
+                <section className="max-w-7xl w-full mx-auto mb-28 border-t border-slate-200/80 dark:border-white/[0.08] pt-16 transition-colors duration-300">
+                    <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
+                        <div>
+                            <span className="text-xs font-bold font-mono text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-2">
+                                Research and Policy
+                            </span>
+                            <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-snug">
+                                Building autonomous pricing algorithms for sustainable long-term profitability.
+                            </h3>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm mt-4 leading-relaxed max-w-md">
+                                Read our foundational research on algorithmic price elasticity, model interpretability, and market fairness guidelines.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {[
+                                { title: 'Core Principles on Algorithmic Pricing Safety', category: 'Announcements' },
+                                { title: 'PricePilot Responsible Scaling and Anti-Collusion Policy', category: 'Alignment Science' },
+                                { title: 'PricePilot Academy: Elasticity Math and Prophet Forecasting', category: 'Education' },
+                                { title: 'Quarterly E-Commerce Macroeconomic Index', category: 'Market Research' },
+                            ].map((item, idx) => (
+                                <div
+                                    key={idx}
+                                    className="p-4 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-white/80 dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900/80 hover:border-indigo-500/30 transition-all flex items-center justify-between group cursor-pointer shadow-sm"
+                                >
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
+                                            {item.title}
+                                        </h4>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block">{item.category}</span>
+                                    </div>
+                                    <span className="text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors text-sm">→</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
                 {/* FAQ Section */}
-                <section id="faq" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-7xl mx-auto grid gap-10 lg:grid-cols-[360px_1fr] items-start">
-                        <div className="rounded-[2rem] border border-purple-100 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl p-8 shadow-xl transition-colors duration-300">
-                            <span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400 mb-6">
-                                FAQ Navigation
+                <section id="faq" className="max-w-7xl w-full mx-auto mb-28">
+                    <div className="grid gap-8 lg:grid-cols-[340px_1fr] items-start">
+                        {/* Left Search & Categories Sidebar */}
+                        <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 shadow-xl dark:shadow-2xl transition-colors duration-300">
+                            <span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 mb-6 font-mono">
+                                FAQ Helpdesk
                             </span>
 
-                            <h2 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-4">Got Questions?</h2>
-                            <p className="text-slate-600 dark:text-white/70 leading-relaxed mb-8">
-                                Everything you need to know about our dynamic price optimization engine, real-time tracking, and security seals.
+                            <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white mb-3">Got Questions?</h2>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
+                                Everything you need to know about our dynamic price optimization engine, real-time tracking, and data security.
                             </p>
 
-                            <div className="mb-8">
+                            {/* Search Box */}
+                            <div className="mb-6">
                                 <label htmlFor="faq-search" className="sr-only">Search FAQ</label>
                                 <div className="relative">
+                                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                                     <input
                                         id="faq-search"
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Search for answers..."
-                                        className="w-full rounded-3xl border border-purple-200 dark:border-white/10 bg-purple-50/50 dark:bg-white/5 px-5 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-white/40 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        placeholder="Search answers..."
+                                        className="w-full rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-black/40 pl-10 pr-10 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                                     />
-                                    {searchTerm ? (
+                                    {searchTerm && (
                                         <button
                                             type="button"
                                             onClick={() => setSearchTerm('')}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-sm"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs"
                                         >
                                             Clear
                                         </button>
-                                    ) : (
-                                        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40">⌘K</span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
+                            {/* Category Filter Buttons */}
+                            <div className="space-y-2">
                                 {faqCategories.map((item, idx) => (
                                     <button
                                         key={idx}
                                         type="button"
                                         onClick={() => setActiveCategory(item)}
-                                        className={`w-full rounded-3xl px-5 py-4 text-left text-base font-medium transition ${activeCategory === item
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-transparent text-slate-600 dark:text-white/70 hover:bg-purple-50 dark:hover:bg-white/10'
-                                            }`}
+                                        className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition ${
+                                            activeCategory === item
+                                                ? 'bg-indigo-600 text-white shadow-md'
+                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                                        }`}
                                     >
                                         {item}
                                     </button>
@@ -522,7 +599,8 @@ export default function Landing() {
                             </div>
                         </div>
 
-                        <div className="space-y-4">
+                        {/* Right Accordion List */}
+                        <div className="space-y-3.5">
                             {filteredFaqs.length > 0 ? (
                                 filteredFaqs.map((faq, index) => (
                                     <FaqAccordionItem
@@ -533,173 +611,139 @@ export default function Landing() {
                                     />
                                 ))
                             ) : (
-                                <div className="rounded-3xl border border-purple-100 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl p-10 text-center text-slate-500 dark:text-white/60">
-                                    No questions match your search. Try a different keyword or category.
+                                <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-10 text-center text-slate-500 dark:text-slate-400">
+                                    No questions match your search. Try another keyword or category.
                                 </div>
                             )}
                         </div>
                     </div>
                 </section>
 
-                {/* About Us Section */}
-                <section id="about" className="relative z-10 py-24 px-4 sm:px-6 lg:px-8 w-full">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center justify-center gap-3 mb-10">
-                            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">About Us</h2>
+                {/* About Us & Engineering Team Section */}
+                <section id="about" className="max-w-4xl w-full mx-auto mb-20">
+                    <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl p-8 sm:p-12 shadow-xl dark:shadow-2xl text-center transition-colors duration-300">
+                        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 p-3 shadow-inner flex items-center justify-center mb-6">
+                            <img src={logoIcon} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm" />
                         </div>
 
-                        <div className="rounded-[2rem] border border-purple-100 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl p-8 md:p-12 text-center space-y-6 shadow-xl">
-                            <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-tr from-indigo-100 via-purple-50 to-blue-100 dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-blue-950/40 border border-indigo-200 dark:border-white/10 p-4 shadow-inner flex items-center justify-center relative overflow-hidden mb-8">
-                                <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-md" />
-                            </div>
+                        <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
+                            PricePilot AI Engineering Team
+                        </h3>
 
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">PricePilot AI Team</h3>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-8">
+                            PricePilot AI was built as a full-stack engineering initiative to deliver enterprise-grade dynamic price optimization, machine learning forecasting, and explainable AI to modern merchants.
+                        </p>
 
-                            <p className="text-slate-600 dark:text-white/70 max-w-2xl mx-auto leading-relaxed">
-                                We are a passionate team of developers and AI enthusiasts building the future of e-commerce.
-                                PricePilot AI was developed as a comprehensive Final Year Project to demonstrate the real-world utility of Generative AI, machine learning forecasting, and dynamic pricing algorithms.
-                            </p>
-
-                            <div className="grid md:grid-cols-2 gap-6 mt-10 text-left">
-                                <div className="bg-purple-50/50 dark:bg-white/5 text-slate-900 dark:text-white p-6 rounded-2xl border border-purple-100 dark:border-white/10">
-                                    <h4 className="font-semibold text-indigo-600 dark:text-indigo-400 mb-2">Our Mission</h4>
-                                    <p className="text-sm text-slate-600 dark:text-white/70 leading-relaxed">To democratize enterprise-grade pricing intelligence, making it accessible, transparent, and fully explainable for merchants of all sizes.</p>
-                                </div>
-                                <div className="bg-purple-50/50 dark:bg-white/5 text-slate-900 dark:text-white p-6 rounded-2xl border border-purple-100 dark:border-white/10">
-                                    <h4 className="font-semibold text-indigo-600 dark:text-indigo-400 mb-2">The Tech</h4>
-                                    <p className="text-sm text-slate-600 dark:text-white/70 leading-relaxed">Powered by React, Node.js, FastAPI, and Google Gemini, we bridge the gap between deterministic algorithms and generative insights.</p>
-                                </div>
-                            </div>
-
-                            {/* Team Members */}
-                            <div className="mt-14 text-left">
-                                <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-6 text-center">Meet the Team</h4>
-                                <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                                    {teamMembers.map((member) => (
-                                        <div
-                                            key={member.name}
-                                            className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-purple-100 dark:border-white/10 text-center hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all shadow-sm"
-                                        >
-                                            <div className="w-16 h-16 mx-auto rounded-full bg-indigo-600 flex items-center justify-center text-xl font-bold text-white mb-4 shadow-md">
-                                                {member.name.split(' ').map((n) => n[0]).join('')}
-                                            </div>
-                                            <p className="font-semibold text-slate-900 dark:text-white">{member.name}</p>
-                                            <p className="text-sm text-slate-500 dark:text-white/60">{member.role}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Contact */}
-                            <div className="mt-14 pt-10 border-t border-purple-100 dark:border-white/10 text-left">
-                                <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-6 text-center">Get in Touch</h4>
-
-                                {/* GitHub Repo Button */}
-                                <div className="flex justify-center mb-8">
+                        {/* Team Profile Cards */}
+                        <div className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
+                            {teamMembers.map((member) => (
+                                <div
+                                    key={member.name}
+                                    className="p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950/60 text-center hover:border-indigo-500/40 transition-all shadow-sm"
+                                >
+                                    <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-tr from-indigo-600 to-sky-500 flex items-center justify-center text-sm font-bold text-white mb-3 shadow-md">
+                                        {member.name.split(' ').map((n) => n[0]).join('')}
+                                    </div>
+                                    <h4 className="font-bold text-slate-900 dark:text-white text-base">{member.name}</h4>
+                                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mb-3 font-medium">{member.role}</p>
                                     <a
-                                        href="https://github.com/rb-369/Price-Pilot-Ai"
+                                        href={member.linkedin}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl border border-purple-200 dark:border-white/10 bg-purple-50/50 dark:bg-white/5 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:bg-purple-100/50 dark:hover:bg-white/10 transition-all shadow-sm group"
+                                        className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors font-medium"
                                     >
-                                        <div className="w-9 h-9 rounded-full bg-slate-900 dark:bg-surface-dark flex items-center justify-center shadow-sm">
-                                            <FaGithub className="w-5 h-5 text-white" />
-                                        </div>
-                                        <div className="text-left">
-                                            <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">View on GitHub</p>
-                                            <p className="text-xs text-slate-500 dark:text-white/60">rb-369/Price-Pilot-Ai</p>
-                                        </div>
+                                        <FaLinkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
+                                        <span>LinkedIn Profile</span>
                                     </a>
                                 </div>
+                            ))}
+                        </div>
 
-                                <div className="flex flex-col items-center gap-4">
-                                    <a
-                                        href="mailto:pricepilot5@gmail.com"
-                                        className="inline-flex items-center gap-2 text-slate-600 dark:text-white/80 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                    >
-                                        <HiOutlineMail className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                        pricepilot5@gmail.com
-                                    </a>
-
-                                    <a
-                                        href="https://www.linkedin.com/in/aryan-desale-18330a377"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-slate-600 dark:text-white/80 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                    >
-                                        <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
-                                        Aryan Desale
-                                    </a>
-
-                                    <a
-                                        href="http://www.linkedin.com/in/rudra-babar-8594a8379"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-slate-600 dark:text-white/80 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                    >
-                                        <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
-                                        Rudra Babar
-                                    </a>
-                                </div>
-                            </div>
+                        {/* Verified GitHub Repository Badge */}
+                        <div className="pt-6 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <a
+                                href="https://github.com/rb-369/Price-Pilot-Ai"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:border-indigo-500/40 hover:bg-slate-200/80 dark:hover:bg-white/10 transition-all text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm"
+                            >
+                                <FaGithub className="w-4 h-4 text-slate-900 dark:text-white" />
+                                <span>rb-369/Price-Pilot-Ai</span>
+                            </a>
+                            <a
+                                href="mailto:pricepilot5@gmail.com"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:border-indigo-500/40 hover:bg-slate-200/80 dark:hover:bg-white/10 transition-all text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm"
+                            >
+                                <HiOutlineMail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                <span>pricepilot5@gmail.com</span>
+                            </a>
                         </div>
                     </div>
                 </section>
 
-                {/* Back to Top Button */}
+                {/* Back to Top Floating Button */}
                 <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="fixed bottom-20 right-8 z-50 animate-float px-5 py-3 rounded-full bg-white dark:bg-surface-light border border-purple-200 dark:border-black/10 shadow-[0_8px_25px_rgba(147,51,234,0.12)] flex items-center gap-2 text-slate-900 dark:text-text font-semibold hover:border-indigo-400 transition-all"
+                    className="fixed bottom-8 right-8 z-50 px-4 py-2.5 rounded-full bg-white/90 dark:bg-[#0B1120]/95 border border-slate-200 dark:border-white/10 shadow-xl flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-white transition-all backdrop-blur-xl"
+                    aria-label="Back to Top"
                 >
-                    <HiOutlineArrowUp className="w-4 h-4 text-indigo-600 dark:text-primary" />
-                    Back to Top
+                    <HiOutlineArrowUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <span>Top</span>
                 </button>
-
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 w-full bg-slate-900 dark:bg-surface py-16 mt-12 text-text-muted">
-                <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+            <footer className="relative z-10 w-full bg-slate-100 dark:bg-[#050810] border-t border-slate-200 dark:border-white/[0.08] py-14 text-slate-600 dark:text-slate-400 transition-colors duration-300">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
                     <div className="col-span-2">
-                        <div className="flex items-center gap-3 mb-6">
-                            <span className="font-bold text-2xl tracking-tight text-white">PricePilot AI</span>
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1 flex items-center justify-center shadow-sm">
+                                <img src={logoIcon} alt="Logo" className="w-full h-full object-contain" />
+                            </div>
+                            <span className="font-display font-bold text-lg text-slate-900 dark:text-white">PricePilot AI</span>
                         </div>
-                        <p className="text-white/60 text-sm max-w-xs leading-relaxed mb-6">
-                            Empowering modern businesses with generative AI, machine learning forecasting, and dynamic pricing algorithms.
+                        <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xs leading-relaxed mb-4">
+                            Autonomous dynamic pricing, Prophet demand forecasting, and Google Gemini XAI for high-growth e-commerce merchants.
                         </p>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-100/80 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-400 text-[11px] font-mono font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+                            <span>All Systems Operational</span>
+                        </div>
                     </div>
+
                     <div>
-                        <h4 className="font-semibold text-white mb-4">Products</h4>
-                        <ul className="space-y-3 text-sm text-white/60">
-                            <li><Link to="/demo" className="hover:text-white transition-colors">See Demo</Link></li>
-                            <li><Link to="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-                            <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Products</h4>
+                        <ul className="space-y-2.5 text-xs">
+                            <li><Link to="/demo" className="hover:text-slate-900 dark:hover:text-white transition-colors">Live Demo</Link></li>
+                            <li><Link to="/docs" className="hover:text-slate-900 dark:hover:text-white transition-colors">Documentation</Link></li>
+                            <li><a href="#features" className="hover:text-slate-900 dark:hover:text-white transition-colors">Intelligence Suite</a></li>
+                            <li><a href="#pipeline" className="hover:text-slate-900 dark:hover:text-white transition-colors">Architecture</a></li>
                         </ul>
                     </div>
+
                     <div>
-                        <h4 className="font-semibold text-white mb-4">Company</h4>
-                        <ul className="space-y-3 text-sm text-white/60">
-                            <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
-                            <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
-                            <li><a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a></li>
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Company</h4>
+                        <ul className="space-y-2.5 text-xs">
+                            <li><a href="#about" className="hover:text-slate-900 dark:hover:text-white transition-colors">About Team</a></li>
+                            <li><a href="#faq" className="hover:text-slate-900 dark:hover:text-white transition-colors">FAQ</a></li>
+                            <li><a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 dark:hover:text-white transition-colors">GitHub Repository</a></li>
                         </ul>
                     </div>
+
                     <div>
-                        <h4 className="font-semibold text-white mb-4">Legal</h4>
-                        <ul className="space-y-3 text-sm text-white/60">
-                            <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                            <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Legal</h4>
+                        <ul className="space-y-2.5 text-xs">
+                            <li><Link to="/privacy" className="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</Link></li>
+                            <li><Link to="/terms" className="hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</Link></li>
                         </ul>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto px-4 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/40">
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
                     <p>&copy; {new Date().getFullYear()} PricePilot AI. All rights reserved.</p>
                     <div className="flex items-center gap-4">
-                        <a href="https://www.linkedin.com/in/aryan-desale-18330a377" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                            <FaLinkedin className="w-4 h-4" />
-                        </a>
-                        <a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                            <FaGithub className="w-4 h-4" />
+                        <a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <FaGithub className="w-4 h-4 text-slate-700 dark:text-slate-300" />
                         </a>
                     </div>
                 </div>
