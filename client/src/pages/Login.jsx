@@ -57,8 +57,9 @@ export default function Login() {
                 setLoading(false);
             }
         },
-        onError: () => {
-            toast.error('Google login was unsuccessful');
+        onError: (err) => {
+            console.error('Google login error:', err);
+            toast.error('Google authentication failed. Check your network/firewall or Google Client ID.');
         }
     });
 
