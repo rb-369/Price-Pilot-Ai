@@ -70,3 +70,11 @@ codebase-analysis-report.md
 graphify-out/*
 .gstack/
 .gstack-reports/*
+
+# AI Evaluation generated run artifacts
+ai-service/evaluation_reports/eval_results_*.json
+ai-service/evaluation_reports/eval_report_*.md
+ai-service/models/*eval_*
+ai-service/models/*test_user*
+ai-service/.coverage
+ai-service/evaluation_reports/*
