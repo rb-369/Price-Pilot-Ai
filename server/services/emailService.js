@@ -6,45 +6,60 @@ try {
     // optional fallback
 }
 
-const GMAIL_USER = (process.env.GMAIL_USER || '').trim();
-const GMAIL_PASS = (process.env.GMAIL_PASS || '').trim().replace(/\s+/g, '');
-const SENDGRID_API_KEY = (process.env.SENDGRID_API_KEY || '').trim();
-const FROM_EMAIL = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || GMAIL_USER || 'notifications@pricepilot.ai').trim();
-const CLIENT_URL = (process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app').trim();
+/**
+ * Returns an active Nodemailer transporter for Gmail SSL or custom SMTP
+ */
+function getSmtpTransporter() {
+    if (!nodemailer) return null;
 
-if (SENDGRID_API_KEY) {
-    sgMail.setApiKey(SENDGRID_API_KEY);
-}
+    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+    const gmailPass = (process.env.GMAIL_PASS || process.env.SMTP_PASS || '').trim().replace(/\s+/g, '');
 
-// Setup Nodemailer SMTP transport if SMTP credentials are provided
-let smtpTransporter = null;
-if (nodemailer && (process.env.SMTP_HOST || GMAIL_USER)) {
-    try {
-        if (GMAIL_USER && GMAIL_PASS) {
-            smtpTransporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: GMAIL_USER,
-                    pass: GMAIL_PASS,
-                }
-            });
-            console.log(`[EmailService] Gmail SMTP transporter initialized for <${GMAIL_USER}>.`);
-        } else if (process.env.SMTP_HOST) {
-            smtpTransporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST.trim(),
-                port: parseInt(process.env.SMTP_PORT, 10) || 587,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: {
-                    user: (process.env.SMTP_USER || '').trim(),
-                    pass: (process.env.SMTP_PASS || '').trim(),
-                }
-            });
-            console.log('[EmailService] Custom SMTP transporter initialized.');
-        }
-    } catch (err) {
-        console.warn('[EmailService Warning] Failed to initialize SMTP transporter:', err.message);
+    if (gmailUser && gmailPass) {
+        return nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Use SSL for reliable cloud container delivery
+            auth: {
+                user: gmailUser,
+                pass: gmailPass,
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
     }
+
+    if (process.env.SMTP_HOST) {
+        return nodemailer.createTransport({
+            host: process.env.SMTP_HOST.trim(),
+            port: parseInt(process.env.SMTP_PORT, 10) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: (process.env.SMTP_USER || '').trim(),
+                pass: (process.env.SMTP_PASS || '').trim(),
+            }
+        });
+    }
+
+    return null;
 }
+
+/**
+ * Check currently active email provider status for diagnostics
+ */
+exports.getEmailStatus = () => {
+    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+    const gmailPass = (process.env.GMAIL_PASS || process.env.SMTP_PASS || '').trim();
+    const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
+
+    return {
+        gmailSmtpConfigured: Boolean(gmailUser && gmailPass),
+        gmailUser: gmailUser ? `${gmailUser.slice(0, 3)}***@${gmailUser.split('@')[1] || 'gmail.com'}` : null,
+        sendgridConfigured: Boolean(sendgridKey),
+        fromEmail: (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || gmailUser || 'notifications@pricepilot.ai').trim()
+    };
+};
 
 /**
  * Send welcome onboarding email when a new user registers
@@ -53,6 +68,7 @@ exports.sendWelcomeEmail = async (user) => {
     if (!user?.email) return;
 
     const userName = user.name || 'Merchant';
+    const clientUrl = (process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app').trim();
     const subject = `Welcome to PricePilot AI — Powering Your Autonomous Dynamic Pricing`;
     const html = `
         <!DOCTYPE html>
@@ -108,7 +124,7 @@ exports.sendWelcomeEmail = async (user) => {
                                     <table cellpadding="0" cellspacing="0">
                                         <tr>
                                             <td align="center" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);">
-                                                <a href="${CLIENT_URL}/dashboard" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">
+                                                <a href="${clientUrl}/dashboard" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 15px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px;">
                                                     Open Your Dashboard &rarr;
                                                 </a>
                                             </td>
@@ -144,6 +160,7 @@ exports.sendWelcomeEmail = async (user) => {
 exports.sendLowStockAlert = async (user, product) => {
     if (!user?.email || !product) return;
 
+    const clientUrl = (process.env.CLIENT_URL || 'https://price-pilot-ai-369.vercel.app').trim();
     const subject = `🚨 Critical Inventory Alert: "${product.name}" is Low on Stock`;
     const threshold = product.reorderThreshold !== undefined ? product.reorderThreshold : 10;
     const html = `
@@ -201,7 +218,7 @@ exports.sendLowStockAlert = async (user, product) => {
                             <!-- CTA -->
                             <tr>
                                 <td align="center" style="padding: 0 36px 36px 36px;">
-                                    <a href="${CLIENT_URL}/dashboard/products" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px; background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                    <a href="${clientUrl}/dashboard/products" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 10px; background: linear-gradient(135deg, #ef4444, #dc2626);">
                                         Manage Inventory in Dashboard &rarr;
                                     </a>
                                 </td>
@@ -252,50 +269,72 @@ exports.sendPasswordResetEmail = async (email, resetUrl) => {
  * Send generic notification email (e.g. feedback/report alerts)
  */
 exports.sendNotificationEmail = async (subject, htmlContent, recipient = null) => {
-    const to = recipient || process.env.ADMIN_NOTIFICATION_EMAIL || FROM_EMAIL;
+    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || process.env.GMAIL_USER || 'notifications@pricepilot.ai').trim();
+    const to = recipient || process.env.ADMIN_NOTIFICATION_EMAIL || fromEmail;
     return _sendMail(to, subject, htmlContent);
 };
 
 /**
- * Core dispatch function handling Gmail SMTP, Nodemailer SMTP, SendGrid, and dev logger
+ * Test email dispatcher for diagnostics
+ */
+exports.sendTestEmail = async (targetEmail) => {
+    const subject = `🧪 PricePilot AI Email Delivery Test (${new Date().toLocaleTimeString()})`;
+    const html = `
+        <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 24px; background: #0b0f19; color: #f1f5f9; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.3);">
+            <h2 style="color: #6366f1; margin-top: 0;">Email Delivery Operational! ✅</h2>
+            <p>This confirms that your PricePilot AI email delivery configuration is working perfectly.</p>
+            <p style="color: #94a3b8; font-size: 13px;">Timestamp: ${new Date().toISOString()}</p>
+        </div>
+    `;
+    return _sendMail(targetEmail, subject, html);
+};
+
+/**
+ * Core dispatch function handling Gmail SMTP SSL, Custom SMTP, SendGrid, and dev logger
  */
 async function _sendMail(to, subject, html) {
-    if (!to) return;
+    if (!to) return { success: false, reason: 'missing_recipient' };
 
-    // 1. Try Gmail SMTP / Custom SMTP first if configured
-    if (smtpTransporter) {
+    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || gmailUser || 'notifications@pricepilot.ai').trim();
+
+    // 1. Try Gmail SMTP / Custom SMTP SSL first
+    const transporter = getSmtpTransporter();
+    if (transporter) {
         try {
-            const sender = GMAIL_USER || FROM_EMAIL;
-            await smtpTransporter.sendMail({
+            const sender = gmailUser || fromEmail;
+            const info = await transporter.sendMail({
                 from: `"PricePilot AI" <${sender}>`,
                 to,
                 subject,
                 html,
             });
-            console.log(`[EmailService/SMTP] Sent email "${subject}" to ${to}`);
-            return { success: true, provider: 'smtp' };
+            console.log(`[EmailService/SMTP] Successfully delivered email "${subject}" to <${to}> (MessageId: ${info.messageId})`);
+            return { success: true, provider: 'smtp', messageId: info.messageId };
         } catch (err) {
-            console.error('[EmailService/SMTP Error]', err.message);
+            console.error('[EmailService/SMTP Error] Delivery failed:', err.message);
         }
     }
 
     // 2. Try SendGrid if configured
-    if (SENDGRID_API_KEY) {
+    const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
+    if (sendgridKey) {
         try {
+            sgMail.setApiKey(sendgridKey);
             await sgMail.send({
                 to,
-                from: FROM_EMAIL,
+                from: fromEmail,
                 subject,
                 html,
             });
-            console.log(`[EmailService/SendGrid] Sent email "${subject}" to ${to}`);
+            console.log(`[EmailService/SendGrid] Successfully delivered email "${subject}" to <${to}>`);
             return { success: true, provider: 'sendgrid' };
         } catch (err) {
-            console.error('[EmailService/SendGrid Error]', err.message, err.response?.body?.errors ? JSON.stringify(err.response.body.errors) : '');
+            console.error('[EmailService/SendGrid Error] Delivery failed:', err.message, err.response?.body?.errors ? JSON.stringify(err.response.body.errors) : '');
         }
     }
 
     // 3. Fallback dev logger
-    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured providers: SendGrid=${Boolean(SENDGRID_API_KEY)}, SMTP=${Boolean(smtpTransporter)})`);
+    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured providers: Gmail/SMTP=${Boolean(transporter)}, SendGrid=${Boolean(sendgridKey)})`);
     return { success: false, reason: 'no_active_provider' };
 }

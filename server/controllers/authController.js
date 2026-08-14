@@ -2,7 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
-const { sendWelcomeEmail } = require('../services/emailService');
+const { sendWelcomeEmail, getEmailStatus, sendTestEmail } = require('../services/emailService');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -303,5 +303,27 @@ exports.resetPassword = async (req, res) => {
     } catch (error) {
         console.error('RESET PASSWORD ERROR:', error);
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getEmailStatus = (req, res) => {
+    try {
+        const status = getEmailStatus();
+        res.json({ success: true, status });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.sendTestEmail = async (req, res) => {
+    try {
+        const targetEmail = req.body.email || req.user?.email;
+        if (!targetEmail) {
+            return res.status(400).json({ success: false, message: 'Target email address is required' });
+        }
+        const result = await sendTestEmail(targetEmail);
+        res.json({ success: result.success, result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
