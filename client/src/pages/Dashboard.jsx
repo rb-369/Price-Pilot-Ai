@@ -81,8 +81,8 @@ export default function Dashboard() {
         <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
-                    <h1 className="page-header text-3xl font-extrabold text-white tracking-tight">Executive Dashboard</h1>
-                    <p className="text-slate-400 mt-1 text-sm">Autonomous dynamic pricing &amp; inventory intelligence command center</p>
+                    <h1 className="page-header text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Executive Dashboard</h1>
+                    <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm">Autonomous dynamic pricing &amp; inventory intelligence command center</p>
                 </div>
                 <AskAIButton
                     variant="button"
@@ -93,9 +93,9 @@ export default function Dashboard() {
             </div>
 
             {/* Quick AI Analytical Inquiry Chips */}
-            <div className="p-4 rounded-2xl bg-[#0d1326] border border-indigo-500/20 shadow-md">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2.5">
-                    <HiOutlineLightBulb className="w-4 h-4 text-amber-400" />
+            <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/70 dark:bg-[#0d1326] dark:border-indigo-500/20 shadow-sm dark:shadow-md">
+                <div className="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider mb-2.5">
+                    <HiOutlineLightBulb className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                     AI Intelligence Inquiries
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

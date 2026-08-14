@@ -74,15 +74,15 @@ export default function Alerts() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Alerts &amp; Incident Feed</h1>
-                    <p className="text-slate-400 mt-1 text-sm flex items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Alerts &amp; Incident Feed</h1>
+                    <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm flex items-center gap-2">
                         {unreadCount > 0 ? (
                             <>
                                 <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                <span className="font-semibold text-slate-300">{unreadCount} unread incidents</span>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">{unreadCount} unread incidents</span>
                             </>
                         ) : (
-                            <span className="text-emerald-400">All alerts resolved &amp; clear</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">All alerts resolved &amp; clear</span>
                         )}
                     </p>
                 </div>
@@ -124,7 +124,7 @@ export default function Alerts() {
                                 className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all uppercase tracking-wider cursor-pointer ${
                                     filter === f
                                         ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-500'
-                                        : 'bg-[#131b2e] text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800'
+                                        : 'bg-slate-100/90 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/80 dark:border-slate-800'
                                 }`}
                             >
                                 {f === 'all' ? `All (${alerts.length})` : f === 'unread' ? `Unread (${unreadCount})` : f.replace(/_/g, ' ')}
@@ -143,8 +143,8 @@ export default function Alerts() {
                                     key={alert._id}
                                     className={`glass-card p-5 flex items-start gap-4 transition-all animate-slide-up ${
                                         !alert.read 
-                                            ? 'ring-1 ring-indigo-500/40 bg-indigo-950/15' 
-                                            : 'opacity-70 hover:opacity-100'
+                                            ? 'ring-1 ring-indigo-500/40 bg-indigo-50/40 dark:bg-indigo-950/15' 
+                                            : 'opacity-80 hover:opacity-100'
                                     }`}
                                     style={{ animationDelay: `${0.1 + i * 0.03}s` }}
                                 >
@@ -153,19 +153,19 @@ export default function Alerts() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between mb-1">
-                                            <h3 className="text-sm font-bold text-white tracking-tight">{alert.title}</h3>
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{alert.title}</h3>
                                             <div className="flex items-center gap-2 shrink-0 ml-4">
                                                 <span className={`badge ${
                                                     alert.severity === 'critical' ? 'badge-danger' :
                                                         alert.severity === 'high' ? 'badge-warning' :
                                                             alert.severity === 'medium' ? 'badge-info' : 'badge-success'
                                                 }`}>{alert.severity}</span>
-                                                <span className="text-[11px] text-slate-400 font-mono">
+                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                                                     {new Date(alert.timestamp || alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-slate-300 leading-relaxed">{alert.message}</p>
+                                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{alert.message}</p>
                                         {alert.productId && (
                                             <p className="text-[11px] text-indigo-400 font-medium mt-1 uppercase tracking-wider">
                                                 SKU: {alert.productId.sku || alert.productId.name || '—'}

@@ -64,8 +64,8 @@ export default function Analytics() {
             {/* Page Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Sales &amp; Revenue Analytics</h1>
-                    <p className="mt-1 text-sm text-slate-400">Track revenue elasticity, velocity curves, and volume drivers.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sales &amp; Revenue Analytics</h1>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Track revenue elasticity, velocity curves, and volume drivers.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <AskAIButton
@@ -86,9 +86,9 @@ export default function Analytics() {
             </div>
 
             {/* Contextual AI Prompt Chips */}
-            <div className="p-4 rounded-2xl bg-[#0d1326] border border-indigo-500/20 shadow-md">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2.5">
-                    <HiOutlineLightBulb className="w-4 h-4 text-amber-400" />
+            <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/70 dark:bg-[#0d1326] dark:border-indigo-500/20 shadow-sm dark:shadow-md">
+                <div className="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider mb-2.5">
+                    <HiOutlineLightBulb className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                     Recommended Analytical Inquiries
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

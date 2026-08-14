@@ -60,7 +60,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
     return (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <div 
-                className="relative w-full max-w-lg rounded-2xl bg-[#0d1326] border border-indigo-500/20 shadow-2xl p-6 sm:p-8 text-slate-100 overflow-hidden"
+                className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-indigo-500/20 shadow-2xl p-6 sm:p-8 text-slate-900 dark:text-slate-100 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header glow */}
@@ -70,7 +70,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors"
+                    className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
                     aria-label="Close modal"
                 >
                     <HiOutlineX size={20} />
@@ -78,29 +78,29 @@ export default function FeedbackModal({ isOpen, onClose }) {
 
                 {submitted ? (
                     <div className="py-12 text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 animate-scale-up">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 animate-scale-up">
                             <HiOutlineCheckCircle size={36} />
                         </div>
-                        <h3 className="text-xl font-bold text-white tracking-tight">Feedback Received!</h3>
-                        <p className="text-slate-400 text-sm max-w-xs mx-auto">
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Feedback Received!</h3>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs mx-auto">
                             Thank you for helping us sharpen PricePilot AI. Your inputs go straight into our product roadmap.
                         </p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-2">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20 mb-2">
                                 User Feedback
                             </div>
-                            <h2 className="text-xl font-bold text-white tracking-tight">Share Your Experience</h2>
-                            <p className="text-xs text-slate-400 mt-1">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Share Your Experience</h2>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                                 How can we make PricePilot AI more powerful for your store?
                             </p>
                         </div>
 
                         {/* Rating Stars */}
-                        <div className="bg-[#131b2e] p-4 rounded-xl border border-slate-800 space-y-2">
-                            <label className="block text-xs font-medium text-slate-300">
+                        <div className="bg-slate-50 dark:bg-[#131b2e] p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
                                 Overall Satisfaction Rating
                             </label>
                             <div className="flex items-center gap-2">
@@ -111,19 +111,19 @@ export default function FeedbackModal({ isOpen, onClose }) {
                                         onMouseEnter={() => setHoverRating(star)}
                                         onMouseLeave={() => setHoverRating(0)}
                                         onClick={() => setRating(star)}
-                                        className="p-1 text-2xl transition-transform hover:scale-110 focus:outline-none"
+                                        className="p-1 text-2xl transition-transform hover:scale-110 focus:outline-none cursor-pointer"
                                         aria-label={`${star} star`}
                                     >
                                         <HiOutlineStar 
                                             className={`w-7 h-7 transition-colors ${
                                                 (hoverRating || rating) >= star 
                                                     ? 'text-amber-400 fill-amber-400' 
-                                                    : 'text-slate-600'
+                                                    : 'text-slate-300 dark:text-slate-600'
                                             }`} 
                                         />
                                     </button>
                                 ))}
-                                <span className="ml-2 text-xs font-semibold text-amber-400">
+                                <span className="ml-2 text-xs font-semibold text-amber-500 dark:text-amber-400">
                                     {rating === 5 && 'Outstanding (5/5)'}
                                     {rating === 4 && 'Great (4/5)'}
                                     {rating === 3 && 'Average (3/5)'}
@@ -135,7 +135,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
 
                         {/* Category Selector */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-300">
+                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
                                 Feedback Topic
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -144,10 +144,10 @@ export default function FeedbackModal({ isOpen, onClose }) {
                                         key={cat.id}
                                         type="button"
                                         onClick={() => setCategory(cat.id)}
-                                        className={`px-3 py-2 text-xs rounded-lg border text-left transition-all ${
+                                        className={`px-3 py-2 text-xs rounded-lg border text-left transition-all cursor-pointer ${
                                             category === cat.id
-                                                ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold shadow-sm'
-                                                : 'bg-[#131b2e] border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                                                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-600/20 dark:border-indigo-500 dark:text-indigo-300 font-semibold shadow-sm'
+                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:bg-[#131b2e] dark:border-slate-800 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-200'
                                         }`}
                                     >
                                         {cat.label}
@@ -158,15 +158,15 @@ export default function FeedbackModal({ isOpen, onClose }) {
 
                         {/* Comment input */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-300">
-                                Your Thoughts & Suggestions
+                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                                Your Thoughts &amp; Suggestions
                             </label>
                             <textarea
                                 rows={4}
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="What worked well, or what features would you like to see next?..."
-                                className="w-full px-3.5 py-2.5 bg-[#131b2e] border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none"
+                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all resize-none"
                                 required
                             />
                         </div>
@@ -176,7 +176,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/60 transition-colors"
+                                className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
                             >
                                 Cancel
                             </button>
