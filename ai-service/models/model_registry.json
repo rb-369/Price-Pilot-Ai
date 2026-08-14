@@ -273,5 +273,105 @@
         "sentiment_polarity": 0.0
       }
     }
+  },
+  {
+    "version_id": "elasticity_global_20260812_183203",
+    "model_name": "elasticity_global",
+    "trained_at": "2026-08-12T18:32:03.240467+00:00",
+    "filepath": "C:\\Users\\Rudra\\OneDrive\\Desktop\\ecom-ai-project\\ai-service\\models\\elasticity_model_global.pkl",
+    "metrics": {
+      "version": "20260812_183203",
+      "trained_at": "2026-08-12T18:32:03.232755+00:00",
+      "samples": 40,
+      "r2_mean": -4.2385,
+      "mae": 0.0472,
+      "validation_split": "walk_forward_chronological",
+      "feature_importances": {
+        "demand_score": 1.0,
+        "competitor_spread": 0.0,
+        "stock_ratio": 0.0,
+        "price_level": 0.0,
+        "margin_pct": 0.0,
+        "search_trend_normalized": 0.0,
+        "price_ratio_vs_competitor": 0.0,
+        "discount_pct": 0.0,
+        "sentiment_polarity": 0.0
+      }
+    }
+  },
+  {
+    "version_id": "elasticity_test_user_quality_20260812_183223",
+    "model_name": "elasticity_test_user_quality",
+    "trained_at": "2026-08-12T18:32:23.451063+00:00",
+    "filepath": "C:\\Users\\Rudra\\OneDrive\\Desktop\\ecom-ai-project\\ai-service\\models\\elasticity_model_test_user_quality.pkl",
+    "metrics": {
+      "version": "20260812_183223",
+      "trained_at": "2026-08-12T18:32:23.445611+00:00",
+      "samples": 50,
+      "r2_mean": -0.4286,
+      "mae": 0.3004,
+      "validation_split": "walk_forward_chronological",
+      "feature_importances": {
+        "demand_score": 0.1552,
+        "competitor_spread": 0.1312,
+        "stock_ratio": 0.2861,
+        "price_level": 0.1596,
+        "margin_pct": 0.1214,
+        "search_trend_normalized": 0.1466,
+        "price_ratio_vs_competitor": 0.0,
+        "discount_pct": 0.0,
+        "sentiment_polarity": 0.0
+      }
+    }
+  },
+  {
+    "version_id": "elasticity_global_20260812_185555",
+    "model_name": "elasticity_global",
+    "trained_at": "2026-08-12T18:55:55.396311+00:00",
+    "filepath": "C:\\Users\\Rudra\\OneDrive\\Desktop\\ecom-ai-project\\ai-service\\models\\elasticity_model_global.pkl",
+    "metrics": {
+      "version": "20260812_185555",
+      "trained_at": "2026-08-12T18:55:55.389263+00:00",
+      "samples": 40,
+      "r2_mean": -4.2385,
+      "mae": 0.0472,
+      "validation_split": "walk_forward_chronological",
+      "feature_importances": {
+        "demand_score": 1.0,
+        "competitor_spread": 0.0,
+        "stock_ratio": 0.0,
+        "price_level": 0.0,
+        "margin_pct": 0.0,
+        "search_trend_normalized": 0.0,
+        "price_ratio_vs_competitor": 0.0,
+        "discount_pct": 0.0,
+        "sentiment_polarity": 0.0
+      }
+    }
+  },
+  {
+    "version_id": "elasticity_test_user_quality_20260812_185623",
+    "model_name": "elasticity_test_user_quality",
+    "trained_at": "2026-08-12T18:56:23.816262+00:00",
+    "filepath": "C:\\Users\\Rudra\\OneDrive\\Desktop\\ecom-ai-project\\ai-service\\models\\elasticity_model_test_user_quality.pkl",
+    "metrics": {
+      "version": "20260812_185623",
+      "trained_at": "2026-08-12T18:56:23.796336+00:00",
+      "samples": 50,
+      "r2_mean": -0.4864,
+      "mae": 0.2903,
+      "validation_split": "walk_forward_chronological",
+      "feature_importances": {
+        "demand_score": 0.2344,
+        "competitor_spread": 0.135,
+        "stock_ratio": 0.1796,
+        "price_level": 0.1833,
+        "margin_pct": 0.1614,
+        "search_trend_normalized": 0.1063,
+        "price_ratio_vs_competitor": 0.0,
+        "discount_pct": 0.0,
+        "sentiment_polarity": 0.0
+      }
+    }
   }
 ]

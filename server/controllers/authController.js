@@ -182,10 +182,10 @@ exports.forgotPassword = async (req, res) => {
 
         // Generate token
         const resetToken = crypto.randomBytes(20).toString('hex');
-        
+
         // Hash it for DB storage
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        
+
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
         await user.save();
@@ -215,9 +215,9 @@ exports.forgotPassword = async (req, res) => {
                     from: process.env.SENDGRID_FROM_EMAIL,
                     subject: 'Password Reset Request - PricePilot AI',
                     text: `You requested a password reset for your PricePilot AI account.\n\n` +
-                          `Please click on the following link or paste it into your browser to complete the process:\n\n` +
-                          `${resetUrl}\n\n` +
-                          `This link is valid for 1 hour. If you did not request this, please ignore this email.\n`,
+                        `Please click on the following link or paste it into your browser to complete the process:\n\n` +
+                        `${resetUrl}\n\n` +
+                        `This link is valid for 1 hour. If you did not request this, please ignore this email.\n`,
                     html: `
                         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #0a0f1e; color: #f1f5f9;">
                             <div style="text-align: center; margin-bottom: 20px;">
@@ -252,9 +252,9 @@ exports.forgotPassword = async (req, res) => {
         console.log(`Reset URL: ${resetUrl}`);
         console.log('==================================================\n');
 
-        res.status(200).json({ 
-            message: emailSent 
-                ? 'Password reset email sent successfully.' 
+        res.status(200).json({
+            message: emailSent
+                ? 'Password reset email sent successfully.'
                 : 'Password reset link logged to console for development.'
         });
     } catch (error) {
