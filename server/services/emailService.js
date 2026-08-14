@@ -1,19 +1,19 @@
-const sgMail = require('@sendgrid/mail');
-
 /**
- * Check currently active email provider status for diagnostics (SendGrid only)
+ * Check currently active email provider status for diagnostics (Brevo API)
  */
 exports.getEmailStatus = () => {
+    const brevoKey = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
+    const fromEmail = (process.env.BREVO_FROM_EMAIL || process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
+    const fromName = (process.env.BREVO_FROM_NAME || process.env.EMAIL_FROM_NAME || 'PricePilot AI').trim();
     const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
-    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
-    const fromName = (process.env.EMAIL_FROM_NAME || process.env.SENDGRID_FROM_NAME || 'PricePilot AI').trim();
 
     return {
-        provider: 'SendGrid',
+        provider: brevoKey ? 'Brevo' : sendgridKey ? 'SendGrid' : 'DevLog',
+        brevoConfigured: Boolean(brevoKey),
         sendgridConfigured: Boolean(sendgridKey),
         fromEmail,
         fromName,
-        apiKeyPrefix: sendgridKey ? `${sendgridKey.slice(0, 7)}...` : null
+        apiKeyPrefix: brevoKey ? `${brevoKey.slice(0, 10)}...` : sendgridKey ? `${sendgridKey.slice(0, 7)}...` : null
     };
 };
 
@@ -231,14 +231,14 @@ exports.sendNotificationEmail = async (subject, htmlContent, recipient = null) =
 };
 
 /**
- * Test email dispatcher for SendGrid diagnostics
+ * Test email dispatcher for Brevo diagnostics
  */
 exports.sendTestEmail = async (targetEmail) => {
-    const subject = `🧪 PricePilot AI SendGrid Delivery Test (${new Date().toLocaleTimeString()})`;
+    const subject = `🧪 PricePilot AI Brevo Delivery Test (${new Date().toLocaleTimeString()})`;
     const html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 24px; background: #0b0f19; color: #f1f5f9; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.3);">
-            <h2 style="color: #6366f1; margin-top: 0;">SendGrid Email Delivery Operational! ✅</h2>
-            <p>This confirms that your PricePilot AI SendGrid configuration is working properly.</p>
+            <h2 style="color: #6366f1; margin-top: 0;">Brevo Email Delivery Operational! ✅</h2>
+            <p>This confirms that your PricePilot AI Brevo configuration (300 emails/day) is working properly.</p>
             <p style="color: #94a3b8; font-size: 13px;">Timestamp: ${new Date().toISOString()}</p>
         </div>
     `;
@@ -246,46 +246,67 @@ exports.sendTestEmail = async (targetEmail) => {
 };
 
 /**
- * Core dispatch function handling SendGrid delivery exclusively
+ * Core dispatch function handling Brevo v3 REST API delivery
  */
 async function _sendMail(to, subject, html) {
     if (!to) return { success: false, reason: 'missing_recipient' };
 
-    const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
-    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
-    const fromName = (process.env.EMAIL_FROM_NAME || process.env.SENDGRID_FROM_NAME || 'PricePilot AI').trim();
+    const brevoKey = (process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || '').trim();
+    const fromEmail = (process.env.BREVO_FROM_EMAIL || process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
+    const fromName = (process.env.BREVO_FROM_NAME || process.env.EMAIL_FROM_NAME || 'PricePilot AI').trim();
 
-    // SendGrid delivery
-    if (sendgridKey) {
+    // 1. Brevo v3 REST API Dispatch (Zero-dependency, 300 free emails/day)
+    if (brevoKey) {
         try {
-            sgMail.setApiKey(sendgridKey);
-            const msg = {
-                to,
-                from: {
-                    email: fromEmail,
-                    name: fromName
+            const payload = {
+                sender: {
+                    name: fromName,
+                    email: fromEmail
                 },
-                subject,
-                html,
+                to: [
+                    {
+                        email: to
+                    }
+                ],
+                subject: subject,
+                htmlContent: html
             };
-            const [response] = await sgMail.send(msg);
-            console.log(`[EmailService/SendGrid] Successfully delivered email "${subject}" to <${to}> (StatusCode: ${response?.statusCode || 202})`);
-            return { success: true, provider: 'sendgrid', statusCode: response?.statusCode || 202 };
+
+            const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': brevoKey,
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok) {
+                console.log(`[EmailService/Brevo] Successfully delivered email "${subject}" to <${to}> (MessageId: ${data.messageId || 'OK'})`);
+                return { success: true, provider: 'brevo', messageId: data.messageId };
+            } else {
+                console.error(`[EmailService/Brevo Error] Delivery failed to <${to}>:`, JSON.stringify(data));
+                return {
+                    success: false,
+                    provider: 'brevo',
+                    error: data.message || `HTTP ${res.status}`,
+                    details: data
+                };
+            }
         } catch (err) {
-            const errorDetails = err.response?.body?.errors 
-                ? JSON.stringify(err.response.body.errors) 
-                : err.message;
-            console.error(`[EmailService/SendGrid Error] Delivery failed to <${to}>:`, errorDetails);
-            return { 
-                success: false, 
-                provider: 'sendgrid', 
-                error: err.message, 
-                details: err.response?.body?.errors || null 
+            console.error(`[EmailService/Brevo Error] Network exception sending to <${to}>:`, err.message);
+            return {
+                success: false,
+                provider: 'brevo',
+                error: err.message
             };
         }
     }
 
-    // Fallback development logger when SENDGRID_API_KEY is not configured
-    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured provider: SendGrid=false)`);
-    return { success: false, reason: 'sendgrid_not_configured' };
+    // Fallback development logger when BREVO_API_KEY is not configured
+    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured provider: Brevo=false)`);
+    return { success: false, reason: 'brevo_not_configured' };
 }
