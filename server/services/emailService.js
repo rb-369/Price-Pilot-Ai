@@ -1,63 +1,19 @@
 const sgMail = require('@sendgrid/mail');
-let nodemailer;
-try {
-    nodemailer = require('nodemailer');
-} catch (e) {
-    // optional fallback
-}
 
 /**
- * Returns an active Nodemailer transporter for Gmail SSL or custom SMTP
- */
-function getSmtpTransporter() {
-    if (!nodemailer) return null;
-
-    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
-    const gmailPass = (process.env.GMAIL_PASS || process.env.SMTP_PASS || '').trim().replace(/\s+/g, '');
-
-    if (gmailUser && gmailPass) {
-        return nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // Use SSL for reliable cloud container delivery
-            auth: {
-                user: gmailUser,
-                pass: gmailPass,
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-    }
-
-    if (process.env.SMTP_HOST) {
-        return nodemailer.createTransport({
-            host: process.env.SMTP_HOST.trim(),
-            port: parseInt(process.env.SMTP_PORT, 10) || 587,
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: (process.env.SMTP_USER || '').trim(),
-                pass: (process.env.SMTP_PASS || '').trim(),
-            }
-        });
-    }
-
-    return null;
-}
-
-/**
- * Check currently active email provider status for diagnostics
+ * Check currently active email provider status for diagnostics (SendGrid only)
  */
 exports.getEmailStatus = () => {
-    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
-    const gmailPass = (process.env.GMAIL_PASS || process.env.SMTP_PASS || '').trim();
     const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
+    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
+    const fromName = (process.env.EMAIL_FROM_NAME || process.env.SENDGRID_FROM_NAME || 'PricePilot AI').trim();
 
     return {
-        gmailSmtpConfigured: Boolean(gmailUser && gmailPass),
-        gmailUser: gmailUser ? `${gmailUser.slice(0, 3)}***@${gmailUser.split('@')[1] || 'gmail.com'}` : null,
+        provider: 'SendGrid',
         sendgridConfigured: Boolean(sendgridKey),
-        fromEmail: (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || gmailUser || 'notifications@pricepilot.ai').trim()
+        fromEmail,
+        fromName,
+        apiKeyPrefix: sendgridKey ? `${sendgridKey.slice(0, 7)}...` : null
     };
 };
 
@@ -275,14 +231,14 @@ exports.sendNotificationEmail = async (subject, htmlContent, recipient = null) =
 };
 
 /**
- * Test email dispatcher for diagnostics
+ * Test email dispatcher for SendGrid diagnostics
  */
 exports.sendTestEmail = async (targetEmail) => {
-    const subject = `🧪 PricePilot AI Email Delivery Test (${new Date().toLocaleTimeString()})`;
+    const subject = `🧪 PricePilot AI SendGrid Delivery Test (${new Date().toLocaleTimeString()})`;
     const html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 24px; background: #0b0f19; color: #f1f5f9; border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.3);">
-            <h2 style="color: #6366f1; margin-top: 0;">Email Delivery Operational! ✅</h2>
-            <p>This confirms that your PricePilot AI email delivery configuration is working perfectly.</p>
+            <h2 style="color: #6366f1; margin-top: 0;">SendGrid Email Delivery Operational! ✅</h2>
+            <p>This confirms that your PricePilot AI SendGrid configuration is working properly.</p>
             <p style="color: #94a3b8; font-size: 13px;">Timestamp: ${new Date().toISOString()}</p>
         </div>
     `;
@@ -290,51 +246,46 @@ exports.sendTestEmail = async (targetEmail) => {
 };
 
 /**
- * Core dispatch function handling Gmail SMTP SSL, Custom SMTP, SendGrid, and dev logger
+ * Core dispatch function handling SendGrid delivery exclusively
  */
 async function _sendMail(to, subject, html) {
     if (!to) return { success: false, reason: 'missing_recipient' };
 
-    const gmailUser = (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
-    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || gmailUser || 'notifications@pricepilot.ai').trim();
-
-    // 1. Try Gmail SMTP / Custom SMTP SSL first
-    const transporter = getSmtpTransporter();
-    if (transporter) {
-        try {
-            const sender = gmailUser || fromEmail;
-            const info = await transporter.sendMail({
-                from: `"PricePilot AI" <${sender}>`,
-                to,
-                subject,
-                html,
-            });
-            console.log(`[EmailService/SMTP] Successfully delivered email "${subject}" to <${to}> (MessageId: ${info.messageId})`);
-            return { success: true, provider: 'smtp', messageId: info.messageId };
-        } catch (err) {
-            console.error('[EmailService/SMTP Error] Delivery failed:', err.message);
-        }
-    }
-
-    // 2. Try SendGrid if configured
     const sendgridKey = (process.env.SENDGRID_API_KEY || '').trim();
+    const fromEmail = (process.env.EMAIL_FROM || process.env.SENDGRID_FROM_EMAIL || 'notifications@pricepilot.ai').trim();
+    const fromName = (process.env.EMAIL_FROM_NAME || process.env.SENDGRID_FROM_NAME || 'PricePilot AI').trim();
+
+    // SendGrid delivery
     if (sendgridKey) {
         try {
             sgMail.setApiKey(sendgridKey);
-            await sgMail.send({
+            const msg = {
                 to,
-                from: fromEmail,
+                from: {
+                    email: fromEmail,
+                    name: fromName
+                },
                 subject,
                 html,
-            });
-            console.log(`[EmailService/SendGrid] Successfully delivered email "${subject}" to <${to}>`);
-            return { success: true, provider: 'sendgrid' };
+            };
+            const [response] = await sgMail.send(msg);
+            console.log(`[EmailService/SendGrid] Successfully delivered email "${subject}" to <${to}> (StatusCode: ${response?.statusCode || 202})`);
+            return { success: true, provider: 'sendgrid', statusCode: response?.statusCode || 202 };
         } catch (err) {
-            console.error('[EmailService/SendGrid Error] Delivery failed:', err.message, err.response?.body?.errors ? JSON.stringify(err.response.body.errors) : '');
+            const errorDetails = err.response?.body?.errors 
+                ? JSON.stringify(err.response.body.errors) 
+                : err.message;
+            console.error(`[EmailService/SendGrid Error] Delivery failed to <${to}>:`, errorDetails);
+            return { 
+                success: false, 
+                provider: 'sendgrid', 
+                error: err.message, 
+                details: err.response?.body?.errors || null 
+            };
         }
     }
 
-    // 3. Fallback dev logger
-    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured providers: Gmail/SMTP=${Boolean(transporter)}, SendGrid=${Boolean(sendgridKey)})`);
-    return { success: false, reason: 'no_active_provider' };
+    // Fallback development logger when SENDGRID_API_KEY is not configured
+    console.log(`[EmailService/DevLog] Email prepared for <${to}>: "${subject}" (configured provider: SendGrid=false)`);
+    return { success: false, reason: 'sendgrid_not_configured' };
 }

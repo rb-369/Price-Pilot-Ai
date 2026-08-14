@@ -1,8 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const sgMail = require('@sendgrid/mail');
-const { sendWelcomeEmail, getEmailStatus, sendTestEmail } = require('../services/emailService');
+const { sendWelcomeEmail, sendPasswordResetEmail, getEmailStatus, sendTestEmail } = require('../services/emailService');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -217,56 +216,21 @@ exports.forgotPassword = async (req, res) => {
             }
         }
 
-        let emailSent = false;
-        if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
-            try {
-                sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-                const msg = {
-                    to: email,
-                    from: process.env.SENDGRID_FROM_EMAIL,
-                    subject: 'Password Reset Request - PricePilot AI',
-                    text: `You requested a password reset for your PricePilot AI account.\n\n` +
-                        `Please click on the following link or paste it into your browser to complete the process:\n\n` +
-                        `${resetUrl}\n\n` +
-                        `This link is valid for 1 hour. If you did not request this, please ignore this email.\n`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #0a0f1e; color: #f1f5f9;">
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <h2 style="color: #6366f1; margin: 0; font-size: 24px; font-weight: bold;">PricePilot AI</h2>
-                                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Intelligence Platform</p>
-                            </div>
-                            <div style="background-color: #131b2e; padding: 24px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.1);">
-                                <h3 style="color: #ffffff; margin-top: 0; font-size: 18px;">Password Reset Request</h3>
-                                <p style="color: #e2e8f0; font-size: 14px; line-height: 1.6;">You requested a password reset for your PricePilot AI account. Click the button below to set a new password. This link is valid for 1 hour.</p>
-                                <div style="text-align: center; margin: 25px 0;">
-                                    <a href="${resetUrl}" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">Reset Password</a>
-                                </div>
-                                <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin-bottom: 0;">If you didn't request a password reset, you can safely ignore this email.</p>
-                            </div>
-                            <hr style="border: 0; border-top: 1px solid #1e293b; margin: 20px 0;" />
-                            <p style="font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">If the button above doesn't work, copy and paste the following URL into your browser:<br/><span style="color: #6366f1;">${resetUrl}</span></p>
-                        </div>
-                    `,
-                };
-                await sgMail.send(msg);
-                emailSent = true;
-                console.log(`[SendGrid] Reset email sent to: ${email}`);
-            } catch (err) {
-                console.error('[SendGrid Error]: Failed to send reset email.', err.message);
-            }
-        }
+        const emailResult = await sendPasswordResetEmail(email, resetUrl);
+        const emailSent = Boolean(emailResult?.success);
 
         // Print to console for development convenience
         console.log('\n==================================================');
         console.log('🔑 PASSWORD RESET LINK GENERATED (SendGrid Flow)');
         console.log(`User Email: ${email}`);
         console.log(`Reset URL: ${resetUrl}`);
+        console.log(`SendGrid Delivery: ${emailSent ? 'Sent ✅' : 'Logged only'}`);
         console.log('==================================================\n');
 
         res.status(200).json({
             message: emailSent
-                ? 'Password reset email sent successfully.'
-                : 'Password reset link logged to console for development.'
+                ? 'Password reset email sent successfully via SendGrid.'
+                : 'Password reset link generated and logged for development.'
         });
     } catch (error) {
         console.error('FORGOT PASSWORD ERROR:', error);
