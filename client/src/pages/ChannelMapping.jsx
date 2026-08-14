@@ -3,6 +3,7 @@ import { getProductMappings, getProducts, createProductMapping, deleteProductMap
 import toast from 'react-hot-toast';
 import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineChip, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
 import ErrorState from '../components/ErrorState';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function ChannelMapping() {
     const [products, setProducts] = useState([]);
@@ -12,6 +13,8 @@ export default function ChannelMapping() {
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, confirmed, suggested, unmapped
     const [isAutoMatching, setIsAutoMatching] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Modal state for manual mapping
     const [showMapModal, setShowMapModal] = useState(false);
@@ -68,14 +71,22 @@ export default function ChannelMapping() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Remove this channel link?')) return;
+    const handleDelete = (id) => {
+        setDeleteTarget(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await deleteProductMapping(id);
+            await deleteProductMapping(deleteTarget);
             toast.success('Link removed');
+            setDeleteTarget(null);
             fetchData();
         } catch {
             toast.error('Failed to remove link');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -381,6 +392,18 @@ export default function ChannelMapping() {
                     </div>
                 </div>
             )}
+
+            {/* Non-blocking Confirm Delete Link Modal */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Remove Channel Link"
+                message="Are you sure you want to remove this channel mapping link? Inventory sync for this channel will no longer update automatically."
+                confirmText="Remove Link"
+                variant="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }

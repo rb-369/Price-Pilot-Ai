@@ -21,6 +21,7 @@ import { exportReportToPdf } from '../utils/exportPdf';
 import { useCurrency } from '../context/CurrencyContext';
 import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
+import ConfirmModal from '../components/ConfirmModal';
 
 const competitorColors = {
     Amazon: '#FF9900',
@@ -127,6 +128,8 @@ export default function Competitors() {
     const [pricesFetchFailed, setPricesFetchFailed] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(false);
     const [fetchingLiveProduct, setFetchingLiveProduct] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { formatCurrency } = useCurrency();
 
     const fetchData = () => {
@@ -278,15 +281,23 @@ export default function Competitors() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
+    const handleDelete = (id, name) => {
+        setDeleteTarget({ id, name });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await deleteProduct(id);
+            await deleteProduct(deleteTarget.id);
             toast.success('Product deleted');
-            if (selectedProduct === id) setSelectedProduct('');
+            if (selectedProduct === deleteTarget.id) setSelectedProduct('');
+            setDeleteTarget(null);
             fetchData();
         } catch {
             toast.error('Failed to delete product');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -498,7 +509,7 @@ export default function Competitors() {
                                         <button type="button" onClick={() => handleFetchLive(productId)} disabled={fetchingLiveProduct === productId} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary-light disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Fetch Live Prices for ${data.product.name}`} title="Fetch Live Prices">
                                             {fetchingLiveProduct === productId ? <svg className="h-4 w-4 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> : <HiOutlineRefresh className="h-4 w-4" />}
                                         </button>
-                                        <button type="button" onClick={() => handleDelete(productId)} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger" aria-label={`Delete ${data.product.name}`} title="Delete product"><HiOutlineTrash className="h-4 w-4" /></button>
+                                        <button type="button" onClick={() => handleDelete(productId, data.product.name)} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger cursor-pointer" aria-label={`Delete ${data.product.name}`} title="Delete product"><HiOutlineTrash className="h-4 w-4" /></button>
                                     </div>
                                 </div>
 
@@ -570,6 +581,18 @@ export default function Competitors() {
                     </div>
                 )}
             </section>
+
+            {/* Non-blocking Confirm Modal */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Delete Product Tracking"
+                message={`Are you sure you want to delete "${deleteTarget?.name || 'this product'}"? All tracked competitor pricing history for this product will be removed.`}
+                confirmText="Delete Product"
+                variant="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }

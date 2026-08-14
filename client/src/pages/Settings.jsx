@@ -26,6 +26,7 @@ import {
     HiOutlineExclamation
 } from 'react-icons/hi';
 import { SiGoogle, SiShopify, SiAmazon } from 'react-icons/si';
+import ConfirmModal from '../components/ConfirmModal';
 
 const PRESET_AVATARS = [
     '⚡', '🚀', '👑', '💼', '🎯', '💡', '🤖', '🔥', '🌟', '🛒'
@@ -93,6 +94,8 @@ export default function Settings() {
     const [profiles, setProfiles] = useState([]);
     const [showNewProfileModal, setShowNewProfileModal] = useState(false);
     const [editingProfileId, setEditingProfileId] = useState(null);
+    const [deleteProfileTarget, setDeleteProfileTarget] = useState(null);
+    const [isDeletingProfile, setIsDeletingProfile] = useState(false);
     const [profileForm, setProfileForm] = useState({
         name: '',
         storeType: 'general',
@@ -251,13 +254,19 @@ export default function Settings() {
     };
 
     // Delete Store Profile
-    const handleDeleteProfile = async (profileId) => {
+    const handleDeleteProfile = (profile) => {
         if (profiles.length <= 1) {
             toast.error('You must keep at least one store profile');
             return;
         }
-        if (!window.confirm('Are you sure you want to delete this store profile?')) return;
+        setDeleteProfileTarget(profile);
+    };
 
+    const confirmDeleteProfile = async () => {
+        if (!deleteProfileTarget) return;
+        setIsDeletingProfile(true);
+
+        const profileId = deleteProfileTarget.id;
         const updated = profiles.filter(p => p.id !== profileId);
         setProfiles(updated);
 
@@ -273,8 +282,11 @@ export default function Settings() {
             });
             updateUser(res.data);
             toast.success('Store profile deleted');
+            setDeleteProfileTarget(null);
         } catch (err) {
             toast.error('Failed to update profiles on server');
+        } finally {
+            setIsDeletingProfile(false);
         }
     };
 
@@ -501,12 +513,11 @@ export default function Settings() {
                                         >
                                             <HiOutlinePencil className="w-3.5 h-3.5" />
                                         </button>
-
                                         {profiles.length > 1 && (
                                             <button
                                                 type="button"
-                                                onClick={() => handleDeleteProfile(prof.id)}
-                                                className="p-2 rounded-xl border border-danger/20 text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
+                                                onClick={() => handleDeleteProfile(prof)}
+                                                className="p-2 rounded-xl border border-border/80 text-text-muted hover:text-danger hover:border-danger/30 hover:bg-danger/10 transition-colors cursor-pointer"
                                                 title="Delete Profile"
                                             >
                                                 <HiOutlineTrash className="w-3.5 h-3.5" />
@@ -1066,6 +1077,18 @@ export default function Settings() {
                     </div>
                 </div>
             )}
+
+            {/* Non-blocking Confirm Delete Store Modal */}
+            <ConfirmModal
+                isOpen={!!deleteProfileTarget}
+                onClose={() => setDeleteProfileTarget(null)}
+                onConfirm={confirmDeleteProfile}
+                title="Delete Store Profile"
+                message={`Are you sure you want to delete the store profile "${deleteProfileTarget?.name || 'this profile'}"?`}
+                confirmText="Delete Profile"
+                variant="danger"
+                loading={isDeletingProfile}
+            />
         </div>
     );
 }

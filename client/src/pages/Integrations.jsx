@@ -11,6 +11,7 @@ import {
     HiOutlineDocumentReport
 } from 'react-icons/hi';
 import ErrorState from '../components/ErrorState';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Integrations() {
     const [integrations, setIntegrations] = useState([]);
@@ -18,6 +19,8 @@ export default function Integrations() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [disconnectTarget, setDisconnectTarget] = useState(null);
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     // Shopify Modal State
     const [showShopifyModal, setShowShopifyModal] = useState(false);
@@ -120,14 +123,22 @@ export default function Integrations() {
         }
     };
 
-    const handleDisconnect = async (id) => {
-        if (!confirm('Are you sure you want to disconnect this integration?')) return;
+    const handleDisconnect = (id) => {
+        setDisconnectTarget(id);
+    };
+
+    const confirmDisconnect = async () => {
+        if (!disconnectTarget) return;
+        setIsDisconnecting(true);
         try {
-            await disconnectIntegration(id);
+            await disconnectIntegration(disconnectTarget);
             toast.success('Disconnected successfully');
+            setDisconnectTarget(null);
             fetchData();
         } catch {
             toast.error('Failed to disconnect');
+        } finally {
+            setIsDisconnecting(false);
         }
     };
 
@@ -420,6 +431,18 @@ export default function Integrations() {
                     </form>
                 </Modal>
             )}
+
+            {/* Non-blocking Confirm Disconnect Modal */}
+            <ConfirmModal
+                isOpen={!!disconnectTarget}
+                onClose={() => setDisconnectTarget(null)}
+                onConfirm={confirmDisconnect}
+                title="Disconnect Integration"
+                message="Are you sure you want to disconnect this store channel? Live order tracking and inventory sync will stop immediately."
+                confirmText="Disconnect"
+                variant="warning"
+                loading={isDisconnecting}
+            />
         </div>
     );
 }

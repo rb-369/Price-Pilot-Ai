@@ -35,6 +35,7 @@ import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Recommendations() {
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ export default function Recommendations() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [historyProduct, setHistoryProduct] = useState(null);
+  const [warningModalTarget, setWarningModalTarget] = useState(null);
+  const [isApplying, setIsApplying] = useState(false);
   const { formatCurrency } = useCurrency();
 
   const handleTestPrice = async (rec) => {
@@ -148,16 +151,25 @@ export default function Recommendations() {
     }
   };
 
-  const handleAccept = async (id, impact) => {
-    if (impact < -10) {
-      if (!confirm(`Warning: This change is projected to decrease revenue by ${Math.abs(impact)}%. Are you sure you want to apply this price?`)) return;
-    }
+  const applyPrice = async (id) => {
+    setIsApplying(true);
     try {
       await acceptRecommendation(id);
       toast.success('Price updated!');
+      setWarningModalTarget(null);
       fetchData();
     } catch {
       toast.error('Failed to apply price change');
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleAccept = (id, impact) => {
+    if (impact < -10) {
+      setWarningModalTarget({ id, impact });
+    } else {
+      applyPrice(id);
     }
   };
 
@@ -749,6 +761,18 @@ export default function Recommendations() {
           onClose={() => setHistoryProduct(null)}
         />
       )}
+
+      {/* Non-blocking Negative Revenue Impact Warning Modal */}
+      <ConfirmModal
+        isOpen={!!warningModalTarget}
+        onClose={() => setWarningModalTarget(null)}
+        onConfirm={() => warningModalTarget && applyPrice(warningModalTarget.id)}
+        title="Revenue Decrease Warning"
+        message={`This recommended price change is projected to decrease revenue by ${Math.abs(warningModalTarget?.impact || 0)}%. Are you sure you want to apply this price?`}
+        confirmText="Apply Price"
+        variant="warning"
+        loading={isApplying}
+      />
     </div>
   );
 }

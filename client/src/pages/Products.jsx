@@ -21,6 +21,7 @@ import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 import BulkImportModal from '../components/BulkImportModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -51,6 +52,8 @@ export default function Products() {
     const [historyProduct, setHistoryProduct] = useState(null);
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // URL Importer & Mismatch States
     const [formMode, setFormMode] = useState('url'); // 'url' or 'manual'
@@ -296,14 +299,22 @@ export default function Products() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Delete this product?')) return;
+    const handleDelete = (p) => {
+        setDeleteTarget(p);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await deleteProduct(id);
-            toast.success('Deleted');
+            await deleteProduct(deleteTarget._id);
+            toast.success('Product deleted');
+            setDeleteTarget(null);
             fetchProducts();
         } catch {
-            toast.error('Delete failed');
+            toast.error('Failed to delete product');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -721,7 +732,7 @@ export default function Products() {
                                             <HiOutlineChartBar className="w-3.5 h-3.5" /> Trend
                                         </button>
                                         <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold active:scale-[0.98]">Edit</button>
-                                        <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98]">Delete</button>
+                                        <button onClick={() => handleDelete(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98] cursor-pointer">Delete</button>
                                     </div>
                                 </div>
                             );
@@ -805,7 +816,7 @@ export default function Products() {
                                                     <button onClick={() => handleEditClick(p)} className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer" title="Edit">
                                                         <HiOutlinePencil className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(p._id)} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer" title="Delete">
+                                                    <button onClick={() => handleDelete(p)} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer" title="Delete">
                                                         <HiOutlineTrash className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -834,6 +845,18 @@ export default function Products() {
                     onSuccess={fetchProducts}
                 />
             )}
+
+            {/* Non-blocking Confirm Delete Modal */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Delete Product"
+                message={`Are you sure you want to delete "${deleteTarget?.shortName || deleteTarget?.name || 'this product'}" (SKU: ${deleteTarget?.sku || 'N/A'})? All associated pricing history will be permanently deleted.`}
+                confirmText="Delete Product"
+                variant="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }
