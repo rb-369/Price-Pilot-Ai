@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
+import { SiGoogle } from 'react-icons/si';
+import { HiOutlinePhone } from 'react-icons/hi';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -24,6 +31,41 @@ export default function Login() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleLogin = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setLoading(true);
+            try {
+                // Fetch user info using the access token
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                });
+                const userInfo = await userInfoResponse.json();
+                
+                // We'll send the email and name to our backend to login/register.
+                // We can modify the backend to accept email/name directly. 
+                // Or wait, since we wrote the backend to expect a credential to verify, 
+                // we can also modify the backend to accept access_token. Let's just modify the backend.
+                
+                await loginWithGoogle(tokenResponse.access_token);
+                toast.success('Welcome back!');
+                navigate('/');
+            } catch (err) {
+                toast.error(err.response?.data?.message || 'Google login failed');
+            } finally {
+                setLoading(false);
+            }
+        },
+        onError: (err) => {
+            console.error('Google login error:', err);
+            toast.error('Google authentication failed. Check your network/firewall or Google Client ID.');
+        }
+    });
+
+    // TODO: Wire this up to your actual phone login flow/route
+    const handlePhoneLogin = () => {
+        navigate('/login-phone');
     };
 
     return (
@@ -41,8 +83,8 @@ export default function Login() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <Link to="/" className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
-                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
+                    <Link to="/" className="inline-flex items-center justify-center w-14 h-14 p-2.5 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-contain" />
                     </Link>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Welcome Back</h1>
                     <p className="text-text-muted mt-2 text-sm">Sign in to PricePilot AI Intelligence</p>
@@ -79,6 +121,34 @@ export default function Login() {
                         {loading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Sign In'}
                     </button>
                 </form>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3 my-6">
+                    <div className="flex-1 h-px bg-primary/10" />
+                    <span className="text-xs text-text-muted uppercase tracking-wider">or</span>
+                    <div className="flex-1 h-px bg-primary/10" />
+                </div>
+
+                {/* Google + Phone Login Buttons */}
+                <div className="flex gap-3">
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                    >
+                        <SiGoogle className="w-5 h-5" style={{ color: '#4285F4' }} />
+                        <p className="text-sm font-semibold text-text">Google</p>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handlePhoneLogin}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                    >
+                        <HiOutlinePhone className="w-5 h-5 text-primary" />
+                        <p className="text-sm font-semibold text-text">Phone</p>
+                    </button>
+                </div>
 
                 <p className="text-center text-text-muted text-sm mt-6">
                     Don't have an account? <Link to="/register" className="text-primary font-semibold hover:text-primary-light transition-colors">Sign Up</Link>

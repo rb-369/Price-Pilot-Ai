@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CurrencyProvider } from './context/CurrencyContext';
@@ -77,21 +78,25 @@ function AppRoutes() {
   );
 }
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <Toaster position="top-right" toastOptions={{
-              style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
-            }} />
-            <ErrorBoundary>
-              <AppRoutes />
-            </ErrorBoundary>
-          </AuthProvider>
-        </BrowserRouter>
-      </CurrencyProvider>
-    </ThemeProvider>
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <ThemeProvider>
+        <CurrencyProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <Toaster position="top-right" toastOptions={{
+                style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
+              }} />
+              <ErrorBoundary>
+                <AppRoutes />
+              </ErrorBoundary>
+            </AuthProvider>
+          </BrowserRouter>
+        </CurrencyProvider>
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   );
 }
