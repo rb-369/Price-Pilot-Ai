@@ -52,6 +52,44 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.googleAuth = async (req, res) => {
+    try {
+        const { email, name, googleId, picture } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'Google email is required' });
+        }
+        console.log(`Google Auth attempt for: ${email}`);
+
+        let user = await User.findOne({ email });
+        if (!user) {
+            // Auto-register user if first time
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            user = await User.create({
+                name: name || email.split('@')[0],
+                email,
+                password: randomPassword,
+                storeType: 'general',
+            });
+            console.log(`Google registration created new user for: ${email}`);
+        } else {
+            console.log(`Google login matched existing user for: ${email}`);
+        }
+
+        const token = generateToken(user._id);
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeType: user.storeType,
+            token,
+        });
+    } catch (error) {
+        console.error('GOOGLE AUTH ERROR:', error);
+        res.status(500).json({ message: error.message || 'Google authentication failed' });
+    }
+};
+
 exports.getProfile = async (req, res) => {
     res.json(req.user);
 };
