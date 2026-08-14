@@ -6,7 +6,8 @@ import {
     HiOutlineChartBar, HiOutlineScale, HiOutlineCube,
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
-    HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal
+    HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal,
+    HiOutlineCog
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import logoIcon from '../assets/FINAL.png';
@@ -24,10 +25,11 @@ const links = [
     { to: '/dashboard/integrations', icon: HiOutlineLink, label: 'Integrations' },
     { to: '/dashboard/channel-mapping', icon: HiOutlineSwitchHorizontal, label: 'Channel Mapping' },
     { to: '/dashboard/alerts', icon: HiOutlineBell, label: 'Alerts' },
+    { to: '/dashboard/settings', icon: HiOutlineCog, label: 'Profile & Settings' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
-    const { user, logout } = useAuth();
+    const { user, activeProfile, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { currency, setCurrency, currencies } = useCurrency();
     const navigate = useNavigate();
@@ -113,34 +115,56 @@ export default function Sidebar({ isOpen, onClose }) {
                 </nav>
 
                 {/* User section */}
-                <div className="p-4 border-t border-[rgba(99,102,241,0.08)]">
-                    <div className="flex items-center gap-3 mb-3 px-2">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary-light text-sm font-bold ring-2 ring-primary/10">
-                            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                <div className="p-4 border-t border-[rgba(99,102,241,0.08)] space-y-2">
+                    {/* Clickable Profile Card */}
+                    <div
+                        onClick={() => navigate('/dashboard/settings')}
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-lighter/60 cursor-pointer transition-all duration-200 group"
+                        title="Open Profile & Settings"
+                    >
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary-light text-base font-bold ring-2 ring-primary/10 group-hover:scale-105 transition-transform">
+                            {user?.avatar || user?.name?.charAt(0)?.toUpperCase() || '⚡'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm text-text truncate font-medium">{user?.name || 'User'}</p>
-                            <p className="text-[10px] text-text-muted truncate uppercase tracking-wider">{user?.role || 'user'}</p>
+                            <div className="flex items-center gap-1.5">
+                                <p className="text-xs text-text truncate font-bold group-hover:text-primary transition-colors">{user?.name || 'User'}</p>
+                            </div>
+                            <p className="text-[10px] text-text-muted truncate">
+                                {activeProfile?.name || user?.storeName || 'Primary Store'}
+                            </p>
                         </div>
+                        <HiOutlineCog className="w-4 h-4 text-text-muted/60 group-hover:text-primary group-hover:rotate-90 transition-all" />
+                    </div>
+
+                    {/* Quick controls bar */}
+                    <div className="flex items-center justify-between px-2 pt-1 border-t border-border/20">
                         <select
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
-                            className="bg-surface border border-border text-xs font-semibold text-text rounded-lg px-1.5 py-1 focus:outline-none focus:border-primary cursor-pointer"
+                            className="bg-surface border border-border/80 text-[11px] font-semibold text-text rounded-lg px-2 py-1 focus:outline-none focus:border-primary cursor-pointer"
                             title="Select Currency"
                         >
                             {currencies.map(c => (
                                 <option key={c} value={c} className="bg-surface text-text">{c}</option>
                             ))}
                         </select>
-                        <button onClick={toggleTheme} className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(99,102,241,0.1)] transition-colors" title="Toggle Theme">
-                            {theme === 'dark' ? <HiOutlineSun className="w-4 h-4" /> : <HiOutlineMoon className="w-4 h-4" />}
+
+                        <button
+                            onClick={toggleTheme}
+                            className="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-[rgba(99,102,241,0.1)] transition-colors"
+                            title="Toggle Theme"
+                        >
+                            {theme === 'dark' ? <HiOutlineSun className="w-4 h-4 text-amber-400" /> : <HiOutlineMoon className="w-4 h-4 text-primary" />}
+                        </button>
+
+                        <button
+                            onClick={handleLogout}
+                            className="p-1.5 rounded-lg text-danger/70 hover:text-danger hover:bg-danger/10 transition-colors"
+                            title="Sign Out"
+                        >
+                            <HiOutlineLogout className="w-4 h-4" />
                         </button>
                     </div>
-                    <button onClick={handleLogout}
-                        className="sidebar-link w-full text-danger/70 hover:bg-danger/8 hover:text-danger group">
-                        <HiOutlineLogout className="w-[18px] h-[18px] group-hover:translate-x-[-2px] transition-transform" />
-                        <span className="text-[13px] font-medium">Sign Out</span>
-                    </button>
                 </div>
 
                 {/* Version */}

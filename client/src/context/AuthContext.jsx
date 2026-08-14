@@ -41,13 +41,49 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
+    const updateUser = (updatedUser) => {
+        setUser((prev) => ({ ...prev, ...updatedUser }));
+    };
+
+    const switchProfile = (profileId) => {
+        setUser((prev) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                activeProfileId: profileId,
+            };
+        });
+        localStorage.setItem('pricepilot_active_profile', profileId);
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('pricepilot_active_profile');
         setUser(null);
     };
 
+    const activeProfile = user?.profiles?.find(p => p.id === (user?.activeProfileId || 'default')) || user?.profiles?.[0] || {
+        id: 'default',
+        name: user?.storeName || 'Primary Store',
+        storeType: user?.storeType || 'general',
+        platform: 'Shopify',
+        role: user?.role === 'admin' ? 'Administrator' : 'Store Owner',
+        currency: 'INR',
+        color: '#6366f1',
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register: registerUser, loginWithGoogle, logout, loading }}>
+        <AuthContext.Provider value={{
+            user,
+            activeProfile,
+            login,
+            register: registerUser,
+            loginWithGoogle,
+            updateUser,
+            switchProfile,
+            logout,
+            loading,
+        }}>
             {children}
         </AuthContext.Provider>
     );
