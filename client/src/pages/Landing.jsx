@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { 
     HiOutlineLightningBolt, 
@@ -75,9 +75,9 @@ const integrationLogos = [
     { name: 'Amazon', icon: SiAmazon },
 ];
 
-function FaqAccordionItem({ faq, isOpen, onClick }) {
+const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }) {
     return (
-        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-[#0B1120]/80 backdrop-blur-xl overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:shadow-lg">
+        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-[#0B1120]/80 backdrop-blur-xl overflow-hidden hover:border-indigo-500/40 hover:shadow-lg">
             <button
                 type="button"
                 onClick={onClick}
@@ -109,7 +109,7 @@ function FaqAccordionItem({ faq, isOpen, onClick }) {
             </div>
         </div>
     );
-}
+});
 
 export default function Landing() {
     const { theme, toggleTheme } = useTheme();
@@ -120,9 +120,9 @@ export default function Landing() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activePipelineStep, setActivePipelineStep] = useState(0);
 
-    const toggleFaq = (index) => {
-        setOpenFaqIndex(openFaqIndex === index ? null : index);
-    };
+    const toggleFaq = useCallback((index) => {
+        setOpenFaqIndex(prev => prev === index ? null : index);
+    }, []);
 
     const filteredFaqs = useMemo(() => {
         return faqData.filter((faq) => {

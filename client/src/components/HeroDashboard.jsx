@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { HiOutlineLightningBolt, HiOutlineTrendingUp, HiOutlineShieldCheck, HiOutlineSparkles } from 'react-icons/hi';
 
-export default function HeroDashboard() {
+const HeroDashboard = memo(function HeroDashboard() {
   const reduceMotion = useReducedMotion();
   const [price, setPrice] = useState(1299);
   const [scenario, setScenario] = useState('profit'); // 'profit' | 'volume' | 'defend'
@@ -281,4 +281,6 @@ export default function HeroDashboard() {
       </motion.div>
     </div>
   );
-}
+});
+
+export default HeroDashboard;
