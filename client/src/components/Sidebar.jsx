@@ -10,7 +10,8 @@ import {
     HiOutlineCog
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
-import logoIcon from '../assets/FINAL.png';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 const links = [
     { to: '/dashboard', icon: HiOutlineChartBar, label: 'Dashboard' },
@@ -33,6 +34,7 @@ export default function Sidebar({ isOpen, onClose }) {
     const { theme, toggleTheme } = useTheme();
     const { currency, setCurrency, currencies } = useCurrency();
     const navigate = useNavigate();
+    const brandLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
 
     const handleLogout = () => {
         logout();
@@ -58,10 +60,10 @@ export default function Sidebar({ isOpen, onClose }) {
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(99,102,241,0.08)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 flex items-center justify-center relative">
-                                <img src={logoIcon} alt="PricePilot Logo" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-1.5 w-[280%] h-[280%] max-w-none object-contain drop-shadow-md pointer-events-none" />
+                            <div className="w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden shadow-md shadow-primary/20 flex-shrink-0">
+                                <img src={brandLogo} alt="PricePilot Logo" className="w-full h-full object-contain" />
                             </div>
-                            <div className="relative z-10">
+                            <div>
                                 <h1 className="font-bold text-text text-lg leading-tight tracking-tight">PricePilot</h1>
                                 <p className="text-[11px] text-primary-light font-medium tracking-wide">AI Platform</p>
                             </div>

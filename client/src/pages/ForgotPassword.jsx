@@ -2,9 +2,13 @@ import { useState } from 'react';
 import { forgotPassword } from '../api';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import { useTheme } from '../context/ThemeContext';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 export default function ForgotPassword() {
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -38,8 +42,8 @@ export default function ForgotPassword() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Logo Header */}
                 <div className="text-center mb-8">
-                    <Link to="/" className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
-                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
+                    <Link to="/" className="inline-flex items-center justify-center w-14 h-14 p-2 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-contain" />
                     </Link>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Reset Password</h1>
                     <p className="text-text-muted mt-2 text-sm">We'll help you recover access to your account</p>
