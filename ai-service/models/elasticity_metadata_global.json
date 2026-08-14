@@ -1,0 +1,19 @@
+{
+  "version": "20260812_182905",
+  "trained_at": "2026-08-12T18:29:05.840087+00:00",
+  "samples": 40,
+  "r2_mean": -4.2385,
+  "mae": 0.0472,
+  "validation_split": "walk_forward_chronological",
+  "feature_importances": {
+    "demand_score": 1.0,
+    "competitor_spread": 0.0,
+    "stock_ratio": 0.0,
+    "price_level": 0.0,
+    "margin_pct": 0.0,
+    "search_trend_normalized": 0.0,
+    "price_ratio_vs_competitor": 0.0,
+    "discount_pct": 0.0,
+    "sentiment_polarity": 0.0
+  }
+}

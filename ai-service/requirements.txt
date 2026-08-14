@@ -23,3 +23,8 @@ langchain-community
 langchain-chroma
 langgraph
 tavily-python
+fastembed
+qdrant-client
+langchain-qdrant
+xgboost
+lightgbm

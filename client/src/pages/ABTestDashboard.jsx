@@ -19,6 +19,7 @@ import {
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
+import ExplainWithAITag from '../components/ExplainWithAITag';
 
 export default function ABTestDashboard() {
   const [tests, setTests] = useState([]);
@@ -205,6 +206,7 @@ export default function ABTestDashboard() {
         <div>
           <h1 className="page-header text-3xl flex items-center gap-3">
             <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+            <ExplainWithAITag title="Explain with AI" contextData={{ type: 'ab_tests', testCount: tests.length }} />
           </h1>
           <p className="text-text-muted mt-1 text-sm">
             Test AI-recommended prices against baseline control prices with real-time statistical significance

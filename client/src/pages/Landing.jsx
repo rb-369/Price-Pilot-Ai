@@ -169,8 +169,8 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 flex items-center justify-center relative">
-                                <img src={logoIcon} alt="PricePilot Logo" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 mt-1.5 w-[280%] h-[280%] max-w-none object-contain drop-shadow-md pointer-events-none" />
+                            <div className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
+                                <img src={logoIcon} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm" />
                             </div>
                             <span className="font-extrabold text-2xl tracking-tight text-text relative z-10">PricePilot AI</span>
                         </div>
@@ -507,7 +507,7 @@ export default function Landing() {
                         </div>
 
                         <div className="rounded-[2rem] border border-purple-100 dark:border-white/10 bg-white/70 dark:bg-black/60 backdrop-blur-xl p-8 md:p-12 text-center space-y-6 shadow-xl">
-                            <div className="w-32 h-32 md:w-40 md:h-40 mx-auto rounded-full bg-gradient-to-tr from-indigo-100 via-purple-50 to-blue-100 dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-blue-950/40 border border-indigo-200 dark:border-white/10 p-2 shadow-inner flex items-center justify-center relative overflow-hidden mb-8">
+                            <div className="w-20 h-20 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-tr from-indigo-100 via-purple-50 to-blue-100 dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-blue-950/40 border border-indigo-200 dark:border-white/10 p-4 shadow-inner flex items-center justify-center relative overflow-hidden mb-8">
                                 <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-md" />
                             </div>
 

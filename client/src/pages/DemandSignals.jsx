@@ -5,6 +5,7 @@ import { HiOutlineTrendingUp, HiOutlineFire, HiDownload, HiOutlineFilter, HiLigh
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
+import ExplainWithAITag from '../components/ExplainWithAITag';
 
 const SIGNAL_WEIGHTS = [
   { key: 'searchTrendScore', label: 'Search Trends', weight: 0.40, color: '#818cf8', barColor: 'from-[#6366f1] to-[#818cf8]', iconBg: 'rgba(99,102,241,0.12)' },
@@ -171,8 +172,9 @@ export default function DemandSignals() {
             </span>
             <span className="text-xs text-text-muted">Updated 2 min ago</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text flex items-center gap-3">
             <span className="gradient-text">Demand Signals</span>
+            <ExplainWithAITag title="Explain with AI" contextData={{ type: 'demand_signals' }} />
           </h1>
           <p className="text-text-muted text-sm mt-1.5 flex items-center gap-2">
             <svg className="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

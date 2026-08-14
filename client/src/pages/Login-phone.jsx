@@ -57,8 +57,8 @@ export default function LoginPhone() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
-                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
+                    <div className="inline-flex items-center justify-center w-14 h-14 p-2.5 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-contain" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Sign In with Phone</h1>
                     <p className="text-text-muted mt-2 text-sm">

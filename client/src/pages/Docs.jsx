@@ -167,7 +167,7 @@ export default function Docs() {
                         <div className="h-6 w-px bg-purple-200 dark:bg-white/10 hidden sm:block" />
 
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 relative flex items-center justify-center">
+                            <div className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
                                 <img src={logoIcon} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm" />
                             </div>
                             <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">

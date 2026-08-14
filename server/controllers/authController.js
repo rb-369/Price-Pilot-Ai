@@ -2,10 +2,6 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
-const { OAuth2Client } = require('google-auth-library');
-
-// We can instantiate the client even if the env var isn't set.
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -182,120 +178,6 @@ exports.resetPassword = async (req, res) => {
         res.status(200).json({ message: 'Password reset successfully. You can now log in.' });
     } catch (error) {
         console.error('RESET PASSWORD ERROR:', error);
-        res.status(500).json({ message: error.message });
-    }
-};
-
-exports.sendOtp = async (req, res) => {
-    try {
-        const { phone } = req.body;
-        if (!phone) {
-            return res.status(400).json({ message: 'Phone number is required' });
-        }
-
-        // Mock OTP generation
-        const otp = '123456';
-        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-        let user = await User.findOne({ phoneNumber: phone });
-        if (!user) {
-            // Create a stub user if one doesn't exist
-            user = new User({ phoneNumber: phone });
-        }
-        
-        user.otp = otp;
-        user.otpExpires = otpExpires;
-        await user.save();
-
-        console.log(`[Mock OTP] Sent ${otp} to ${phone}`);
-        res.status(200).json({ message: 'OTP sent successfully' });
-    } catch (error) {
-        console.error('SEND OTP ERROR:', error);
-        res.status(500).json({ message: error.message });
-    }
-};
-
-exports.verifyOtp = async (req, res) => {
-    try {
-        const { phone, otp } = req.body;
-        if (!phone || !otp) {
-            return res.status(400).json({ message: 'Phone and OTP are required' });
-        }
-
-        const user = await User.findOne({ 
-            phoneNumber: phone, 
-            otp: otp,
-            otpExpires: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired OTP' });
-        }
-
-        // Clear OTP
-        user.otp = undefined;
-        user.otpExpires = undefined;
-        
-        // If it was a newly created stub user without a name, give them a default name
-        if (!user.name) {
-            user.name = `User_${phone.slice(-4)}`;
-        }
-        
-        await user.save();
-
-        const token = generateToken(user._id);
-        console.log(`Phone login successful for: ${phone}`);
-        
-        res.json({
-            _id: user._id, name: user.name, email: user.email, phoneNumber: user.phoneNumber,
-            role: user.role, storeType: user.storeType, token,
-        });
-    } catch (error) {
-        console.error('VERIFY OTP ERROR:', error);
-        res.status(500).json({ message: error.message });
-    }
-};
-
-exports.googleAuth = async (req, res) => {
-    try {
-        const { credential } = req.body;
-        if (!credential) {
-            return res.status(400).json({ message: 'Google credential is required' });
-        }
-
-        // 'credential' here is actually the access_token from frontend useGoogleLogin
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${credential}` }
-        });
-        
-        if (!response.ok) {
-            return res.status(400).json({ message: 'Invalid Google access token' });
-        }
-
-        const payload = await response.json();
-        const { email, name } = payload;
-
-        let user = await User.findOne({ email });
-        
-        if (!user) {
-            // Register new user
-            user = await User.create({
-                name: name || 'Google User',
-                email: email,
-                storeType: 'general',
-            });
-            console.log(`Google auth registration for: ${email}`);
-        } else {
-            console.log(`Google auth login for: ${email}`);
-        }
-
-        const token = generateToken(user._id);
-        res.json({
-            _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
-        });
-    } catch (error) {
-        console.error('GOOGLE AUTH ERROR:', error);
         res.status(500).json({ message: error.message });
     }
 };

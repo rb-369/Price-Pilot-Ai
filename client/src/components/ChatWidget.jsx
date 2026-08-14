@@ -146,7 +146,23 @@ const ChatWidget = () => {
         scrollToBottom();
     }, [messages, isOpen, isExpanded]);
 
-    // Load chat history on mount
+    // Load chat history on mount & listen for Explain with AI events
+    useEffect(() => {
+        const handleExplainWithAI = (e) => {
+            const { title, contextData } = e.detail || {};
+            setIsOpen(true);
+            const prompt = `/explain-simply explain ${title || 'item'}: ${JSON.stringify(contextData || {})}`;
+            setInput(prompt);
+            setTimeout(() => {
+                const sendBtn = document.getElementById('chat-widget-submit-btn');
+                if (sendBtn) sendBtn.click();
+            }, 100);
+        };
+
+        window.addEventListener('open_explain_with_ai', handleExplainWithAI);
+        return () => window.removeEventListener('open_explain_with_ai', handleExplainWithAI);
+    }, []);
+
     useEffect(() => {
         if (isOpen) {
             loadChats();
@@ -413,7 +429,15 @@ const ChatWidget = () => {
                                             )
                                         ) : (
                                             <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
-                                                {renderFormattedChatMessage(msg.content, false)}
+                                                {renderFormattedChatMessage(msg.content, false, (payload) => {
+                                                    if (location.pathname !== '/dashboard') {
+                                                        navigate('/dashboard');
+                                                    }
+                                                    setTimeout(() => {
+                                                        const event = new CustomEvent('launch_what_if_simulator', { detail: payload });
+                                                        window.dispatchEvent(event);
+                                                    }, 200);
+                                                })}
                                             </p>
                                         )}
                                     </div>
@@ -558,6 +582,7 @@ const ChatWidget = () => {
                             />
                             
                             <button
+                                id="chat-widget-submit-btn"
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
                                 className="absolute right-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-2 rounded-full hover:from-indigo-400 hover:to-purple-500 shadow-[0_0_15px_rgba(99,102,241,0.3)] disabled:opacity-50 transition-all duration-300"

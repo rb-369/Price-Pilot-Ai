@@ -82,8 +82,8 @@ export default function Login() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <Link to="/" className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
-                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
+                    <Link to="/" className="inline-flex items-center justify-center w-14 h-14 p-2.5 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow transition-transform hover:scale-105" title="Return to Home">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-contain" />
                     </Link>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Welcome Back</h1>
                     <p className="text-text-muted mt-2 text-sm">Sign in to PricePilot AI Intelligence</p>

@@ -7,11 +7,12 @@ import asyncio
 import hashlib
 from typing import List, Dict
 
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
+from langgraph.prebuilt import create_react_agent
 
 from services.vector_store import get_retriever, ingest_data
 
@@ -20,12 +21,13 @@ You help merchants analyze demand, optimize pricing, and manage stock.
 Answer the user's questions clearly, concisely, and professionally.
 
 CRITICAL INSTRUCTIONS:
-1. NO HALLUCINATIONS: If the answer is not contained within the provided context, chat history, or web search, you MUST say "I don't have that information." Do not guess prices, stock levels, or competitor data.
+1. ACCURACY: If the answer is not contained within the provided context, chat history, or web search, say "I don't have that information." Do not guess random prices, stock levels, or competitor data. However, when the user asks a /what-if pricing scenario, you MUST use the product data in the context (baseCost, currentPrice, marginPercent, salesVelocity) to calculate and estimate the impact — this is NOT guessing, this is analysis.
 2. USE TOOLS: You have access to a Web Search tool. Use it whenever a user asks about current market trends, news, or competitor pricing that isn't in your context.
 3. USE CONTEXT: Rely strictly on the real-time request context and memory chunks provided below for inventory data.
 4. BE SPECIFIC: Use exact numbers, percentages, and names from the context.
 5. CURRENCY & PRICING: The merchant's default store currency is INR (₹). Always quote catalog prices and competitor prices in INR (₹). Do NOT default to USD ($) unless explicitly asked. When comparing catalog prices with competitor market data retrieved from web search or AI knowledge, convert or state market prices in INR (₹) so price comparison logic is accurate and apples-to-apples (e.g. ₹600 bottle compared against market range ₹300-₹850 INR).
 6. TONE: Be helpful, analytical, and direct. Avoid overly fluffy language.
+7. PRODUCT MATCHING: When the user mentions a product name (e.g., @"Premium Steel Hot and Cold Bottle 750ml"), find the matching product in the context by name. Use its baseCost, currentPrice, marginPercent, and salesVelocity data for any analysis.
 
 --- 
 Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
@@ -59,20 +61,22 @@ class WorkingMemory:
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
             semantic_retriever = get_retriever(k=5, collection_name=self._collection_name_semantic)
-            semantic_docs = await semantic_retriever.ainvoke(latest_query)
-            if semantic_docs:
-                semantic_text = "\n".join([d.page_content for d in semantic_docs])
-                context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
+            if semantic_retriever:
+                semantic_docs = await semantic_retriever.ainvoke(latest_query)
+                if semantic_docs:
+                    semantic_text = "\n".join([d.page_content for d in semantic_docs])
+                    context_parts.append("### Semantic Memory (Facts):\n" + semantic_text)
         except Exception as e:
             print(f"Semantic RAG error: {e}")
 
         # 3. RAG from Episodic Memory (Past events)
         try:
             episodic_retriever = get_retriever(k=5, collection_name=self._collection_name_episodic)
-            episodic_docs = await episodic_retriever.ainvoke(latest_query)
-            if episodic_docs:
-                episodic_text = "\n".join([d.page_content for d in episodic_docs])
-                context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
+            if episodic_retriever:
+                episodic_docs = await episodic_retriever.ainvoke(latest_query)
+                if episodic_docs:
+                    episodic_text = "\n".join([d.page_content for d in episodic_docs])
+                    context_parts.append("### Episodic Memory (Past Events):\n" + episodic_text)
         except Exception as e:
             print(f"Episodic RAG error: {e}")
 
@@ -170,11 +174,46 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return "Web search is currently disabled."
             tools.append(dummy_search)
 
-        # 5. Create LangGraph Agent
-        from langgraph.prebuilt import create_react_agent
-        from langchain_core.messages import SystemMessage
-        
-        full_system_prompt = SYSTEM_PROMPT.format(context=context_str)
+        # Special handling for slash commands: /explain-simply and /what-if
+        latest_lower = latest_query.lower().strip()
+        is_explain_simply = 'explain-simply' in latest_lower
+        is_what_if = 'what-if' in latest_lower or 'whatif' in latest_lower
+
+        command_instructions = ""
+        if is_explain_simply:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /explain-simply:\n"
+                "Explain the user's query in 2 plain-English bullet points for a normal seller with zero technical background.\n"
+                "1. Focus on what this means for their net profit (in ₹ INR).\n"
+                "2. Focus on what exact practical action the seller should take.\n"
+                "DO NOT use jargon like elasticity, variance, regression, or logit."
+            )
+        elif is_what_if:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /what-if:\n"
+                "The user is asking a What-If pricing scenario (e.g. '/what-if i changed @Product price to 790rs').\n"
+                "STEP 1: Match the product in the context data by name. Extract its currentPrice, baseCost, marginPercent, and salesVelocity.\n"
+                "NOTE: If the product is not found in context, assume baseline values: currentPrice = ₹900, baseCost = ₹540, marginPercent = 40%, salesVelocity = 0.5/hr.\n"
+                "STEP 2: Calculate the new margin: newMargin = ((newPrice - baseCost) / newPrice) * 100.\n"
+                "STEP 3: Estimate sales impact: if price drops, sales volume increases 10-25%; if price rises, sales volume decreases 10-30%.\n"
+                "STEP 4: Provide the analysis in this exact format:\n\n"
+                "📊 **What-If Analysis: [Product Name]**\n"
+                "- **Current Price:** ₹[current] → **New Price:** ₹[new]\n"
+                "- **Cost (COGS):** ₹[baseCost]\n"
+                "- **Current Margin:** [old]% → **New Margin:** [new]%\n"
+                "- **Estimated Sales Impact:** [+/- X%]\n"
+                "- **Overall Verdict:** [🟢 GOOD DECISION / 🟡 NEUTRAL / 🔴 RISKY DECISION]\n\n"
+                "[2-sentence plain-English summary for the seller explaining profit and volume impact]\n\n"
+                "STEP 5: At the VERY END of your response, append exact line:\n"
+                "---ACTION_REDIRECT_WHAT_IF---\n"
+                "followed on a new line by a single valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted target price value>\"}\n"
+                "Example:\n"
+                "---ACTION_REDIRECT_WHAT_IF---\n"
+                "{\"action\": \"redirect_what_if\", \"productQuery\": \"Premium Steel Hot and Cold Bottle 750ml\", \"priceChange\": \"790\"}\n\n"
+                "CRITICAL MANDATE: NEVER say 'I don't have that information' or 'I don't have base cost'. You MUST output the What-If analysis and the ---ACTION_REDIRECT_WHAT_IF--- payload!"
+            )
+
+        full_system_prompt = SYSTEM_PROMPT.format(context=context_str) + command_instructions
         # We pass tools, but remove state_modifier to support older langgraph versions
         agent = create_react_agent(llm, tools)
         
@@ -202,6 +241,19 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         
         # Save to episodic memory asynchronously (fire-and-forget for now)
         memory.save_episodic_interaction(latest_query, response)
+
+        # Enforce ---ACTION_REDIRECT_WHAT_IF--- payload for /what-if queries if LLM omitted it
+        if is_what_if and "---ACTION_REDIRECT_WHAT_IF---" not in response:
+            import re
+            import json
+            p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+            pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+)', latest_query, re.IGNORECASE) or re.search(r'(\d+)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+            
+            extracted_prod = p_match.group(1).strip() if p_match else "Product"
+            extracted_price = pr_match.group(1).strip() if pr_match else ""
+            
+            payload_json = json.dumps({"action": "redirect_what_if", "productQuery": extracted_prod, "priceChange": extracted_price})
+            response += f"\n\n---ACTION_REDIRECT_WHAT_IF---\n{payload_json}"
         
         return response
     except Exception as e:

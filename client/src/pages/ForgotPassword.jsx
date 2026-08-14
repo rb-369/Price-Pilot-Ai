@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import { forgotPassword } from '../api';
-import { useTheme } from '../context/ThemeContext';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import newLightLogo from '../assets/new_light_logo.png';
-import newDarkLogo from '../assets/new_dark_logo.png';
+import finalLogo from '../assets/FINAL.svg';
 
 export default function ForgotPassword() {
-    const { theme } = useTheme();
-    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
