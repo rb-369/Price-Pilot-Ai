@@ -356,8 +356,8 @@ export default function Competitors() {
             <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">Market intelligence</p>
-                    <h1 className="page-header mt-1 text-3xl flex items-center gap-3 flex-wrap">
-                        <span>Competitor comparison</span>
+                    <div className="mt-1 flex items-center gap-3 flex-wrap">
+                        <h1 className="page-header text-3xl">Competitor comparison</h1>
                         <ExplainWithAITag title="Explain with AI" contextData={{ type: 'competitors', summary }} />
                         <AskAIButton
                             variant="chip"
@@ -365,7 +365,7 @@ export default function Competitors() {
                             prompt={`Analyze competitor positioning for our store: We have ${summary.products} products tracked with ${summary.offers} competitor offers. ${summary.lowerPriced} competitor offers are currently undercutting our price. What is the optimal margin defense stance?`}
                             contextData={{ summary }}
                         />
-                    </h1>
+                    </div>
                     <p className="mt-2 text-sm text-text-muted">Monitor price position and availability across your tracked catalog.</p>
                 </div>
                 <div className="flex items-center gap-3">

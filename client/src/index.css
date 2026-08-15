@@ -298,6 +298,11 @@ select option {
   background-clip: text;
 }
 
+/* Ensure buttons & chips never inherit transparent text fill */
+button, .btn-primary, .btn-secondary, [role="button"] {
+  -webkit-text-fill-color: currentColor;
+}
+
 /* ─── Sidebar ─── */
 .sidebar-link {
   display: flex;

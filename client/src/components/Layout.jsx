@@ -40,12 +40,14 @@ export default function Layout() {
             {/* Sidebar (fixed desktop or off-canvas mobile drawer) */}
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isDesktop={isDesktop} />
 
-            {/* Main content area: marginLeft only applies on desktop when sidebar is open */}
+            {/* Main content area: marginLeft and width properly calculated on desktop when sidebar is open */}
             <div
-                className="flex min-h-0 flex-col flex-1 h-full w-full"
+                className="flex min-h-0 flex-col flex-1 h-full min-w-0"
                 style={{
                     marginLeft: (isDesktop && sidebarOpen) ? '260px' : '0',
-                    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    width: (isDesktop && sidebarOpen) ? 'calc(100% - 260px)' : '100%',
+                    maxWidth: (isDesktop && sidebarOpen) ? 'calc(100% - 260px)' : '100%',
+                    transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
             >
                 {/* Persistent Top Header */}

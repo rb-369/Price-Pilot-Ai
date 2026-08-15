@@ -205,10 +205,12 @@ export default function ABTestDashboard() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="page-header text-3xl flex items-center gap-3">
-            <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="page-header text-3xl flex items-center gap-2">
+              <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+            </h1>
             <ExplainWithAITag title="Explain with AI" contextData={{ type: 'ab_tests', testCount: tests.length }} />
-          </h1>
+          </div>
           <p className="text-text-muted mt-1 text-sm">
             Test AI-recommended prices against baseline control prices with real-time statistical significance
           </p>
