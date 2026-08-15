@@ -34,6 +34,18 @@ const userSchema = new mongoose.Schema({
         priceDropAlerts: { type: Boolean, default: true },
         weeklyDigest: { type: Boolean, default: true },
     },
+    onboarding: {
+        completed: { type: Boolean, default: false },
+        completedAt: { type: Date },
+        skipped: { type: Boolean, default: false },
+        channels: [{ type: String }],
+        goals: [{ type: String }],
+        pricingStrategy: { type: String, default: 'undercut_1' },
+        automationLevel: { type: String, default: 'semi_auto' },
+        catalogSize: { type: String, default: '1_50' },
+        industryNiche: { type: String, default: 'general' },
+        targetMarginFloor: { type: Number, default: 20 },
+    },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
 }, { timestamps: true });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -23,9 +24,16 @@ import {
     HiOutlineCloudUpload,
     HiOutlineSwitchHorizontal,
     HiOutlineRefresh,
-    HiOutlineExclamation
+    HiOutlineExclamation,
+    HiOutlineTrendingUp,
+    HiOutlineCurrencyDollar,
+    HiOutlineCube,
+    HiOutlineScale,
+    HiOutlineSparkles,
+    HiOutlineShoppingBag,
+    HiOutlineGlobeAlt
 } from 'react-icons/hi';
-import { SiGoogle, SiShopify, SiAmazon } from 'react-icons/si';
+import { SiGoogle, SiShopify, SiAmazon, SiWoocommerce } from 'react-icons/si';
 import ConfirmModal from '../components/ConfirmModal';
 
 const PRESET_AVATARS = [
@@ -58,12 +66,37 @@ const PLATFORMS = [
     { id: 'Custom', name: 'Custom API / Direct', color: '#6366f1' },
 ];
 
+const SETTINGS_SALES_CHANNELS = [
+    { id: 'amazon', name: 'Amazon', icon: SiAmazon, color: '#FF9900' },
+    { id: 'shopify', name: 'Shopify', icon: SiShopify, color: '#96BF48' },
+    { id: 'flipkart', name: 'Flipkart', icon: HiOutlineShoppingBag, color: '#2874F0' },
+    { id: 'woocommerce', name: 'WooCommerce', icon: SiWoocommerce, color: '#9B5C8F' },
+    { id: 'meesho', name: 'Meesho', icon: HiOutlineSparkles, color: '#F43397' },
+    { id: 'quickcommerce', name: 'Quick Commerce', icon: HiOutlineLightningBolt, color: '#10B981' },
+    { id: 'custom', name: 'Custom Store / D2C', icon: HiOutlineGlobeAlt, color: '#6366F1' },
+];
+
+const SETTINGS_PRIMARY_GOALS = [
+    { id: 'profit', title: 'Maximize Profit Margins', desc: 'Optimize unit economics & profit retention', icon: HiOutlineCurrencyDollar, color: '#10B981' },
+    { id: 'sales_velocity', title: 'Boost Sales Volume', desc: 'Capture demand & ramp order count', icon: HiOutlineTrendingUp, color: '#6366F1' },
+    { id: 'clear_inventory', title: 'Liquidate Aging Stock', desc: 'Clear overstocked SKUs swiftly', icon: HiOutlineCube, color: '#F59E0B' },
+    { id: 'competitor_defense', title: 'Win Buy Box & Track Rivals', desc: 'Real-time defense against discounters', icon: HiOutlineShieldCheck, color: '#06B6D4' },
+    { id: 'price_testing', title: 'Elasticity & A/B Testing', desc: 'Discover optimal willingness-to-pay', icon: HiOutlineScale, color: '#EC4899' },
+];
+
+const SETTINGS_CATALOG_SIZES = [
+    { id: '1_50', label: '1 - 50 SKUs' },
+    { id: '51_500', label: '51 - 500 SKUs' },
+    { id: '501_2500', label: '501 - 2,500 SKUs' },
+    { id: '2500_plus', label: '2,500+ SKUs' },
+];
+
 export default function Settings() {
-    const { user, activeProfile, updateUser, switchProfile } = useAuth();
+    const { user, activeProfile, updateUser, switchProfile, completeOnboarding } = useAuth();
     const { theme, setTheme } = useTheme();
     const { currency, setCurrency, currencies } = useCurrency();
 
-    const [activeTab, setActiveTab] = useState('profiles'); // 'profiles', 'general', 'appearance', 'ai-rules', 'notifications', 'security'
+    const [activeTab, setActiveTab] = useState('profiles'); // 'profiles', 'strategy-goals', 'general', 'appearance', 'ai-rules', 'notifications', 'security'
     const [saving, setSaving] = useState(false);
 
     // Profile & Personal state
@@ -74,6 +107,16 @@ export default function Settings() {
         storeName: '',
         storeType: 'general',
         avatar: '⚡',
+    });
+
+    // Onboarding & Strategy Goals State
+    const [onboardingData, setOnboardingData] = useState({
+        channels: ['amazon', 'shopify'],
+        goals: ['profit', 'competitor_defense'],
+        catalogSize: '51_500',
+        pricingStrategy: 'undercut_1',
+        automationLevel: 'semi_auto',
+        targetMarginFloor: 20,
     });
 
     // Preferences & AI state
@@ -125,6 +168,17 @@ export default function Settings() {
                 storeType: user.storeType || 'general',
                 avatar: user.avatar || '⚡',
             });
+
+            if (user.onboarding) {
+                setOnboardingData({
+                    channels: user.onboarding.channels?.length ? user.onboarding.channels : ['amazon', 'shopify'],
+                    goals: user.onboarding.goals?.length ? user.onboarding.goals : ['profit', 'competitor_defense'],
+                    catalogSize: user.onboarding.catalogSize || '51_500',
+                    pricingStrategy: user.onboarding.pricingStrategy || user.preferences?.pricingStrategy || 'undercut_1',
+                    automationLevel: user.onboarding.automationLevel || 'semi_auto',
+                    targetMarginFloor: user.onboarding.targetMarginFloor || user.preferences?.minMarginFloor || 20,
+                });
+            }
 
             if (user.preferences) {
                 setPreferences((prev) => ({
@@ -317,8 +371,45 @@ export default function Settings() {
         }
     };
 
+    // Save Onboarding & Strategy Goals
+    const handleSaveOnboardingGoals = async () => {
+        setSaving(true);
+        try {
+            const res = await completeOnboarding({
+                ...onboardingData,
+                industryNiche: formData.storeType,
+                skipped: false,
+            });
+            updateUser(res);
+            toast.success('Business strategy & seller goals updated!');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to update strategy goals');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const toggleChannel = (id) => {
+        setOnboardingData(prev => ({
+            ...prev,
+            channels: prev.channels.includes(id)
+                ? (prev.channels.length > 1 ? prev.channels.filter(c => c !== id) : prev.channels)
+                : [...prev.channels, id]
+        }));
+    };
+
+    const toggleGoal = (id) => {
+        setOnboardingData(prev => ({
+            ...prev,
+            goals: prev.goals.includes(id)
+                ? (prev.goals.length > 1 ? prev.goals.filter(g => g !== id) : prev.goals)
+                : [...prev.goals, id]
+        }));
+    };
+
     const tabs = [
         { id: 'profiles', label: 'Store Profiles', icon: HiOutlineSwitchHorizontal, badge: profiles.length },
+        { id: 'strategy-goals', label: 'Business Strategy & Goals', icon: HiOutlineTrendingUp },
         { id: 'general', label: 'Account & Profile', icon: HiOutlineUser },
         { id: 'appearance', label: 'Appearance & Region', icon: HiOutlineColorSwatch },
         { id: 'ai-rules', label: 'AI & Pricing Rules', icon: HiOutlineAdjustments },
@@ -527,6 +618,190 @@ export default function Settings() {
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+            )}
+
+            {/* TAB: Business Strategy & Goals */}
+            {activeTab === 'strategy-goals' && (
+                <div className="max-w-4xl space-y-6 animate-fade-in">
+                    {/* Header Card with Re-run Onboarding button */}
+                    <div className="glass-card p-6 sm:p-8 rounded-2xl border border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="p-2 rounded-xl bg-primary/15 text-primary">
+                                    <HiOutlineTrendingUp className="w-5 h-5" />
+                                </span>
+                                <h2 className="text-lg font-extrabold text-text tracking-tight">Business Strategy & Seller Goals</h2>
+                            </div>
+                            <p className="text-xs text-text-muted mt-1">
+                                Customize active sales channels, target margin floors, and primary algorithmic aims.
+                            </p>
+                        </div>
+
+                        <Link
+                            to="/onboarding"
+                            className="btn-secondary flex items-center gap-2 py-2.5 px-4 text-xs font-bold whitespace-nowrap self-start sm:self-auto hover:border-primary/50"
+                        >
+                            <HiOutlineSparkles className="w-4 h-4 text-primary" />
+                            Re-run Full Onboarding Wizard →
+                        </Link>
+                    </div>
+
+                    {/* Sales Channels Multi-Select Card */}
+                    <div className="glass-card p-6 sm:p-8 rounded-2xl border border-border/60 space-y-4">
+                        <div>
+                            <h3 className="text-sm font-extrabold text-text uppercase tracking-wider">Active Sales Channels</h3>
+                            <p className="text-xs text-text-muted">Select all marketplaces and storefronts where your catalog is listed.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-1">
+                            {SETTINGS_SALES_CHANNELS.map((channel) => {
+                                const isSelected = onboardingData.channels.includes(channel.id);
+                                const Icon = channel.icon;
+                                return (
+                                    <button
+                                        key={channel.id}
+                                        type="button"
+                                        onClick={() => toggleChannel(channel.id)}
+                                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                            isSelected
+                                                ? 'bg-primary/10 border-primary ring-1 ring-primary/25 shadow'
+                                                : 'border-border/70 bg-surface-lighter/30 hover:border-border'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                style={{ backgroundColor: `${channel.color}20`, color: channel.color }}
+                                            >
+                                                <Icon className="w-3.5 h-3.5" />
+                                            </div>
+                                            <span className="text-xs font-bold text-text truncate">{channel.name}</span>
+                                        </div>
+                                        <div
+                                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                                                isSelected ? 'bg-primary border-primary text-white' : 'border-border bg-surface'
+                                            }`}
+                                        >
+                                            {isSelected && <HiOutlineCheck className="w-3 h-3" />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Primary Goals Multi-Select Card */}
+                    <div className="glass-card p-6 sm:p-8 rounded-2xl border border-border/60 space-y-4">
+                        <div>
+                            <h3 className="text-sm font-extrabold text-text uppercase tracking-wider">Primary Pricing Aims</h3>
+                            <p className="text-xs text-text-muted">Choose your top business objectives to calibrate elasticity models.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            {SETTINGS_PRIMARY_GOALS.map((goal) => {
+                                const isSelected = onboardingData.goals.includes(goal.id);
+                                const Icon = goal.icon;
+                                return (
+                                    <button
+                                        key={goal.id}
+                                        type="button"
+                                        onClick={() => toggleGoal(goal.id)}
+                                        className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                                            isSelected
+                                                ? 'bg-primary/10 border-primary ring-1 ring-primary/25 shadow'
+                                                : 'border-border/70 bg-surface-lighter/30 hover:border-border'
+                                        }`}
+                                    >
+                                        <div
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                                            style={{ backgroundColor: `${goal.color}20`, color: goal.color }}
+                                        >
+                                            <Icon className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="font-bold text-xs text-text">{goal.title}</div>
+                                                <div
+                                                    className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                                                        isSelected ? 'bg-primary border-primary text-white' : 'border-border bg-surface'
+                                                    }`}
+                                                >
+                                                    {isSelected && <HiOutlineCheck className="w-3 h-3" />}
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] text-text-muted mt-0.5">{goal.desc}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Catalog Scale & Margin Guardrail */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Catalog Size */}
+                        <div className="glass-card p-6 rounded-2xl border border-border/60 space-y-3">
+                            <h3 className="text-xs font-bold text-text uppercase tracking-wider">Catalog SKU Scale</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {SETTINGS_CATALOG_SIZES.map((size) => {
+                                    const isSelected = onboardingData.catalogSize === size.id;
+                                    return (
+                                        <button
+                                            key={size.id}
+                                            type="button"
+                                            onClick={() => setOnboardingData({ ...onboardingData, catalogSize: size.id })}
+                                            className={`p-2.5 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                                                isSelected
+                                                    ? 'bg-primary text-white border-primary shadow'
+                                                    : 'bg-surface-lighter/40 border-border/60 text-text-muted hover:text-text'
+                                            }`}
+                                        >
+                                            {size.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Minimum Margin Floor */}
+                        <div className="glass-card p-6 rounded-2xl border border-border/60 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs font-bold text-text uppercase tracking-wider">Profit Margin Floor</h3>
+                                <span className="text-xs font-extrabold text-emerald-400 px-2 py-0.5 rounded-md bg-emerald-400/10">
+                                    {onboardingData.targetMarginFloor}%
+                                </span>
+                            </div>
+                            <input
+                                type="range"
+                                min="5"
+                                max="50"
+                                value={onboardingData.targetMarginFloor}
+                                onChange={(e) => setOnboardingData({ ...onboardingData, targetMarginFloor: Number(e.target.value) })}
+                                className="w-full accent-emerald-400 cursor-pointer"
+                            />
+                            <p className="text-[11px] text-text-muted">
+                                Prevents AI recommendations from breaching your minimum threshold.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="flex justify-end pt-2">
+                        <button
+                            type="button"
+                            onClick={handleSaveOnboardingGoals}
+                            disabled={saving}
+                            className="btn-primary flex items-center gap-2 py-2.5 px-6 text-sm"
+                        >
+                            {saving ? (
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <HiOutlineCloudUpload className="w-4 h-4" />
+                            )}
+                            Save Business Strategy &amp; Goals
+                        </button>
                     </div>
                 </div>
             )}

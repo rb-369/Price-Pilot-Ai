@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Products from './pages/Products';
@@ -60,7 +61,8 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+      <Route path="/register" element={user ? (user.onboarding?.completed ? <Navigate to="/dashboard" /> : <Navigate to="/onboarding" />) : <Register />} />
+      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
       <Route path="/reset-password/:token" element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} />
       

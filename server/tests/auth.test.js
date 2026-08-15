@@ -66,4 +66,37 @@ describe('Auth Endpoints', () => {
         expect(res.statusCode).toEqual(200);
         expect(res.body).toHaveProperty('token');
     });
+
+    it('should complete onboarding and save preferences', async () => {
+        const regRes = await request(app)
+            .post('/api/auth/register')
+            .send({
+                name: 'Pilot Merchant',
+                email: 'pilot@example.com',
+                password: 'password123'
+            });
+
+        const token = regRes.body.token;
+
+        const res = await request(app)
+            .put('/api/auth/onboarding')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                channels: ['amazon', 'shopify', 'flipkart'],
+                goals: ['profit', 'clear_inventory'],
+                pricingStrategy: 'undercut_1',
+                automationLevel: 'full_auto',
+                catalogSize: '501_2500',
+                industryNiche: 'electronics',
+                targetMarginFloor: 25,
+            });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.onboarding.completed).toBe(true);
+        expect(res.body.onboarding.channels).toContain('amazon');
+        expect(res.body.onboarding.goals).toContain('profit');
+        expect(res.body.preferences.pricingStrategy).toEqual('undercut_1');
+        expect(res.body.preferences.minMarginFloor).toEqual(25);
+        expect(res.body.preferences.autoApplyRecommendations).toBe(true);
+    });
 });

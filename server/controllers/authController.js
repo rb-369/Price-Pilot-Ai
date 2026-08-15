@@ -27,7 +27,9 @@ exports.register = async (req, res) => {
         });
         res.status(201).json({
             _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
+            role: user.role, storeType: user.storeType, storeName: user.storeName,
+            profiles: user.profiles, preferences: user.preferences,
+            onboarding: user.onboarding, token,
         });
     } catch (error) {
         console.error('REGISTRATION ERROR:', error);
@@ -49,7 +51,10 @@ exports.login = async (req, res) => {
         console.log(`Login successful for: ${email}`);
         res.json({
             _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
+            role: user.role, storeType: user.storeType, storeName: user.storeName,
+            phone: user.phone, avatar: user.avatar, activeProfileId: user.activeProfileId,
+            profiles: user.profiles, preferences: user.preferences,
+            onboarding: user.onboarding, token,
         });
     } catch (error) {
         console.error('LOGIN ERROR:', error);
@@ -74,6 +79,7 @@ exports.googleAuth = async (req, res) => {
                 email,
                 password: randomPassword,
                 storeType: 'general',
+                avatar: picture || '',
             });
             console.log(`Google registration created new user for: ${email}`);
 
@@ -92,6 +98,13 @@ exports.googleAuth = async (req, res) => {
             email: user.email,
             role: user.role,
             storeType: user.storeType,
+            storeName: user.storeName,
+            phone: user.phone,
+            avatar: user.avatar,
+            activeProfileId: user.activeProfileId,
+            profiles: user.profiles,
+            preferences: user.preferences,
+            onboarding: user.onboarding,
             token,
         });
     } catch (error) {
@@ -120,6 +133,7 @@ exports.updateProfile = async (req, res) => {
             activeProfileId,
             profiles,
             preferences,
+            onboarding,
         } = req.body;
 
         if (name) user.name = name.trim();
@@ -131,6 +145,9 @@ exports.updateProfile = async (req, res) => {
         if (Array.isArray(profiles)) user.profiles = profiles;
         if (preferences && typeof preferences === 'object') {
             user.preferences = { ...user.preferences, ...preferences };
+        }
+        if (onboarding && typeof onboarding === 'object') {
+            user.onboarding = { ...user.onboarding, ...onboarding };
         }
 
         await user.save();
@@ -147,10 +164,96 @@ exports.updateProfile = async (req, res) => {
             activeProfileId: user.activeProfileId,
             profiles: user.profiles,
             preferences: user.preferences,
+            onboarding: user.onboarding,
         });
     } catch (error) {
         console.error('UPDATE PROFILE ERROR:', error);
         res.status(500).json({ message: error.message || 'Failed to update profile' });
+    }
+};
+
+exports.completeOnboarding = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const {
+            channels = [],
+            goals = [],
+            pricingStrategy = 'undercut_1',
+            automationLevel = 'semi_auto',
+            catalogSize = '1_50',
+            industryNiche = 'general',
+            targetMarginFloor = 20,
+            skipped = false,
+        } = req.body;
+
+        user.onboarding = {
+            completed: true,
+            completedAt: new Date(),
+            skipped: Boolean(skipped),
+            channels: Array.isArray(channels) ? channels : [],
+            goals: Array.isArray(goals) ? goals : [],
+            pricingStrategy: pricingStrategy || 'undercut_1',
+            automationLevel: automationLevel || 'semi_auto',
+            catalogSize: catalogSize || '1_50',
+            industryNiche: industryNiche || user.storeType || 'general',
+            targetMarginFloor: Number(targetMarginFloor) || 20,
+        };
+
+        // Sync to user preferences & profile
+        if (industryNiche) user.storeType = industryNiche;
+        if (!user.preferences) user.preferences = {};
+
+        user.preferences.pricingStrategy = pricingStrategy || user.preferences.pricingStrategy || 'undercut_1';
+        user.preferences.minMarginFloor = Number(targetMarginFloor) || user.preferences.minMarginFloor || 20;
+
+        if (automationLevel === 'full_auto') {
+            user.preferences.autoApplyRecommendations = true;
+            user.preferences.recommendationThreshold = 85;
+        } else if (automationLevel === 'manual') {
+            user.preferences.autoApplyRecommendations = false;
+        }
+
+        // Pre-configure primary platform if channels are provided
+        if (Array.isArray(channels) && channels.length > 0 && user.profiles && user.profiles.length > 0) {
+            const channelMap = {
+                amazon: 'Amazon',
+                flipkart: 'Flipkart',
+                shopify: 'Shopify',
+                woocommerce: 'WooCommerce',
+                meesho: 'Meesho',
+                quickcommerce: 'QuickCommerce',
+                custom: 'Custom Store',
+            };
+            const primaryPlatform = channelMap[channels[0]] || 'Shopify';
+            user.profiles[0].platform = primaryPlatform;
+            user.profiles[0].targetMargin = Number(targetMarginFloor) || 20;
+            if (industryNiche) user.profiles[0].storeType = industryNiche;
+        }
+
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeType: user.storeType,
+            storeName: user.storeName,
+            phone: user.phone,
+            avatar: user.avatar,
+            activeProfileId: user.activeProfileId,
+            profiles: user.profiles,
+            preferences: user.preferences,
+            onboarding: user.onboarding,
+            token: generateToken(user._id),
+        });
+    } catch (error) {
+        console.error('COMPLETE ONBOARDING ERROR:', error);
+        res.status(500).json({ message: error.message || 'Failed to complete onboarding' });
     }
 };
 

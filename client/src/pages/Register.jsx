@@ -47,8 +47,8 @@ export default function Register() {
             };
             delete submitData.customStoreType;
             await register(submitData);
-            toast.success('Account created!');
-            navigate('/');
+            toast.success('Account created! Welcome to PricePilot AI.');
+            navigate('/onboarding');
         } catch (err) {
             toast.error(err.response?.data?.message || 'Registration failed');
         } finally {
@@ -65,14 +65,18 @@ export default function Register() {
                 });
                 const userInfo = await userInfoResponse.json();
 
-                await loginWithGoogle({
+                const userData = await loginWithGoogle({
                     email: userInfo.email,
                     name: userInfo.name || userInfo.given_name || userInfo.email.split('@')[0],
                     googleId: userInfo.sub,
                     picture: userInfo.picture,
                 });
                 toast.success('Welcome to PricePilot AI!');
-                navigate('/');
+                if (userData?.onboarding?.completed) {
+                    navigate('/dashboard');
+                } else {
+                    navigate('/onboarding');
+                }
             } catch (err) {
                 toast.error(err.response?.data?.message || 'Google registration failed');
             } finally {

@@ -23,9 +23,13 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         try {
-            await login(email, password);
+            const userData = await login(email, password);
             toast.success('Welcome back!');
-            navigate('/');
+            if (userData?.onboarding?.completed) {
+                navigate('/dashboard');
+            } else {
+                navigate('/onboarding');
+            }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Login failed');
         } finally {
@@ -42,14 +46,18 @@ export default function Login() {
                 });
                 const userInfo = await userInfoResponse.json();
                 
-                await loginWithGoogle({
+                const userData = await loginWithGoogle({
                     email: userInfo.email,
                     name: userInfo.name || userInfo.given_name || userInfo.email.split('@')[0],
                     googleId: userInfo.sub,
                     picture: userInfo.picture,
                 });
                 toast.success('Welcome back!');
-                navigate('/');
+                if (userData?.onboarding?.completed) {
+                    navigate('/dashboard');
+                } else {
+                    navigate('/onboarding');
+                }
             } catch (err) {
                 toast.error(err.response?.data?.message || 'Google login failed');
             } finally {

@@ -6,6 +6,7 @@ const {
     googleAuth,
     getProfile,
     updateProfile,
+    completeOnboarding,
     changePassword,
     forgotPassword,
     resetPassword,
@@ -19,6 +20,7 @@ router.post('/login', login);
 router.post('/google', googleAuth);
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
+router.put('/onboarding', protect, completeOnboarding);
 router.put('/change-password', protect, changePassword);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);

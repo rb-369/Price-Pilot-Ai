@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, register as apiRegister, googleAuth as apiGoogleAuth, getProfile } from '../api';
+import { login as apiLogin, register as apiRegister, googleAuth as apiGoogleAuth, getProfile, completeOnboarding as apiCompleteOnboarding } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -37,6 +37,15 @@ export function AuthProvider({ children }) {
     const loginWithGoogle = async (googleData) => {
         const res = await apiGoogleAuth(googleData);
         localStorage.setItem('token', res.data.token);
+        setUser(res.data);
+        return res.data;
+    };
+
+    const completeOnboarding = async (onboardingData) => {
+        const res = await apiCompleteOnboarding(onboardingData);
+        if (res.data?.token) {
+            localStorage.setItem('token', res.data.token);
+        }
         setUser(res.data);
         return res.data;
     };
@@ -79,6 +88,7 @@ export function AuthProvider({ children }) {
             login,
             register: registerUser,
             loginWithGoogle,
+            completeOnboarding,
             updateUser,
             switchProfile,
             logout,

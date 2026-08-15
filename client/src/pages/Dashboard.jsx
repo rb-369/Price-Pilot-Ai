@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getDashboardStats, getRecommendations, getAlerts, getChartData } from '../api';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -7,8 +8,15 @@ import {
     HiOutlineTrendingUp, 
     HiOutlineExclamation, 
     HiOutlineLightBulb, 
-    HiOutlineChartBar 
+    HiOutlineChartBar,
+    HiOutlineSparkles,
+    HiOutlineShieldCheck,
+    HiOutlineShoppingBag,
+    HiOutlineLightningBolt,
+    HiOutlineGlobeAlt
 } from 'react-icons/hi';
+import { SiAmazon, SiShopify, SiWoocommerce } from 'react-icons/si';
+import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import ExplainabilityPanel from '../components/ExplainabilityPanel';
 import WhatIfSimulator from '../components/WhatIfSimulator';
@@ -68,6 +76,19 @@ export default function Dashboard() {
     }
 
     const { formatCurrency } = useCurrency();
+    const { user } = useAuth();
+    const onboarding = user?.onboarding;
+
+    const goalTitles = {
+        profit: 'Maximize Profit Margins',
+        sales_velocity: 'Accelerate Sales Velocity & Volume',
+        clear_inventory: 'Liquidate Aging & Excess Stock',
+        competitor_defense: 'Win Buy Box & Defend Market Share',
+        price_testing: 'Algorithmic Price Elasticity Testing',
+    };
+
+    const primaryGoalKey = onboarding?.goals?.[0] || 'profit';
+    const primaryGoalTitle = goalTitles[primaryGoalKey] || 'Profit & Revenue Growth';
 
     const statCards = [
         { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, gradient: 'from-green-500 to-emerald-600', topAccent: 'border-t-2 border-t-emerald-500', change: null },
@@ -79,6 +100,7 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-8">
+            {/* Top Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
                     <h1 className="page-header text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Executive Dashboard</h1>
@@ -91,6 +113,67 @@ export default function Dashboard() {
                     contextData={{ stats }}
                 />
             </div>
+
+            {/* Personalized AI Pricing Mission & Channel Status Bar */}
+            {onboarding?.completed ? (
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/5 border border-primary/20 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center flex-shrink-0 shadow-inner">
+                            <HiOutlineSparkles className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-bold text-primary uppercase tracking-wider">AI Pilot Active</span>
+                                <span className="text-xs text-text-muted">•</span>
+                                <span className="text-xs font-extrabold text-text">{primaryGoalTitle}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-text-muted flex-wrap">
+                                <span>Channels:</span>
+                                {onboarding.channels?.map((ch) => (
+                                    <span key={ch} className="px-2 py-0.5 rounded-md bg-surface border border-border/60 text-[10px] font-bold text-text uppercase">
+                                        {ch}
+                                    </span>
+                                ))}
+                                <span className="text-[11px] text-text-muted">| Strategy: <strong className="text-text">{user?.preferences?.pricingStrategy?.replace('_', ' ').toUpperCase() || 'SMART UNDERCUT'}</strong></span>
+                                <span className="text-[11px] text-emerald-400 font-semibold">({user?.preferences?.minMarginFloor || 20}% Margin Floor)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-start md:self-auto">
+                        <Link
+                            to="/dashboard/integrations"
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-lighter text-text transition-colors"
+                        >
+                            Sync Channels →
+                        </Link>
+                        <Link
+                            to="/dashboard/settings"
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary/15 hover:bg-primary/25 text-primary transition-colors"
+                        >
+                            Tune AI Rules
+                        </Link>
+                    </div>
+                </div>
+            ) : (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center flex-shrink-0">
+                            <HiOutlineSparkles className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-text">Calibrate Your AI Pricing Pilot</div>
+                            <p className="text-[11px] text-text-muted">Tell us your selling channels, target margin floors, and growth aims for personalized repricing.</p>
+                        </div>
+                    </div>
+                    <Link
+                        to="/onboarding"
+                        className="btn-primary py-2 px-4 text-xs font-bold whitespace-nowrap self-start sm:self-auto"
+                    >
+                        Complete 2-Min Setup →
+                    </Link>
+                </div>
+            )}
 
             {/* Quick AI Analytical Inquiry Chips */}
             <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/70 dark:bg-[#0d1326] dark:border-indigo-500/20 shadow-sm dark:shadow-md">
