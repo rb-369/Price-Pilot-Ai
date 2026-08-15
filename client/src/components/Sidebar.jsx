@@ -12,6 +12,7 @@ import {
 import { FiX } from 'react-icons/fi';
 import newLightLogo from '../assets/new_light_logo.png';
 import newDarkLogo from '../assets/new_dark_logo.png';
+import UserAvatar from './UserAvatar';
 
 const links = [
     { to: '/dashboard', icon: HiOutlineChartBar, label: 'Dashboard' },
@@ -120,9 +121,11 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                         className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60 cursor-pointer transition-all duration-200 group"
                         title="Open Profile & Settings"
                     >
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center text-primary-light text-sm font-bold ring-2 ring-primary/10 group-hover:scale-105 transition-transform flex-shrink-0">
-                            {user?.avatar || user?.name?.charAt(0)?.toUpperCase() || '⚡'}
-                        </div>
+                        <UserAvatar
+                            avatar={user?.avatar}
+                            name={user?.name}
+                            className="w-8 h-8 rounded-xl text-xs group-hover:scale-105 transition-transform flex-shrink-0 ring-2 ring-primary/10"
+                        />
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-text truncate font-bold group-hover:text-primary transition-colors">{user?.name || 'User'}</p>
                             <p className="text-[10px] text-text-muted truncate">

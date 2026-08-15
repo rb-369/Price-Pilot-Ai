@@ -35,6 +35,7 @@ import {
 } from 'react-icons/hi';
 import { SiGoogle, SiShopify, SiAmazon, SiWoocommerce } from 'react-icons/si';
 import ConfirmModal from '../components/ConfirmModal';
+import UserAvatar from '../components/UserAvatar';
 
 const PRESET_AVATARS = [
     '⚡', '🚀', '👑', '💼', '🎯', '💡', '🤖', '🔥', '🌟', '🛒'
@@ -418,19 +419,21 @@ export default function Settings() {
     ];
 
     return (
-        <div className="space-y-8 pb-16">
+        <div className="space-y-8 pb-16 max-w-full overflow-x-hidden">
             {/* Top Page Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-6">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary/30 via-accent/20 to-primary/10 flex items-center justify-center text-2xl border border-primary/20 shadow-lg shadow-primary/10">
-                            {formData.avatar || '⚡'}
-                        </div>
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-text tracking-tight flex items-center gap-2">
-                                Settings & Preferences
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                        <UserAvatar
+                            avatar={formData.avatar}
+                            name={formData.name}
+                            className="w-13 h-13 rounded-2xl text-2xl border border-primary/20 shadow-lg shadow-primary/10 flex-shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-text tracking-tight flex items-center gap-2 truncate">
+                                Settings &amp; Preferences
                             </h1>
-                            <p className="text-sm text-text-muted mt-0.5">
+                            <p className="text-sm text-text-muted mt-0.5 truncate sm:whitespace-normal">
                                 Manage your multiple store profiles, AI repricing guardrails, and account settings
                             </p>
                         </div>
@@ -438,20 +441,20 @@ export default function Settings() {
                 </div>
 
                 {/* Quick Active Store Status Pill */}
-                <div className="flex items-center gap-3 bg-surface-light/60 border border-border/80 px-4 py-2.5 rounded-2xl backdrop-blur-md">
-                    <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: activeProfile?.color || '#6366f1' }} />
-                    <div>
+                <div className="flex items-center gap-3 bg-surface-light/60 border border-border/80 px-4 py-2.5 rounded-2xl backdrop-blur-md flex-shrink-0 self-start md:self-auto">
+                    <div className="w-3 h-3 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: activeProfile?.color || '#6366f1' }} />
+                    <div className="min-w-0">
                         <div className="text-[10px] uppercase font-bold tracking-wider text-text-muted">Active Workspace</div>
-                        <div className="text-xs font-bold text-text truncate max-w-[160px]">{activeProfile?.name || 'Primary Store'}</div>
+                        <div className="text-xs font-bold text-text truncate max-w-[140px] sm:max-w-[180px]">{activeProfile?.name || 'Primary Store'}</div>
                     </div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 flex-shrink-0">
                         {activeProfile?.platform || 'Shopify'}
                     </span>
                 </div>
             </div>
 
             {/* Main Tabs Navigation Bar */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 border-b border-border/40">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 border-b border-border/40 w-full max-w-full">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -460,7 +463,7 @@ export default function Settings() {
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-200 cursor-pointer flex-shrink-0 ${
                                 isActive
                                     ? 'bg-primary text-white shadow-lg shadow-primary/25 font-semibold'
                                     : 'text-text-muted hover:text-text hover:bg-surface-light/60'
@@ -485,7 +488,7 @@ export default function Settings() {
                 <div className="space-y-6 animate-fade-in">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h2 className="text-lg font-bold text-text">Store Profiles & Workspaces</h2>
+                            <h2 className="text-lg font-bold text-text">Store Profiles &amp; Workspaces</h2>
                             <p className="text-xs text-text-muted">
                                 Switch between different stores or marketplace channels with 1-click.
                             </p>
@@ -505,7 +508,7 @@ export default function Settings() {
                                 });
                                 setShowNewProfileModal(true);
                             }}
-                            className="btn-primary flex items-center gap-2 text-xs py-2.5 px-4"
+                            className="btn-primary flex items-center gap-2 text-xs py-2.5 px-4 flex-shrink-0 whitespace-nowrap self-start sm:self-auto"
                         >
                             <HiOutlinePlus className="w-4 h-4" />
                             Add Store Profile
@@ -818,6 +821,25 @@ export default function Settings() {
                             <div>
                                 <label className="block text-xs font-semibold text-text-muted mb-2 uppercase tracking-wider">Choose Profile Avatar</label>
                                 <div className="flex flex-wrap gap-2.5 items-center">
+                                    {user?.avatar && (user.avatar.startsWith('http://') || user.avatar.startsWith('https://') || user.avatar.startsWith('data:image/')) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, avatar: user.avatar })}
+                                            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform cursor-pointer border overflow-hidden ${
+                                                formData.avatar === user.avatar
+                                                    ? 'border-primary scale-110 shadow-md shadow-primary/20 ring-2 ring-primary/30'
+                                                    : 'border-border/60 bg-surface hover:scale-105'
+                                            }`}
+                                            title="Use Google / Profile Photo"
+                                        >
+                                            <img
+                                                src={user.avatar}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover rounded-2xl"
+                                                referrerPolicy="no-referrer"
+                                            />
+                                        </button>
+                                    )}
                                     {PRESET_AVATARS.map((av) => (
                                         <button
                                             key={av}

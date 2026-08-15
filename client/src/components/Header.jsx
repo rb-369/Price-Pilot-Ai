@@ -12,6 +12,7 @@ import NotificationDropdown from './NotificationDropdown';
 import ThemeToggle from './ThemeToggle';
 import FeedbackModal from './FeedbackModal';
 import ReportModal from './ReportModal';
+import UserAvatar from './UserAvatar';
 
 const routeTitles = {
     '/dashboard': 'Dashboard Overview',
@@ -105,9 +106,11 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
                             onClick={() => setUserMenuOpen(!userMenuOpen)}
                             className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-slate-100/90 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:border-slate-800 dark:hover:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-sm"
                         >
-                            <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                                {user?.name ? user.name[0].toUpperCase() : 'U'}
-                            </div>
+                            <UserAvatar
+                                avatar={user?.avatar}
+                                name={user?.name}
+                                className="w-6 h-6 rounded-lg text-xs flex-shrink-0"
+                            />
                             <span className="hidden md:inline max-w-[100px] truncate text-slate-800 dark:text-slate-300 font-medium">
                                 {user?.name?.split(' ')[0] || 'Merchant'}
                             </span>
