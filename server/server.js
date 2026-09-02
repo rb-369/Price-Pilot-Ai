@@ -130,6 +130,77 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// ── Interactive Swagger / OpenAPI 3.0 Documentation ──
+const swaggerDocument = require('./config/swaggerDoc');
+
+app.get('/api/docs/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerDocument);
+});
+
+const renderSwaggerHTML = (req, res) => {
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PricePilot AI — Interactive OpenAPI 3.0 Documentation</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://price-pilot-ai-369.vercel.app/favicon.ico" />
+    <style>
+        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin: 0; background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .topbar { display: none !important; }
+        .swagger-ui .info .title { color: #38bdf8 !important; }
+        .swagger-ui .info p, .swagger-ui .info li { color: #94a3b8 !important; }
+        .swagger-ui { filter: invert(88%) hue-rotate(180deg); }
+        .swagger-ui .wrapper { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .banner { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-bottom: 1px solid #4338ca; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .banner-title { font-size: 20px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px; }
+        .badge { background: #4f46e5; color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .btn-app { background: #06b6d4; color: #0f172a; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+        .btn-app:hover { background: #22d3ee; }
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <div class="banner-title">
+            <span>🚀 PricePilot AI — Developer API Portal</span>
+            <span class="badge">OpenAPI 3.0</span>
+        </div>
+        <a href="https://price-pilot-ai-369.vercel.app/dashboard" class="btn-app">Open Merchant App →</a>
+    </div>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            const ui = SwaggerUIBundle({
+                url: "/api/docs/swagger.json",
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "BaseLayout"
+            });
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>`;
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+};
+
+app.get('/api/docs', renderSwaggerHTML);
+app.get('/docs', renderSwaggerHTML);
+
+
 // ── Liveness vs readiness (K8s/Render health checks) ──
 app.get('/api/ready', (req, res) => {
     const states = mongoose.connection.readyState; // 1 = connected

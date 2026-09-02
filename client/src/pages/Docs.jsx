@@ -48,6 +48,7 @@ const navigationSections = [
         category: 'API & Microservices',
         icon: HiOutlineServer,
         items: [
+            { id: 'swagger-portal', title: 'OpenAPI 3.0 Swagger Portal' },
             { id: 'fastapi-gateway', title: 'FastAPI AI Microservice' },
             { id: 'express-backend', title: 'Express.js Core Backend' },
             { id: 'rainforest-scraper', title: 'Competitor Scraper API' }
@@ -391,6 +392,60 @@ export default function Docs() {
                                 <li className="flex items-center gap-2"><HiOutlineCheck className="text-emerald-500" /> Inventory Velocity Dampening</li>
                                 <li className="flex items-center gap-2"><HiOutlineCheck className="text-emerald-500" /> Margin Guardrails (&gt; 20%)</li>
                             </ul>
+                        </div>
+                    </section>
+
+                    {/* Section: OpenAPI 3.0 Swagger Portal */}
+                    <section id="swagger-portal" className="scroll-mt-32 rounded-[2rem] border border-cyan-500/20 bg-gradient-to-br from-cyan-950/40 via-slate-900/60 to-purple-950/40 backdrop-blur-xl p-8 md:p-12 shadow-2xl transition-colors">
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-semibold text-xs">
+                                <HiOutlineServer className="w-4 h-4" /> Live Interactive Swagger UI
+                            </div>
+                            <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-semibold">
+                                OpenAPI 3.0.3 Specification
+                            </span>
+                        </div>
+
+                        <h2 className="text-3xl font-extrabold text-white mb-4">Interactive REST API Portal & Swagger UI</h2>
+                        <p className="text-slate-300 leading-relaxed mb-8">
+                            PricePilot AI provides 18+ fully documented, authenticated REST endpoints for enterprise multi-channel integration. Explore schemas, test live requests, and inspect JWT authorization workflows directly in our interactive Swagger UI.
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                                <span className="text-xs uppercase font-bold text-cyan-400">18+ Endpoints</span>
+                                <h4 className="text-base font-bold text-white mt-1">Full CRUD & AI Inference</h4>
+                                <p className="text-xs text-slate-400 mt-2">Dynamic pricing, Prophet forecasting, competitor scraping, and copilot endpoints.</p>
+                            </div>
+                            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                                <span className="text-xs uppercase font-bold text-indigo-400">JWT Security</span>
+                                <h4 className="text-base font-bold text-white mt-1">Bearer Authentication</h4>
+                                <p className="text-xs text-slate-400 mt-2">Tested with per-tenant data scoping and role-based multi-channel access control.</p>
+                            </div>
+                            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                                <span className="text-xs uppercase font-bold text-emerald-400">Live Execution</span>
+                                <h4 className="text-base font-bold text-white mt-1">Interactive Sandbox</h4>
+                                <p className="text-xs text-slate-400 mt-2">Click "Try it out" to send real payloads and inspect live model responses.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4">
+                            <a
+                                href="https://price-pilot-ai.onrender.com/docs"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 hover:from-cyan-400 hover:to-indigo-500 transition-all transform hover:-translate-y-0.5"
+                            >
+                                <HiOutlineExternalLink className="w-5 h-5" /> Launch Live Swagger UI Portal →
+                            </a>
+                            <a
+                                href="https://price-pilot-ai.onrender.com/api/docs/swagger.json"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 text-sm font-semibold transition"
+                            >
+                                <HiOutlineCode className="w-4 h-4" /> Raw OpenAPI JSON Spec
+                            </a>
                         </div>
                     </section>
 
