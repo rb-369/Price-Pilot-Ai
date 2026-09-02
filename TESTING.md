@@ -69,3 +69,61 @@ When an A/B test is initiated (e.g. Control vs AI Recommended Price):
 3. It bundles the `FeedbackLog` changes and queries the Python service `/api/retrain-elasticity`.
 4. The Python service uses `scikit-learn` (GradientBoostingRegressor) to train a new elasticity curve.
 5. The model is saved to `ai-service/models/elasticity_model.pkl`.
+
+## 4. AI Model Accuracy Evaluation
+
+PricePilot includes a comprehensive evaluation framework that measures model accuracy across **6 AI domains**.
+
+### Quick Start
+
+```bash
+cd ai-service
+
+# Run the FULL evaluation suite (all 6 domains)
+python -m evaluation.run_all
+
+# Skip chatbot eval (requires LLM_API_KEY) and forecasting (requires Prophet)
+python -m evaluation.run_all --skip-chatbot --skip-forecasting
+```
+
+### Individual Domain Evaluators
+
+```bash
+# Pricing recommendation accuracy (15 scenarios + 10K fuzz tests)
+python -m evaluation.eval_pricing
+
+# Demand forecasting accuracy (4 synthetic patterns, walk-forward backtest)
+python -m evaluation.eval_forecasting
+
+# Demand signal scoring validation (isolation, composite, edge cases)
+python -m evaluation.eval_demand_signals
+
+# A/B testing statistical validity (Type I/II error, power analysis)
+python -m evaluation.eval_ab_testing
+
+# Chatbot accuracy (rule-based + LLM-as-judge when API key is set)
+python -m evaluation.eval_chatbot
+
+# Elasticity model quality (training, cold-start, stability, quantiles)
+python -m evaluation.eval_elasticity
+```
+
+### Quality Gates (minimum thresholds to pass)
+
+| Domain | Metric | Minimum |
+|--------|--------|---------|
+| Pricing | Directional accuracy | ≥ 85% |
+| Pricing | Margin guardrail compliance | 100% |
+| Forecasting | Trend direction accuracy | ≥ 80% |
+| Forecasting | MAE (normalized) | < 0.15 |
+| Demand Signals | Directional consistency | ≥ 90% |
+| A/B Testing | Type I error rate | ≤ 7% |
+| Chatbot | Rule-based accuracy | ≥ 70% |
+| Elasticity | Holdout MAE | < 0.8 |
+
+### Reports
+
+After running the suite, reports are saved to `ai-service/evaluation_reports/`:
+- `latest_results.json` — Full JSON results
+- `latest_report.md` — Human-readable markdown report
+- `eval_results_<timestamp>.json` — Timestamped archive

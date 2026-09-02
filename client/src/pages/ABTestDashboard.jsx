@@ -11,7 +11,7 @@ import {
   HiPlay,
   HiStop,
   HiTrendingUp,
-  HiSparkles,
+  HiChip,
   HiDocumentDownload,
   HiBadgeCheck,
   HiRefresh,
@@ -20,6 +20,7 @@ import {
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import ExplainWithAITag from '../components/ExplainWithAITag';
+import AskAIButton from '../components/AskAIButton';
 
 export default function ABTestDashboard() {
   const [tests, setTests] = useState([]);
@@ -204,10 +205,12 @@ export default function ABTestDashboard() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="page-header text-3xl flex items-center gap-3">
-            <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="page-header text-3xl flex items-center gap-2">
+              <HiBeaker className="w-8 h-8 text-primary" /> A/B Price Experiments
+            </h1>
             <ExplainWithAITag title="Explain with AI" contextData={{ type: 'ab_tests', testCount: tests.length }} />
-          </h1>
+          </div>
           <p className="text-text-muted mt-1 text-sm">
             Test AI-recommended prices against baseline control prices with real-time statistical significance
           </p>
@@ -400,7 +403,7 @@ export default function ABTestDashboard() {
                           <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/30">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-[11px] font-bold text-primary uppercase flex items-center gap-1">
-                                <HiSparkles className="w-3 h-3" /> Variant B (AI)
+                                <HiChip className="w-3.5 h-3.5" /> Variant B (Optimized)
                               </span>
                               <span className="font-bold text-primary">{formatCurrency(test.variantB?.price)}</span>
                             </div>
@@ -620,7 +623,7 @@ export default function ABTestDashboard() {
                               {p.category || 'General'}
                             </span>
                             <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                              <HiSparkles className="w-2.5 h-2.5" /> +8.5%
+                              <HiChip className="w-2.5 h-2.5" /> +8.5%
                             </span>
                           </div>
                           <div className="text-xs font-semibold text-text truncate mb-1" title={p.name}>

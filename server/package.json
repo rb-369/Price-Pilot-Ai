@@ -29,6 +29,7 @@
     "morgan": "^1.10.0",
     "multer": "^2.2.0",
     "node-cron": "^3.0.3",
+    "nodemailer": "^9.0.5",
     "pdf-parse": "^2.4.5",
     "puppeteer": "^21.6.0",
     "string-similarity": "^4.0.4",

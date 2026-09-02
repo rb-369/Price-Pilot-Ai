@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getProductMappings, getProducts, createProductMapping, deleteProductMapping, autoMatchMappings, confirmMapping, rejectMapping } from '../api';
 import toast from 'react-hot-toast';
-import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineSparkles, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
+import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineChip, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
 import ErrorState from '../components/ErrorState';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function ChannelMapping() {
     const [products, setProducts] = useState([]);
@@ -12,6 +13,8 @@ export default function ChannelMapping() {
     const [search, setSearch] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, confirmed, suggested, unmapped
     const [isAutoMatching, setIsAutoMatching] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Modal state for manual mapping
     const [showMapModal, setShowMapModal] = useState(false);
@@ -68,14 +71,22 @@ export default function ChannelMapping() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Remove this channel link?')) return;
+    const handleDelete = (id) => {
+        setDeleteTarget(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await deleteProductMapping(id);
+            await deleteProductMapping(deleteTarget);
             toast.success('Link removed');
+            setDeleteTarget(null);
             fetchData();
         } catch {
             toast.error('Failed to remove link');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -160,7 +171,7 @@ export default function ChannelMapping() {
                         disabled={isAutoMatching}
                         className="btn-secondary flex items-center gap-2 text-primary border-primary/30 hover:bg-primary/10"
                     >
-                        <HiOutlineSparkles className={`w-4 h-4 ${isAutoMatching ? 'animate-spin' : ''}`} />
+                        <HiOutlineChip className={`w-4 h-4 ${isAutoMatching ? 'animate-spin' : ''}`} />
                         {isAutoMatching ? 'Scanning...' : 'Scan with AI Match'}
                     </button>
                 </div>
@@ -381,6 +392,18 @@ export default function ChannelMapping() {
                     </div>
                 </div>
             )}
+
+            {/* Non-blocking Confirm Delete Link Modal */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Remove Channel Link"
+                message="Are you sure you want to remove this channel mapping link? Inventory sync for this channel will no longer update automatically."
+                confirmText="Remove Link"
+                variant="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }
@@ -405,7 +428,7 @@ function ChannelCell({ mapping, externalId, platform, onConfirm, onReject, onDel
                 <div className="flex items-center gap-1.5">
                     <span className="font-mono text-xs text-text font-medium">{displayId || 'SKU Match'}</span>
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                        <HiOutlineSparkles className="w-3 h-3" /> {confPercent}% Match
+                        <HiOutlineChip className="w-3 h-3" /> {confPercent}% Match
                     </span>
                 </div>
                 <div className="flex items-center gap-1">

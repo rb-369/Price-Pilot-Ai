@@ -6,12 +6,13 @@ import {
   HiOutlineRefresh,
   HiOutlineExclamation,
   HiDownload,
-  HiOutlineSparkles,
   HiOutlineCube,
   HiOutlineShieldCheck,
   HiOutlineLightningBolt,
-  HiOutlineSearch
+  HiOutlineSearch,
+  HiOutlineChip
 } from 'react-icons/hi';
+import AskAIButton from '../components/AskAIButton';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
@@ -178,7 +179,7 @@ export default function Forecasts() {
             <span className="gradient-text">Inventory Forecasts</span>
           </h1>
           <p className="text-text-muted text-sm mt-1.5 flex items-center gap-2">
-            <HiOutlineSparkles className="w-4 h-4 text-primary-light" />
+            <HiOutlineChip className="w-4 h-4 text-primary-light" />
             30–60 Day AI Demand Predictions &amp; Automated Reorder Recommendations
           </p>
         </div>
@@ -264,7 +265,7 @@ export default function Forecasts() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.1)' }}>
-                  <HiOutlineSparkles className="w-4.5 h-4.5 text-accent" />
+                  <HiOutlineChip className="w-4.5 h-4.5 text-accent" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-text">Generate AI Forecast</h2>
@@ -380,9 +381,17 @@ export default function Forecasts() {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-bold text-text text-base leading-tight">
-                          {productName}
-                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-text text-base leading-tight">
+                            {productName}
+                          </h3>
+                          <AskAIButton
+                            variant="chip"
+                            label="Ask Copilot"
+                            prompt={`Analyze demand forecast for ${productName}: Current stock is ${currentStock}, predicted demand is ${f.predictedDemand} units, recommended increase is ${f.recommendedStockIncrease} units.`}
+                            contextData={{ productName, currentStock, predictedDemand: f.predictedDemand, recommendedStockIncrease: f.recommendedStockIncrease }}
+                          />
+                        </div>
                         <p className="text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                           {f.forecastRange || 30}-Day Demand Prediction
                         </p>
@@ -459,7 +468,7 @@ export default function Forecasts() {
 
                   {/* AI Explanation / Reasoning Box */}
                   <div className="p-3.5 rounded-xl bg-surface/60 border border-border text-xs text-text-muted leading-relaxed flex items-start gap-2">
-                    <HiOutlineSparkles className="w-4 h-4 text-primary-light shrink-0 mt-0.5" />
+                    <HiOutlineChip className="w-4 h-4 text-primary-light shrink-0 mt-0.5" />
                     <span>{f.reason}</span>
                   </div>
                 </div>

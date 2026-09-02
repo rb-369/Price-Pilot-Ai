@@ -9,16 +9,19 @@ import {
   HiOutlineX, 
   HiOutlinePencil, 
   HiOutlineChartBar, 
-  HiOutlineSparkles,
+  HiOutlineLightningBolt,
   HiOutlineLink,
   HiOutlineShieldCheck,
   HiOutlineExclamation,
-  HiOutlineLightBulb
+  HiOutlineLightBulb,
+  HiOutlineChip
 } from 'react-icons/hi';
+import AskAIButton from '../components/AskAIButton';
 import { SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 import BulkImportModal from '../components/BulkImportModal';
+import ConfirmModal from '../components/ConfirmModal';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -49,6 +52,8 @@ export default function Products() {
     const [historyProduct, setHistoryProduct] = useState(null);
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // URL Importer & Mismatch States
     const [formMode, setFormMode] = useState('url'); // 'url' or 'manual'
@@ -294,14 +299,22 @@ export default function Products() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Delete this product?')) return;
+    const handleDelete = (p) => {
+        setDeleteTarget(p);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await deleteProduct(id);
-            toast.success('Deleted');
+            await deleteProduct(deleteTarget._id);
+            toast.success('Product deleted');
+            setDeleteTarget(null);
             fetchProducts();
         } catch {
-            toast.error('Delete failed');
+            toast.error('Failed to delete product');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -416,7 +429,7 @@ export default function Products() {
                                         </>
                                     ) : (
                                         <>
-                                            <HiOutlineSparkles className="w-4 h-4" /> Fetch &amp; Auto-Fill
+                                            <HiOutlineLightningBolt className="w-4 h-4" /> Fetch &amp; Auto-Fill
                                         </>
                                     )}
                                 </button>
@@ -477,7 +490,7 @@ export default function Products() {
                                         }}
                                         className="px-3 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 shrink-0"
                                     >
-                                        <HiOutlineSparkles className="w-3.5 h-3.5" />
+                                        <HiOutlineLightningBolt className="w-3.5 h-3.5" />
                                         Sync to Live Price ({formatCurrency(urlLivePrice)})
                                     </button>
                                 )}
@@ -512,7 +525,7 @@ export default function Products() {
                                                 disabled={isGenerating || (!form.name && !form.fullName)}
                                                 className="text-[11px] font-semibold uppercase tracking-wider text-primary hover:text-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 active:scale-[0.98]"
                                             >
-                                                <HiOutlineSparkles className="w-3.5 h-3.5" />
+                                                <HiOutlineChip className="w-3.5 h-3.5" />
                                                 AI Optimize Copy
                                             </button>
                                         </div>
@@ -708,11 +721,18 @@ export default function Products() {
                                         </div>
                                     </div>
                                     <div className="flex gap-2 mt-1">
+                                        <AskAIButton
+                                            variant="chip"
+                                            label="Ask AI"
+                                            prompt={`Analyze pricing elasticity for SKU: ${p.sku} (${p.shortName || p.name}) at ₹${p.currentPrice}.`}
+                                            contextData={{ productId: p._id, sku: p.sku, name: p.name, currentPrice: p.currentPrice }}
+                                            className="flex-1 justify-center py-2"
+                                        />
                                         <button onClick={() => setHistoryProduct(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold flex items-center justify-center gap-1 active:scale-[0.98]">
                                             <HiOutlineChartBar className="w-3.5 h-3.5" /> Trend
                                         </button>
                                         <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold active:scale-[0.98]">Edit</button>
-                                        <button onClick={() => handleDelete(p._id)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98]">Delete</button>
+                                        <button onClick={() => handleDelete(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98] cursor-pointer">Delete</button>
                                     </div>
                                 </div>
                             );
@@ -784,14 +804,19 @@ export default function Products() {
                                                 <span className={`badge ${status.cls}`}>{status.text}</span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center border-b border-border/40">
-                                                <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => setHistoryProduct(p)} className="p-1.5 rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-colors" title="Trend">
+                                                <div className="flex items-center justify-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                                                    <AskAIButton 
+                                                        variant="icon-button"
+                                                        prompt={`Analyze pricing elasticity, competitor stance, and profit margin for product: ${p.shortName || p.name} (SKU: ${p.sku}). Current price is ₹${p.currentPrice} with base cost ₹${p.baseCost} and stock ${p.stockLevel}.`}
+                                                        contextData={{ productId: p._id, sku: p.sku, name: p.name, currentPrice: p.currentPrice, baseCost: p.baseCost, stock: p.stockLevel }}
+                                                    />
+                                                    <button onClick={() => setHistoryProduct(p)} className="p-1.5 rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-colors cursor-pointer" title="Trend">
                                                         <HiOutlineChartBar className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleEditClick(p)} className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors" title="Edit">
+                                                    <button onClick={() => handleEditClick(p)} className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer" title="Edit">
                                                         <HiOutlinePencil className="w-4 h-4" />
                                                     </button>
-                                                    <button onClick={() => handleDelete(p._id)} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors" title="Delete">
+                                                    <button onClick={() => handleDelete(p)} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer" title="Delete">
                                                         <HiOutlineTrash className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -820,6 +845,18 @@ export default function Products() {
                     onSuccess={fetchProducts}
                 />
             )}
+
+            {/* Non-blocking Confirm Delete Modal */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Delete Product"
+                message={`Are you sure you want to delete "${deleteTarget?.shortName || deleteTarget?.name || 'this product'}" (SKU: ${deleteTarget?.sku || 'N/A'})? All associated pricing history will be permanently deleted.`}
+                confirmText="Delete Product"
+                variant="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }

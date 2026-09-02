@@ -2,6 +2,7 @@ const Product = require('../models/Product');
 const Alert = require('../models/Alert');
 const User = require('../models/User');
 const { sendLowStockAlert } = require('./emailService');
+const { sendUserStreamEvent } = require('../routes/stream');
 
 /**
  * Checks a specific product for low stock and generates an alert if needed.
@@ -24,15 +25,29 @@ async function checkProductForLowStock(product, user) {
             });
 
             if (!recentAlert) {
+                const severity = product.stockLevel === 0 ? 'critical' : 'high';
+                const title = product.stockLevel === 0 ? `Out of Stock: ${product.name}` : `Low Stock: ${product.name}`;
+                const message = `Stock level dropped to ${product.stockLevel}. Reorder threshold is ${threshold}.`;
+
                 // Create in-app alert
                 await Alert.create({
                     productId: product._id,
                     userId: user._id,
                     type: 'stockout_risk',
-                    severity: product.stockLevel === 0 ? 'critical' : 'high',
-                    title: `Low Stock: ${product.name}`,
-                    message: `Stock level dropped to ${product.stockLevel}. Reorder threshold is ${threshold}.`,
+                    severity,
+                    title,
+                    message,
                     metadata: { stockLevel: product.stockLevel, reorderThreshold: threshold }
+                });
+
+                // Dispatch real-time SSE event to this user's active session
+                sendUserStreamEvent(user._id, {
+                    type: 'alert',
+                    severity,
+                    title,
+                    message,
+                    productId: product._id,
+                    actionUrl: '/dashboard/alerts'
                 });
 
                 // Send email notification

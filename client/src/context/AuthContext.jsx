@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { login as apiLogin, register as apiRegister, googleLogin as apiGoogleLogin, getProfile } from '../api';
+import { login as apiLogin, register as apiRegister, googleAuth as apiGoogleAuth, getProfile, completeOnboarding as apiCompleteOnboarding } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -27,9 +27,9 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
-    const loginWithGoogle = async (tokenOrData) => {
-        const payload = typeof tokenOrData === 'string' ? { access_token: tokenOrData } : tokenOrData;
-        const res = await apiGoogleLogin(payload);
+    const loginWithGoogle = async (googleData) => {
+        const payload = typeof googleData === 'string' ? { access_token: googleData } : googleData;
+        const res = await apiGoogleAuth(payload);
         localStorage.setItem('token', res.data.token);
         setUser(res.data);
         return res.data;
@@ -42,13 +42,63 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
+    const completeOnboarding = async (onboardingData) => {
+        const res = await apiCompleteOnboarding(onboardingData);
+        if (res.data?.token) {
+            localStorage.setItem('token', res.data.token);
+        }
+        setUser(res.data);
+        return res.data;
+    };
+
+    const updateUser = (updatedUser) => {
+        setUser((prev) => ({ ...prev, ...updatedUser }));
+    };
+
+    const switchProfile = (profileId) => {
+        setUser((prev) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                activeProfileId: profileId,
+            };
+        });
+        localStorage.setItem('pricepilot_active_profile', profileId);
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('pricepilot_active_profile');
         setUser(null);
     };
 
+    const activeProfile = user?.profiles?.find(p => p.id === (user?.activeProfileId || 'default')) || user?.profiles?.[0] || {
+        id: 'default',
+        name: user?.storeName || 'Primary Store',
+        storeType: user?.storeType || 'general',
+        platform: 'Shopify',
+        role: user?.role === 'admin' ? 'Administrator' : 'Store Owner',
+        currency: 'INR',
+        color: '#6366f1',
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register: registerUser, loginWithGoogle, logout, loading }}>
+        <AuthContext.Provider value={{
+            user,
+            activeProfile,
+            login,
+            register: registerUser,
+            loginWithGoogle,
+            completeOnboarding,
+            updateUser,
+            switchProfile,
+            logout,
+            loading,
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
+}
             {children}
         </AuthContext.Provider>
     );

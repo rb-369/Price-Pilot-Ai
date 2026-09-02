@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const sgMail = require('@sendgrid/mail');
+const { sendWelcomeEmail, sendPasswordResetEmail, getEmailStatus, sendTestEmail } = require('../services/emailService');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
@@ -20,9 +20,16 @@ exports.register = async (req, res) => {
         const token = generateToken(user._id);
 
         console.log(`Registration successful for: ${email}`);
+
+        // Send welcome email (fire-and-forget)
+        sendWelcomeEmail(user).catch(err => {
+            console.error('[Welcome Email Error]', err.message);
+        });
         res.status(201).json({
             _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
+            role: user.role, storeType: user.storeType, storeName: user.storeName,
+            profiles: user.profiles, preferences: user.preferences,
+            onboarding: user.onboarding, token,
         });
     } catch (error) {
         console.error('REGISTRATION ERROR:', error);
@@ -44,7 +51,10 @@ exports.login = async (req, res) => {
         console.log(`Login successful for: ${email}`);
         res.json({
             _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
+            role: user.role, storeType: user.storeType, storeName: user.storeName,
+            phone: user.phone, avatar: user.avatar, activeProfileId: user.activeProfileId,
+            profiles: user.profiles, preferences: user.preferences,
+            onboarding: user.onboarding, token,
         });
     } catch (error) {
         console.error('LOGIN ERROR:', error);
@@ -52,13 +62,13 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.googleLogin = async (req, res) => {
+exports.googleAuth = async (req, res) => {
     try {
-        const { access_token, email, name } = req.body;
+        let { access_token, email, name, picture } = req.body;
         let userEmail = email;
         let userName = name;
 
-        if (access_token) {
+        if (access_token && !userEmail) {
             try {
                 const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
                     headers: { Authorization: `Bearer ${access_token}` }
@@ -67,6 +77,7 @@ exports.googleLogin = async (req, res) => {
                     const info = await response.json();
                     userEmail = info.email;
                     userName = info.name || info.given_name || 'Google User';
+                    if (!picture) picture = info.picture;
                 }
             } catch (err) {
                 console.error('Google userinfo fetch error:', err.message);
@@ -76,32 +87,221 @@ exports.googleLogin = async (req, res) => {
         if (!userEmail) {
             return res.status(400).json({ message: 'Could not obtain email from Google authentication' });
         }
+        console.log(`Google Auth attempt for: ${userEmail}`);
 
         let user = await User.findOne({ email: userEmail });
         if (!user) {
             const randomPassword = crypto.randomBytes(16).toString('hex');
             user = await User.create({
-                name: userName || 'Google User',
+                name: userName || userEmail.split('@')[0],
                 email: userEmail,
                 password: randomPassword,
-                storeType: 'Other'
+                storeType: 'general',
+                avatar: picture || '',
             });
+            console.log(`Google registration created new user for: ${userEmail}`);
+
+            // Send welcome email (fire-and-forget)
+            sendWelcomeEmail(user).catch(err => {
+                console.error('[Welcome Email Error - Google Auth]', err.message);
+            });
+        } else {
+            console.log(`Google login matched existing user for: ${userEmail}`);
         }
 
         const token = generateToken(user._id);
-        console.log(`Google login successful for: ${userEmail}`);
         res.json({
-            _id: user._id, name: user.name, email: user.email,
-            role: user.role, storeType: user.storeType, token,
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeType: user.storeType,
+            storeName: user.storeName,
+            phone: user.phone,
+            avatar: user.avatar,
+            activeProfileId: user.activeProfileId,
+            profiles: user.profiles,
+            preferences: user.preferences,
+            onboarding: user.onboarding,
+            token,
         });
     } catch (error) {
-        console.error('GOOGLE LOGIN ERROR:', error);
-        res.status(500).json({ message: error.message });
+        console.error('GOOGLE AUTH ERROR:', error);
+        res.status(500).json({ message: error.message || 'Google authentication failed' });
+    }
+};
+
+exports.googleLogin = exports.googleAuth;
     }
 };
 
 exports.getProfile = async (req, res) => {
     res.json(req.user);
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const {
+            name,
+            storeType,
+            storeName,
+            phone,
+            avatar,
+            activeProfileId,
+            profiles,
+            preferences,
+            onboarding,
+        } = req.body;
+
+        if (name) user.name = name.trim();
+        if (storeType) user.storeType = storeType;
+        if (storeName !== undefined) user.storeName = storeName;
+        if (phone !== undefined) user.phone = phone;
+        if (avatar !== undefined) user.avatar = avatar;
+        if (activeProfileId !== undefined) user.activeProfileId = activeProfileId;
+        if (Array.isArray(profiles)) user.profiles = profiles;
+        if (preferences && typeof preferences === 'object') {
+            user.preferences = { ...user.preferences, ...preferences };
+        }
+        if (onboarding && typeof onboarding === 'object') {
+            user.onboarding = { ...user.onboarding, ...onboarding };
+        }
+
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeType: user.storeType,
+            storeName: user.storeName,
+            phone: user.phone,
+            avatar: user.avatar,
+            activeProfileId: user.activeProfileId,
+            profiles: user.profiles,
+            preferences: user.preferences,
+            onboarding: user.onboarding,
+        });
+    } catch (error) {
+        console.error('UPDATE PROFILE ERROR:', error);
+        res.status(500).json({ message: error.message || 'Failed to update profile' });
+    }
+};
+
+exports.completeOnboarding = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const {
+            channels = [],
+            goals = [],
+            pricingStrategy = 'undercut_1',
+            automationLevel = 'semi_auto',
+            catalogSize = '1_50',
+            industryNiche = 'general',
+            targetMarginFloor = 20,
+            skipped = false,
+        } = req.body;
+
+        user.onboarding = {
+            completed: true,
+            completedAt: new Date(),
+            skipped: Boolean(skipped),
+            channels: Array.isArray(channels) ? channels : [],
+            goals: Array.isArray(goals) ? goals : [],
+            pricingStrategy: pricingStrategy || 'undercut_1',
+            automationLevel: automationLevel || 'semi_auto',
+            catalogSize: catalogSize || '1_50',
+            industryNiche: industryNiche || user.storeType || 'general',
+            targetMarginFloor: Number(targetMarginFloor) || 20,
+        };
+
+        // Sync to user preferences & profile
+        if (industryNiche) user.storeType = industryNiche;
+        if (!user.preferences) user.preferences = {};
+
+        user.preferences.pricingStrategy = pricingStrategy || user.preferences.pricingStrategy || 'undercut_1';
+        user.preferences.minMarginFloor = Number(targetMarginFloor) || user.preferences.minMarginFloor || 20;
+
+        if (automationLevel === 'full_auto') {
+            user.preferences.autoApplyRecommendations = true;
+            user.preferences.recommendationThreshold = 85;
+        } else if (automationLevel === 'manual') {
+            user.preferences.autoApplyRecommendations = false;
+        }
+
+        // Pre-configure primary platform if channels are provided
+        if (Array.isArray(channels) && channels.length > 0 && user.profiles && user.profiles.length > 0) {
+            const channelMap = {
+                amazon: 'Amazon',
+                flipkart: 'Flipkart',
+                shopify: 'Shopify',
+                woocommerce: 'WooCommerce',
+                meesho: 'Meesho',
+                quickcommerce: 'QuickCommerce',
+                custom: 'Custom Store',
+            };
+            const primaryPlatform = channelMap[channels[0]] || 'Shopify';
+            user.profiles[0].platform = primaryPlatform;
+            user.profiles[0].targetMargin = Number(targetMarginFloor) || 20;
+            if (industryNiche) user.profiles[0].storeType = industryNiche;
+        }
+
+        await user.save();
+
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            storeType: user.storeType,
+            storeName: user.storeName,
+            phone: user.phone,
+            avatar: user.avatar,
+            activeProfileId: user.activeProfileId,
+            profiles: user.profiles,
+            preferences: user.preferences,
+            onboarding: user.onboarding,
+            token: generateToken(user._id),
+        });
+    } catch (error) {
+        console.error('COMPLETE ONBOARDING ERROR:', error);
+        res.status(500).json({ message: error.message || 'Failed to complete onboarding' });
+    }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current and new password are required' });
+        }
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'New password must be at least 6 characters' });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user || !(await user.comparePassword(currentPassword))) {
+            return res.status(400).json({ message: 'Incorrect current password' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('CHANGE PASSWORD ERROR:', error);
+        res.status(500).json({ message: error.message || 'Failed to change password' });
+    }
 };
 
 exports.forgotPassword = async (req, res) => {
@@ -117,10 +317,10 @@ exports.forgotPassword = async (req, res) => {
 
         // Generate token
         const resetToken = crypto.randomBytes(20).toString('hex');
-        
+
         // Hash it for DB storage
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-        
+
         user.resetPasswordToken = hashedToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
         await user.save();
@@ -141,56 +341,21 @@ exports.forgotPassword = async (req, res) => {
             }
         }
 
-        let emailSent = false;
-        if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
-            try {
-                sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-                const msg = {
-                    to: email,
-                    from: process.env.SENDGRID_FROM_EMAIL,
-                    subject: 'Password Reset Request - PricePilot AI',
-                    text: `You requested a password reset for your PricePilot AI account.\n\n` +
-                          `Please click on the following link or paste it into your browser to complete the process:\n\n` +
-                          `${resetUrl}\n\n` +
-                          `This link is valid for 1 hour. If you did not request this, please ignore this email.\n`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #0a0f1e; color: #f1f5f9;">
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <h2 style="color: #6366f1; margin: 0; font-size: 24px; font-weight: bold;">PricePilot AI</h2>
-                                <p style="color: #94a3b8; font-size: 12px; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.05em;">Intelligence Platform</p>
-                            </div>
-                            <div style="background-color: #131b2e; padding: 24px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.1);">
-                                <h3 style="color: #ffffff; margin-top: 0; font-size: 18px;">Password Reset Request</h3>
-                                <p style="color: #e2e8f0; font-size: 14px; line-height: 1.6;">You requested a password reset for your PricePilot AI account. Click the button below to set a new password. This link is valid for 1 hour.</p>
-                                <div style="text-align: center; margin: 25px 0;">
-                                    <a href="${resetUrl}" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">Reset Password</a>
-                                </div>
-                                <p style="font-size: 12px; color: #94a3b8; line-height: 1.5; margin-bottom: 0;">If you didn't request a password reset, you can safely ignore this email.</p>
-                            </div>
-                            <hr style="border: 0; border-top: 1px solid #1e293b; margin: 20px 0;" />
-                            <p style="font-size: 11px; color: #64748b; word-break: break-all; text-align: center;">If the button above doesn't work, copy and paste the following URL into your browser:<br/><span style="color: #6366f1;">${resetUrl}</span></p>
-                        </div>
-                    `,
-                };
-                await sgMail.send(msg);
-                emailSent = true;
-                console.log(`[SendGrid] Reset email sent to: ${email}`);
-            } catch (err) {
-                console.error('[SendGrid Error]: Failed to send reset email.', err.message);
-            }
-        }
+        const emailResult = await sendPasswordResetEmail(email, resetUrl);
+        const emailSent = Boolean(emailResult?.success);
 
         // Print to console for development convenience
         console.log('\n==================================================');
         console.log('🔑 PASSWORD RESET LINK GENERATED (SendGrid Flow)');
         console.log(`User Email: ${email}`);
         console.log(`Reset URL: ${resetUrl}`);
+        console.log(`SendGrid Delivery: ${emailSent ? 'Sent ✅' : 'Logged only'}`);
         console.log('==================================================\n');
 
-        res.status(200).json({ 
-            message: emailSent 
-                ? 'Password reset email sent successfully.' 
-                : 'Password reset link logged to console for development.'
+        res.status(200).json({
+            message: emailSent
+                ? 'Password reset email sent successfully via SendGrid.'
+                : 'Password reset link generated and logged for development.'
         });
     } catch (error) {
         console.error('FORGOT PASSWORD ERROR:', error);
@@ -227,5 +392,27 @@ exports.resetPassword = async (req, res) => {
     } catch (error) {
         console.error('RESET PASSWORD ERROR:', error);
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getEmailStatus = (req, res) => {
+    try {
+        const status = getEmailStatus();
+        res.json({ success: true, status });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.sendTestEmail = async (req, res) => {
+    try {
+        const targetEmail = req.body.email || req.user?.email;
+        if (!targetEmail) {
+            return res.status(400).json({ success: false, message: 'Target email address is required' });
+        }
+        const result = await sendTestEmail(targetEmail);
+        res.json({ success: result.success, result });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

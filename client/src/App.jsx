@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Products from './pages/Products';
@@ -21,6 +22,7 @@ import ChatWidget from './components/ChatWidget';
 import Chat from './pages/Chat';
 import Integrations from './pages/Integrations';
 import ChannelMapping from './pages/ChannelMapping';
+import Settings from './pages/Settings';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
@@ -28,6 +30,8 @@ import Landing from './pages/Landing';
 import Docs from './pages/Docs';
 import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import Demo from './pages/Demo';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -52,10 +56,13 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/docs" element={<Docs />} />
+      <Route path="/demo" element={<Demo />} />
       <Route path="/about" element={<About />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+      <Route path="/register" element={user ? (user.onboarding?.completed ? <Navigate to="/dashboard" /> : <Navigate to="/onboarding" />) : <Register />} />
+      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
       <Route path="/reset-password/:token" element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} />
       
@@ -72,6 +79,7 @@ function AppRoutes() {
         <Route path="alerts" element={<Alerts />} />
         <Route path="integrations" element={<Integrations />} />
         <Route path="channel-mapping" element={<ChannelMapping />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

@@ -8,8 +8,9 @@ import {
     HiOutlineAdjustments, HiOutlineLightningBolt, HiOutlineCheckCircle,
     HiOutlineExclamation, HiOutlineTrendingUp, HiOutlineTrendingDown,
     HiOutlineCurrencyDollar, HiOutlineCube, HiOutlineScale,
-    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineSparkles
+    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineChip
 } from 'react-icons/hi';
+import AskAIButton from './AskAIButton';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 import ExplainWithAITag from './ExplainWithAITag';
@@ -97,8 +98,12 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
     // When active product changes, sync base price & cogs
     useEffect(() => {
         if (activeProduct) {
-            setTargetPrice(activeProduct.currentPrice || 100);
-            setCogs(activeProduct.baseCost || Math.round((activeProduct.currentPrice || 100) * 0.6));
+            const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
+            const cost = typeof activeProduct.baseCost === 'number'
+                ? Math.round(activeProduct.baseCost * 100) / 100
+                : Math.round(price * 0.6 * 100) / 100;
+            setTargetPrice(price);
+            setCogs(cost);
         }
     }, [activeProduct]);
 
@@ -272,7 +277,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/50">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-indigo-600 to-accent flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                        <HiOutlineSparkles className="w-5 h-5 animate-pulse" />
+                        <HiOutlineChip className="w-5 h-5" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-text flex items-center gap-2">
@@ -536,7 +541,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </>
                             ) : (
                                 <>
-                                    <HiOutlineSparkles className="w-4 h-4 text-warning animate-bounce" />
+                                    <HiOutlineLightningBolt className="w-4 h-4 text-warning" />
                                     Run AI Simulation ({formatCurrency(targetPrice)})
                                 </>
                             )}

@@ -49,7 +49,11 @@ api.interceptors.request.use((config) => {
 export const login = (data) => api.post('/auth/login', data);
 export const googleLogin = (data) => api.post('/auth/google', data);
 export const register = (data) => api.post('/auth/register', data);
+export const googleAuth = (data) => api.post('/auth/google', data);
 export const getProfile = () => api.get('/auth/profile');
+export const updateProfile = (data) => api.put('/auth/profile', data);
+export const completeOnboarding = (data) => api.put('/auth/onboarding', data);
+export const changePassword = (data) => api.put('/auth/change-password', data);
 export const forgotPassword = (data) => api.post('/auth/forgot-password', data);
 export const resetPassword = (token, data) => api.post(`/auth/reset-password/${token}`, data);
 
@@ -133,5 +137,11 @@ export const rejectMapping = (id) => api.post(`/mappings/${id}/reject`);
 // What-If Simulator
 export const runSimulation = (data) => api.post('/simulator/run', data);
 export const commitSimulationPrice = (data) => api.post('/simulator/commit', data);
+
+// Platform Feedback & Issue Reporting
+export const submitFeedback = (data) => api.post('/feedback', data);
+export const getFeedbackList = () => api.get('/feedback');
+export const submitReport = (data) => api.post('/reports', data);
+export const getReportsList = () => api.get('/reports');
 
 export default api;

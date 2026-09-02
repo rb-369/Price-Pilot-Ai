@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../api';
 import toast from 'react-hot-toast';
-import finalLogo from '../assets/FINAL.svg';
+import { useTheme } from '../context/ThemeContext';
+import newLightLogo from '../assets/new_light_logo.png';
+import newDarkLogo from '../assets/new_dark_logo.png';
 
 export default function ResetPassword() {
     const { token } = useParams();
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const finalLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,8 +52,8 @@ export default function ResetPassword() {
             <div className="glass-card p-8 sm:p-10 w-full max-w-md relative z-10 animate-slide-up">
                 {/* Brand Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
-                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-cover" />
+                    <div className="inline-flex items-center justify-center w-14 h-14 p-2 rounded-2xl overflow-hidden mb-5 shadow-xl shadow-primary/25 animate-pulse-glow">
+                        <img src={finalLogo} alt="PricePilot AI" className="w-full h-full object-contain" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-text tracking-tight">Set New Password</h1>
                     <p className="text-text-muted mt-2 text-sm">Please establish your new password below</p>

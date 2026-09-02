@@ -18,12 +18,12 @@ import {
   HiOutlineRefresh,
   HiOutlineArrowUp,
   HiOutlineArrowDown,
-  HiOutlineSparkles,
   HiOutlineCube,
   HiOutlineShieldCheck,
   HiOutlineTrendingUp,
   HiOutlineSearch,
   HiOutlineDocumentText,
+  HiOutlineChip,
   HiX as HiOutlineXMark,
   HiOutlineExclamation as HiOutlineExclamationTriangle,
   HiOutlineChartBar,
@@ -34,6 +34,8 @@ import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 import ExplainWithAITag from '../components/ExplainWithAITag';
+import AskAIButton from '../components/AskAIButton';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Recommendations() {
   const navigate = useNavigate();
@@ -45,6 +47,8 @@ export default function Recommendations() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [historyProduct, setHistoryProduct] = useState(null);
+  const [warningModalTarget, setWarningModalTarget] = useState(null);
+  const [isApplying, setIsApplying] = useState(false);
   const { formatCurrency } = useCurrency();
 
   const handleTestPrice = async (rec) => {
@@ -147,16 +151,25 @@ export default function Recommendations() {
     }
   };
 
-  const handleAccept = async (id, impact) => {
-    if (impact < -10) {
-      if (!confirm(`Warning: This change is projected to decrease revenue by ${Math.abs(impact)}%. Are you sure you want to apply this price?`)) return;
-    }
+  const applyPrice = async (id) => {
+    setIsApplying(true);
     try {
       await acceptRecommendation(id);
       toast.success('Price updated!');
+      setWarningModalTarget(null);
       fetchData();
     } catch {
       toast.error('Failed to apply price change');
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleAccept = (id, impact) => {
+    if (impact < -10) {
+      setWarningModalTarget({ id, impact });
+    } else {
+      applyPrice(id);
     }
   };
 
@@ -258,7 +271,7 @@ export default function Recommendations() {
             <span className="gradient-text">AI Recommendations</span>
           </h1>
           <p className="text-text-muted text-sm mt-1.5 flex items-center gap-2">
-            <HiOutlineSparkles className="w-4 h-4 text-primary-light" />
+            <HiOutlineChip className="w-4 h-4 text-primary-light" />
             Explainable Price Optimization Powered by Competitor Data &amp; Elasticity Models
           </p>
         </div>
@@ -346,7 +359,7 @@ export default function Recommendations() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.1)' }}>
-                  <HiOutlineSparkles className="w-4.5 h-4.5 text-accent" />
+                  <HiOutlineChip className="w-4.5 h-4.5 text-accent" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-text">Generate AI Recommendation</h2>
@@ -478,9 +491,15 @@ export default function Recommendations() {
                         )}
                       </div>
                       <div>
-                        <h3 className="font-bold text-text text-base leading-tight flex items-center gap-2">
-                          {productName}
+                        <h3 className="font-bold text-text text-base leading-tight flex items-center gap-2 flex-wrap">
+                          <span>{productName}</span>
                           <ExplainWithAITag title="Explain with AI" contextData={{ type: 'recommendation', productName, sku, currentPrice, recommendedPrice: recPrice, expectedRevenueImpact: rec.expectedRevenueImpact, insight: rec.insight }} />
+                          <AskAIButton 
+                            variant="chip" 
+                            label="Ask Copilot" 
+                            prompt={`Analyze recommendation for ${productName} (SKU: ${sku}): Current ₹${currentPrice}, Recommended ₹${recPrice} with expected ${rec.expectedRevenueImpact}% revenue impact. Confidence: ${confidence}%.`}
+                            contextData={{ recommendationId: rec._id, productName, sku, currentPrice, recommendedPrice: recPrice }}
+                          />
                         </h3>
                         <p className="text-[11px] text-text-muted uppercase tracking-wider mt-0.5">
                           SKU: {sku}
@@ -742,6 +761,18 @@ export default function Recommendations() {
           onClose={() => setHistoryProduct(null)}
         />
       )}
+
+      {/* Non-blocking Negative Revenue Impact Warning Modal */}
+      <ConfirmModal
+        isOpen={!!warningModalTarget}
+        onClose={() => setWarningModalTarget(null)}
+        onConfirm={() => warningModalTarget && applyPrice(warningModalTarget.id)}
+        title="Revenue Decrease Warning"
+        message={`This recommended price change is projected to decrease revenue by ${Math.abs(warningModalTarget?.impact || 0)}%. Are you sure you want to apply this price?`}
+        confirmText="Apply Price"
+        variant="warning"
+        loading={isApplying}
+      />
     </div>
   );
 }

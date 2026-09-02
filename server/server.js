@@ -27,6 +27,8 @@ const integrationRoutes = require('./routes/integrations');
 const salesRoutes = require('./routes/salesRoutes');
 const mappingRoutes = require('./routes/mappingRoutes');
 const simulatorRoutes = require('./routes/simulatorRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -40,6 +42,7 @@ app.set('trust proxy', 1);
 app.use(helmet({
     contentSecurityPolicy: false, // SSE responses are blocked by strict CSP; allow it for now
     crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
 }));
 
 // ── Compression (gzip) ──
@@ -114,6 +117,8 @@ app.use('/api/integrations', integrationRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/mappings', mappingRoutes);
 app.use('/api/simulator', simulatorRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/reports', reportRoutes);
 
 // ── Health check ──
 app.get('/api/health', (req, res) => {
