@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    HiOutlineLightningBolt, 
-    HiOutlineCubeTransparent, 
-    HiOutlineShieldCheck, 
-    HiOutlineMail, 
+import {
+    HiOutlineLightningBolt,
+    HiOutlineCubeTransparent,
+    HiOutlineShieldCheck,
+    HiOutlineMail,
     HiOutlineArrowUp,
     HiOutlineChip,
     HiOutlineSearch,
@@ -17,8 +17,30 @@ import newLightLogo from '../assets/new_light_logo.png';
 import newDarkLogo from '../assets/new_dark_logo.png';
 import ThemeToggle from '../components/ThemeToggle';
 import HeroDashboard from '../components/HeroDashboard';
+import StackingCards from '../components/ui/stacking-card';
 
 const faqCategories = ['All Questions', 'Pricing & AI', 'Security & Privacy', 'Integrations'];
+
+const TypewriterEffect = ({ text }) => {
+    const [displayText, setDisplayText] = useState('');
+
+    useEffect(() => {
+        let i = 0;
+        const interval = setInterval(() => {
+            setDisplayText(text.slice(0, i + 1));
+            i++;
+            if (i >= text.length) clearInterval(interval);
+        }, 100);
+        return () => clearInterval(interval);
+    }, [text]);
+
+    return (
+        <span className="inline-flex items-center">
+            <span>{displayText}</span>
+            <span className="inline-block w-[3px] h-[0.9em] ml-1.5 bg-indigo-500 animate-pulse"></span>
+        </span>
+    );
+};
 
 const faqData = [
     {
@@ -85,9 +107,8 @@ const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }
                     {faq.question}
                 </span>
                 <span
-                    className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-lg text-indigo-600 dark:text-indigo-300 transition-transform duration-300 ${
-                        isOpen ? 'rotate-45' : ''
-                    }`}
+                    className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-lg text-indigo-600 dark:text-indigo-300 transition-transform duration-300 ${isOpen ? 'rotate-45' : ''
+                        }`}
                 >
                     +
                 </span>
@@ -130,39 +151,43 @@ export default function Landing() {
         });
     }, [activeCategory, searchTerm]);
 
-    const pipelineSteps = [
+    const pipelineProjects = [
         {
-            step: '01',
             title: 'Multi-Signal Data Ingestion',
+            description: 'Continuous real-time ingestion of competitor catalog prices, Google Trends search intensity, and live inventory levels.',
             badge: 'Scraping + API',
-            desc: 'Continuous real-time ingestion of competitor catalog prices, Google Trends search intensity, and live inventory levels.',
             metric: '350+ Signals/min',
+            link: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop',
+            color: '#1e1b4b',
         },
         {
-            step: '02',
             title: 'Deterministic Elasticity Engine',
+            description: 'Binary search optimization paired with log-linear demand modeling to calculate profit-maximizing price equilibrium.',
             badge: 'ML Elasticity',
-            desc: 'Binary search optimization paired with log-linear demand modeling to calculate profit-maximizing price equilibrium.',
             metric: 'e = -1.85 Curve',
+            link: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=800&auto=format&fit=crop',
+            color: '#0f172a',
         },
         {
-            step: '03',
             title: 'Google Gemini Explainable AI',
+            description: 'Natural language executive explanations provide instant transparency behind every single price recommendation.',
             badge: 'XAI Reasoning',
-            desc: 'Natural language executive explanations provide instant transparency behind every single price recommendation.',
             metric: '100% Auditable',
+            link: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop',
+            color: '#064e3b',
         },
         {
-            step: '04',
             title: 'Autonomous Storefront Sync',
+            description: 'Automatic two-way synchronization updates price points across Shopify, Amazon, and WooCommerce with zero manual latency.',
             badge: 'Instant Execution',
-            desc: 'Automatic two-way synchronization updates price points across Shopify, Amazon, and WooCommerce with zero manual latency.',
             metric: '< 150ms Sync',
+            link: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
+            color: '#3b0764',
         },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-hidden font-sans">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-clip font-sans">
             {/* Ambient Background Grid and Atmosphere */}
             <div className="fixed inset-0 bg-grid-dark pointer-events-none opacity-40 dark:opacity-30 z-0" />
             <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-indigo-200/40 via-sky-100/30 to-transparent dark:from-indigo-500/10 dark:via-cyan-500/5 dark:to-transparent blur-[120px] pointer-events-none z-0" />
@@ -225,7 +250,7 @@ export default function Landing() {
 
             {/* Main Content Area */}
             <main className="flex-1 flex flex-col pt-28 pb-20 relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                
+
                 {/* Hero Section */}
                 <section className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center mb-20 min-h-[calc(100dvh-10rem)]">
                     {/* Left Column: Value Prop & CTAs */}
@@ -245,7 +270,7 @@ export default function Landing() {
                         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6">
                             Dynamic Pricing.<br />
                             <span className="bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600 dark:from-indigo-400 dark:via-sky-300 dark:to-emerald-400 bg-clip-text text-transparent">
-                                Engineered for Profit.
+                                <TypewriterEffect text="Engineered for Profit." />
                             </span>
                         </h1>
 
@@ -256,15 +281,15 @@ export default function Landing() {
 
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto">
-                            <Link 
-                                to="/register" 
+                            <Link
+                                to="/register"
                                 className="btn-primary text-sm sm:text-base px-7 py-3 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
                             >
                                 <span>Start Optimizing Now</span>
                                 <HiOutlineArrowRight className="w-4 h-4" />
                             </Link>
-                            <Link 
-                                to="/demo" 
+                            <Link
+                                to="/demo"
                                 className="btn-secondary text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700/60 hover:border-indigo-500/40 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 shadow-sm"
                             >
                                 <span>Live Sandbox</span>
@@ -368,8 +393,8 @@ export default function Landing() {
                                 <span className="text-xs text-slate-500 dark:text-slate-400">
                                     Simulate pricing across 10,000+ catalog SKUs
                                 </span>
-                                <Link 
-                                    to="/demo" 
+                                <Link
+                                    to="/demo"
                                     className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2.5 px-5 text-xs font-bold transition-all shadow-md shadow-indigo-500/20 text-center flex items-center justify-center gap-1.5"
                                 >
                                     <span>Try What-If Simulator</span>
@@ -437,54 +462,20 @@ export default function Landing() {
 
                 {/* Dynamic Engine Architecture Pipeline */}
                 <section id="pipeline" className="max-w-7xl w-full mx-auto mb-28">
-                    <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/95 dark:bg-slate-950/80 backdrop-blur-2xl p-8 sm:p-12 relative overflow-hidden shadow-xl dark:shadow-2xl transition-colors duration-300">
-                        <div className="text-center max-w-2xl mx-auto mb-12">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold uppercase tracking-wider mb-3">
-                                <HiOutlineChip className="w-4 h-4" />
-                                Autonomous Execution Pipeline
-                            </div>
-                            <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                                How PricePilot Generates Maximum Margin
-                            </h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
-                                From competitor price scraping to automated catalog checkout synchronization.
-                            </p>
+                    <div className="text-center max-w-2xl mx-auto mb-12">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold uppercase tracking-wider mb-3">
+                            <HiOutlineChip className="w-4 h-4" />
+                            Autonomous Execution Pipeline
                         </div>
-
-                        {/* Pipeline Steps Grid */}
-                        <div className="grid md:grid-cols-4 gap-4 sm:gap-6 relative">
-                            {pipelineSteps.map((item, index) => (
-                                <div
-                                    key={item.step}
-                                    onClick={() => setActivePipelineStep(index)}
-                                    className={`p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${
-                                        activePipelineStep === index
-                                            ? 'bg-indigo-50/90 dark:bg-slate-900/90 border-indigo-500/60 shadow-lg shadow-indigo-500/10 -translate-y-1'
-                                            : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-100 dark:hover:bg-slate-900/60'
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                                            {item.step}
-                                        </span>
-                                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-medium">
-                                            {item.badge}
-                                        </span>
-                                    </div>
-                                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm mb-2">
-                                        {item.title}
-                                    </h4>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                                        {item.desc}
-                                    </p>
-                                    <div className="pt-3 border-t border-slate-200 dark:border-white/5 text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold flex items-center justify-between">
-                                        <span>Status:</span>
-                                        <span>{item.metric}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                            How PricePilot Generates Maximum Margin
+                        </h2>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
+                            From competitor price scraping to automated catalog checkout synchronization. Scroll down! 👇
+                        </p>
                     </div>
+
+                    <StackingCards projects={pipelineProjects} />
                 </section>
 
                 {/* Research & Economic Insights */}
@@ -572,11 +563,10 @@ export default function Landing() {
                                         key={idx}
                                         type="button"
                                         onClick={() => setActiveCategory(item)}
-                                        className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition ${
-                                            activeCategory === item
-                                                ? 'bg-indigo-600 text-white shadow-md'
-                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
-                                        }`}
+                                        className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition ${activeCategory === item
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                                            }`}
                                     >
                                         {item}
                                     </button>

@@ -41,18 +41,7 @@ export default function Login() {
         onSuccess: async (tokenResponse) => {
             setLoading(true);
             try {
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                });
-                const userInfo = await userInfoResponse.json();
-                
-                const userData = await loginWithGoogle({
-                    email: userInfo.email,
-                    name: userInfo.name || userInfo.given_name || userInfo.email.split('@')[0],
-                    googleId: userInfo.sub,
-                    picture: userInfo.picture,
-                    access_token: tokenResponse.access_token,
-                });
+                await loginWithGoogle(tokenResponse.access_token);
                 toast.success('Welcome back!');
                 if (userData?.onboarding?.completed) {
                     navigate('/dashboard');
@@ -60,7 +49,8 @@ export default function Login() {
                     navigate('/onboarding');
                 }
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Google login failed');
+                console.error('Google auth backend error:', err);
+                toast.error(err.response?.data?.message || err.message || 'Google login failed');
             } finally {
                 setLoading(false);
             }

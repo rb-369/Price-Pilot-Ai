@@ -132,8 +132,6 @@ exports.googleAuth = async (req, res) => {
 };
 
 exports.googleLogin = exports.googleAuth;
-    }
-};
 
 exports.getProfile = async (req, res) => {
     res.json(req.user);
