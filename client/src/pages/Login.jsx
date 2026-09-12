@@ -45,7 +45,7 @@ export default function Login() {
                     headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
                 });
                 const userInfo = await userInfoResponse.json();
-                
+
                 const userData = await loginWithGoogle({
                     email: userInfo.email,
                     name: userInfo.name || userInfo.given_name || userInfo.email.split('@')[0],
@@ -59,7 +59,8 @@ export default function Login() {
                     navigate('/onboarding');
                 }
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Google login failed');
+                console.error('Google auth error:', err);
+                toast.error(err.response?.data?.message || err.message || 'Google login failed');
             } finally {
                 setLoading(false);
             }

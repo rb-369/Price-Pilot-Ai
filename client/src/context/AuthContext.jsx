@@ -27,15 +27,16 @@ export function AuthProvider({ children }) {
         return res.data;
     };
 
-    const registerUser = async (data) => {
-        const res = await apiRegister(data);
+    const loginWithGoogle = async (googleData) => {
+        const payload = typeof googleData === 'string' ? { access_token: googleData } : googleData;
+        const res = await apiGoogleAuth(payload);
         localStorage.setItem('token', res.data.token);
         setUser(res.data);
         return res.data;
     };
 
-    const loginWithGoogle = async (googleData) => {
-        const res = await apiGoogleAuth(googleData);
+    const registerUser = async (data) => {
+        const res = await apiRegister(data);
         localStorage.setItem('token', res.data.token);
         setUser(res.data);
         return res.data;
