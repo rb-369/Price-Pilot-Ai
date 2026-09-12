@@ -5,6 +5,7 @@ import {
 } from '../api';
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineX, HiOutlinePaperClip, HiOutlineDocumentText, HiOutlineDuplicate, HiOutlinePencil, HiOutlineCheck, HiOutlineThumbUp, HiOutlineThumbDown } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage } from './ChatAutocompletePopover';
+import AILoadingState from './AILoadingState';
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -522,13 +523,7 @@ const ChatWidget = () => {
                             </div>
                         ))}
                         {isLoading && (
-                            <div className="flex justify-start animate-in fade-in duration-300">
-                                <div className="bg-slate-800/80 backdrop-blur-md border border-white/5 rounded-2xl rounded-tl-sm px-5 py-4 flex space-x-2">
-                                    <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.6)]"></div>
-                                    <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.6)]" style={{ animationDelay: '0.15s' }}></div>
-                                    <div className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full animate-bounce shadow-[0_0_8px_rgba(129,140,248,0.6)]" style={{ animationDelay: '0.3s' }}></div>
-                                </div>
-                            </div>
+                            <AILoadingState variant="chat" />
                         )}
                         <div ref={messagesEndRef} />
                     </div>

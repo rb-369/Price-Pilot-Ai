@@ -36,6 +36,7 @@ import PriceHistoryModal from '../components/PriceHistoryModal';
 import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
 import ConfirmModal from '../components/ConfirmModal';
+import AILoadingState from '../components/AILoadingState';
 
 export default function Recommendations() {
   const navigate = useNavigate();
@@ -400,6 +401,16 @@ export default function Recommendations() {
                 )}
               </div>
             </div>
+
+            {generating && (
+              <div className="mb-4">
+                <AILoadingState
+                  variant="banner"
+                  title={`Optimizing Pricing for ${products.find(p => p._id === generating)?.name || 'Product'}...`}
+                  subtitle="Running Bayesian elasticity solver and competitor price benchmark..."
+                />
+              </div>
+            )}
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-h-72 overflow-y-auto pr-1">
