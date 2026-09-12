@@ -18,6 +18,7 @@ import newDarkLogo from '../assets/new_dark_logo.png';
 import ThemeToggle from '../components/ThemeToggle';
 import HeroDashboard from '../components/HeroDashboard';
 import StackingCards from '../components/ui/stacking-card';
+import { warmupAIService } from '../utils/aiWarmup';
 
 const faqCategories = ['All Questions', 'Pricing & AI', 'Security & Privacy', 'Integrations'];
 
@@ -134,6 +135,10 @@ export default function Landing() {
     const [openFaqIndex, setOpenFaqIndex] = useState(null);
     const [activeCategory, setActiveCategory] = useState('All Questions');
     const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        warmupAIService();
+    }, []);
 
     const toggleFaq = useCallback((index) => {
         setOpenFaqIndex(prev => prev === index ? null : index);
