@@ -29,6 +29,8 @@ class DemandSignalData(BaseModel):
 class ProductData(BaseModel):
     name: Optional[str] = "Product"
     sku: Optional[str] = ""
+    brand: Optional[str] = ""
+    category: Optional[str] = "General"
     baseCost: float
     currentPrice: float
     minMargin: Optional[float] = 0.1
@@ -44,7 +46,7 @@ class OptimizeRequest(BaseModel):
 
 
 import os
-from services.rainforest import search_competitors_by_keyword
+from services.rainforest import search_competitors_by_keyword, is_same_brand
 from services.validator import validate_competitors
 
 @router.post("/optimize-price")
@@ -53,23 +55,28 @@ async def optimize(request: OptimizeRequest):
     competitors = [cp.model_dump() for cp in request.competitorPrices]
     demand = [ds.model_dump() for ds in request.demandSignals]
 
-    # --- Live Competitor Data Injection ---
-    # If Node server sends empty competitors, or we want to guarantee live data:
+    user_brand = (product.get("brand") or "").strip()
+
+    # --- Filter out any self-brand items sent from older database records ---
+    if user_brand and competitors:
+        competitors = [
+            c for c in competitors 
+            if not is_same_brand(c.get("productName") or c.get("name", ""), c.get("brand", ""), user_brand)
+        ]
+
+    # --- Live Rival Competitor Data Injection ---
     if not competitors:
-        api_key = os.getenv("RAINFOREST_API_KEY", "")
-        if api_key:
-            print(f"Fetching Live Amazon Competitors for '{product['name']}'...")
-            competitors = await search_competitors_by_keyword(product["name"])
+        print(f"Fetching Live Rival Competitors for '{product['name']}' (Brand: '{user_brand}')...")
+        competitors = await search_competitors_by_keyword(
+            keyword=product["name"],
+            brand=product.get("brand"),
+            category=product.get("category"),
+            price=product.get("currentPrice"),
+        )
 
-            # AI Validation step: Filter out junk products
-            if competitors:
-                competitors = await validate_competitors(product["name"], competitors)
-
-        if not competitors:
-            return {
-                "error": True,
-                "message": "Failed to fetch competitor prices. Please configure RAINFOREST_API_KEY or add competitors manually."
-            }
+        # AI Validation step: Filter out junk products and confirm no self-brand items
+        if competitors:
+            competitors = await validate_competitors(product["name"], competitors, user_brand=user_brand)
     # ----------------------------------------
 
     recommendation = optimize_price(product, competitors, demand, user_id=request.user_id)

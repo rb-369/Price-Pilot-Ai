@@ -70,6 +70,9 @@ exports.createProduct = async (req, res) => {
         // Set Short Name & Full Name fallbacks
         safeBody.fullName = safeBody.fullName || safeBody.name;
         safeBody.shortName = safeBody.shortName || safeBody.name.slice(0, 40);
+        if (!safeBody.brand && safeBody.fullName) {
+            safeBody.brand = safeBody.fullName.split(/[,|\-–—\s]/)[0].trim();
+        }
 
         const product = await Product.create({ ...safeBody, userId: req.user._id });
 
@@ -413,7 +416,16 @@ exports.extractUrlMetadata = async (req, res) => {
             }
 
             if (!metadata.brand && metadata.fullName) {
-                const knownBrands = ['REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO', 'SAMSUNG', 'SONY', 'MILTON', 'PEXPO', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH', 'ONEPLUS', 'REALME', 'POCO', 'NOISE', 'FIRE-BOLTT', 'ZEBRONICS', 'CROMTON', 'BAJAJ', 'PHILIPS', 'STANLEY', 'PRESTIGE'];
+                const knownBrands = [
+                    'DERMATOUCH', 'THE DERMA CO', 'DOT & KEY', 'AQUALOGICA', 'MINIMALIST', 'DR. SHETH',
+                    'MAMAEARTH', 'CETAPHIL', 'NEUTROGENA', 'LOTUS HERBALS', 'LOTUS', 'PLUM', 'BIOTIQUE',
+                    'LOREAL', 'GARNIER', 'NIVEA', 'PONDS', 'OLAY', 'LAKME', 'MAYBELLINE', 'BBLUNT',
+                    'TRESEMME', 'DOVE', 'BOROSIL', 'CELLO', 'HAWKINS', 'PIGEON', 'BUTTERFLY', 'WONDERCHEF',
+                    'KENT', 'LIFELONG', 'REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO',
+                    'SAMSUNG', 'SONY', 'MILTON', 'PEXPO', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH',
+                    'ONEPLUS', 'REALME', 'POCO', 'NOISE', 'FIRE-BOLTT', 'ZEBRONICS', 'CROMTON', 'BAJAJ',
+                    'PHILIPS', 'STANLEY', 'PRESTIGE'
+                ];
                 const upperName = metadata.fullName.toUpperCase();
                 const matched = knownBrands.find(b => upperName.includes(b));
                 if (matched) {

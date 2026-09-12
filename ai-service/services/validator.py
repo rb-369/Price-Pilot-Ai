@@ -7,15 +7,17 @@ VALIDATION_PROMPT = """You are an e-commerce data validation expert.
 Your job is to compare a user's product with a list of scraped competitor products, and filter out any competitor products that are NOT actually competing items.
 
 User's Product: "{product_name}"
+User's Own Brand: "{user_brand}"
 
 Scraped Competitors:
 {competitors_json}
 
 INSTRUCTIONS:
 1. Review each scraped competitor.
-2. If the competitor product is completely irrelevant, an accessory (e.g., selling a case when the user sells a phone), or a vastly different category, mark it as invalid.
-3. If the competitor product is a similar item, a direct competitor, or a valid alternative for a buyer, mark it as valid.
-4. Return a JSON array containing ONLY the indices (0-indexed) of the VALID competitors.
+2. If the competitor product is from the user's OWN brand ({user_brand}), mark it as INVALID. Competitors MUST be alternative rival brands!
+3. If the competitor product is completely irrelevant, an accessory (e.g., selling a case when the user sells a phone), or a vastly different category, mark it as invalid.
+4. If the competitor product is a direct competitor or valid alternative from a rival brand, mark it as valid.
+5. Return a JSON array containing ONLY the indices (0-indexed) of the VALID competitors.
 
 Example output:
 [0, 2, 4]
@@ -23,11 +25,22 @@ Example output:
 Return strictly valid JSON and nothing else.
 """
 
-async def validate_competitors(product_name: str, competitors: List[Dict]) -> List[Dict]:
+async def validate_competitors(product_name: str, competitors: List[Dict], user_brand: Optional[str] = None) -> List[Dict]:
     """
     Validates a list of scraped competitor products against the user's product name.
-    Filters out junk or irrelevant products using an LLM.
+    Filters out junk or irrelevant products and guarantees no self-brand products using rule matching + LLM.
     """
+    if not competitors:
+        return []
+
+    # 1. Deterministic programmatic brand exclusion first
+    if user_brand and user_brand.strip():
+        from services.rainforest import is_same_brand
+        competitors = [
+            c for c in competitors
+            if not is_same_brand(c.get("productName") or c.get("name", ""), c.get("brand", ""), user_brand)
+        ]
+
     api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("LLM_API_KEY", "")
     
     if not api_key or api_key == "your_gemini_or_openai_key_here" or not competitors:
@@ -42,6 +55,7 @@ async def validate_competitors(product_name: str, competitors: List[Dict]) -> Li
         
         prompt = VALIDATION_PROMPT.format(
             product_name=product_name,
+            user_brand=user_brand or "N/A",
             competitors_json=json.dumps(slim_competitors, indent=2)
         )
         

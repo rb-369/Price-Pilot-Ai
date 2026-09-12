@@ -24,16 +24,31 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
     const competitorPrices = await CompetitorPrice.find({ productId }).sort({ timestamp: -1 }).limit(10);
     const demandSignals = await DemandSignal.find({ productId }).sort({ timestamp: -1 }).limit(30);
 
+    const detectedBrand = (product.brand || product.fullName || product.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
+
+    // Filter out any stale self-brand records from database
+    const rivalCompetitorPrices = competitorPrices.filter(cp => {
+        if (!detectedBrand || detectedBrand.length < 3) return true;
+        const pName = (cp.productName || '').toLowerCase();
+        const cName = (cp.competitorName || '').toLowerCase();
+        return !pName.includes(detectedBrand) && !cName.includes(detectedBrand);
+    });
+
     const payload = {
         user_id: product.userId,
         product: {
-            name: product.name, sku: product.sku,
-            baseCost: product.baseCost || 0, currentPrice: product.currentPrice || 0,
-            minMargin: product.minMargin, stockLevel: product.stockLevel,
+            name: product.fullName || product.name,
+            brand: product.brand || '',
+            category: product.category || 'General',
+            sku: product.sku,
+            baseCost: product.baseCost || 0,
+            currentPrice: product.currentPrice || 0,
+            minMargin: product.minMargin,
+            stockLevel: product.stockLevel,
             reorderThreshold: product.reorderThreshold,
         },
-        competitorPrices: competitorPrices.map(cp => ({
-            name: cp.competitorName, // Will be mapped to platform in Python
+        competitorPrices: rivalCompetitorPrices.map(cp => ({
+            name: cp.competitorName,
             productName: cp.productName || '',
             url: cp.competitorUrl || '',
             price: cp.competitorPrice,
@@ -89,6 +104,43 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
                 revenueImpact: 5.0,
                 confidenceScore: 0.5
             };
+        }
+    }
+
+    // Persist verified rival competitors back to CompetitorPrice collection and clean up self-brand records
+    if (Array.isArray(recommendation.competitorsUsed) && recommendation.competitorsUsed.length > 0) {
+        try {
+            if (detectedBrand && detectedBrand.length >= 3) {
+                await CompetitorPrice.deleteMany({
+                    productId,
+                    $or: [
+                        { productName: { $regex: detectedBrand, $options: 'i' } },
+                        { competitorName: { $regex: detectedBrand, $options: 'i' } }
+                    ]
+                });
+            }
+
+            const freshRivalRecords = recommendation.competitorsUsed
+                .filter(c => {
+                    const title = (c.productName || c.name || '').toLowerCase();
+                    const b = (c.brand || '').toLowerCase();
+                    return !detectedBrand || (!title.includes(detectedBrand) && !b.includes(detectedBrand));
+                })
+                .map(c => ({
+                    productId,
+                    competitorName: c.brand ? `${c.brand} (${c.platform || 'Online'})` : (c.platform || 'Competitor'),
+                    productName: (c.productName || c.name || '').slice(0, 150),
+                    competitorUrl: c.url || '',
+                    competitorPrice: Number(c.price),
+                    inStock: c.inStock !== false,
+                    timestamp: new Date()
+                }));
+
+            if (freshRivalRecords.length > 0) {
+                await CompetitorPrice.insertMany(freshRivalRecords);
+            }
+        } catch (syncErr) {
+            console.warn('[QueueService] Notice syncing rival competitors to database:', syncErr.message);
         }
     }
 

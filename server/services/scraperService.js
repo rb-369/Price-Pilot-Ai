@@ -31,17 +31,38 @@ async function fetchLiveCompetitorsForProduct(product) {
         throw new Error('Live price source was not verified');
     }
 
-    const competitors = (response.data.competitors || []).filter((competitor) =>
-        Number.isFinite(Number(competitor.price)) &&
-        competitor.productName &&
-        competitor.url,
-    );
+    const detectedBrand = (product.brand || product.fullName || product.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
+
+    const competitors = (response.data.competitors || []).filter((competitor) => {
+        if (!Number.isFinite(Number(competitor.price)) || !competitor.productName || !competitor.url) {
+            return false;
+        }
+        if (detectedBrand && detectedBrand.length >= 3) {
+            const title = (competitor.productName || '').toLowerCase();
+            const brand = (competitor.brand || '').toLowerCase();
+            if (title.includes(detectedBrand) || brand.includes(detectedBrand)) {
+                return false;
+            }
+        }
+        return true;
+    });
 
     if (!competitors.length) {
         return {
             checkedAt: new Date().toISOString(),
             competitors: [],
         };
+    }
+
+    // Clean up previous self-brand entries for this product
+    if (detectedBrand && detectedBrand.length >= 3) {
+        await CompetitorPrice.deleteMany({
+            productId: product._id,
+            $or: [
+                { productName: { $regex: detectedBrand, $options: 'i' } },
+                { competitorName: { $regex: detectedBrand, $options: 'i' } }
+            ]
+        }).catch(() => {});
     }
 
     const checkedAt = new Date();

@@ -42,15 +42,23 @@ exports.runSimulation = async (req, res) => {
                     salesVelocity: dbProduct.salesVelocity || { avgHourlySalesRate: 0.5 }
                 };
 
+                const userBrand = (dbProduct.brand || dbProduct.fullName || dbProduct.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
                 const compDocs = await CompetitorPrice.find({ productId: dbProduct._id })
                     .sort({ timestamp: -1 })
                     .limit(10);
-                competitorPrices = compDocs.map(c => ({
-                    name: c.competitorName || 'Competitor',
-                    price: c.competitorPrice,
-                    productName: dbProduct.name,
-                    inStock: c.inStock !== false
-                }));
+                competitorPrices = compDocs
+                    .filter(c => {
+                        if (!userBrand || userBrand.length < 3) return true;
+                        const pName = (c.productName || '').toLowerCase();
+                        const cName = (c.competitorName || '').toLowerCase();
+                        return !pName.includes(userBrand) && !cName.includes(userBrand);
+                    })
+                    .map(c => ({
+                        name: c.competitorName || 'Competitor',
+                        price: c.competitorPrice,
+                        productName: c.productName || dbProduct.name,
+                        inStock: c.inStock !== false
+                    }));
 
                 const signalDocs = await DemandSignal.find({ productId: dbProduct._id })
                     .sort({ timestamp: -1 })
