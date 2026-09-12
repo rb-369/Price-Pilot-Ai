@@ -85,10 +85,21 @@ exports.runSimulation = async (req, res) => {
             const basePrice = productObj.currentPrice || 100;
             const unitCogs = payload.cogs;
             const baselineVol = (productObj.salesVelocity?.avgHourlySalesRate || 0.5) * 24 * timeHorizonDays;
-            const volFactor = Math.max(0.2, Math.min(2.5, Math.pow(simTargetPrice / basePrice, -1.2) * demandMultiplier));
+            const pRatio = simTargetPrice / (basePrice || 1);
+            let rawVolFactor = Math.pow(pRatio, -1.3) * demandMultiplier;
+            if (pRatio > 3.0) {
+                rawVolFactor = Math.max(0.0001, Math.min(2.5, rawVolFactor * (3.0 / pRatio)));
+            } else if (pRatio > 1.5) {
+                rawVolFactor = Math.max(0.005, Math.min(2.5, rawVolFactor));
+            } else {
+                rawVolFactor = Math.max(0.02, Math.min(2.5, rawVolFactor));
+            }
+            const volFactor = rawVolFactor;
             const simVol = baselineVol * volFactor;
             const simRev = simTargetPrice * simVol;
             const simProf = (simTargetPrice - unitCogs) * simVol;
+            const isSevereHike = simTargetPrice > basePrice * 1.5;
+            const undercutRisk = isSevereHike ? Math.min(99.0, 80.0 + (pRatio - 1.5) * 15.0) : (simTargetPrice > basePrice ? 45.0 : 15.0);
 
             return res.json({
                 product: productObj,

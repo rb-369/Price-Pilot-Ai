@@ -211,6 +211,7 @@ exports.extractUrlMetadata = async (req, res) => {
             platform,
             amazonAsin,
             flipkartFsn,
+            source: 'scraper',
             productLinks: {
                 amazon: platform === 'amazon' ? finalUrl : '',
                 flipkart: platform === 'flipkart' ? finalUrl : '',
@@ -232,6 +233,87 @@ exports.extractUrlMetadata = async (req, res) => {
                 .replace(/\s+/g, ' ')
                 .trim();
         };
+
+        // Tier 1: Rainforest API for Amazon Products when ASIN is available
+        if (platform === 'amazon' && amazonAsin && process.env.RAINFOREST_API_KEY) {
+            try {
+                const rfUrl = `https://api.rainforestapi.com/request?api_key=${process.env.RAINFOREST_API_KEY}&type=product&asin=${amazonAsin}&amazon_domain=amazon.in`;
+                const rfRes = await fetch(rfUrl, { signal: AbortSignal.timeout(12000) });
+                if (rfRes.ok) {
+                    const rfData = await rfRes.json();
+                    const p = rfData?.product;
+                    if (p && p.title) {
+                        metadata.fullName = cleanText(p.title);
+                        metadata.shortName = metadata.fullName.split(/[,|\-–—(]/)[0].trim();
+                        metadata.brand = p.brand || '';
+                        metadata.source = 'rainforest_api';
+
+                        const priceVal = p.buybox_winner?.price?.value ?? p.price?.value ?? p.prices?.[0]?.value;
+                        if (priceVal && !isNaN(Number(priceVal))) {
+                            metadata.currentPrice = Number(priceVal);
+                        }
+
+                        if (p.main_image?.link) {
+                            metadata.imageUrl = p.main_image.link;
+                        } else if (p.images && p.images[0]?.link) {
+                            metadata.imageUrl = p.images[0].link;
+                        }
+
+                        if (Array.isArray(p.feature_bullets) && p.feature_bullets.length > 0) {
+                            metadata.keySpecs = p.feature_bullets.map(b => cleanText(b)).filter(Boolean).slice(0, 5);
+                            metadata.description = cleanText(p.description || p.feature_bullets.slice(0, 3).join('. ')).slice(0, 350);
+                        } else if (p.description) {
+                            metadata.description = cleanText(p.description).slice(0, 350);
+                        }
+
+                        // Category mapping from Rainforest categories
+                        if (Array.isArray(p.categories) && p.categories.length > 0) {
+                            const catHierarchy = p.categories.map(c => c.name).join(' ').toLowerCase();
+                            if (/beauty|skin|face|hair|cream|serum|sunscreen|cosmetic/i.test(catHierarchy)) {
+                                metadata.category = 'Beauty & Personal Care';
+                            } else if (/kitchen|cookware|bottle|home|furniture|appliance/i.test(catHierarchy)) {
+                                metadata.category = 'Home & Kitchen';
+                            } else if (/electronic|computer|phone|gadget|watch|headphone|audio/i.test(catHierarchy)) {
+                                metadata.category = 'Electronics';
+                            } else if (/shoe|footwear|sneaker|sandal/i.test(catHierarchy)) {
+                                metadata.category = 'Footwear';
+                            } else if (/cloth|apparel|shirt|pant|dress|jacket/i.test(catHierarchy)) {
+                                metadata.category = 'Apparel';
+                            } else if (/fitness|sport|gym|workout|yoga/i.test(catHierarchy)) {
+                                metadata.category = 'Fitness';
+                            } else if (/book|media/i.test(catHierarchy)) {
+                                metadata.category = 'Books & Media';
+                            }
+                        }
+                    }
+                }
+            } catch (rfErr) {
+                console.warn('[URL Extraction] Rainforest API lookup failed, falling back:', rfErr.message);
+            }
+        }
+
+        // Tier 2: SerpAPI Google Fallback for Amazon ASIN if title still missing
+        if (platform === 'amazon' && amazonAsin && !metadata.fullName && process.env.SERPAPI_KEY) {
+            try {
+                const serpUrl = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent('site:amazon.in ' + amazonAsin)}&api_key=${process.env.SERPAPI_KEY}`;
+                const serpRes = await fetch(serpUrl, { signal: AbortSignal.timeout(8000) });
+                if (serpRes.ok) {
+                    const serpData = await serpRes.json();
+                    const topResult = serpData?.organic_results?.[0];
+                    if (topResult && topResult.title) {
+                        let cleanTitle = cleanText(topResult.title).replace(/\s*:\s*Amazon\.in.*$/i, '').replace(/\s*-\s*Amazon\.in.*$/i, '').trim();
+                        metadata.fullName = cleanTitle;
+                        metadata.shortName = cleanTitle.split(/[,|\-–—(]/)[0].trim();
+                        metadata.source = 'serpapi';
+                        if (topResult.snippet) {
+                            metadata.description = cleanText(topResult.snippet).slice(0, 300);
+                        }
+                    }
+                }
+            } catch (serpErr) {
+                console.warn('[URL Extraction] SerpAPI lookup failed:', serpErr.message);
+            }
+        }
 
         // If Shopify URL, try fetching cleanly formatted Shopify product JSON
         if (platform === 'shopify' || lowercaseFinalUrl.includes('/products/')) {
@@ -255,6 +337,7 @@ exports.extractUrlMetadata = async (req, res) => {
                         if (p.images && p.images.length > 0) {
                             metadata.imageUrl = p.images[0].src;
                         }
+                        metadata.source = 'shopify_api';
                     }
                 }
             } catch (err) {
@@ -409,6 +492,13 @@ exports.extractUrlMetadata = async (req, res) => {
 
         if (!metadata.description) {
             metadata.description = `${metadata.fullName}. Features: ${metadata.keySpecs.join(', ') || 'High quality material, official brand product'}.`;
+        }
+
+        // Informative notice for UI
+        if (!metadata.currentPrice) {
+            metadata.priceNotice = 'Product identity imported, but live selling price was protected by retailer anti-bot. Please enter your selling price manually.';
+        } else {
+            metadata.priceNotice = null;
         }
 
         res.json(metadata);

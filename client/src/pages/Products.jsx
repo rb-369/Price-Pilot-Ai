@@ -93,7 +93,13 @@ export default function Products() {
         try {
             const res = await extractProductUrlMetadata(importUrl);
             const data = res.data;
-            toast.success('Metadata extracted successfully!', { id: toastId });
+            if (data.currentPrice) {
+                toast.success(`Extracted: ${data.shortName || data.fullName || 'Product'} (${formatCurrency(data.currentPrice)})`, { id: toastId });
+            } else if (data.priceNotice) {
+                toast.success(`${data.shortName || data.fullName || 'Product'} imported! Please enter your selling price & cost.`, { id: toastId });
+            } else {
+                toast.success('Metadata extracted successfully!', { id: toastId });
+            }
 
             const isStandard = STANDARD_CATEGORIES.includes(data.category);
 
