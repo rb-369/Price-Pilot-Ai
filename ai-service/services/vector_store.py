@@ -9,29 +9,27 @@ def _get_embeddings():
     if _embeddings_cache is not None:
         return _embeddings_cache
 
-    # 1. Primary: Try FastEmbed (Local ONNX, zero API cost, BAAI/bge-small-en-v1.5)
-    try:
-        from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
-        embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-        # Quick test to verify model works
-        embeddings.embed_query("test query")
-        _embeddings_cache = embeddings
-        return _embeddings_cache
-    except Exception as e:
-        print(f"FastEmbed initialization warning: {e}")
-
-    # 2. Fallback: GoogleGenerativeAIEmbeddings
+    # 1. Primary: Cloud-based Google Generative AI Embeddings (Zero RAM overhead on Render)
     api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
     if api_key:
         for model_name in ["models/text-embedding-004", "models/embedding-001"]:
             try:
                 from langchain_google_genai import GoogleGenerativeAIEmbeddings
                 embeddings = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
-                embeddings.embed_query("test query")
                 _embeddings_cache = embeddings
                 return _embeddings_cache
             except Exception as ex:
                 print(f"Gemini embedding model {model_name} failed: {ex}")
+
+    # 2. Local Fallback: FastEmbed only when explicitly enabled (disabled by default on 512MB RAM cloud instances)
+    if os.getenv("ENABLE_FASTEMBED", "false").lower() == "true":
+        try:
+            from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
+            embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+            _embeddings_cache = embeddings
+            return _embeddings_cache
+        except Exception as e:
+            print(f"FastEmbed initialization warning: {e}")
 
     print("Warning: No working embedding model found.")
     return None
@@ -53,12 +51,19 @@ def get_vectorstore(collection_name="ecommerce_data"):
             from qdrant_client.models import VectorParams, Distance
             client = QdrantClient(url=qdrant_url, api_key=qdrant_key)
 
-            # Ensure collection exists before querying/storing (FastEmbed bge-small is 384 dim)
+            # Ensure collection exists before querying/storing
             try:
                 if not client.collection_exists(collection_name):
+                    vec_size = 768
+                    try:
+                        probe = embeddings.embed_query("probe")
+                        if probe and len(probe) > 0:
+                            vec_size = len(probe)
+                    except Exception:
+                        pass
                     client.create_collection(
                         collection_name=collection_name,
-                        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+                        vectors_config=VectorParams(size=vec_size, distance=Distance.COSINE)
                     )
             except Exception as collection_err:
                 print(f"Qdrant collection creation check notice: {collection_err}")

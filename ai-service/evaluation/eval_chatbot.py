@@ -186,7 +186,7 @@ Return ONLY a JSON object like: {{"faithfulness": 2, "relevance": 3, "helpfulnes
 
         client = genai.Client(api_key=api_key)
         result = await client.aio.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=judge_prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

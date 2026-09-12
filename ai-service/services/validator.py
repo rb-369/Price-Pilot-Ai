@@ -50,7 +50,7 @@ async def validate_competitors(product_name: str, competitors: List[Dict]) -> Li
         
         client = genai.Client(api_key=api_key)
         response = await client.aio.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

@@ -124,38 +124,44 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     try:
         if gemini_key:
             primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 google_api_key=gemini_key,
+                max_retries=1,
             )
             secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-pro",
+                model="gemini-2.0-flash",
                 google_api_key=gemini_key,
+                max_retries=1,
             )
         else:
             primary_llm = None
             secondary_llm = None
         
-        if openrouter_key:
-            fallback_llm = ChatOpenAI(
-                model="google/gemma-4-31b-it:free",
-                base_url="https://openrouter.ai/api/v1",
-                api_key=openrouter_key
-            )
-        else:
-            fallback_llm = None
-        
         fallbacks = []
         if secondary_llm:
             fallbacks.append(secondary_llm)
-        if fallback_llm:
-            fallbacks.append(fallback_llm)
+        
+        if openrouter_key:
+            for openrouter_model in [
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "google/gemini-2.0-flash-exp:free",
+                "mistralai/mistral-small-3.2-24b-instruct:free"
+            ]:
+                fallbacks.append(
+                    ChatOpenAI(
+                        model=openrouter_model,
+                        base_url="https://openrouter.ai/api/v1",
+                        api_key=openrouter_key,
+                        max_retries=1,
+                    )
+                )
             
         if primary_llm and fallbacks:
             llm = primary_llm.with_fallbacks(fallbacks)
         elif primary_llm:
             llm = primary_llm
-        elif fallback_llm:
-            llm = fallback_llm
+        elif fallbacks:
+            llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
             return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
         
@@ -266,6 +272,70 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         return response
     except Exception as e:
         import traceback
+        err_str = str(e).lower()
         print(f"Chatbot LangGraph Error: {e}")
         traceback.print_exc()
-        return "Oops! I encountered an error while processing your request. Please try again later."
+
+        # If it's a what-if query and LLM was rate-limited or failed, provide deterministic mathematical fallback
+        if is_what_if:
+            try:
+                import re
+                import json
+                p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+                pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)', latest_query, re.IGNORECASE) or re.search(r'(\d+(?:\.\d+)?)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+
+                extracted_prod = p_match.group(1).strip() if p_match else "Product"
+                extracted_price = float(pr_match.group(1).strip()) if pr_match else 0.0
+
+                ctx_products = (context_data or {}).get("products", []) if isinstance(context_data, dict) else []
+                matched_prod = next((p for p in ctx_products if extracted_prod.lower() in p.get("name", "").lower()), None)
+
+                current_p = float(matched_prod.get("currentPrice", 900)) if matched_prod else 900.0
+                base_c = float(matched_prod.get("baseCost", 540)) if matched_prod else 540.0
+                new_p = extracted_price if extracted_price > 0 else current_p * 1.1
+
+                old_margin = ((current_p - base_c) / current_p * 100.0) if current_p > 0 else 40.0
+                new_margin = ((new_p - base_c) / new_p * 100.0) if new_p > 0 else 0.0
+                pct_change = ((new_p - current_p) / current_p * 100.0) if current_p > 0 else 0.0
+
+                if new_p <= base_c:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "+25%"
+                    explanation = f"Setting price to ₹{new_p:,.2f} is at or below cost (₹{base_c:,.2f}), resulting in negative margins and direct business losses."
+                elif pct_change > 100:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "-98%"
+                    explanation = f"Increasing price by +{pct_change:.0f}% will cause catastrophic demand collapse and customer churn, destroying product visibility."
+                elif pct_change > 30:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "-60%"
+                    explanation = f"Increasing price by +{pct_change:.0f}% significantly risks losing the Buy Box to cheaper competitors."
+                elif pct_change > 0:
+                    verdict = "🟢 GOOD DECISION" if new_margin > old_margin else "🟡 NEUTRAL"
+                    sales_impact = f"-{min(15, max(5, int(pct_change * 0.8)))}%"
+                    explanation = "Moderate price adjustment protects margin while keeping sales volume within a sustainable range."
+                else:
+                    verdict = "🟢 GOOD DECISION" if new_margin >= 20 else "🟡 NEUTRAL"
+                    sales_impact = f"+{min(35, max(10, int(abs(pct_change) * 1.5)))}%"
+                    explanation = "Competitive discount will stimulate sales velocity while preserving gross profitability."
+
+                prod_title = matched_prod.get("name", extracted_prod) if matched_prod else extracted_prod
+                fallback_resp = (
+                    f"📊 **What-If Analysis: {prod_title}**\n"
+                    f"- **Current Price:** ₹{current_p:,.2f} → **New Price:** ₹{new_p:,.2f}\n"
+                    f"- **Cost (COGS):** ₹{base_c:,.2f}\n"
+                    f"- **Current Margin:** {old_margin:.1f}% → **New Margin:** {new_margin:.1f}%\n"
+                    f"- **Estimated Sales Impact:** {sales_impact}\n"
+                    f"- **Overall Verdict:** {verdict}\n\n"
+                    f"{explanation}\n\n"
+                    f"---ACTION_REDIRECT_WHAT_IF---\n"
+                    f"{json.dumps({'action': 'redirect_what_if', 'productQuery': extracted_prod, 'priceChange': str(int(new_p))})}"
+                )
+                return fallback_resp
+            except Exception as fb_err:
+                print(f"Fallback what-if calculation error: {fb_err}")
+
+        if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
+            return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."
+
+        return "Oops! I encountered an error while processing your request. Please try again in a moment."

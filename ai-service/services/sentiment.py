@@ -49,7 +49,7 @@ async def analyze_sentiment(product_name: str, category: str, feedback: str) -> 
         
         client = genai.Client(api_key=api_key)
         response = await client.aio.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

@@ -129,7 +129,7 @@ async def _score_with_gemini(product_name: str, category: str, headlines: list) 
     )
 
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
@@ -158,7 +158,7 @@ Return ONLY a JSON object:
 }}"""
 
     response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-1.5-flash",
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
