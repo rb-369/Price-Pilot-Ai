@@ -66,17 +66,25 @@ async def optimize(request: OptimizeRequest):
 
     # --- Live Rival Competitor Data Injection ---
     if not competitors:
-        print(f"Fetching Live Rival Competitors for '{product['name']}' (Brand: '{user_brand}')...")
-        competitors = await search_competitors_by_keyword(
-            keyword=product["name"],
-            brand=product.get("brand"),
-            category=product.get("category"),
-            price=product.get("currentPrice"),
-        )
+        api_key = os.getenv("RAINFOREST_API_KEY", "")
+        if api_key:
+            print(f"Fetching Live Rival Competitors for '{product['name']}' (Brand: '{user_brand}')...")
+            competitors = await search_competitors_by_keyword(
+                keyword=product["name"],
+                brand=product.get("brand"),
+                category=product.get("category"),
+                price=product.get("currentPrice"),
+            )
 
-        # AI Validation step: Filter out junk products and confirm no self-brand items
-        if competitors:
-            competitors = await validate_competitors(product["name"], competitors, user_brand=user_brand)
+            # AI Validation step: Filter out junk products and confirm no self-brand items
+            if competitors:
+                competitors = await validate_competitors(product["name"], competitors, user_brand=user_brand)
+
+        if not competitors:
+            return {
+                "error": True,
+                "message": "Failed to fetch competitor prices. Please configure RAINFOREST_API_KEY or add competitors manually."
+            }
     # ----------------------------------------
 
     recommendation = optimize_price(product, competitors, demand, user_id=request.user_id)

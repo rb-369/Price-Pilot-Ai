@@ -1,7 +1,7 @@
 import os
 import json
 import numpy as np
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 VALIDATION_PROMPT = """You are an e-commerce data validation expert.
 Your job is to compare a user's product with a list of scraped competitor products, and filter out any competitor products that are NOT actually competing items.
@@ -63,14 +63,23 @@ async def validate_competitors(product_name: str, competitors: List[Dict], user_
         from google.genai import types
         
         client = genai.Client(api_key=api_key)
-        response = await client.aio.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.1
-            )
-        )
+        for cand_model in ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"]:
+            try:
+                response = await client.aio.models.generate_content(
+                    model=cand_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.1
+                    )
+                )
+                break
+            except Exception as model_err:
+                print(f"[Validator] Model {cand_model} failed: {model_err}")
+                response = None
+
+        if response is None:
+            return competitors
         
         content = response.text.strip()
         

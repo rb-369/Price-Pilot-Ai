@@ -124,12 +124,12 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     try:
         if gemini_key:
             primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
+                model="gemini-flash-latest",
                 google_api_key=gemini_key,
                 max_retries=1,
             )
             secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash-lite",
                 google_api_key=gemini_key,
                 max_retries=1,
             )

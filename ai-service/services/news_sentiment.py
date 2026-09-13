@@ -128,16 +128,21 @@ async def _score_with_gemini(product_name: str, category: str, headlines: list) 
         headlines="\n".join(headlines[:15]),
     )
 
-    response = await client.aio.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.2,
-        ),
-    )
+    for cand in ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"]:
+        try:
+            response = await client.aio.models.generate_content(
+                model=cand,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.2,
+                ),
+            )
+            return json.loads(response.text.strip())
+        except Exception as model_err:
+            print(f"Model {cand} failed for news sentiment: {model_err}")
 
-    return json.loads(response.text.strip())
+    return {"sentiment_score": 50, "trend": "neutral", "key_driver": "Default baseline sentiment applied."}
 
 
 async def _direct_gemini_sentiment(product_name: str, category: str) -> Optional[dict]:
@@ -157,16 +162,21 @@ Return ONLY a JSON object:
   "key_driver": "1 sentence explanation"
 }}"""
 
-    response = await client.aio.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.3,
-        ),
-    )
+    for cand in ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"]:
+        try:
+            response = await client.aio.models.generate_content(
+                model=cand,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.3,
+                ),
+            )
+            return json.loads(response.text.strip())
+        except Exception as model_err:
+            print(f"Model {cand} failed for direct sentiment: {model_err}")
 
-    return json.loads(response.text.strip())
+    return {"sentiment_score": 50, "trend": "neutral", "key_driver": "Market conditions steady."}
 
 
 def _heuristic_sentiment(product_name: str) -> float:

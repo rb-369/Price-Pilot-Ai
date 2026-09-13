@@ -45,15 +45,19 @@ async def generate_product_copy(product_name: str, category: str = "") -> dict:
         from google.genai import types
         
         client = genai.Client(api_key=api_key)
-        response = await client.aio.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.7
-            )
-        )
-        return json.loads(response.text.strip())
+        for cand in ["gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"]:
+            try:
+                response = await client.aio.models.generate_content(
+                    model=cand,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.7
+                    )
+                )
+                return json.loads(response.text.strip())
+            except Exception as model_err:
+                print(f"Model {cand} failed for product_gen: {model_err}")
     except Exception as e:
         print(f"Gemini generation failed: {e}. Trying OpenRouter fallback...")
         openrouter_key = os.getenv("OPENROUTER_API_KEY", "")

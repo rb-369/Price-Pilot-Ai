@@ -12,10 +12,11 @@ def _get_embeddings():
     # 1. Primary: Cloud-based Google Generative AI Embeddings (Zero RAM overhead on Render)
     api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
     if api_key:
-        for model_name in ["models/text-embedding-004", "models/embedding-001"]:
+        for model_name in ["models/gemini-embedding-001", "models/gemini-embedding-2", "models/embedding-001"]:
             try:
                 from langchain_google_genai import GoogleGenerativeAIEmbeddings
                 embeddings = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
+                embeddings.embed_query("probe")
                 _embeddings_cache = embeddings
                 return _embeddings_cache
             except Exception as ex:

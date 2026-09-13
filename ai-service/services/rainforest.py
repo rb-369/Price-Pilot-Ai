@@ -478,7 +478,8 @@ def _filter_rival_competitors(
     rival_brands: List[str],
     generic_product: str,
     price: Optional[float],
-    max_results: int = 6
+    max_results: int = 6,
+    primary_item: Optional[Dict] = None,
 ) -> List[Dict]:
     seen_titles = set()
     rival_buckets = {}
@@ -515,10 +516,16 @@ def _filter_rival_competitors(
         rival_buckets[detected_rival].append(item)
         
     diverse_results = []
+    if primary_item:
+        diverse_results.append(primary_item)
+
     # Maximum 1 item per rival brand from live scraped results to guarantee multi-brand landscape
     for k in rival_buckets:
         if rival_buckets[k] and len(diverse_results) < max_results:
-            diverse_results.append(rival_buckets[k][0])
+            cand = rival_buckets[k][0]
+            if primary_item and (cand.get("asin") == primary_item.get("asin") or cand.get("url") == primary_item.get("url")):
+                continue
+            diverse_results.append(cand)
         
     # If live scraping returned fewer than max_results rival items, supplement with verified rival benchmarks
     if len(diverse_results) < max_results:
@@ -555,11 +562,29 @@ async def search_competitors_by_keyword(
         from services.flipkart_scraper import scrape_flipkart_prices
         import asyncio
 
-        excluded_asins = {asin} if asin else set()
         user_brand, generic_product, cat_name, active_rivals = _extract_brand_and_generic_info(
             keyword=keyword, brand=brand, category=category
         )
         print(f"[RivalSearch] Product: '{keyword}', User Brand: '{user_brand}', Generic: '{generic_product}', Rivals: {active_rivals[:5]}")
+
+        # Primary ASIN handling
+        primary_asin_item = None
+        excluded_asins = set()
+        if asin and RAINFOREST_API_KEY:
+            try:
+                primary_asin_item = await fetch_product_by_asin(asin, amazon_domain)
+            except Exception as e:
+                print(f"[Rainforest] Failed fetching ASIN {asin}: {e}")
+
+        if primary_asin_item:
+            if user_brand and is_same_brand(
+                primary_asin_item.get("productName", ""),
+                primary_asin_item.get("brand", ""),
+                user_brand
+            ):
+                # Self-brand ASIN; exclude from competitor pool
+                excluded_asins.add(asin)
+                primary_asin_item = None
 
         # Build targeted rival queries
         rival_queries = _build_rival_search_queries(user_brand, generic_product, price, active_rivals)
@@ -593,6 +618,7 @@ async def search_competitors_by_keyword(
             generic_product=generic_product,
             price=price,
             max_results=max_results,
+            primary_item=primary_asin_item,
         )
 
         return final_competitors
