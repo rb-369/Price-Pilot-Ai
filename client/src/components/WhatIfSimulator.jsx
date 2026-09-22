@@ -14,6 +14,7 @@ import AskAIButton from './AskAIButton';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
 import ExplainWithAITag from './ExplainWithAITag';
+import AILoadingState from './AILoadingState';
 
 export default function WhatIfSimulator({ initialProductId = null, onPriceCommitted = null }) {
     const { formatCurrency } = useCurrency();
@@ -567,11 +568,12 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                 {/* Right Panel: Simulated KPIs & Visual Analytics (7 cols) */}
                 <div className="lg:col-span-7 space-y-6">
 
-                    {simulating && !simulation ? (
-                        <div className="h-64 flex flex-col items-center justify-center text-text-muted">
-                            <HiOutlineRefresh className="w-8 h-8 animate-spin text-primary mb-2" />
-                            <p className="text-xs font-medium">Computing high-precision elasticity & demand curves...</p>
-                        </div>
+                    {simulating ? (
+                        <AILoadingState
+                            variant="banner"
+                            title={`Simulating Price Impact (${formatCurrency(targetPrice)})...`}
+                            subtitle="Modeling competitor counter-strategies, elasticity response curves, and margin shifts..."
+                        />
                     ) : error ? (
                         <div className="p-4 bg-danger/10 text-danger border border-danger/20 rounded-xl text-xs flex items-center gap-2">
                             <HiOutlineExclamation className="w-5 h-5 flex-shrink-0" />

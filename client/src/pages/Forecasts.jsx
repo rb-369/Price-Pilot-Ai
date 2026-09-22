@@ -16,6 +16,7 @@ import AskAIButton from '../components/AskAIButton';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
+import AILoadingState from '../components/AILoadingState';
 
 export default function Forecasts() {
   const [forecasts, setForecasts] = useState([]);
@@ -306,6 +307,16 @@ export default function Forecasts() {
                 )}
               </div>
             </div>
+
+            {generating && (
+              <div className="mb-4">
+                <AILoadingState
+                  variant="banner"
+                  title={`Generating Demand Forecast for ${products.find(p => p._id === generating)?.name || 'Product'}...`}
+                  subtitle="Running Prophet & Holt-Winters predictive time-series models..."
+                />
+              </div>
+            )}
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-h-72 overflow-y-auto pr-1">

@@ -109,9 +109,15 @@ def run_predictive_simulation(
             # Neutral / Static competitor stance
             comp_reaction_factor = 1.0
 
-        # Demand log-log volume ratio: Q = Q0 * (P / P0)^elasticity * demand_multiplier * comp_factor
+        # Demand log-log volume ratio: Q = Q0 * (P / P0)^elasticity * demand_multiplier * comp_reaction_factor
         vol_factor = (p_ratio ** effective_elasticity) * demand_multiplier * comp_reaction_factor
-        vol_factor = max(0.05, min(3.5, vol_factor))  # Realistic bounds
+        # Realistic elasticity decay: for extreme price increases (p_ratio >> 1), volume drops asymptotically to zero without artificial flooring
+        if p_ratio > 3.0:
+            vol_factor = max(0.0001, min(3.5, vol_factor * (3.0 / p_ratio)))
+        elif p_ratio > 1.5:
+            vol_factor = max(0.005, min(3.5, vol_factor))
+        else:
+            vol_factor = max(0.02, min(3.5, vol_factor))
 
         predicted_vol = baseline_volume * vol_factor
 
@@ -125,7 +131,8 @@ def run_predictive_simulation(
 
         # Undercut risk score (0 to 100%)
         if price_point > max_comp_price:
-            undercut_risk = 85.0
+            ratio_over_max = price_point / (max_comp_price or 1.0)
+            undercut_risk = min(99.0, 85.0 + (ratio_over_max - 1.0) * 10.0)
         elif price_point > avg_comp_price:
             undercut_risk = 50.0 + ((price_point - avg_comp_price) / (max_comp_price - avg_comp_price or 1.0)) * 30.0
         else:
@@ -231,13 +238,17 @@ def run_predictive_simulation(
     }
 
     # Determine AI Verdict Badge for Normal Sellers
-    if profit_uplift_pct >= 2.5 and target_eval["undercutRisk"] < 65.0:
+    is_severe_hike = target_price > base_price * 1.5
+    is_loss_making = target_price <= unit_cogs or target_eval["marginPct"] < 5.0
+
+    if is_loss_making or is_severe_hike or profit_uplift_pct <= -2.5 or target_eval["undercutRisk"] >= 75.0 or volume_change_pct <= -50.0:
+        verdict = "RISKY_DECISION font-bold text-rose-500"
+        verdict_label = "OVERALL RISKY / POOR DECISION"
+        verdict_type = "negative"
+    elif profit_uplift_pct >= 2.5 and target_eval["undercutRisk"] < 65.0 and not is_severe_hike:
         verdict = "GOOD_DECISION font-bold text-emerald-400"
         verdict_label = "OVERALL GOOD DECISION"
         verdict_type = "positive"
-    elif profit_uplift_pct <= -2.5 or target_eval["undercutRisk"] >= 75.0 or target_eval["marginPct"] < 5.0:
-        verdict_label = "OVERALL RISKY / POOR DECISION"
-        verdict_type = "negative"
     else:
         verdict_label = "NEUTRAL / NEGLIGIBLE IMPACT"
         verdict_type = "neutral"
@@ -246,7 +257,11 @@ def run_predictive_simulation(
     p_diff = target_price - base_price
     p_diff_str = f"+₹{abs(p_diff):,.0f}" if p_diff >= 0 else f"-₹{abs(p_diff):,.0f}"
 
-    if verdict_type == "positive":
+    if is_severe_hike:
+        summary_text = f"Verdict: {verdict_label}. Raising price for '{prod_name}' to ₹{target_price:,.0f} (+{((target_price-base_price)/base_price*100):.0f}%) will severely damage customer demand, triggering an estimated {volume_change_pct:.1f}% volume collapse and high competitor undercut risk ({target_eval['undercutRisk']:.0f}%)."
+    elif is_loss_making:
+        summary_text = f"Verdict: {verdict_label}. Setting price for '{prod_name}' to ₹{target_price:,.0f} results in a loss-making or unsustainable margin ({target_eval['marginPct']:.1f}%)."
+    elif verdict_type == "positive":
         summary_text = f"Verdict: {verdict_label}. Changing price for '{prod_name}' by {p_diff_str} is expected to boost monthly net profit by +₹{abs(profit_uplift):,.0f} (+{profit_uplift_pct:.1f}%) with a manageable sales volume shift of {volume_change_pct:+.1f}%."
     elif verdict_type == "negative":
         summary_text = f"Verdict: {verdict_label}. Changing price for '{prod_name}' by {p_diff_str} is risky. Net profit drops by ₹{abs(profit_uplift):,.0f} ({profit_uplift_pct:.1f}%) or competitor undercut risk rises to {target_eval['undercutRisk']:.0f}%."

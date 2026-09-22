@@ -42,15 +42,23 @@ exports.runSimulation = async (req, res) => {
                     salesVelocity: dbProduct.salesVelocity || { avgHourlySalesRate: 0.5 }
                 };
 
+                const userBrand = (dbProduct.brand || dbProduct.fullName || dbProduct.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
                 const compDocs = await CompetitorPrice.find({ productId: dbProduct._id })
                     .sort({ timestamp: -1 })
                     .limit(10);
-                competitorPrices = compDocs.map(c => ({
-                    name: c.competitorName || 'Competitor',
-                    price: c.competitorPrice,
-                    productName: dbProduct.name,
-                    inStock: c.inStock !== false
-                }));
+                competitorPrices = compDocs
+                    .filter(c => {
+                        if (!userBrand || userBrand.length < 3) return true;
+                        const pName = (c.productName || '').toLowerCase();
+                        const cName = (c.competitorName || '').toLowerCase();
+                        return !pName.includes(userBrand) && !cName.includes(userBrand);
+                    })
+                    .map(c => ({
+                        name: c.competitorName || 'Competitor',
+                        price: c.competitorPrice,
+                        productName: c.productName || dbProduct.name,
+                        inStock: c.inStock !== false
+                    }));
 
                 const signalDocs = await DemandSignal.find({ productId: dbProduct._id })
                     .sort({ timestamp: -1 })
@@ -85,10 +93,21 @@ exports.runSimulation = async (req, res) => {
             const basePrice = productObj.currentPrice || 100;
             const unitCogs = payload.cogs;
             const baselineVol = (productObj.salesVelocity?.avgHourlySalesRate || 0.5) * 24 * timeHorizonDays;
-            const volFactor = Math.max(0.2, Math.min(2.5, Math.pow(simTargetPrice / basePrice, -1.2) * demandMultiplier));
+            const pRatio = simTargetPrice / (basePrice || 1);
+            let rawVolFactor = Math.pow(pRatio, -1.3) * demandMultiplier;
+            if (pRatio > 3.0) {
+                rawVolFactor = Math.max(0.0001, Math.min(2.5, rawVolFactor * (3.0 / pRatio)));
+            } else if (pRatio > 1.5) {
+                rawVolFactor = Math.max(0.005, Math.min(2.5, rawVolFactor));
+            } else {
+                rawVolFactor = Math.max(0.02, Math.min(2.5, rawVolFactor));
+            }
+            const volFactor = rawVolFactor;
             const simVol = baselineVol * volFactor;
             const simRev = simTargetPrice * simVol;
             const simProf = (simTargetPrice - unitCogs) * simVol;
+            const isSevereHike = simTargetPrice > basePrice * 1.5;
+            const undercutRisk = isSevereHike ? Math.min(99.0, 80.0 + (pRatio - 1.5) * 15.0) : (simTargetPrice > basePrice ? 45.0 : 15.0);
 
             return res.json({
                 product: productObj,

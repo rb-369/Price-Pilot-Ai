@@ -25,6 +25,7 @@ import {
     HiOutlineThumbDown,
 } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage, SLASH_COMMANDS } from '../components/ChatAutocompletePopover';
+import AILoadingState from '../components/AILoadingState';
 
 const GREETING = "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?";
 
@@ -666,13 +667,11 @@ const Chat = () => {
                                         </article>
                                     ))}
                                     {isLoading && (
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter"><img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" /></div>
-                                            <div className="flex items-center gap-1 rounded-lg border border-border bg-surface-light px-4 py-3" aria-label="PricePilot is responding">
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary-light" />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary-light" style={{ animationDelay: '0.15s' }} />
-                                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary-light" style={{ animationDelay: '0.3s' }} />
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter shrink-0 mt-1">
+                                                <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
                                             </div>
+                                            <AILoadingState variant="chat" />
                                         </div>
                                     )}
                                 </div>

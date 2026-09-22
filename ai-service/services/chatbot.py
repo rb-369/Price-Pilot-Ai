@@ -124,38 +124,44 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     try:
         if gemini_key:
             primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
+                model="gemini-flash-latest",
                 google_api_key=gemini_key,
+                max_retries=1,
             )
             secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-1.5-pro",
+                model="gemini-2.5-flash-lite",
                 google_api_key=gemini_key,
+                max_retries=1,
             )
         else:
             primary_llm = None
             secondary_llm = None
         
-        if openrouter_key:
-            fallback_llm = ChatOpenAI(
-                model="google/gemma-4-31b-it:free",
-                base_url="https://openrouter.ai/api/v1",
-                api_key=openrouter_key
-            )
-        else:
-            fallback_llm = None
-        
         fallbacks = []
         if secondary_llm:
             fallbacks.append(secondary_llm)
-        if fallback_llm:
-            fallbacks.append(fallback_llm)
+        
+        if openrouter_key:
+            for openrouter_model in [
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "google/gemini-2.0-flash-exp:free",
+                "mistralai/mistral-small-3.2-24b-instruct:free"
+            ]:
+                fallbacks.append(
+                    ChatOpenAI(
+                        model=openrouter_model,
+                        base_url="https://openrouter.ai/api/v1",
+                        api_key=openrouter_key,
+                        max_retries=1,
+                    )
+                )
             
         if primary_llm and fallbacks:
             llm = primary_llm.with_fallbacks(fallbacks)
         elif primary_llm:
             llm = primary_llm
-        elif fallback_llm:
-            llm = fallback_llm
+        elif fallbacks:
+            llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
             return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
         
@@ -195,16 +201,24 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 "STEP 1: Match the product in the context data by name. Extract its currentPrice, baseCost, marginPercent, and salesVelocity.\n"
                 "NOTE: If the product is not found in context, assume baseline values: currentPrice = ₹900, baseCost = ₹540, marginPercent = 40%, salesVelocity = 0.5/hr.\n"
                 "STEP 2: Calculate the new margin: newMargin = ((newPrice - baseCost) / newPrice) * 100.\n"
-                "STEP 3: Estimate sales impact: if price drops, sales volume increases 10-25%; if price rises, sales volume decreases 10-30%.\n"
-                "STEP 4: Provide the analysis in this exact format:\n\n"
+                "STEP 3: Calculate percentage price change: pctPriceChange = ((newPrice - currentPrice) / currentPrice) * 100.\n"
+                "STEP 4: Estimate realistic sales volume impact and determine Verdict based on economic demand elasticity:\n"
+                "  - If newPrice <= baseCost: Selling at or below cost! Estimated Sales Impact: +20% to +50%, but Verdict MUST be '🔴 RISKY DECISION' (loss-making per unit, destructive to business).\n"
+                "  - If pctPriceChange > 100% (e.g. 2x, 10x, or 76x price surge): Catastrophic demand collapse! Estimated Sales Impact: -90% to -99%. Verdict MUST be '🔴 RISKY DECISION' (customers refuse to buy, listing loses Buy Box and conversion drops to zero).\n"
+                "  - If pctPriceChange between +30% and +100%: Severe drop in sales! Estimated Sales Impact: -40% to -80%. Verdict MUST be '🔴 RISKY DECISION' (competitors will severely undercut you and volume drop outweighs per-unit gain).\n"
+                "  - If pctPriceChange between +10% and +30%: Moderate price rise. Estimated Sales Impact: -15% to -35%. Compare net profit: if new unit margin covers volume loss, Verdict is '🟡 NEUTRAL' or '🟢 GOOD DECISION'. If volume drop hurts total profit, Verdict is '🔴 RISKY DECISION'.\n"
+                "  - If pctPriceChange between 0% and +10%: Mild price optimization. Estimated Sales Impact: -3% to -10%. Per-unit margin usually offsets volume dip. Verdict: '🟢 GOOD DECISION'.\n"
+                "  - If pctPriceChange between -1% and -20%: Strategic discount. Estimated Sales Impact: +10% to +35%. If profit margin remains healthy (>20%), Verdict: '🟢 GOOD DECISION'. If margin is destroyed, Verdict: '🔴 RISKY DECISION'.\n"
+                "  - If pctPriceChange < -30%: Deep discount. Estimated Sales Impact: +30% to +60%. If margin becomes razor-thin (<10%), Verdict is '🔴 RISKY DECISION' or '🟡 NEUTRAL'.\n"
+                "STEP 5: Provide the analysis in this exact format:\n\n"
                 "📊 **What-If Analysis: [Product Name]**\n"
                 "- **Current Price:** ₹[current] → **New Price:** ₹[new]\n"
                 "- **Cost (COGS):** ₹[baseCost]\n"
                 "- **Current Margin:** [old]% → **New Margin:** [new]%\n"
                 "- **Estimated Sales Impact:** [+/- X%]\n"
                 "- **Overall Verdict:** [🟢 GOOD DECISION / 🟡 NEUTRAL / 🔴 RISKY DECISION]\n\n"
-                "[2-sentence plain-English summary for the seller explaining profit and volume impact]\n\n"
-                "STEP 5: At the VERY END of your response, append exact line:\n"
+                "[2-sentence plain-English summary for the seller explaining realistic profit, customer conversion, and volume impact. Explicitly warn if an extreme price hike will destroy sales volume and cause customer churn]\n\n"
+                "STEP 6: At the VERY END of your response, append exact line:\n"
                 "---ACTION_REDIRECT_WHAT_IF---\n"
                 "followed on a new line by a single valid JSON object with keys: {\"action\": \"redirect_what_if\", \"productQuery\": \"<extracted product name>\", \"priceChange\": \"<extracted target price value>\"}\n"
                 "Example:\n"
@@ -258,6 +272,70 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         return response
     except Exception as e:
         import traceback
+        err_str = str(e).lower()
         print(f"Chatbot LangGraph Error: {e}")
         traceback.print_exc()
-        return "Oops! I encountered an error while processing your request. Please try again later."
+
+        # If it's a what-if query and LLM was rate-limited or failed, provide deterministic mathematical fallback
+        if is_what_if:
+            try:
+                import re
+                import json
+                p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+                pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)', latest_query, re.IGNORECASE) or re.search(r'(\d+(?:\.\d+)?)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+
+                extracted_prod = p_match.group(1).strip() if p_match else "Product"
+                extracted_price = float(pr_match.group(1).strip()) if pr_match else 0.0
+
+                ctx_products = (context_data or {}).get("products", []) if isinstance(context_data, dict) else []
+                matched_prod = next((p for p in ctx_products if extracted_prod.lower() in p.get("name", "").lower()), None)
+
+                current_p = float(matched_prod.get("currentPrice", 900)) if matched_prod else 900.0
+                base_c = float(matched_prod.get("baseCost", 540)) if matched_prod else 540.0
+                new_p = extracted_price if extracted_price > 0 else current_p * 1.1
+
+                old_margin = ((current_p - base_c) / current_p * 100.0) if current_p > 0 else 40.0
+                new_margin = ((new_p - base_c) / new_p * 100.0) if new_p > 0 else 0.0
+                pct_change = ((new_p - current_p) / current_p * 100.0) if current_p > 0 else 0.0
+
+                if new_p <= base_c:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "+25%"
+                    explanation = f"Setting price to ₹{new_p:,.2f} is at or below cost (₹{base_c:,.2f}), resulting in negative margins and direct business losses."
+                elif pct_change > 100:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "-98%"
+                    explanation = f"Increasing price by +{pct_change:.0f}% will cause catastrophic demand collapse and customer churn, destroying product visibility."
+                elif pct_change > 30:
+                    verdict = "🔴 RISKY DECISION"
+                    sales_impact = "-60%"
+                    explanation = f"Increasing price by +{pct_change:.0f}% significantly risks losing the Buy Box to cheaper competitors."
+                elif pct_change > 0:
+                    verdict = "🟢 GOOD DECISION" if new_margin > old_margin else "🟡 NEUTRAL"
+                    sales_impact = f"-{min(15, max(5, int(pct_change * 0.8)))}%"
+                    explanation = "Moderate price adjustment protects margin while keeping sales volume within a sustainable range."
+                else:
+                    verdict = "🟢 GOOD DECISION" if new_margin >= 20 else "🟡 NEUTRAL"
+                    sales_impact = f"+{min(35, max(10, int(abs(pct_change) * 1.5)))}%"
+                    explanation = "Competitive discount will stimulate sales velocity while preserving gross profitability."
+
+                prod_title = matched_prod.get("name", extracted_prod) if matched_prod else extracted_prod
+                fallback_resp = (
+                    f"📊 **What-If Analysis: {prod_title}**\n"
+                    f"- **Current Price:** ₹{current_p:,.2f} → **New Price:** ₹{new_p:,.2f}\n"
+                    f"- **Cost (COGS):** ₹{base_c:,.2f}\n"
+                    f"- **Current Margin:** {old_margin:.1f}% → **New Margin:** {new_margin:.1f}%\n"
+                    f"- **Estimated Sales Impact:** {sales_impact}\n"
+                    f"- **Overall Verdict:** {verdict}\n\n"
+                    f"{explanation}\n\n"
+                    f"---ACTION_REDIRECT_WHAT_IF---\n"
+                    f"{json.dumps({'action': 'redirect_what_if', 'productQuery': extracted_prod, 'priceChange': str(int(new_p))})}"
+                )
+                return fallback_resp
+            except Exception as fb_err:
+                print(f"Fallback what-if calculation error: {fb_err}")
+
+        if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
+            return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."
+
+        return "Oops! I encountered an error while processing your request. Please try again in a moment."

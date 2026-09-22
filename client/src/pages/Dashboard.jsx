@@ -23,6 +23,7 @@ import WhatIfSimulator from '../components/WhatIfSimulator';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import AskAIButton from '../components/AskAIButton';
+import { warmupAIService } from '../utils/aiWarmup';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -51,6 +52,7 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        warmupAIService();
         fetchData();
     }, []);
 
