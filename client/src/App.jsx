@@ -32,6 +32,7 @@ import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Demo from './pages/Demo';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -81,7 +82,7 @@ function AppRoutes() {
         <Route path="channel-mapping" element={<ChannelMapping />} />
         <Route path="settings" element={<Settings />} />
       </Route>
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
