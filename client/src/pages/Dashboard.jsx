@@ -23,6 +23,7 @@ import WhatIfSimulator from '../components/WhatIfSimulator';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import AskAIButton from '../components/AskAIButton';
+import MobileHeroCards from '../components/MobileHeroCards';
 import { warmupAIService } from '../utils/aiWarmup';
 
 export default function Dashboard() {
@@ -101,9 +102,14 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="space-y-8">
-            {/* Top Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
+        <div className="space-y-6 sm:space-y-8">
+            {/* Mobile Hero Action Cards, Quick Squircles & Scratch Pad (Direct match to reference image) */}
+            <div className="md:hidden">
+                <MobileHeroCards stats={stats} />
+            </div>
+
+            {/* Desktop Top Header */}
+            <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
                     <h1 className="page-header text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Executive Dashboard</h1>
                     <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm">Autonomous dynamic pricing &amp; inventory intelligence command center</p>

@@ -726,19 +726,19 @@ export default function Products() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2 mt-1">
+                                    <div className="grid grid-cols-2 gap-2 mt-1 sm:flex sm:gap-2">
                                         <AskAIButton
                                             variant="chip"
                                             label="Ask AI"
                                             prompt={`Analyze pricing elasticity for SKU: ${p.sku} (${p.shortName || p.name}) at ₹${p.currentPrice}.`}
                                             contextData={{ productId: p._id, sku: p.sku, name: p.name, currentPrice: p.currentPrice }}
-                                            className="flex-1 justify-center py-2"
+                                            className="w-full justify-center py-2.5 rounded-xl"
                                         />
-                                        <button onClick={() => setHistoryProduct(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold flex items-center justify-center gap-1 active:scale-[0.98]">
-                                            <HiOutlineChartBar className="w-3.5 h-3.5" /> Trend
+                                        <button onClick={() => setHistoryProduct(p)} className="w-full py-2.5 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-[0.98]">
+                                            <HiOutlineChartBar className="w-4 h-4 text-accent" /> Trend
                                         </button>
-                                        <button onClick={() => handleEditClick(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold active:scale-[0.98]">Edit</button>
-                                        <button onClick={() => handleDelete(p)} className="flex-1 py-2 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98] cursor-pointer">Delete</button>
+                                        <button onClick={() => handleEditClick(p)} className="w-full py-2.5 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter transition-all text-xs font-semibold active:scale-[0.98]">Edit</button>
+                                        <button onClick={() => handleDelete(p)} className="w-full py-2.5 rounded-xl bg-surface border border-border text-danger hover:bg-danger/10 hover:border-danger/20 transition-all text-xs font-semibold active:scale-[0.98] cursor-pointer">Delete</button>
                                     </div>
                                 </div>
                             );

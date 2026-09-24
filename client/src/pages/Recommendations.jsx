@@ -711,19 +711,19 @@ export default function Recommendations() {
                   )}
 
                   {/* Actions Bar */}
-                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border">
+                  <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 pt-3 border-t border-border">
                     {rec.status === 'pending' && (
                       <>
                         <button
                           onClick={() => handleAccept(rec._id, rec.expectedRevenueImpact)}
-                          className="btn-primary flex items-center gap-2 text-xs"
+                          className="btn-primary flex items-center justify-center gap-2 text-xs py-2.5 sm:py-2 w-full sm:w-auto"
                         >
                           <HiOutlineCheck className="w-4 h-4" /> Accept &amp; Apply Price
                         </button>
                         
                         <button
                           onClick={() => handleTestPrice(rec)}
-                          className="py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                          className="py-2.5 sm:py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer w-full sm:w-auto"
                         >
                           <HiBeaker className="w-4 h-4 text-primary" /> Test Price (A/B)
                         </button>
@@ -738,7 +738,7 @@ export default function Recommendations() {
                               toast.error('Failed to reject recommendation');
                             }
                           }}
-                          className="btn-secondary flex items-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer"
+                          className="btn-secondary flex items-center justify-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer py-2.5 sm:py-2 w-full sm:w-auto"
                         >
                           <HiOutlineXMark className="w-4 h-4" /> Reject
                         </button>
@@ -749,7 +749,7 @@ export default function Recommendations() {
                       <button
                         type="button"
                         onClick={() => navigate('/dashboard/ab-tests')}
-                        className="py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                        className="py-2.5 sm:py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer w-full sm:w-auto"
                       >
                         <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
                         <HiBeaker className="w-4 h-4" /> View Active A/B Test
@@ -759,7 +759,7 @@ export default function Recommendations() {
                     {rec.status === 'accepted' && (
                       <button
                         onClick={() => handleRevert(rec._id)}
-                        className="btn-secondary flex items-center gap-2 text-xs text-warning hover:bg-warning/10 hover:border-warning/30 cursor-pointer"
+                        className="btn-secondary flex items-center justify-center gap-2 text-xs text-warning hover:bg-warning/10 hover:border-warning/30 cursor-pointer py-2.5 sm:py-2 w-full sm:w-auto"
                       >
                         <HiOutlineRefresh className="w-4 h-4" /> Undo &amp; Revert Price
                       </button>

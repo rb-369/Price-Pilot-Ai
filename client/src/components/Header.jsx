@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -6,13 +6,15 @@ import {
     HiOutlineChatAlt, 
     HiOutlineExclamationCircle, 
     HiOutlineUser,
-    HiOutlineLogout
+    HiOutlineLogout,
+    HiOutlineSearch
 } from 'react-icons/hi';
 import NotificationDropdown from './NotificationDropdown';
 import ThemeToggle from './ThemeToggle';
 import FeedbackModal from './FeedbackModal';
 import ReportModal from './ReportModal';
 import UserAvatar from './UserAvatar';
+import MobileSearchModal from './MobileSearchModal';
 
 const routeTitles = {
     '/dashboard': 'Dashboard Overview',
@@ -37,37 +39,68 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+    // Global Cmd+K / Ctrl+K shortcut to open search modal
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setSearchModalOpen(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const currentTitle = routeTitles[location.pathname] || 'PricePilot AI';
 
     return (
         <>
-            <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0a0f1e]/90 px-3 sm:px-6 lg:px-8 backdrop-blur-md transition-colors duration-200 shadow-sm dark:shadow-none">
-                {/* Left section: Hamburger + Page Title */}
-                <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
-                    {(!sidebarOpen || !isDesktop) && (
-                        <button
-                            type="button"
-                            onClick={() => setSidebarOpen(true)}
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:border-slate-800 text-slate-700 dark:text-slate-300 dark:hover:text-white dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm flex-shrink-0"
-                            aria-label="Open sidebar"
-                        >
-                            <HiOutlineMenu size={19} />
-                        </button>
-                    )}
+            <header className="sticky top-0 z-40 flex flex-col border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0a0f1e]/90 backdrop-blur-md transition-colors duration-200 shadow-sm dark:shadow-none">
+                {/* Top Header Row */}
+                <div className="flex h-15 sm:h-16 items-center justify-between px-3 sm:px-6 lg:px-8">
+                    {/* Left section: Hamburger + Page Title */}
+                    <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                        {(!sidebarOpen || !isDesktop) && (
+                            <button
+                                type="button"
+                                onClick={() => setSidebarOpen(true)}
+                                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:border-slate-800 text-slate-700 dark:text-slate-300 dark:hover:text-white dark:hover:border-slate-700 transition-all cursor-pointer shadow-sm flex-shrink-0"
+                                aria-label="Open sidebar"
+                            >
+                                <HiOutlineMenu size={19} />
+                            </button>
+                        )}
 
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[300px] md:max-w-none">
-                                {currentTitle}
-                            </h1>
-                            <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 flex-shrink-0">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                                Live AI Sync
-                            </span>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white tracking-tight truncate max-w-[130px] xs:max-w-[160px] sm:max-w-[260px] md:max-w-none">
+                                    {currentTitle}
+                                </h1>
+                                <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 flex-shrink-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+                                    Live AI Sync
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                    {/* Middle section: Desktop Search Pill Bar */}
+                    <button
+                        type="button"
+                        onClick={() => setSearchModalOpen(true)}
+                        className="hidden md:flex items-center justify-between w-64 lg:w-72 xl:w-80 px-3.5 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-medium hover:border-indigo-500/40 transition-all cursor-pointer shadow-inner"
+                        title="Search anything (Cmd+K)"
+                    >
+                        <div className="flex items-center gap-2 truncate">
+                            <HiOutlineSearch size={15} className="text-slate-400 shrink-0" />
+                            <span className="truncate">Find any product, forecast...</span>
+                        </div>
+                        <kbd className="text-[10px] font-mono text-slate-500 bg-slate-200/70 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700">
+                            ⌘K
+                        </kbd>
+                    </button>
 
                 {/* Right section: Action Buttons, Notification Bell, Theme, Profile */}
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -177,11 +210,25 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
                         )}
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile Search Pill Bar (Direct match to reference image top search bar) */}
+                <div className="md:hidden px-3 pt-1.5 pb-2.5 bg-slate-50/95 dark:bg-[#0a0f1e]/95 border-t border-slate-100 dark:border-slate-800/60">
+                    <button
+                        type="button"
+                        onClick={() => setSearchModalOpen(true)}
+                        className="w-full flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white dark:bg-[#121929] border border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-medium shadow-xs active:scale-[0.99] transition-transform cursor-pointer"
+                    >
+                        <span className="truncate">Find any product, forecast or alert...</span>
+                        <HiOutlineSearch size={16} className="text-slate-400 shrink-0 ml-2" />
+                    </button>
+                </div>
             </header>
 
             {/* Modals */}
             <FeedbackModal isOpen={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
             <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} />
+            <MobileSearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
         </>
     );
 }
