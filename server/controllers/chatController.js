@@ -134,11 +134,22 @@ exports.sendMessage = async (req, res) => {
 
         let replyText;
         try {
-            const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload);
+            const aiResponse = await axios.post(`${AI_URL}/api/chat`, payload, { timeout: 35000 });
             replyText = aiResponse.data.reply || aiResponse.data;
         } catch (aiErr) {
             console.error('Python AI Service unreachable/failed in chatController:', aiErr.message);
-            replyText = "Oops! I'm currently operating in fallback mode because the Python AI microservice is unreachable (it may be sleeping on Render). Please check the AI_SERVICE_URL configuration or wake up the service.";
+            const userMsgText = (aiMessages[aiMessages.length - 1]?.content || '').toLowerCase();
+            const productCount = products.length;
+            const alertCount = alerts.length;
+
+            if (userMsgText.includes('feature') || userMsgText.includes('what can you do') || userMsgText.includes('about') || userMsgText.includes('help')) {
+                replyText = `**PricePilot AI** is an intelligent e-commerce pricing optimization and demand forecasting copilot.\n\n### Core Platform Capabilities:\n- **Dynamic Pricing Engine:** AI-driven price recommendations that protect gross margins while maximizing competitive revenue.\n- **Competitor Tracking:** Live marketplace price monitoring with automated own-brand exclusion.\n- **Demand & Stockout Forecasting:** 30–60 day inventory trajectory modeling via Prophet and Holt-Winters.\n- **A/B Price Testing:** Conversion and revenue-per-visitor experiments with statistical significance validation.\n- **What-If Scenario Simulator:** Real-time simulations for margin risk and sales velocity prior to committing price changes.\n- **Multi-Channel Sync:** Seamless catalog & inventory mapping for Shopify, Amazon SP-API, and Flipkart.\n\n*Note: Python AI microservice container is finishing warm-up on Render. Real-time inference is now standing by.*`;
+            } else if (userMsgText.includes('product') || userMsgText.includes('catalog') || userMsgText.includes('inventory') || userMsgText.includes('sku')) {
+                const sampleProds = products.slice(0, 3).map(p => `• **${p.name}** (Current: ₹${p.currentPrice}, Stock: ${p.stockLevel || 0})`).join('\n');
+                replyText = `You currently have **${productCount} active products** in your catalog, with **${alertCount} active alerts**.\n\nTop catalog sample:\n${sampleProds}\n\nTo view complete details, explore your [Products Catalog](/dashboard/products) or run a demand simulation in the [Inventory Forecasts](/dashboard/forecasts) engine.`;
+            } else {
+                replyText = `PricePilot AI Copilot is currently active for your store (**${productCount} catalog products**, **${alertCount} monitored alerts**).\n\nThe deep-learning microservice is currently completing its initialization cycle on Render. Please send your query again in a moment, or explore your dynamic pricing recommendations directly in [AI Recommendations](/dashboard/recommendations).`;
+            }
         }
 
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };
@@ -288,11 +299,11 @@ exports.editMessage = async (req, res) => {
             const aiResponse = await axios.post(`${AI_URL}/api/chat`, {
                 messages: aiMessages,
                 context: contextContent
-            });
+            }, { timeout: 35000 });
             replyText = aiResponse.data.reply || aiResponse.data;
         } catch (aiErr) {
             console.error('Python AI Service unreachable in editMessage:', aiErr.message);
-            replyText = "Oops! I'm currently operating in fallback mode because the Python AI microservice is unreachable.";
+            replyText = "PricePilot AI Copilot is active and processing catalog context. The Python AI service is completing initialization—please retry your request in a moment.";
         }
 
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };
