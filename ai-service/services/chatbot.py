@@ -207,6 +207,69 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     """
     Process a chat conversation using the Ephemeral Working Memory architecture.
     """
+async def _call_openrouter_direct(
+    openrouter_key: str,
+    system_prompt: str,
+    messages: List[Dict],
+    latest_query: str
+) -> Optional[str]:
+    """
+    Direct asynchronous HTTP call to OpenRouter with robust fallback models.
+    Bypasses LangGraph and tool-binding restrictions for zero-failure resilient completion.
+    """
+    import httpx
+    
+    headers = {
+        "Authorization": f"Bearer {openrouter_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://price-pilot-ai.vercel.app",
+        "X-Title": "PricePilot AI"
+    }
+
+    formatted_messages = [{"role": "system", "content": system_prompt}]
+    for msg in messages:
+        role = "assistant" if msg.get("role") in ["model", "assistant"] else "user"
+        content_val = msg.get("content", "")
+        if content_val:
+            formatted_messages.append({"role": role, "content": str(content_val)})
+
+    models_to_try = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-4-31b-it:free",
+        "mistralai/mistral-small-3.2-24b-instruct:free",
+        "openrouter/free"
+    ]
+
+    async with httpx.AsyncClient(timeout=35.0) as client:
+        for model in models_to_try:
+            try:
+                payload = {
+                    "model": model,
+                    "messages": formatted_messages,
+                    "temperature": 0.4,
+                }
+                res = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices and "message" in choices[0]:
+                        reply = choices[0]["message"].get("content", "").strip()
+                        if reply:
+                            print(f"[Chatbot] Successfully routed and answered via OpenRouter model: {model}")
+                            return reply
+                else:
+                    print(f"[Chatbot] OpenRouter model '{model}' responded with HTTP {res.status_code}: {res.text[:150]}")
+            except Exception as req_err:
+                print(f"[Chatbot] OpenRouter model '{model}' connection error: {req_err}")
+                continue
+
+    return None
+
+
+async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
+    """
+    Main entry point for Chatbot with RAG & Agentic Tool Invocation.
+    """
     # Initialize ephemeral Working Memory for this session
     memory = WorkingMemory(messages, context_data)
     latest_query = memory.get_latest_query()
@@ -214,17 +277,23 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     context_str = await memory.build_context_string(latest_query)
     # Combine API keys for fallback safety
     gemini_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY", "")
-    openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+    openrouter_key = (
+        os.getenv("OPENROUTER_API_KEY", "").strip() or 
+        os.getenv("OPEN_ROUTER_API_KEY", "").strip() or 
+        (gemini_key.strip() if gemini_key.strip().startswith("sk-or-") else "")
+    )
+    if not openrouter_key:
+        print("[Chatbot] Notice: OPENROUTER_API_KEY is not configured in environment variables.")
 
     try:
-        if gemini_key:
+        if gemini_key and not gemini_key.startswith("sk-or-"):
             primary_llm = ChatGoogleGenerativeAI(
                 model="gemini-flash-latest",
                 google_api_key=gemini_key,
                 max_retries=1,
             )
             secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite",
+                model="gemini-2.5-flash",
                 google_api_key=gemini_key,
                 max_retries=1,
             )
@@ -239,8 +308,9 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         if openrouter_key:
             for openrouter_model in [
                 "meta-llama/llama-3.3-70b-instruct:free",
-                "google/gemini-2.0-flash-exp:free",
-                "mistralai/mistral-small-3.2-24b-instruct:free"
+                "google/gemma-4-31b-it:free",
+                "mistralai/mistral-small-3.2-24b-instruct:free",
+                "openrouter/free"
             ]:
                 fallbacks.append(
                     ChatOpenAI(
@@ -258,7 +328,7 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         elif fallbacks:
             llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
-            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
+            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY or OPENROUTER_API_KEY to your environment variables."
         
         # 4. Setup Tools
         tools = []
@@ -370,6 +440,34 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         err_str = str(e).lower()
         print(f"Chatbot LangGraph Error: {e}")
         traceback.print_exc()
+
+        # 1. Attempt direct fallback to OpenRouter models (bypassing LangGraph & tool-binding limitations)
+        if openrouter_key:
+            try:
+                print(f"[Chatbot] Gemini/LangGraph failed ({e}). Attempting direct OpenRouter fallback...")
+                or_response = await _call_openrouter_direct(
+                    openrouter_key=openrouter_key,
+                    system_prompt=full_system_prompt,
+                    messages=messages,
+                    latest_query=latest_query
+                )
+                if or_response and len(or_response.strip()) > 0:
+                    if is_what_if and "---ACTION_REDIRECT_WHAT_IF---" not in or_response:
+                        import re
+                        import json
+                        p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+                        pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+)', latest_query, re.IGNORECASE) or re.search(r'(\d+)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+                        extracted_prod = p_match.group(1).strip() if p_match else "Product"
+                        extracted_price = pr_match.group(1).strip() if pr_match else ""
+                        payload_json = json.dumps({"action": "redirect_what_if", "productQuery": extracted_prod, "priceChange": extracted_price})
+                        or_response += f"\n\n---ACTION_REDIRECT_WHAT_IF---\n{payload_json}"
+
+                    memory.save_episodic_interaction(latest_query, or_response)
+                    return or_response
+            except Exception as or_err:
+                print(f"[Chatbot] Direct OpenRouter fallback also failed: {or_err}")
+        else:
+            print("[Chatbot] Cannot route to OpenRouter because OPENROUTER_API_KEY is not configured in environment variables.")
 
         # If it's a what-if query and LLM was rate-limited or failed, provide deterministic mathematical fallback
         if is_what_if:
