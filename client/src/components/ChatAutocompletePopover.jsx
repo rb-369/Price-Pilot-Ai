@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { getProducts } from '../api';
 import {
     HiOutlineChartBar, HiOutlineTrendingUp, HiOutlineLightningBolt,
@@ -275,7 +276,109 @@ export default function ChatAutocompletePopover({
 }
 
 /**
- * Helper function to format chat message text containing @tags, /commands, and What-If action cards.
+ * Helper to parse inline tokens: Markdown links [text](url), bold **text**, inline code `code`,
+ * @product mentions, and standalone /slash-commands.
+ */
+function parseInlineMarkdownTokens(text, isUser = false) {
+    if (!text) return null;
+
+    // Regex to split on:
+    // 1. Markdown link: [Label](url)
+    // 2. Bold text: **bold**
+    // 3. Inline code: `code`
+    // 4. @Product mentions: @"Product Name" or @ProductName
+    // 5. Standalone /slash-command (strictly preceded by start or space, followed by space or punctuation)
+    const tokenRegex = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`|@"[^"]+"|@[a-zA-Z0-9_\-]+|(?<=^|\s)\/(?:explain-simply|what-if|analyze-competitors|demand-signals|inventory-forecast|pricing-recommendation|ab-tests|channel-sync|goal|grill-me|[a-zA-Z0-9_-]+)(?=\s|[.,;:!?]|$))/g;
+
+    const parts = text.split(tokenRegex);
+
+    return parts.map((part, index) => {
+        if (!part) return null;
+
+        // 1. Markdown link: [Label](url)
+        const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (linkMatch) {
+            const [, linkText, linkUrl] = linkMatch;
+            const cleanUrl = linkUrl.trim();
+            if (cleanUrl.startsWith('/')) {
+                return (
+                    <Link
+                        key={index}
+                        to={cleanUrl}
+                        className="inline-flex items-center gap-0.5 text-indigo-400 hover:text-indigo-300 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold transition-colors cursor-pointer"
+                    >
+                        {linkText}
+                    </Link>
+                );
+            }
+            return (
+                <a
+                    key={index}
+                    href={cleanUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 text-indigo-400 hover:text-indigo-300 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold transition-colors cursor-pointer"
+                >
+                    {linkText}
+                </a>
+            );
+        }
+
+        // 2. Bold: **text**
+        if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+            const boldContent = part.slice(2, -2);
+            return <strong key={index} className="font-bold text-slate-100">{boldContent}</strong>;
+        }
+
+        // 3. Inline code: `code`
+        if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+            const codeContent = part.slice(1, -1);
+            return (
+                <code key={index} className="px-1.5 py-0.5 rounded bg-surface-lighter/60 border border-border/80 font-mono text-[11px] text-accent">
+                    {codeContent}
+                </code>
+            );
+        }
+
+        // 4. @Product tag: @"Product Name" or @SKU
+        if (part.startsWith('@')) {
+            const cleanName = part.replace(/^@"|"$/g, '').replace(/^@/, '');
+            return (
+                <span
+                    key={index}
+                    className={
+                        isUser
+                            ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-primary/20 text-indigo-300 border border-primary/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
+                    }
+                >
+                    <HiOutlineCube className="w-3 h-3 shrink-0" /> {cleanName}
+                </span>
+            );
+        }
+
+        // 5. Standalone slash command: /what-if
+        if (part.startsWith('/') && !part.includes('//')) {
+            return (
+                <span
+                    key={index}
+                    className={
+                        isUser
+                            ? "inline-flex items-center gap-1 bg-cyan-400/30 text-cyan-100 border border-cyan-300/60 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
+                    }
+                >
+                    <HiOutlineTag className="w-3 h-3 shrink-0" /> {part}
+                </span>
+            );
+        }
+
+        return part;
+    });
+}
+
+/**
+ * Helper function to format chat message text containing Markdown, @tags, /commands, and What-If action cards.
  */
 export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator = null) {
     if (!text) return null;
@@ -326,57 +429,129 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         }
     }
 
-    // Pattern to match @"Product Name" or @SKU or /command-name
-    const regex = /(@"[^"]+"|\b\/[a-zA-Z0-9_-]+)/g;
-    const proseParts = mainContent.split(regex);
+    const lines = mainContent.split('\n');
+    const blocks = [];
+    let currentList = [];
 
-    const renderedProse = proseParts.map((part, index) => {
-        if (part.startsWith('@')) {
-            const cleanName = part.replace(/^@"|"$/g, '').replace(/^@/, '');
-            return (
-                <span
-                    key={index}
-                    className={
-                        isUser
-                            ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-primary/20 text-indigo-300 border border-primary/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
-                    }
-                >
-                    <HiOutlineCube className="w-3 h-3" /> {cleanName}
-                </span>
-            );
+    const flushList = (key) => {
+        if (currentList.length > 0) {
+            const isAllNumbered = currentList.every(item => item.type === 'number');
+            if (isAllNumbered) {
+                blocks.push(
+                    <ol key={`ol-${key}`} className="my-2 space-y-1.5 pl-0.5 text-inherit">
+                        {currentList.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary-light font-bold text-[11px] select-none shrink-0 mt-0.5 border border-primary/30">
+                                    {item.num || idx + 1}
+                                </span>
+                                <span className="flex-1 min-w-0">{item.text}</span>
+                            </li>
+                        ))}
+                    </ol>
+                );
+            } else {
+                blocks.push(
+                    <ul key={`ul-${key}`} className="my-2 space-y-1 pl-1 text-inherit">
+                        {currentList.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                {item.type === 'number' ? (
+                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 text-primary-light font-bold text-[11px] select-none shrink-0 mt-0.5 border border-primary/30">
+                                        {item.num || idx + 1}
+                                    </span>
+                                ) : (
+                                    <span className="text-primary-light font-bold select-none shrink-0 mt-0.5">•</span>
+                                )}
+                                <span className="flex-1 min-w-0">{item.text}</span>
+                            </li>
+                        ))}
+                    </ul>
+                );
+            }
+            currentList = [];
+        }
+    };
+
+    lines.forEach((line, lineIdx) => {
+        const trimmed = line.trim();
+
+        // Ignore empty lines or stray single punctuation marks like '.' or '•' on their own line
+        if (!trimmed || trimmed === '.' || trimmed === '•' || trimmed === '-' || trimmed === '*') {
+            flushList(lineIdx);
+            if (!trimmed) {
+                blocks.push(<div key={`space-${lineIdx}`} className="h-1.5" />);
+            }
+            return;
         }
 
-        if (part.startsWith('/')) {
-            return (
-                <span
-                    key={index}
-                    className={
-                        isUser
-                            ? "inline-flex items-center gap-1 bg-cyan-400/30 text-cyan-100 border border-cyan-300/60 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
-                    }
-                >
-                    <HiOutlineTag className="w-3 h-3" /> {part}
-                </span>
-            );
+        // Handle bullet list item (•, -, *)
+        if (trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            const itemText = trimmed.replace(/^[•\-*]\s*/, '');
+            currentList.push({ type: 'bullet', text: parseInlineMarkdownTokens(itemText, isUser) });
+            return;
         }
 
-        return part;
+        // Handle numbered list item (e.g. "1. ", "2. ")
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+        if (numMatch) {
+            currentList.push({ type: 'number', num: numMatch[1], text: parseInlineMarkdownTokens(numMatch[2], isUser) });
+            return;
+        }
+
+        // Flush any active list when hitting non-list line
+        flushList(lineIdx);
+
+        // Heading 3
+        if (trimmed.startsWith('### ')) {
+            blocks.push(
+                <h4 key={`h3-${lineIdx}`} className="mt-3 mb-1 text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                    {parseInlineMarkdownTokens(trimmed.slice(4), isUser)}
+                </h4>
+            );
+            return;
+        }
+
+        // Heading 2
+        if (trimmed.startsWith('## ')) {
+            blocks.push(
+                <h3 key={`h2-${lineIdx}`} className="mt-4 mb-1.5 text-sm sm:text-base font-bold text-slate-100 border-b border-border/40 pb-1">
+                    {parseInlineMarkdownTokens(trimmed.slice(3), isUser)}
+                </h3>
+            );
+            return;
+        }
+
+        // Heading 1
+        if (trimmed.startsWith('# ')) {
+            blocks.push(
+                <h2 key={`h1-${lineIdx}`} className="mt-4 mb-2 text-base sm:text-lg font-extrabold text-slate-100">
+                    {parseInlineMarkdownTokens(trimmed.slice(2), isUser)}
+                </h2>
+            );
+            return;
+        }
+
+        // Normal paragraph line
+        blocks.push(
+            <p key={`p-${lineIdx}`} className="my-1 leading-relaxed">
+                {parseInlineMarkdownTokens(trimmed, isUser)}
+            </p>
+        );
     });
 
+    flushList('final');
+
     return (
-        <span className="block space-y-2">
-            <span>{renderedProse}</span>
+        <div className="space-y-1">
+            <div>{blocks}</div>
             {actionPayload && (
-                <span className="block mt-3 pt-3 border-t border-white/10">
-                    <span className="flex flex-col gap-2 p-3 rounded-xl bg-gradient-to-br from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 shadow-lg text-slate-100">
-                        <span className="flex items-center justify-between text-xs font-bold text-indigo-300">
+                <div className="mt-3 pt-3 border-t border-white/10">
+                    <div className="flex flex-col gap-2 p-3 rounded-xl bg-gradient-to-br from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 shadow-lg text-slate-100">
+                        <div className="flex items-center justify-between text-xs font-bold text-indigo-300">
                             <span className="flex items-center gap-1.5">
                                 <HiOutlineLightningBolt className="w-4 h-4 text-warning animate-pulse" />
                                 Interactive Scenario Ready
                             </span>
-                        </span>
+                        </div>
                         <span className="text-[11px] text-slate-300 leading-snug">
                             {actionPayload.productQuery ? `Product: "${actionPayload.productQuery}"` : ''} {actionPayload.priceChange ? `• Proposed Change: ${actionPayload.priceChange}` : ''}
                         </span>
@@ -396,9 +571,9 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                             <span>🚀 See Details in What-If Simulator</span>
                             <span>→</span>
                         </button>
-                    </span>
-                </span>
+                    </div>
+                </div>
             )}
-        </span>
+        </div>
     );
 }

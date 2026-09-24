@@ -50,6 +50,181 @@ exports.deleteChat = async (req, res) => {
     }
 };
 
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+
+/**
+ * Direct Gemini REST fallback when Python microservice is cold-starting or unreachable.
+ */
+async function tryDirectGemini(aiMessages, contextContent) {
+    const apiKey = (process.env.CHATBOT_API_KEY || process.env.LLM_API_KEY || process.env.GEMINI_API_KEY || '').trim();
+    if (!apiKey || apiKey.startsWith('sk-or-')) return null;
+
+    const systemPrompt = `You are PricePilot AI Copilot, an intelligent assistant for e-commerce and retail merchants.
+Key platform capabilities and knowledge:
+1. Dynamic Pricing: Optimizing selling prices in INR (₹) while protecting gross margin floor.
+2. Competitor Tracking: Live pricing intelligence across Amazon, Flipkart, Shopify.
+3. Inventory Forecasting: Predicting stockouts 30-60 days ahead using Prophet and Holt-Winters.
+4. Onboarding & Offline Sellers: If a seller asks how to add products, does not sell online yet, or has offline/physical retail sales, explain that PricePilot AI supports them completely! Marketplace URLs are optional. They can add products manually via "+ Add Product" or upload a CSV, track offline sales and stock, and simulate price changes.
+5. Markdown Links: When helpful, recommend specific dashboard pages using markdown links:
+   - [Products Catalog](/dashboard/products)
+   - [What-If Simulator](/dashboard/simulator)
+   - [Competitor Analysis](/dashboard/competitors)
+   - [Inventory Forecasts](/dashboard/forecasts)
+   - [AI Recommendations](/dashboard/recommendations)
+   - [Sales & Analytics](/dashboard/analytics)
+   - [Integrations](/dashboard/integrations)
+
+Store Context:
+- Catalog Products: ${contextContent?.products?.length || 0}
+- Active Alerts: ${contextContent?.alerts?.length || 0}
+- Currency: ${contextContent?.storeCurrency || 'INR (₹)'}
+${(contextContent?.products || []).slice(0, 5).map(p => `- ${p.name}: ₹${p.priceNumeric} (Cost: ₹${p.baseCost}, Stock: ${p.stockLevel})`).join('\n')}
+
+Respond clearly, concisely, and supportively. Format key steps with numbered lists or bullet points.`;
+
+    const contents = [];
+    for (const msg of aiMessages) {
+        if (!msg.content) continue;
+        const role = msg.role === 'model' || msg.role === 'assistant' ? 'model' : 'user';
+        contents.push({
+            role,
+            parts: [{ text: String(msg.content) }]
+        });
+    }
+
+    if (contents.length === 0) return null;
+
+    for (const model of GEMINI_MODELS) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const res = await axios.post(url, {
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                contents: contents.slice(-10),
+                generationConfig: {
+                    temperature: 0.4,
+                    maxOutputTokens: 1024,
+                }
+            }, { timeout: 15000 });
+
+            const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text && text.trim()) {
+                return text.trim();
+            }
+        } catch (err) {
+            console.warn(`[chatController] Direct Gemini (${model}) failed:`, err.response?.data?.error?.message || err.message);
+            if (err.response?.status === 429) {
+                break;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Intelligent deterministic fallback when both Python microservice and direct LLM calls are unavailable.
+ */
+function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
+    const raw = (userMsgText || '').toLowerCase().trim();
+    const productCount = products.length;
+    const alertCount = alerts.length;
+
+    // 1. Onboarding, adding products, offline/physical retail sales
+    const isAddingOrOffline =
+        /(?:how (?:to|do i|can i) add|add (?:my )?product|add (?:my )?sales|offline|physical (?:store|shop|sales)|retail (?:store|shop|sales)|not (?:selling )?online|don'?t sell (?:it )?online|have sales|in-store|pos|getting started|new seller|upload (?:csv|catalog)|import (?:products|catalog|csv)|how (?:does|do) (?:this|pricepilot|it) work)/i.test(raw);
+
+    if (isAddingOrOffline) {
+        return (
+            `### You can use PricePilot AI for both offline and online sales!\n\n` +
+            `You do **not** need an active online store (Amazon, Flipkart, or Shopify) to use PricePilot AI. Here is how to add your products and sales:\n\n` +
+            `1. **Add Your Products to the Catalog**\n` +
+            `   • Go to [Products Catalog](/dashboard/products) and click the **"+ Add Product"** button.\n` +
+            `   • Fill in your **Product Name**, **Category**, **Cost Price (Base Cost)**, **Selling Price**, and **Current Stock**.\n` +
+            `   • *Marketplace URLs (Amazon/Flipkart) are completely optional* — leave them empty for offline items.\n` +
+            `   • If you already have an inventory spreadsheet, use the **"Import CSV"** button to upload your entire catalog at once.\n\n` +
+            `2. **Record Your In-Store & Offline Sales**\n` +
+            `   • As items sell in your store, keep your stock levels updated in [Products Catalog](/dashboard/products).\n` +
+            `   • You can track revenue trends and sales volume under [Sales & Analytics](/dashboard/analytics).\n\n` +
+            `3. **Optimize Prices & Stock with AI**\n` +
+            `   • Test pricing strategies and protect your profit margin with the [What-If Simulator](/dashboard/simulator).\n` +
+            `   • Predict restock dates and avoid stockouts using [Inventory Forecasts](/dashboard/forecasts).\n` +
+            `   • Check AI pricing health recommendations in [AI Recommendations](/dashboard/recommendations).\n\n` +
+            `4. **Connect Online Marketplaces Anytime**\n` +
+            `   • If you ever decide to expand to Shopify, Amazon, or Flipkart in the future, connect them under [Integrations](/dashboard/integrations).`
+        );
+    }
+
+    // 2. Explicit request to VIEW, LIST, or SHOW the product catalog
+    const isExplicitCatalogQuery =
+        /^(?:products|catalog|inventory|items|skus|\/products)$/i.test(raw) ||
+        /(?:(?:show|list|view|what are|display|see|check|give me)\s+(?:all\s+|my\s+)?(?:products|catalog|inventory|items|skus))/i.test(raw);
+
+    if (isExplicitCatalogQuery) {
+        const sampleProds = products.slice(0, 3).map(p => `• **${p.name}** (Current: ₹${p.currentPrice}, Stock: ${p.stockLevel || 0})`).join('\n');
+        return (
+            `You currently have **${productCount} active products** in your catalog, with **${alertCount} active alerts**.\n\n` +
+            `**Catalog Highlights:**\n${sampleProds}\n\n` +
+            `To view full details, add new items, or edit pricing, visit your [Products Catalog](/dashboard/products) or run a demand simulation in [Inventory Forecasts](/dashboard/forecasts).`
+        );
+    }
+
+    // 3. What-If scenario / price simulation
+    if (/(?:what[- ]?if|simulate|simulation|elasticity|test price|change price)/i.test(raw)) {
+        return (
+            `### PricePilot AI What-If Scenario Simulator\n\n` +
+            `You can simulate how price adjustments affect your sales volume and profit margins before making changes live.\n\n` +
+            `• **How to run a simulation:** Open the [What-If Simulator](/dashboard/simulator) and select any product.\n` +
+            `• **Tip:** You can also ask me directly in chat using \`/what-if\`, for example:\n` +
+            `  \`/what-if I increase the price of DELL Laptop by 10%\`\n\n` +
+            `The AI calculates estimated elasticity, margin percentage changes, and provides a clear risk verdict.`
+        );
+    }
+
+    // 4. Competitor tracking
+    if (/(?:competitor|market price|benchmark|marketplace tracking|amazon price|flipkart price)/i.test(raw)) {
+        return (
+            `### Live Competitor Intelligence\n\n` +
+            `PricePilot AI tracks competitor prices across Amazon and Flipkart to ensure your products stay competitive while protecting your margin floor.\n\n` +
+            `• View tracked competitor price spreads in [Competitor Analysis](/dashboard/competitors).\n` +
+            `• You can add competitor URLs directly on each product's page in the [Products Catalog](/dashboard/products).`
+        );
+    }
+
+    // 5. Demand & Stockout Forecasting
+    if (/(?:forecast|demand|stockout|restock|reorder|run out|inventory health)/i.test(raw)) {
+        return (
+            `### AI Demand & Stockout Forecasting\n\n` +
+            `Our forecasting engine uses Prophet and Holt-Winters time-series algorithms to predict 30-day demand trajectories and stockout dates.\n\n` +
+            `• View inventory runout risks and reorder suggestions in [Inventory Forecasts](/dashboard/forecasts).\n` +
+            `• Products nearing low-stock thresholds generate automated alerts shown on your [Dashboard](/dashboard).`
+        );
+    }
+
+    // 6. Platform features / Help / About
+    if (/(?:feature|capabilities|what can you do|about pricepilot|who are you|help|overview)/i.test(raw)) {
+        return (
+            `**PricePilot AI** is an intelligent e-commerce and retail pricing optimization copilot.\n\n` +
+            `### Core Capabilities:\n` +
+            `- **Dynamic Pricing Engine:** AI-driven price recommendations that protect gross margins while maximizing competitive revenue.\n` +
+            `- **Competitor Tracking:** Live marketplace price monitoring with automated own-brand exclusion.\n` +
+            `- **Demand & Stockout Forecasting:** 30–60 day inventory trajectory modeling via Prophet and Holt-Winters.\n` +
+            `- **A/B Price Testing:** Conversion and revenue-per-visitor experiments with statistical significance validation.\n` +
+            `- **What-If Scenario Simulator:** Real-time simulations for margin risk and sales velocity prior to committing price changes.\n` +
+            `- **Multi-Channel Sync:** Seamless catalog & inventory mapping for Shopify, Amazon SP-API, and Flipkart.\n\n` +
+            `Explore your store's live data in [AI Recommendations](/dashboard/recommendations) or [Products Catalog](/dashboard/products).`
+        );
+    }
+
+    // 7. General fallback
+    return (
+        `PricePilot AI Copilot is active for your store (**${productCount} catalog products**, **${alertCount} active alerts**).\n\n` +
+        `Here are some quick things you can do:\n` +
+        `• **Add products or sales:** Manage offline or online items in [Products Catalog](/dashboard/products).\n` +
+        `• **Simulate pricing:** Test margin changes in the [What-If Simulator](/dashboard/simulator).\n` +
+        `• **Check inventory forecasts:** View stockout timelines in [Inventory Forecasts](/dashboard/forecasts).\n` +
+        `• **Review recommendations:** View pricing opportunities in [AI Recommendations](/dashboard/recommendations).`
+    );
+}
+
 exports.sendMessage = async (req, res) => {
     try {
         const { id } = req.params;
@@ -138,17 +313,17 @@ exports.sendMessage = async (req, res) => {
             replyText = aiResponse.data.reply || aiResponse.data;
         } catch (aiErr) {
             console.error('Python AI Service unreachable/failed in chatController:', aiErr.message);
-            const userMsgText = (aiMessages[aiMessages.length - 1]?.content || '').toLowerCase();
-            const productCount = products.length;
-            const alertCount = alerts.length;
+            // 1. Try direct Gemini call if API key is present
+            try {
+                replyText = await tryDirectGemini(aiMessages, contextContent);
+            } catch (geminiErr) {
+                console.warn('Direct Gemini call failed in sendMessage fallback:', geminiErr.message);
+            }
 
-            if (userMsgText.includes('feature') || userMsgText.includes('what can you do') || userMsgText.includes('about') || userMsgText.includes('help')) {
-                replyText = `**PricePilot AI** is an intelligent e-commerce pricing optimization and demand forecasting copilot.\n\n### Core Platform Capabilities:\n- **Dynamic Pricing Engine:** AI-driven price recommendations that protect gross margins while maximizing competitive revenue.\n- **Competitor Tracking:** Live marketplace price monitoring with automated own-brand exclusion.\n- **Demand & Stockout Forecasting:** 30–60 day inventory trajectory modeling via Prophet and Holt-Winters.\n- **A/B Price Testing:** Conversion and revenue-per-visitor experiments with statistical significance validation.\n- **What-If Scenario Simulator:** Real-time simulations for margin risk and sales velocity prior to committing price changes.\n- **Multi-Channel Sync:** Seamless catalog & inventory mapping for Shopify, Amazon SP-API, and Flipkart.\n\n*Note: Python AI microservice container is finishing warm-up on Render. Real-time inference is now standing by.*`;
-            } else if (userMsgText.includes('product') || userMsgText.includes('catalog') || userMsgText.includes('inventory') || userMsgText.includes('sku')) {
-                const sampleProds = products.slice(0, 3).map(p => `• **${p.name}** (Current: ₹${p.currentPrice}, Stock: ${p.stockLevel || 0})`).join('\n');
-                replyText = `You currently have **${productCount} active products** in your catalog, with **${alertCount} active alerts**.\n\nTop catalog sample:\n${sampleProds}\n\nTo view complete details, explore your [Products Catalog](/dashboard/products) or run a demand simulation in the [Inventory Forecasts](/dashboard/forecasts) engine.`;
-            } else {
-                replyText = `PricePilot AI Copilot is currently active for your store (**${productCount} catalog products**, **${alertCount} monitored alerts**).\n\nThe deep-learning microservice is currently completing its initialization cycle on Render. Please send your query again in a moment, or explore your dynamic pricing recommendations directly in [AI Recommendations](/dashboard/recommendations).`;
+            // 2. If direct Gemini did not return a response, use deterministic intelligent fallback
+            if (!replyText) {
+                const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
+                replyText = generateSmartFallbackReply(userMsgText, products, alerts);
             }
         }
 
@@ -303,7 +478,16 @@ exports.editMessage = async (req, res) => {
             replyText = aiResponse.data.reply || aiResponse.data;
         } catch (aiErr) {
             console.error('Python AI Service unreachable in editMessage:', aiErr.message);
-            replyText = "PricePilot AI Copilot is active and processing catalog context. The Python AI service is completing initialization—please retry your request in a moment.";
+            try {
+                replyText = await tryDirectGemini(aiMessages, contextContent);
+            } catch (geminiErr) {
+                console.warn('Direct Gemini call failed in editMessage fallback:', geminiErr.message);
+            }
+
+            if (!replyText) {
+                const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
+                replyText = generateSmartFallbackReply(userMsgText, products, alerts);
+            }
         }
 
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };

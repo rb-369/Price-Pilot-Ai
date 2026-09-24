@@ -589,7 +589,9 @@ const Chat = () => {
                                                             </p>
                                                         )
                                                     ) : (
-                                                        <div>{formatMessageContent(message.content)}</div>
+                                                        <div className="text-sm leading-6 font-normal">
+                                                            {renderFormattedChatMessage(message.content, false, handleOpenSimulator)}
+                                                        </div>
                                                     )}
                                                 </div>
 

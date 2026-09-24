@@ -444,12 +444,12 @@ const ChatWidget = () => {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
+                                                <div className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
                                                     {renderFormattedChatMessage(msg.content, true)}
-                                                </p>
+                                                </div>
                                             )
                                         ) : (
-                                            <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
+                                            <div className="text-[13px] leading-relaxed font-normal">
                                                 {renderFormattedChatMessage(msg.content, false, (payload) => {
                                                     if (location.pathname !== '/dashboard') {
                                                         navigate('/dashboard');
@@ -459,7 +459,7 @@ const ChatWidget = () => {
                                                         window.dispatchEvent(event);
                                                     }, 200);
                                                 })}
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
 
