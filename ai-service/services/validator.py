@@ -41,6 +41,23 @@ async def validate_competitors(product_name: str, competitors: List[Dict], user_
             if not is_same_brand(c.get("productName") or c.get("name", ""), c.get("brand", ""), user_brand)
         ]
 
+    # 2. Deterministic category & cross-domain anomaly filtering
+    from services.rainforest import SMARTPHONE_KEYWORDS
+    p_lower = (product_name or "").lower()
+    is_non_electronic = any(kw in p_lower for kw in [
+        "pan", "cookware", "pot", "bottle", "kadhai", "tawa", "skillet", "casserole",
+        "tea", "coffee", "shirt", "pant", "shoe", "bag", "cream", "lotion", "serum", "oil", "soap"
+    ])
+
+    if is_non_electronic:
+        clean_competitors = []
+        for c in competitors:
+            c_name = (c.get("productName") or c.get("name") or "").lower()
+            if any(kw in c_name for kw in SMARTPHONE_KEYWORDS):
+                continue
+            clean_competitors.append(c)
+        competitors = clean_competitors
+
     api_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("LLM_API_KEY", "")
     
     if not api_key or api_key == "your_gemini_or_openai_key_here" or not competitors:

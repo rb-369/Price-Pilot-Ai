@@ -338,4 +338,7 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
             return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."
 
+        if "503" in err_str or "unavailable" in err_str or "high demand" in err_str:
+            return "⏳ **High Demand:** The AI model is temporarily experiencing high traffic spikes. Please try again in a few moments."
+
         return "Oops! I encountered an error while processing your request. Please try again in a moment."

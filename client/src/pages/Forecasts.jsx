@@ -89,7 +89,7 @@ export default function Forecasts() {
       matched?.name ||
       f.productName ||
       f.product?.name ||
-      f.reason?.match(/Demand for (.+?) is projected/i)?.[1] ||
+      (typeof f.reason === 'string' ? f.reason.match(/Demand for (.+?) is projected/i)?.[1] : null) ||
       'Product';
     const currentStock =
       f.currentStock ??
@@ -480,7 +480,11 @@ export default function Forecasts() {
                   {/* AI Explanation / Reasoning Box */}
                   <div className="p-3.5 rounded-xl bg-surface/60 border border-border text-xs text-text-muted leading-relaxed flex items-start gap-2">
                     <HiOutlineChip className="w-4 h-4 text-primary-light shrink-0 mt-0.5" />
-                    <span>{f.reason}</span>
+                    <span>
+                      {typeof f.reason === 'object' && f.reason !== null
+                        ? JSON.stringify(f.reason)
+                        : String(f.reason || 'AI forecast projection calculated successfully.')}
+                    </span>
                   </div>
                 </div>
               );

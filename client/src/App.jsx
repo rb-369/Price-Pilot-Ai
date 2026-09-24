@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -86,6 +86,15 @@ function AppRoutes() {
   );
 }
 
+function RouteErrorBoundary({ children }) {
+  const location = useLocation();
+  return (
+    <ErrorBoundary key={location.pathname}>
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-google-client-id.apps.googleusercontent.com';
 
 export default function App() {
@@ -98,9 +107,9 @@ export default function App() {
               <Toaster position="top-right" toastOptions={{
                 style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
               }} />
-              <ErrorBoundary>
+              <RouteErrorBoundary>
                 <AppRoutes />
-              </ErrorBoundary>
+              </RouteErrorBoundary>
             </AuthProvider>
           </BrowserRouter>
         </CurrencyProvider>

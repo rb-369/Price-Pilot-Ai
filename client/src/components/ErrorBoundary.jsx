@@ -30,18 +30,18 @@ class ErrorBoundary extends Component {
                         <div>
                             <h2 className="text-xl font-bold text-text mb-2">Something went wrong</h2>
                             <p className="text-sm text-text-muted">
-                                An unexpected error occurred. Please try again or refresh the page.
+                                An unexpected error occurred. Please try again or return to the dashboard.
                             </p>
                         </div>
-                        {/* eslint-disable-next-line no-undef */}
-                        {typeof process !== 'undefined' && process.env.NODE_ENV !== 'production' && this.state.error && (
-                            <div className="p-3 rounded-xl bg-surface/60 border border-danger/10 text-left">
-                                <p className="text-xs text-danger/80 font-mono break-all">
+                        {this.state.error && (
+                            <details className="text-left text-xs bg-surface/80 p-3 rounded-lg border border-border">
+                                <summary className="cursor-pointer text-text-muted hover:text-text font-mono">View error details</summary>
+                                <p className="mt-2 text-danger/80 font-mono break-all whitespace-pre-wrap">
                                     {this.state.error.toString()}
                                 </p>
-                            </div>
+                            </details>
                         )}
-                        <div className="flex gap-3 justify-center">
+                        <div className="flex flex-wrap gap-3 justify-center">
                             <button
                                 onClick={this.handleReset}
                                 className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold
@@ -50,9 +50,18 @@ class ErrorBoundary extends Component {
                                 Try Again
                             </button>
                             <button
+                                onClick={() => {
+                                    window.location.href = '/dashboard';
+                                }}
+                                className="px-5 py-2.5 rounded-xl bg-surface-lighter text-text-muted text-sm font-semibold
+                                           hover:text-text transition-all border border-border"
+                            >
+                                Go to Dashboard
+                            </button>
+                            <button
                                 onClick={() => window.location.reload()}
                                 className="px-5 py-2.5 rounded-xl bg-surface-lighter text-text-muted text-sm font-semibold
-                                           hover:text-text transition-all border border-[rgba(99,102,241,0.1)]"
+                                           hover:text-text transition-all border border-border"
                             >
                                 Refresh Page
                             </button>

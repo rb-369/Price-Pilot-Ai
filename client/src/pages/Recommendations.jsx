@@ -585,12 +585,22 @@ export default function Recommendations() {
                       <HiOutlineLightBulb className="w-4 h-4 text-warning" /> Gemini AI Insight &amp; Rationale
                     </h4>
                     {(() => {
-                      try {
-                        const parsed = JSON.parse(rec.insight);
+                      let parsed = null;
+                      if (typeof rec.insight === 'object' && rec.insight !== null) {
+                        parsed = rec.insight;
+                      } else if (typeof rec.insight === 'string') {
+                        try {
+                          parsed = JSON.parse(rec.insight);
+                        } catch {
+                          parsed = null;
+                        }
+                      }
+
+                      if (parsed && typeof parsed === 'object') {
                         return (
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-4">
-                              <p className="text-sm font-semibold text-text">{parsed.summary}</p>
+                              <p className="text-sm font-semibold text-text">{String(parsed.summary || '')}</p>
                               {parsed.risk_level && (
                                 <span
                                   className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
@@ -601,26 +611,40 @@ export default function Recommendations() {
                                       : 'bg-warning/15 text-warning border border-warning/20'
                                   }`}
                                 >
-                                  {parsed.risk_level} Risk
+                                  {String(parsed.risk_level)} Risk
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-text-muted leading-relaxed">{parsed.detailed_analysis}</p>
-                            {parsed.action_items && parsed.action_items.length > 0 && (
+                            {parsed.detailed_analysis && (
+                              <p className="text-xs text-text-muted leading-relaxed">{String(parsed.detailed_analysis)}</p>
+                            )}
+                            {Array.isArray(parsed.action_items) && parsed.action_items.length > 0 && (
                               <div className="mt-2.5 pt-2.5 border-t border-border">
                                 <p className="text-[11px] text-text-muted uppercase font-semibold mb-1.5">Action Items:</p>
                                 <ul className="list-disc pl-4 space-y-1">
                                   {parsed.action_items.map((item, idx) => (
-                                    <li key={idx} className="text-xs text-text">{item}</li>
+                                    <li key={idx} className="text-xs text-text">
+                                      {typeof item === 'object' ? JSON.stringify(item) : String(item)}
+                                    </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
                           </div>
                         );
-                      } catch {
-                        return <p className="text-xs text-text-muted leading-relaxed">{rec.insight || rec.reason}</p>;
                       }
+
+                      const fallbackText = typeof rec.insight === 'string'
+                        ? rec.insight
+                        : typeof rec.reason === 'string'
+                        ? rec.reason
+                        : typeof rec.insight === 'object' && rec.insight !== null
+                        ? JSON.stringify(rec.insight)
+                        : typeof rec.reason === 'object' && rec.reason !== null
+                        ? JSON.stringify(rec.reason)
+                        : 'No detailed rationale available.';
+
+                      return <p className="text-xs text-text-muted leading-relaxed">{fallbackText}</p>;
                     })()}
                   </div>
 

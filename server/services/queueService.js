@@ -25,13 +25,21 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
     const demandSignals = await DemandSignal.find({ productId }).sort({ timestamp: -1 }).limit(30);
 
     const detectedBrand = (product.brand || product.fullName || product.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
+    const pTitleLower = (product.fullName || product.name || '').toLowerCase();
+    const isNonElectronic = /pan|cookware|pot|bottle|kadhai|tawa|skillet|casserole|tea|coffee|shirt|pant|shoe|bag|cream|lotion|serum|oil|soap/i.test(pTitleLower);
+    const smartphoneRegex = /\b(5g|smartphone|mobile|android|oppo|vivo|realme|poco|redmi|infinix|tecno|iqoo|motorola|lava)\b/i;
 
-    // Filter out any stale self-brand records from database
+    // Filter out any stale self-brand records or cross-category smartphone records
     const rivalCompetitorPrices = competitorPrices.filter(cp => {
-        if (!detectedBrand || detectedBrand.length < 3) return true;
         const pName = (cp.productName || '').toLowerCase();
         const cName = (cp.competitorName || '').toLowerCase();
-        return !pName.includes(detectedBrand) && !cName.includes(detectedBrand);
+        if (detectedBrand && detectedBrand.length >= 3) {
+            if (pName.includes(detectedBrand) || cName.includes(detectedBrand)) return false;
+        }
+        if (isNonElectronic && (smartphoneRegex.test(pName) || smartphoneRegex.test(cName))) {
+            return false;
+        }
+        return true;
     });
 
     const payload = {
@@ -120,11 +128,31 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
                 });
             }
 
+            if (isNonElectronic) {
+                await CompetitorPrice.deleteMany({
+                    productId,
+                    $or: [
+                        { productName: { $regex: smartphoneRegex } },
+                        { competitorName: { $regex: smartphoneRegex } }
+                    ]
+                });
+            }
+
             const freshRivalRecords = recommendation.competitorsUsed
                 .filter(c => {
                     const title = (c.productName || c.name || '').toLowerCase();
                     const b = (c.brand || '').toLowerCase();
-                    return !detectedBrand || (!title.includes(detectedBrand) && !b.includes(detectedBrand));
+                    if (detectedBrand && detectedBrand.length >= 3 && (title.includes(detectedBrand) || b.includes(detectedBrand))) {
+                        return false;
+                    }
+                    if (isNonElectronic && (smartphoneRegex.test(title) || smartphoneRegex.test(b))) {
+                        return false;
+                    }
+                    const pVal = Number(c.price);
+                    if (product.currentPrice && product.currentPrice > 0 && pVal > Math.max(2500, product.currentPrice * 12)) {
+                        return false;
+                    }
+                    return true;
                 })
                 .map(c => ({
                     productId,
@@ -144,15 +172,28 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
         }
     }
 
+    let cleanCompetitorsUsed = recommendation.competitorsUsed;
+    if (Array.isArray(cleanCompetitorsUsed) && isNonElectronic) {
+        cleanCompetitorsUsed = cleanCompetitorsUsed.filter(c => {
+            const title = (c.productName || c.name || '').toLowerCase();
+            const b = (c.brand || '').toLowerCase();
+            return !smartphoneRegex.test(title) && !smartphoneRegex.test(b);
+        });
+    }
+
+    const insightStr = typeof recommendation.insight === 'object' && recommendation.insight !== null
+        ? JSON.stringify(recommendation.insight)
+        : String(recommendation.insight || recommendation.reason || '');
+
     const saved = await PricingRecommendation.create({
         productId,
         userId: product.userId,
         recommendedPrice: recommendation.recommendedPrice,
         currentPrice: product.currentPrice,
         reason: recommendation.reason,
-        insight: recommendation.insight,
+        insight: insightStr,
         elasticityUsed: recommendation.elasticityUsed,
-        competitorsUsed: recommendation.competitorsUsed,
+        competitorsUsed: cleanCompetitorsUsed,
         factors: recommendation.factors,
         expectedRevenueImpact: recommendation.revenueImpact,
         confidenceScore: recommendation.confidenceScore,

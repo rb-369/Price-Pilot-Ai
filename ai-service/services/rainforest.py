@@ -251,9 +251,16 @@ CATEGORY_RIVAL_MAP = [
         "category": "Home & Kitchen",
         "rivals": ["Milton", "Cello", "Borosil", "Pexpo", "Signoraware", "Dubblin", "Speedex", "Tupperware", "Boldfit"]
     },
-    # Cookware & Cookers
+    # Cookware: Frying Pans & Skillets
     {
-        "keywords": ["pressure cooker", "cooker", "frying pan", "pan", "kadhai", "tawa", "cookware", "saucepan", "casserole", "lunch box"],
+        "keywords": ["frying pan", "fry pan", "non-stick pan", "pan", "skillet", "tawa", "kadhai", "ceramic pan"],
+        "generic": "frying pan",
+        "category": "Home & Kitchen",
+        "rivals": ["Prestige", "Hawkins", "Pigeon", "Butterfly", "Wonderchef", "Vinod", "Milton", "Cello", "Meyer", "Bergner"]
+    },
+    # Cookware: Pressure Cookers & Pots
+    {
+        "keywords": ["pressure cooker", "cooker", "cookware", "saucepan", "casserole", "lunch box"],
         "generic": "cookware",
         "category": "Home & Kitchen",
         "rivals": ["Prestige", "Hawkins", "Pigeon", "Butterfly", "Wonderchef", "Vinod", "Bajaj", "Milton", "Cello"]
@@ -409,16 +416,12 @@ def _extract_brand_and_generic_info(keyword: str, brand: Optional[str] = None, c
 def _build_rival_search_queries(user_brand: str, generic_product: str, price: Optional[float], rival_brands: List[str]) -> List[Dict]:
     """
     Generates targeted search queries for each rival brand.
+    Avoids appending 'under X' for low prices (<400) because marketplace search engines
+    return 0 matches and fall back to top trending smartphones.
     """
     queries = []
-    p_val = price or 0
-    p_ceiling = int(round(p_val * 1.35)) if p_val > 0 else 0
-    
     for rival in rival_brands[:5]:
-        if p_ceiling > 0:
-            q_text = f"{rival} {generic_product} under {p_ceiling}"
-        else:
-            q_text = f"{rival} {generic_product}"
+        q_text = f"{rival} {generic_product}"
         queries.append({"brand": rival, "query": q_text})
         
     return queries
@@ -471,6 +474,12 @@ def _generate_rival_benchmark_fallbacks(
     return fallbacks
 
 
+SMARTPHONE_KEYWORDS = {
+    "5g", "smartphone", "mobile phone", "android", "snapdragon", "dimensity",
+    "ram", "storage", "gb rom", "gb ram", "megapixel", "amoled",
+    "poco", "oppo", "vivo", "realme", "redmi", "infinix", "tecno", "iqoo", "motorola", "lava bold"
+}
+
 def _filter_rival_competitors(
     items: List[Dict],
     user_brand: str,
@@ -480,14 +489,24 @@ def _filter_rival_competitors(
     price: Optional[float],
     max_results: int = 6,
     primary_item: Optional[Dict] = None,
+    cat_name: Optional[str] = None,
 ) -> List[Dict]:
     seen_titles = set()
     rival_buckets = {}
+    
+    is_non_electronic = cat_name in [
+        "Home & Kitchen", "Home Appliances", "Beauty & Personal Care",
+        "Haircare", "Cosmetics", "Footwear", "Bags & Luggage"
+    ] or any(kw in (generic_product or "").lower() for kw in ["pan", "cookware", "bottle", "tea", "shirt", "shoe", "bag", "cream", "lotion", "serum"])
+
+    generic_terms = set(re.findall(r'\b[a-zA-Z]{3,}\b', (generic_product or "").lower()))
     
     for item in items:
         title = item.get("productName") or item.get("name") or ""
         brand_field = item.get("brand") or ""
         asin = item.get("asin")
+        item_price = float(item.get("price") or 0)
+        title_lower = title.lower()
         
         # 1. Strictly exclude self-brand products
         if is_same_brand(title, brand_field, user_brand):
@@ -496,19 +515,34 @@ def _filter_rival_competitors(
         # 2. Strictly exclude user's own ASIN
         if asin and asin in excluded_asins:
             continue
+
+        # 3. Strictly exclude cross-category smartphone/mobile junk for non-electronic categories
+        if is_non_electronic:
+            if any(re.search(r'\b' + re.escape(kw) + r'\b', title_lower) for kw in SMARTPHONE_KEYWORDS):
+                continue
+            # If user price is low (e.g. ₹38 or ₹500), reject items that cost 10x more (e.g. ₹28,990 phone)
+            if price and price > 0 and item_price > max(2500, price * 12):
+                continue
             
-        # 3. Deduplicate
+        # 4. Deduplicate
         norm_title = re.sub(r'[^a-z0-9]', '', title.lower())
         if not norm_title or norm_title in seen_titles:
             continue
         seen_titles.add(norm_title)
         
-        # 4. Identify which rival brand this belongs to
-        detected_rival = "Other Rival"
+        # 5. Identify which rival brand this belongs to
+        detected_rival = None
         for r in rival_brands:
-            if r.lower() in title.lower() or r.lower() in brand_field.lower():
+            if re.search(r'\b' + re.escape(r.lower()) + r'\b', title_lower) or re.search(r'\b' + re.escape(r.lower()) + r'\b', brand_field.lower()):
                 detected_rival = r
                 break
+                
+        # If not matching any known rival brand, only accept if title contains the generic product noun
+        if not detected_rival:
+            has_generic_match = any(gt in title_lower for gt in generic_terms)
+            if not has_generic_match and is_non_electronic:
+                continue
+            detected_rival = "Other Rival"
                 
         item["brand"] = detected_rival
         if detected_rival not in rival_buckets:
@@ -619,6 +653,7 @@ async def search_competitors_by_keyword(
             price=price,
             max_results=max_results,
             primary_item=primary_asin_item,
+            cat_name=cat_name,
         )
 
         return final_competitors
