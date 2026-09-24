@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { getForecasts, getProducts, generateForecast, getJobStatus } from '../api';
 import toast from 'react-hot-toast';
 import {
@@ -208,9 +209,9 @@ export default function Forecasts() {
           <p className="text-text-muted max-w-md mx-auto mb-8">
             Add products to your catalog to unlock 30-day demand predictions, stock depletion risk alerts, and intelligent reorder suggestions.
           </p>
-          <a href="/products" className="btn-primary">
+          <Link to="/dashboard/products" className="btn-primary">
             Add Your First Product
-          </a>
+          </Link>
         </div>
       ) : (
         <>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   getRecommendations,
   getProducts,
@@ -300,9 +300,9 @@ export default function Recommendations() {
           <p className="text-text-muted max-w-md mx-auto mb-8">
             Add products to your catalog to generate AI-driven dynamic pricing recommendations based on competitor pricing and demand signals.
           </p>
-          <a href="/products" className="btn-primary">
+          <Link to="/dashboard/products" className="btn-primary">
             Add Your First Product
-          </a>
+          </Link>
         </div>
       ) : (
         <>
