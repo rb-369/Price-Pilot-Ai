@@ -17,6 +17,7 @@ import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { exportToCSV } from '../utils/export';
 import AILoadingState from '../components/AILoadingState';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 export default function Forecasts() {
   const [forecasts, setForecasts] = useState([]);
@@ -343,9 +344,8 @@ export default function Forecasts() {
                         {p.stockLevel} units in stock
                       </p>
                       {isGenerating && (
-                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-                          <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                          Generating...
+                        <div className="mt-2 flex items-center">
+                          <PricePilotChartLoader size="small" variant="inline" message="Generating..." showDelay={0} />
                         </div>
                       )}
                     </button>

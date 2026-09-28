@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import api, { bulkImportProducts } from '../api';
+import PricePilotChartLoader from './PricePilotChartLoader';
 
 export default function BulkSalesImportModal({ onClose, onSuccess }) {
   const [fileContent, setFileContent] = useState('');
@@ -224,8 +225,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
 
           {mappingState === 'mapping' && (
             <div className="py-12 flex flex-col items-center justify-center">
-              <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-              <p className="text-sm font-medium text-text">AI is analyzing columns and validating data...</p>
+              <PricePilotChartLoader size="medium" message="AI is analyzing columns and validating sales data..." />
             </div>
           )}
 
@@ -493,7 +493,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                           className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover shadow-sm rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
                       >
                           {importing ? (
-                              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+                              <PricePilotChartLoader size="small" variant="inline" message="Processing sales data..." showDelay={0} />
                           ) : currentMissingIndex < missingProducts.length - 1 ? (
                               <>Next Product</>
                           ) : (

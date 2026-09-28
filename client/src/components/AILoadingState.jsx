@@ -6,6 +6,7 @@ import {
     HiOutlineClock,
     HiOutlineInformationCircle
 } from 'react-icons/hi';
+import PricePilotChartLoader from './PricePilotChartLoader';
 
 const AI_TIPS = [
     {
@@ -123,13 +124,9 @@ export default function AILoadingState({
                         </div>
                     </div>
 
-                    {/* Dynamic Stage Text */}
-                    <div className="flex items-center gap-2 text-text font-medium mb-3">
-                        <div className="flex space-x-1 shrink-0">
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce shadow-[0_0_6px_rgba(168,90,60,0.6)]"></div>
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce shadow-[0_0_6px_rgba(168,90,60,0.6)]" style={{ animationDelay: '0.15s' }}></div>
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce shadow-[0_0_6px_rgba(168,90,60,0.6)]" style={{ animationDelay: '0.3s' }}></div>
-                        </div>
+                    {/* Dynamic Stage Text with 3-bar chart loader */}
+                    <div className="flex items-center gap-2.5 text-text font-medium mb-3">
+                        <PricePilotChartLoader size="small" variant="minimal" showDelay={0} className="shrink-0" />
                         <span className="truncate">{currentStage}</span>
                     </div>
 
@@ -188,9 +185,9 @@ export default function AILoadingState({
                         </div>
                     </div>
 
-                    {/* Timer Badge */}
-                    <div className="flex items-center self-start sm:self-auto gap-2 bg-surface-lighter border border-border px-3 py-1.5 rounded-xl font-mono text-xs text-text">
-                        <HiOutlineClock className="w-4 h-4 text-primary animate-spin" style={{ animationDuration: '4s' }} />
+                    {/* Timer Badge + 3-Bar Chart Visual */}
+                    <div className="flex items-center self-start sm:self-auto gap-3 bg-surface-lighter border border-border px-3 py-1.5 rounded-xl font-mono text-xs text-text">
+                        <PricePilotChartLoader size="small" variant="minimal" showDelay={0} />
                         <span>Elapsed: {secondsElapsed}s</span>
                     </div>
                 </div>

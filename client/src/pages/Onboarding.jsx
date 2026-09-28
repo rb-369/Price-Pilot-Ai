@@ -22,6 +22,7 @@ import {
     HiOutlineAdjustments,
     HiOutlineChartBar
 } from 'react-icons/hi';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const SALES_CHANNELS = [
     {
@@ -195,6 +196,7 @@ export default function Onboarding() {
     const [submitting, setSubmitting] = useState(false);
     const [calibrating, setCalibrating] = useState(false);
     const [calibrationPhase, setCalibrationPhase] = useState(0);
+    const [isBufferingToDashboard, setIsBufferingToDashboard] = useState(false);
 
     // Form State
     const [selectedChannels, setSelectedChannels] = useState(['amazon', 'shopify']);
@@ -230,9 +232,12 @@ export default function Onboarding() {
                 industryNiche: user?.storeType || 'general',
                 targetMarginFloor: 20,
             });
+            setIsBufferingToDashboard(true);
+            await new Promise((res) => setTimeout(res, 2000));
             toast.success('Welcome aboard! Default settings applied.');
             navigate('/dashboard');
         } catch (err) {
+            setIsBufferingToDashboard(false);
             console.error('Skip error:', err);
             toast.error(err.response?.data?.message || 'Failed to finish onboarding');
         } finally {
@@ -322,15 +327,32 @@ export default function Onboarding() {
                 )}
             </div>
 
+            {/* 2-Second Post-Onboarding Dashboard Buffering Overlay */}
+            {isBufferingToDashboard && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-md animate-fade-in p-4">
+                    <div className="glass-card p-8 rounded-3xl border border-border shadow-2xl flex flex-col items-center">
+                        <PricePilotChartLoader
+                            size="large"
+                            variant="card"
+                            showDelay={0}
+                            message="Launching your PricePilot Dashboard..."
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Main Modal Card */}
             <div className="w-full max-w-4xl glass-card rounded-3xl p-6 sm:p-10 border border-border/80 shadow-2xl relative z-10 animate-slide-up backdrop-blur-xl">
                 {/* CALIBRATION LOADING SCREEN */}
                 {calibrating ? (
                     <div className="py-12 px-4 text-center flex flex-col items-center justify-center space-y-8 animate-fade-in">
-                        <div className="relative w-24 h-24 flex items-center justify-center">
-                            <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping opacity-30" />
-                            <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-accent border-b-transparent border-l-transparent animate-spin" />
-                            <HiOutlineSparkles className="w-10 h-10 text-primary animate-pulse" />
+                        <div className="p-4 rounded-2xl bg-surface-lighter/50 border border-border">
+                            <PricePilotChartLoader
+                                size="large"
+                                variant="minimal"
+                                showDelay={0}
+                                ariaLabel="Calibrating AI Pricing Engine"
+                            />
                         </div>
 
                         <div className="space-y-2 max-w-md">

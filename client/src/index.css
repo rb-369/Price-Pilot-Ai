@@ -804,6 +804,87 @@ html.light .progress-bar {
   background-size: 200% 100%;
 }
 
+/* ─── PricePilot 3-Bar Chart Loader Animation ─── */
+@keyframes pricepilot-bar-1 {
+  0%, 100% {
+    transform: scaleY(0.30);
+  }
+  25% {
+    transform: scaleY(0.80);
+  }
+  50% {
+    transform: scaleY(0.45);
+  }
+  75% {
+    transform: scaleY(0.95);
+  }
+}
+
+@keyframes pricepilot-bar-2 {
+  0%, 100% {
+    transform: scaleY(0.75);
+  }
+  25% {
+    transform: scaleY(0.40);
+  }
+  50% {
+    transform: scaleY(0.95);
+  }
+  75% {
+    transform: scaleY(0.55);
+  }
+}
+
+@keyframes pricepilot-bar-3 {
+  0%, 100% {
+    transform: scaleY(0.50);
+  }
+  25% {
+    transform: scaleY(0.95);
+  }
+  50% {
+    transform: scaleY(0.30);
+  }
+  75% {
+    transform: scaleY(0.70);
+  }
+}
+
+.pricepilot-chart-bar-1 {
+  animation: pricepilot-bar-1 1.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom;
+  will-change: transform;
+}
+
+.pricepilot-chart-bar-2 {
+  animation: pricepilot-bar-2 1.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom;
+  will-change: transform;
+}
+
+.pricepilot-chart-bar-3 {
+  animation: pricepilot-bar-3 1.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pricepilot-chart-bar-1,
+  .pricepilot-chart-bar-2,
+  .pricepilot-chart-bar-3 {
+    animation: none !important;
+  }
+  .pricepilot-chart-bar-1 {
+    transform: scaleY(0.45) !important;
+  }
+  .pricepilot-chart-bar-2 {
+    transform: scaleY(0.85) !important;
+  }
+  .pricepilot-chart-bar-3 {
+    transform: scaleY(0.60) !important;
+  }
+}
+
 /* ─── Mobile Utilities ─── */
 @media (max-width: 768px) {
   nav a, nav button, .btn-primary, .btn-secondary {

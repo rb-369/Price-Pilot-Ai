@@ -24,6 +24,7 @@ import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import AskAIButton from '../components/AskAIButton';
 import { warmupAIService } from '../utils/aiWarmup';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
@@ -66,6 +67,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-end mb-8">
                     <div><div className="skeleton h-8 w-48 mb-2 rounded"></div><div className="skeleton h-4 w-64 rounded"></div></div>
                 </div>
+                <PricePilotChartLoader size="medium" message="Loading your business data..." showDelay={700} onRetry={fetchData} className="py-2 mb-4" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>

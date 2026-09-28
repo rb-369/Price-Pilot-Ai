@@ -22,6 +22,7 @@ import ErrorState from '../components/ErrorState';
 import PriceHistoryModal from '../components/PriceHistoryModal';
 import BulkImportModal from '../components/BulkImportModal';
 import ConfirmModal from '../components/ConfirmModal';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const STANDARD_CATEGORIES = [
     "General", "Electronics", "Footwear", "Apparel", "Groceries", 
@@ -48,6 +49,7 @@ export default function Products() {
     const [editId, setEditId] = useState(null);
     const { formatCurrency, config } = useCurrency();
     const [loading, setLoading] = useState(true);
+    const [isSavingProduct, setIsSavingProduct] = useState(false);
     const [error, setError] = useState(false);
     const [historyProduct, setHistoryProduct] = useState(null);
     const [showBulkModal, setShowBulkModal] = useState(false);
@@ -262,6 +264,7 @@ export default function Products() {
             return;
         }
 
+        setIsSavingProduct(true);
         try {
             const finalCategory = form.category === 'Other' ? customCategory : form.category;
             const parsedSpecs = typeof form.keySpecs === 'string' 
@@ -288,7 +291,10 @@ export default function Products() {
                 await updateProduct(editId, payload);
                 toast.success('Product updated');
             } else {
-                await createProduct(payload);
+                // Keep 3-bar chart animation running for 1 second while adding products
+                const createPromise = createProduct(payload);
+                const delayPromise = new Promise((resolve) => setTimeout(resolve, 1000));
+                await Promise.all([createPromise, delayPromise]);
                 toast.success('Product created');
             }
 
@@ -302,6 +308,8 @@ export default function Products() {
             fetchProducts();
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed');
+        } finally {
+            setIsSavingProduct(false);
         }
     };
 
@@ -366,6 +374,17 @@ export default function Products() {
             {showForm && (
                 <div className="glass-card p-6 md:p-8 animate-slide-up mb-8 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#B8734F] to-[#5F806B]"></div>
+                    {/* 1-Second Product Creation Buffering Animation */}
+                    {isSavingProduct && (
+                        <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 animate-fade-in">
+                            <PricePilotChartLoader
+                                size="medium"
+                                variant="card"
+                                showDelay={0}
+                                message={editId ? "Updating product details..." : "Adding product to PricePilot catalog..."}
+                            />
+                        </div>
+                    )}
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-xl font-bold text-text tracking-tight flex items-center gap-2">
@@ -662,10 +681,20 @@ export default function Products() {
                             </button>
                             <button 
                                 type="submit" 
-                                disabled={Boolean(mismatchError && !overrideMismatch)}
-                                className="btn-primary px-6 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={Boolean(mismatchError && !overrideMismatch) || isSavingProduct}
+                                className="btn-primary px-6 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
                             >
-                                {editId ? 'Save Changes' : 'Create Product'}
+                                {isSavingProduct ? (
+                                    <PricePilotChartLoader
+                                        size="small"
+                                        variant="inline"
+                                        showDelay={0}
+                                        message={editId ? 'Saving...' : 'Adding...'}
+                                        className="text-white"
+                                    />
+                                ) : (
+                                    editId ? 'Save Changes' : 'Create Product'
+                                )}
                             </button>
                         </div>
                     </form>

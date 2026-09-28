@@ -19,6 +19,7 @@ import Recommendations from './pages/Recommendations';
 import ABTestDashboard from './pages/ABTestDashboard';
 import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
+import PricePilotChartLoader from './components/PricePilotChartLoader';
 import Chat from './pages/Chat';
 import Integrations from './pages/Integrations';
 import ChannelMapping from './pages/ChannelMapping';
@@ -48,9 +49,12 @@ function AppRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-surface">
-      <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
-    </div>
+    <PricePilotChartLoader
+      size="medium"
+      variant="fullscreen"
+      showDelay={350}
+      message="Initializing PricePilot..."
+    />
   );
 
   return (

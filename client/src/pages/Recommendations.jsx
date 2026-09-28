@@ -37,6 +37,7 @@ import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
 import ConfirmModal from '../components/ConfirmModal';
 import AILoadingState from '../components/AILoadingState';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 export default function Recommendations() {
   const navigate = useNavigate();
@@ -444,9 +445,8 @@ export default function Recommendations() {
                         {p.name}
                       </p>
                       {isGenerating ? (
-                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-                          <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                          Optimizing...
+                        <div className="mt-2 flex items-center">
+                          <PricePilotChartLoader size="small" variant="inline" message="Optimizing..." showDelay={0} />
                         </div>
                       ) : (
                         <p className="text-[11px] text-text-muted mt-1">

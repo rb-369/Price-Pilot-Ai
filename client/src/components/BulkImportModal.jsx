@@ -3,6 +3,7 @@ import { bulkImportProducts } from '../api';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle, FiDownload } from 'react-icons/fi';
 import { useCurrency } from '../context/CurrencyContext';
+import PricePilotChartLoader from './PricePilotChartLoader';
 
 export default function BulkImportModal({ onClose, onSuccess }) {
   const { formatCurrency, config } = useCurrency();
@@ -69,7 +70,8 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
 
     setImporting(true);
     try {
-      const res = await bulkImportProducts(parsedData);
+      const delayPromise = new Promise((resolve) => setTimeout(resolve, 1000));
+      const [res] = await Promise.all([bulkImportProducts(parsedData), delayPromise]);
       setResults(res.data);
       toast.success(`Successfully imported ${res.data.importedCount} products!`);
       if (onSuccess) onSuccess();
@@ -223,9 +225,19 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
                   <button
                     onClick={handleImport}
                     disabled={importing || parsedData.length === 0}
-                    className="btn-primary text-xs px-6 py-2 disabled:opacity-50"
+                    className="btn-primary text-xs px-6 py-2 disabled:opacity-50 flex items-center justify-center min-w-[150px]"
                   >
-                    {importing ? 'Importing...' : `Import ${parsedData.length} Products`}
+                    {importing ? (
+                      <PricePilotChartLoader
+                        size="small"
+                        variant="inline"
+                        showDelay={0}
+                        message="Importing..."
+                        className="text-white"
+                      />
+                    ) : (
+                      `Import ${parsedData.length} Products`
+                    )}
                   </button>
                 </div>
               </div>

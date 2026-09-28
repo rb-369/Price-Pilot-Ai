@@ -163,9 +163,9 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
                                 <div className="border-t border-[#D8D0C0] dark:border-[#594239] my-1" />
                                 <button
                                     type="button"
-                                    onClick={() => {
+                                    onClick={async () => {
                                         setUserMenuOpen(false);
-                                        logout();
+                                        await logout();
                                         navigate('/login');
                                     }}
                                     className="w-full px-3 py-2 text-xs text-left text-danger hover:bg-danger/10 flex items-center gap-2 cursor-pointer font-medium transition-colors"

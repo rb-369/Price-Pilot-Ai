@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { HiOutlineSwitchHorizontal, HiOutlineCheckCircle, HiOutlineXCircle, HiOutlinePlus, HiOutlineChip, HiOutlineTrash, HiOutlineSearch, HiOutlineTag } from 'react-icons/hi';
 import ErrorState from '../components/ErrorState';
 import ConfirmModal from '../components/ConfirmModal';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 export default function ChannelMapping() {
     const [products, setProducts] = useState([]);
@@ -224,8 +225,7 @@ export default function ChannelMapping() {
                             {loading ? (
                                 <tr>
                                     <td colSpan="5" className="p-8 text-center text-text-muted">
-                                        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-2" />
-                                        Loading product channel mappings...
+                                        <PricePilotChartLoader size="medium" message="Loading product channel mappings..." />
                                     </td>
                                 </tr>
                             ) : filteredProducts.length === 0 ? (

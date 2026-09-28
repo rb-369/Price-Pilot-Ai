@@ -10,6 +10,7 @@ import {
     HiOutlineLightBulb
 } from 'react-icons/hi';
 import AskAIButton from '../components/AskAIButton';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const typeIcons = {
     price_drop: HiOutlineTrendingDown,
@@ -66,9 +67,12 @@ export default function Alerts() {
             alerts.filter(a => a.type === filter);
 
     if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
-        </div>
+        <PricePilotChartLoader
+            size="medium"
+            message="Loading alerts & incidents..."
+            onRetry={fetchAlerts}
+            className="h-96"
+        />
     );
 
     const unreadCount = alerts.filter(a => !a.read).length;

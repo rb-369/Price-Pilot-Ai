@@ -15,6 +15,7 @@ import { getPriceHistory } from '../api';
 import api from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import toast from 'react-hot-toast';
+import PricePilotChartLoader from './PricePilotChartLoader';
 
 export default function PriceHistoryModal({ product, onClose }) {
   const [loading, setLoading] = useState(true);
@@ -198,7 +199,7 @@ export default function PriceHistoryModal({ product, onClose }) {
 
             {loading ? (
               <div className="h-72 flex items-center justify-center">
-                <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <PricePilotChartLoader size="medium" message="Loading historical price logs..." />
               </div>
             ) : historyData.length === 0 ? (
               <div className="h-72 flex flex-col items-center justify-center text-text-muted text-sm">

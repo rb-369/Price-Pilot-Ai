@@ -8,6 +8,7 @@ import newDarkLogo from '../assets/new_dark_logo.png';
 import { SiGoogle } from 'react-icons/si';
 import { HiOutlinePhone } from 'react-icons/hi';
 import { useGoogleLogin } from '@react-oauth/google';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const storeTypes = [
     { value: 'general', label: 'General Store' },
@@ -34,6 +35,7 @@ export default function Register() {
     const [form, setForm] = useState({ name: '', email: '', password: '', storeType: 'general', customStoreType: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isBuffering, setIsBuffering] = useState(false);
     const { register, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
 
@@ -47,12 +49,15 @@ export default function Register() {
             };
             delete submitData.customStoreType;
             await register(submitData);
+            setIsBuffering(true);
+            setLoading(false);
+            await new Promise((res) => setTimeout(res, 2000));
             toast.success('Account created! Welcome to PricePilot AI.');
             navigate('/onboarding');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Registration failed');
-        } finally {
+            setIsBuffering(false);
             setLoading(false);
+            toast.error(err.response?.data?.message || 'Registration failed');
         }
     };
 
@@ -71,6 +76,9 @@ export default function Register() {
                     googleId: userInfo.sub,
                     picture: userInfo.picture,
                 });
+                setIsBuffering(true);
+                setLoading(false);
+                await new Promise((res) => setTimeout(res, 2000));
                 toast.success('Welcome to PricePilot AI!');
                 if (userData?.onboarding?.completed) {
                     navigate('/dashboard');
@@ -78,9 +86,9 @@ export default function Register() {
                     navigate('/onboarding');
                 }
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Google registration failed');
-            } finally {
+                setIsBuffering(false);
                 setLoading(false);
+                toast.error(err.response?.data?.message || 'Google registration failed');
             }
         },
         onError: (err) => {
@@ -91,6 +99,20 @@ export default function Register() {
 
     return (
         <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-x-hidden overflow-y-auto">
+            {/* 2-Second Post-Register Buffering Overlay */}
+            {isBuffering && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-md animate-fade-in p-4">
+                    <div className="glass-card p-8 rounded-3xl border border-border shadow-2xl flex flex-col items-center">
+                        <PricePilotChartLoader
+                            size="large"
+                            variant="card"
+                            showDelay={0}
+                            message="Setting up your PricePilot AI workspace..."
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Top Back to Home Button */}
             <Link to="/" className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 text-xs font-semibold text-text-muted hover:text-text bg-surface-light/80 hover:bg-surface-lighter px-3.5 py-2 rounded-xl border border-border backdrop-blur-md transition-colors">
                 ← Back to Home
@@ -159,9 +181,15 @@ export default function Register() {
                         </div>
                     )}
 
-                    <button type="submit" disabled={loading}
+                    <button type="submit" disabled={loading || isBuffering}
                         className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm disabled:opacity-50">
-                        {loading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Create Account'}
+                        {loading ? (
+                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : isBuffering ? (
+                            'Preparing Workspace...'
+                        ) : (
+                            'Create Account'
+                        )}
                     </button>
                 </form>
 

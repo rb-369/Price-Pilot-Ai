@@ -37,8 +37,8 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
     const navigate = useNavigate();
     const brandLogo = theme === 'dark' ? newDarkLogo : newLightLogo;
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
         if (!isDesktop) onClose();
     };

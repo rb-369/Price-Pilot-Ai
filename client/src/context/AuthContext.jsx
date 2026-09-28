@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { login as apiLogin, register as apiRegister, googleAuth as apiGoogleAuth, getProfile, completeOnboarding as apiCompleteOnboarding } from '../api';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -66,10 +68,13 @@ export function AuthProvider({ children }) {
         localStorage.setItem('pricepilot_active_profile', profileId);
     };
 
-    const logout = () => {
+    const logout = async () => {
+        setIsLoggingOut(true);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         localStorage.removeItem('token');
         localStorage.removeItem('pricepilot_active_profile');
         setUser(null);
+        setIsLoggingOut(false);
     };
 
     const activeProfile = user?.profiles?.find(p => p.id === (user?.activeProfileId || 'default')) || user?.profiles?.[0] || {
@@ -93,9 +98,22 @@ export function AuthProvider({ children }) {
             updateUser,
             switchProfile,
             logout,
+            isLoggingOut,
             loading,
         }}>
             {children}
+            {isLoggingOut && (
+                <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-surface/95 backdrop-blur-md animate-fade-in p-4">
+                    <div className="glass-card p-8 rounded-3xl border border-border shadow-2xl flex flex-col items-center">
+                        <PricePilotChartLoader
+                            size="large"
+                            variant="card"
+                            showDelay={0}
+                            message="Signing out of PricePilot AI..."
+                        />
+                    </div>
+                </div>
+            )}
         </AuthContext.Provider>
     );
 }

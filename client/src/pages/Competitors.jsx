@@ -23,6 +23,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
 import ConfirmModal from '../components/ConfirmModal';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const competitorColors = {
     Amazon: '#FF9900',
@@ -432,11 +433,7 @@ export default function Competitors() {
                 <div className="p-4 sm:p-6">
                     {fetchingHistory ? (
                         <div className="flex h-[300px] flex-col items-center justify-center text-center">
-                            <svg className="mb-3 h-9 w-9 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                            <p className="text-sm font-medium text-text">Loading price history...</p>
+                            <PricePilotChartLoader size="medium" message="Updating competitor intelligence..." />
                         </div>
                     ) : history.length ? (
                         <div className="h-[300px] sm:h-[340px]">
