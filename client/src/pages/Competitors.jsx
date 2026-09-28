@@ -12,6 +12,7 @@ import {
     HiOutlineRefresh,
     HiChevronDown,
     HiOutlineSearch,
+    HiOutlineX,
 } from 'react-icons/hi';
 import { deleteProduct, getCompetitorPrices, getLatestCompetitorPrices, getProducts, fetchLiveCompetitorPrices } from '../api';
 import ErrorState from '../components/ErrorState';
@@ -460,7 +461,7 @@ export default function Competitors() {
                     ) : selectedProduct ? (
                         <div className="flex h-[300px] flex-col items-center justify-center text-center">
                             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
-                                <span className="text-xl">✕</span>
+                                <HiOutlineX className="h-6 w-6" />
                             </div>
                             <p className="text-sm font-medium text-text">Failed to fetch competitor prices</p>
                             <p className="mt-1 text-xs text-text-muted">No historical data available for this product.</p>
@@ -570,7 +571,7 @@ export default function Competitors() {
                 ) : (
                     <div className="glass-card px-6 py-14 text-center">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
-                            <span className="text-xl">✕</span>
+                            <HiOutlineX className="h-6 w-6" />
                         </div>
                         <p className="mt-4 text-sm font-semibold text-text">Failed to fetch competitor prices</p>
                         <p className="mt-1.5 text-xs text-text-muted max-w-md mx-auto">We could not retrieve live competitor data. Please configure your RAINFOREST_API_KEY or add competitor prices manually.</p>

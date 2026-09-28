@@ -15,7 +15,8 @@ import {
   HiDocumentDownload,
   HiBadgeCheck,
   HiRefresh,
-  HiOutlineSearch
+  HiOutlineSearch,
+  HiX
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -578,8 +579,9 @@ export default function ABTestDashboard() {
                 type="button" 
                 onClick={() => setShowCreateModal(false)} 
                 className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-elevated transition-colors"
+                title="Close"
               >
-                ✕
+                <HiX className="w-5 h-5" />
               </button>
             </div>
 

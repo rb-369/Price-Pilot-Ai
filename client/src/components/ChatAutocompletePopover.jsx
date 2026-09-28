@@ -196,8 +196,18 @@ export default function ChatAutocompletePopover({
     return (
         <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
             <div className="p-2 border-b border-border bg-surface-lighter/50 flex items-center justify-between text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                <span>
-                    {activeTrigger === '@' ? '🏷️ Tag Product' : '⚡ Mention Method'}
+                <span className="flex items-center gap-1.5">
+                    {activeTrigger === '@' ? (
+                        <>
+                            <HiOutlineTag className="w-3.5 h-3.5 text-primary" />
+                            <span>Tag Product</span>
+                        </>
+                    ) : (
+                        <>
+                            <HiOutlineLightningBolt className="w-3.5 h-3.5 text-primary" />
+                            <span>Mention Method</span>
+                        </>
+                    )}
                 </span>
                 <span className="text-[10px] normal-case opacity-70">
                     ↑↓ Navigate • Tab / Enter to select • Esc to dismiss
@@ -393,7 +403,7 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                             }}
                             className="mt-1 w-full py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-xs shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
-                            <span>🚀 See Details in What-If Simulator</span>
+                            <span>See Details in What-If Simulator</span>
                             <span>→</span>
                         </button>
                     </span>

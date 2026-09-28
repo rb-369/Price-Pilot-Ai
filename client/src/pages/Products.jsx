@@ -465,8 +465,8 @@ export default function Products() {
                         </div>
                         <p className="text-[11px] text-text-muted">
                             {calculatePrecision() < 90 
-                                ? '💡 Tip: Adding Amazon/Flipkart product links, brand name, and tech specs boosts AI competitor precision up to 98%.'
-                                : '✨ Maximum AI precision! Complete brand specifications and live channel links provided.'}
+                                ? 'Tip: Adding Amazon/Flipkart product links, brand name, and tech specs boosts AI competitor precision up to 98%.'
+                                : 'Maximum AI precision: Complete brand specifications and live channel links provided.'}
                         </p>
                     </div>
 

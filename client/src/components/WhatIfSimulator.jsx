@@ -8,7 +8,8 @@ import {
     HiOutlineAdjustments, HiOutlineLightningBolt, HiOutlineCheckCircle,
     HiOutlineExclamation, HiOutlineTrendingUp, HiOutlineTrendingDown,
     HiOutlineCurrencyDollar, HiOutlineCube, HiOutlineScale,
-    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineChip
+    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineChip,
+    HiOutlineX
 } from 'react-icons/hi';
 import AskAIButton from './AskAIButton';
 import { useCurrency } from '../context/CurrencyContext';
@@ -720,9 +721,10 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             </h3>
                             <button
                                 onClick={() => setShowCommitModal(false)}
-                                className="text-text-muted hover:text-text text-sm font-bold"
+                                className="text-text-muted hover:text-text transition-colors p-1 rounded-lg hover:bg-surface-lighter"
+                                title="Close"
                             >
-                                ✕
+                                <HiOutlineX className="w-5 h-5" />
                             </button>
                         </div>
 

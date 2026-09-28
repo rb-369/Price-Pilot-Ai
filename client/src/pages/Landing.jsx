@@ -479,7 +479,7 @@ export default function Landing() {
                             How PricePilot Generates Maximum Margin
                         </h2>
                         <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-sm mt-2">
-                            From competitor price scraping to automated catalog checkout synchronization. Scroll down! 👇
+                            From competitor price scraping to automated catalog checkout synchronization. Scroll down to explore.
                         </p>
                     </div>
 
