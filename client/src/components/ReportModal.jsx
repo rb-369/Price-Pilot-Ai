@@ -14,10 +14,10 @@ const reportTypes = [
 ];
 
 const severityLevels = [
-    { id: 'low', label: 'Low', color: 'border-slate-300 text-slate-700 bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:bg-slate-800/40' },
-    { id: 'medium', label: 'Medium', color: 'border-amber-400 text-amber-700 bg-amber-50 dark:border-amber-500/30 dark:text-amber-400 dark:bg-amber-500/10' },
-    { id: 'high', label: 'High', color: 'border-orange-400 text-orange-700 bg-orange-50 dark:border-orange-500/30 dark:text-orange-400 dark:bg-orange-500/10' },
-    { id: 'critical', label: 'Critical', color: 'border-red-400 text-red-700 bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:bg-red-500/10' }
+    { id: 'low', label: 'Low', color: 'border-border text-text-muted bg-surface' },
+    { id: 'medium', label: 'Medium', color: 'border-warning/30 text-warning bg-warning/10' },
+    { id: 'high', label: 'High', color: 'border-warning/50 text-warning bg-warning/15' },
+    { id: 'critical', label: 'Critical', color: 'border-danger/40 text-danger bg-danger/10' }
 ];
 
 export default function ReportModal({ isOpen, onClose }) {
@@ -73,19 +73,19 @@ export default function ReportModal({ isOpen, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
             <div 
-                className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#0d1326] border border-slate-200 dark:border-red-500/20 shadow-2xl p-6 sm:p-8 text-slate-900 dark:text-slate-100 overflow-hidden max-h-[90vh] overflow-y-auto"
+                className="relative w-full max-w-lg rounded-2xl bg-[#F7F3EB] dark:bg-[#30231D] border border-[#D8D0C0] dark:border-[#594239] shadow-2xl p-6 sm:p-8 text-text overflow-hidden max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Top indicator bar */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-indigo-500" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-danger via-warning to-primary" />
 
                 {/* Close Button */}
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors"
+                    className="absolute top-5 right-5 p-2 text-text-muted hover:text-text rounded-lg hover:bg-surface-lighter transition-colors"
                     aria-label="Close modal"
                 >
                     <HiOutlineX size={20} />
@@ -93,30 +93,30 @@ export default function ReportModal({ isOpen, onClose }) {
 
                 {submitted ? (
                     <div className="py-12 text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 animate-scale-up">
+                        <div className="w-16 h-16 mx-auto rounded-full bg-success/15 border border-success/30 flex items-center justify-center text-success animate-scale-up">
                             <HiOutlineCheckCircle size={36} />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Report Logged!</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xs mx-auto">
+                        <h3 className="text-xl font-bold text-text tracking-tight">Report Logged!</h3>
+                        <p className="text-text-muted text-sm max-w-xs mx-auto">
                             Our engineering team has received your report and relevant route diagnostics.
                         </p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 mb-2">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-danger/10 text-danger border border-danger/20 mb-2">
                                 <HiOutlineExclamationCircle size={14} />
                                 Diagnostics &amp; Issue Tracker
                             </div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Report an Issue</h2>
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                            <h2 className="text-xl font-bold text-text tracking-tight">Report an Issue</h2>
+                            <p className="text-xs text-text-muted mt-1">
                                 Notice a bug or pricing data mismatch on this page? Let us know so we can fix it immediately.
                             </p>
                         </div>
 
                         {/* Issue Type */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <label className="block text-xs font-medium text-text">
                                 Issue Category
                             </label>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -127,8 +127,8 @@ export default function ReportModal({ isOpen, onClose }) {
                                         onClick={() => setType(t.id)}
                                         className={`px-3 py-2 text-xs rounded-lg border text-left transition-all cursor-pointer ${
                                             type === t.id
-                                                ? 'bg-red-50 border-red-300 text-red-700 dark:bg-red-500/15 dark:border-red-500/50 dark:text-red-300 font-semibold'
-                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:bg-[#131b2e] dark:border-slate-800 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-200'
+                                                ? 'bg-danger/10 border-danger/40 text-danger font-semibold'
+                                                : 'bg-surface border-border text-text-muted hover:border-danger/30 hover:text-text'
                                         }`}
                                     >
                                         {t.label}
@@ -139,7 +139,7 @@ export default function ReportModal({ isOpen, onClose }) {
 
                         {/* Severity */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <label className="block text-xs font-medium text-text">
                                 Severity Level
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -150,8 +150,8 @@ export default function ReportModal({ isOpen, onClose }) {
                                         onClick={() => setSeverity(s.id)}
                                         className={`px-2.5 py-1.5 text-xs text-center rounded-lg border font-medium transition-all cursor-pointer ${
                                             severity === s.id
-                                                ? `${s.color} ring-1 ring-offset-1 ring-current font-bold`
-                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 dark:bg-[#131b2e] dark:border-slate-800 dark:text-slate-400 dark:hover:border-slate-700'
+                                                ? `${s.color} ring-1 ring-current font-bold`
+                                                : 'bg-surface border-border text-text-muted hover:border-border/80'
                                         }`}
                                     >
                                         {s.label}
@@ -162,7 +162,7 @@ export default function ReportModal({ isOpen, onClose }) {
 
                         {/* Subject */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <label className="block text-xs font-medium text-text">
                                 Summary Title
                             </label>
                             <input
@@ -170,14 +170,14 @@ export default function ReportModal({ isOpen, onClose }) {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="Brief summary of the issue..."
-                                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
+                                className="w-full px-3.5 py-2 bg-[#FBF8F1] dark:bg-[#382821] border border-[#D8D0C0] dark:border-[#594239] rounded-xl text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                                 required
                             />
                         </div>
 
                         {/* Description */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <label className="block text-xs font-medium text-text">
                                 Detailed Description
                             </label>
                             <textarea
@@ -185,15 +185,15 @@ export default function ReportModal({ isOpen, onClose }) {
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Steps to reproduce, expected behavior, or error details..."
-                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all resize-none"
+                                className="w-full px-3.5 py-2.5 bg-[#FBF8F1] dark:bg-[#382821] border border-[#D8D0C0] dark:border-[#594239] rounded-xl text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
                                 required
                             />
                         </div>
 
                         {/* Route telemetry pill */}
-                        <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#131b2e] border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
-                            <span className="truncate">Route Diagnostics: <strong className="font-mono text-slate-800 dark:text-slate-300">{location.pathname}</strong></span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-500">Auto-Attached</span>
+                        <div className="p-2.5 rounded-lg bg-surface border border-border flex items-center justify-between text-[11px] text-text-muted">
+                            <span className="truncate">Route Diagnostics: <strong className="font-mono text-text">{location.pathname}</strong></span>
+                            <span className="text-[10px] text-text-muted">Auto-Attached</span>
                         </div>
 
                         {/* Actions */}
@@ -201,14 +201,14 @@ export default function ReportModal({ isOpen, onClose }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+                                className="btn-secondary py-2 px-4 text-xs font-medium cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting || !title.trim() || !description.trim()}
-                                className="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-lg shadow-md hover:shadow-red-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                className="btn-primary py-2 px-5 text-xs font-semibold cursor-pointer"
                             >
                                 {submitting ? 'Submitting...' : 'Submit Issue Report'}
                             </button>

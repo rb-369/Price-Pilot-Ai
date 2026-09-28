@@ -9,17 +9,17 @@ import ExplainWithAITag from '../components/ExplainWithAITag';
 import AskAIButton from '../components/AskAIButton';
 
 const SIGNAL_WEIGHTS = [
-  { key: 'searchTrendScore', label: 'Search Trends', weight: 0.40, color: '#818cf8', barColor: 'from-[#6366f1] to-[#818cf8]', iconBg: 'rgba(99,102,241,0.12)' },
-  { key: 'weatherFactor', label: 'Weather Factor', weight: 0.20, color: '#22d3ee', barColor: 'from-[#0891b2] to-[#22d3ee]', iconBg: 'rgba(6,182,212,0.12)' },
-  { key: 'eventFactor', label: 'Local Events', weight: 0.20, color: '#34d399', barColor: 'from-[#059669] to-[#34d399]', iconBg: 'rgba(16,185,129,0.12)' },
-  { key: 'socialSentimentScore', label: 'Social Sentiment', weight: 0.20, color: '#fbbf24', barColor: 'from-[#d97706] to-[#fbbf24]', iconBg: 'rgba(245,158,11,0.12)' },
+  { key: 'searchTrendScore', label: 'Search Trends', weight: 0.40, color: '#A85A3C', barColor: 'from-[#8C4630] to-[#A85A3C]', iconBg: 'rgba(168,90,60,0.12)' },
+  { key: 'weatherFactor', label: 'Weather Factor', weight: 0.20, color: '#B8734F', barColor: 'from-[#8C4630] to-[#B8734F]', iconBg: 'rgba(184,115,79,0.12)' },
+  { key: 'eventFactor', label: 'Local Events', weight: 0.20, color: '#5F806B', barColor: 'from-[#4A6754] to-[#5F806B]', iconBg: 'rgba(95,128,107,0.12)' },
+  { key: 'socialSentimentScore', label: 'Social Sentiment', weight: 0.20, color: '#A17A3A', barColor: 'from-[#85632E] to-[#A17A3A]', iconBg: 'rgba(161,122,58,0.12)' },
 ];
 
 function getDemandBadge(score) {
-  if (score >= 80) return { label: 'HOT', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', textColor: '#ef4444', border: 'rgba(239,68,68,0.25)', gradient: 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(245,158,11,0.06))', trend: '+12.1%' };
-  if (score >= 60) return { label: 'RISING', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', textColor: '#f59e0b', border: 'rgba(245,158,11,0.25)', gradient: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(234,179,8,0.06))', trend: '+4.5%' };
-  if (score >= 40) return { label: 'STABLE', color: '#6366f1', bg: 'rgba(99,102,241,0.15)', textColor: '#818cf8', border: 'rgba(99,102,241,0.2)', gradient: 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(129,140,248,0.05))', trend: '-1.2%' };
-  return { label: 'LOW', color: '#94a3b8', bg: 'rgba(148,163,184,0.15)', textColor: '#94a3b8', border: 'rgba(148,163,184,0.2)', gradient: 'linear-gradient(135deg, rgba(148,163,184,0.08), rgba(99,102,241,0.04))', trend: '-3.8%' };
+  if (score >= 80) return { label: 'HOT', color: '#C0392B', bg: 'rgba(192,57,43,0.12)', textColor: '#C0392B', border: 'rgba(192,57,43,0.25)', gradient: 'linear-gradient(135deg, rgba(192,57,43,0.12), rgba(184,115,79,0.06))', trend: '+12.1%' };
+  if (score >= 60) return { label: 'RISING', color: '#B8734F', bg: 'rgba(184,115,79,0.12)', textColor: '#B8734F', border: 'rgba(184,115,79,0.25)', gradient: 'linear-gradient(135deg, rgba(184,115,79,0.12), rgba(161,122,58,0.06))', trend: '+4.5%' };
+  if (score >= 40) return { label: 'STABLE', color: '#5F806B', bg: 'rgba(95,128,107,0.12)', textColor: '#5F806B', border: 'rgba(95,128,107,0.25)', gradient: 'linear-gradient(135deg, rgba(95,128,107,0.10), rgba(168,90,60,0.05))', trend: '-1.2%' };
+  return { label: 'LOW', color: '#80736A', bg: 'rgba(128,115,106,0.12)', textColor: '#80736A', border: 'rgba(128,115,106,0.2)', gradient: 'linear-gradient(135deg, rgba(128,115,106,0.08), rgba(168,90,60,0.04))', trend: '-3.8%' };
 }
 
 function normaliseFactor(value) {
@@ -165,16 +165,15 @@ export default function DemandSignals() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider"
-              style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
               Live Signals
             </span>
             <span className="text-xs text-text-muted">Updated 2 min ago</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text flex items-center gap-3 flex-wrap">
-            <span className="gradient-text">Demand Signals</span>
+            <span className="text-text">Demand Signals</span>
             <ExplainWithAITag title="Explain with AI" contextData={{ type: 'demand_signals' }} />
             <AskAIButton
               variant="chip"
@@ -206,15 +205,15 @@ export default function DemandSignals() {
         <div className="glass-card glass-card-hover p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Demand Score</span>
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.12)' }}>
-              <svg className="w-4 h-4 text-primary-light" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/15 text-primary">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
               </svg>
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-text">{kpis.avgScore}</p>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="text-xs font-medium text-success flex items-center gap-0.5">
+            <span className="text-xs font-medium text-[#5F806B] dark:text-[#7FA38B] flex items-center gap-0.5">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
               </svg>
@@ -227,8 +226,8 @@ export default function DemandSignals() {
         <div className="glass-card glass-card-hover p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Products Tracked</span>
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.12)' }}>
-              <HiCube className="w-4 h-4 text-accent" />
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#B8734F]/15 text-[#B8734F]">
+              <HiCube className="w-4 h-4" />
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-text">{kpis.productCount}</p>
@@ -238,8 +237,8 @@ export default function DemandSignals() {
         <div className="glass-card glass-card-hover p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Signals Today</span>
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.12)' }}>
-              <HiLightningBolt className="w-4 h-4 text-success" />
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#5F806B]/15 text-[#5F806B]">
+              <HiLightningBolt className="w-4 h-4" />
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-text">1,847</p>
@@ -249,8 +248,8 @@ export default function DemandSignals() {
         <div className="glass-card glass-card-hover p-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">High Demand</span>
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)' }}>
-              <HiOutlineFire className="w-4 h-4 text-danger" />
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#C0392B]/15 text-[#C0392B]">
+              <HiOutlineFire className="w-4 h-4" />
             </span>
           </div>
           <p className="text-3xl font-bold tracking-tight text-text">{kpis.highCount}</p>
@@ -296,7 +295,7 @@ export default function DemandSignals() {
                 }`}
                 style={{
                   background: badge.gradient,
-                  borderColor: isSelected ? 'var(--color-primary, #6366f1)' : badge.border,
+                  borderColor: isSelected ? 'var(--color-primary, #A85A3C)' : badge.border,
                 }}
               >
                 <div className="flex items-center justify-between mb-3 relative z-10">
@@ -395,10 +394,10 @@ export default function DemandSignals() {
                 <div className="chart-container" style={{ width: '100%', height: 280 }}>
                   <ResponsiveContainer width="100%" height={280}>
                     <RadarChart data={radarData}>
-                      <PolarGrid stroke="rgba(99,102,241,0.15)" />
-                      <PolarAngleAxis dataKey="factor" tick={{ fill: 'var(--color-text-muted, #64748b)', fontSize: 10 }} />
-                      <PolarRadiusAxis tick={{ fill: 'var(--color-text-muted, #64748b)', fontSize: 9 }} domain={[0, 100]} />
-                      <Radar name="Demand" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.25} strokeWidth={2} />
+                      <PolarGrid stroke="var(--pp-border)" strokeOpacity={0.4} />
+                      <PolarAngleAxis dataKey="factor" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} />
+                      <PolarRadiusAxis tick={{ fill: 'var(--pp-text-muted)', fontSize: 9 }} domain={[0, 100]} />
+                      <Radar name="Demand" dataKey="value" stroke="#A85A3C" fill="#A85A3C" fillOpacity={0.25} strokeWidth={2} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -411,12 +410,12 @@ export default function DemandSignals() {
                   <div className="chart-container" style={{ width: '100%', height: 180 }}>
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={timeSeriesData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
-                        <XAxis dataKey="date" tick={{ fill: 'var(--color-text-muted, #64748b)', fontSize: 10 }} axisLine={{ stroke: 'rgba(99,102,241,0.08)' }} />
-                        <YAxis tick={{ fill: 'var(--color-text-muted, #64748b)', fontSize: 9 }} domain={[0, 100]} axisLine={{ stroke: 'rgba(99,102,241,0.08)' }} />
-                        <Tooltip contentStyle={{ background: 'var(--color-surface-light, #ffffff)', border: '1px solid var(--color-border, rgba(99,102,241,0.15))', borderRadius: '12px', color: 'var(--color-text, #0f172a)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }} />
-                        <Bar dataKey="score" fill="#6366f1" radius={[6, 6, 0, 0]} name="Composite" />
-                        <Bar dataKey="trend" fill="#06b6d4" radius={[6, 6, 0, 0]} name="Trend" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" strokeOpacity={0.4} />
+                        <XAxis dataKey="date" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} axisLine={{ stroke: 'var(--pp-border)' }} />
+                        <YAxis tick={{ fill: 'var(--pp-text-muted)', fontSize: 9 }} domain={[0, 100]} axisLine={{ stroke: 'var(--pp-border)' }} />
+                        <Tooltip contentStyle={{ background: 'var(--pp-surface)', border: '1px solid var(--pp-border)', borderRadius: '12px', color: 'var(--pp-text)', boxShadow: '0 12px 28px rgba(0,0,0,0.15)' }} />
+                        <Bar dataKey="score" fill="#A85A3C" radius={[6, 6, 0, 0]} name="Composite" />
+                        <Bar dataKey="trend" fill="#5F806B" radius={[6, 6, 0, 0]} name="Trend" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

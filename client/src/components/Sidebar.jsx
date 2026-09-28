@@ -62,28 +62,28 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
 
             {/* Sidebar panel */}
             <aside 
-                className="relative z-[9999] w-[270px] sm:w-[280px] lg:w-[260px] h-full flex flex-col shadow-2xl lg:shadow-none border-r border-indigo-500/10 transition-transform duration-300 ease-out"
+                className="relative z-[9999] w-[270px] sm:w-[280px] lg:w-[260px] h-full flex flex-col shadow-2xl lg:shadow-none border-r border-[#D8D0C0] dark:border-[#594239] transition-transform duration-300 ease-out"
                 style={{
-                    background: theme === 'light' ? 'linear-gradient(to bottom, #f8fafc, #f1f5f9)' : 'linear-gradient(to bottom, #0d1326, #0a0f1e)',
+                    background: theme === 'light' ? 'linear-gradient(to bottom, #F7F3EB, #F0EEE6)' : 'linear-gradient(to bottom, #261B15, #211610)',
                 }}
             >
                 {/* Logo + Close button */}
-                <div className="p-4 sm:p-5 border-b border-indigo-500/10 flex items-center justify-between">
+                <div className="p-4 sm:p-5 border-b border-[#D8D0C0] dark:border-[#594239] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden shadow-md shadow-primary/20 flex-shrink-0">
+                        <div className="w-9 h-9 flex items-center justify-center rounded-xl overflow-hidden shadow-md shadow-[#A85A3C]/20 border border-[#D8D0C0] dark:border-[#594239] bg-[#FBF8F1] dark:bg-[#30231D] p-1 flex-shrink-0">
                             <img src={brandLogo} alt="PricePilot Logo" className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <h1 className="font-bold text-text text-base sm:text-lg leading-tight tracking-tight">PricePilot</h1>
-                            <p className="text-[11px] text-primary-light font-medium tracking-wide">AI Platform</p>
+                            <p className="text-[11px] text-primary font-semibold tracking-wide">AI Platform</p>
                         </div>
                     </div>
 
-                    {/* Close button (always visible and prominent on mobile) */}
+                    {/* Close button (visible and prominent on mobile) */}
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-8 h-8 rounded-lg bg-slate-200/80 dark:bg-slate-800/80 hover:bg-red-500/15 hover:text-red-500 dark:hover:bg-red-500/20 dark:hover:text-red-400 border border-slate-300/80 dark:border-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all cursor-pointer flex-shrink-0"
+                        className="w-8 h-8 rounded-lg bg-[#EFE8DF] dark:bg-[#382821] hover:bg-danger/10 hover:text-danger border border-[#D8D0C0] dark:border-[#594239] flex items-center justify-center text-text-muted hover:text-text transition-all cursor-pointer flex-shrink-0"
                         aria-label="Close sidebar"
                         title="Close sidebar"
                     >
@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
 
                 {/* Navigation Links */}
                 <nav className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto overscroll-contain">
-                    <p className="text-[10px] text-text-muted/60 font-bold uppercase tracking-wider px-3 mb-2">Navigation</p>
+                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider px-3 mb-2">Navigation</p>
                     {links.map(({ to, icon: Icon, label }) => (
                         <NavLink 
                             key={to} 
@@ -101,7 +101,7 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                             end={to === '/'}
                             onClick={handleNavClick}
                             className={({ isActive }) => 
-                                `${isActive ? 'sidebar-link-active' : 'sidebar-link'} py-2.5 px-3 rounded-xl flex items-center gap-3 transition-colors text-[13px] font-medium`
+                                `${isActive ? 'sidebar-link-active' : 'sidebar-link'} py-2 px-3 rounded-xl flex items-center gap-3 transition-colors text-[13px] font-medium`
                             }
                         >
                             <Icon className="w-[18px] h-[18px] transition-transform duration-200 flex-shrink-0" />
@@ -111,20 +111,20 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                 </nav>
 
                 {/* User Section & Quick Controls */}
-                <div className="p-3 sm:p-4 border-t border-indigo-500/10 space-y-2 bg-slate-50/50 dark:bg-[#0a0f1e]/60">
+                <div className="p-3 sm:p-4 border-t border-[#D8D0C0] dark:border-[#594239] space-y-2 bg-[#EFE8DF]/40 dark:bg-[#261B15]/60">
                     {/* Clickable Profile Card */}
                     <div
                         onClick={() => {
                             navigate('/dashboard/settings');
                             if (!isDesktop) onClose();
                         }}
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60 cursor-pointer transition-all duration-200 group"
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-[#EFE8DF] dark:hover:bg-[#382821] cursor-pointer transition-all duration-200 group border border-transparent hover:border-[#D8D0C0] dark:hover:border-[#594239]"
                         title="Open Profile & Settings"
                     >
                         <UserAvatar
                             avatar={user?.avatar}
                             name={user?.name}
-                            className="w-8 h-8 rounded-xl text-xs group-hover:scale-105 transition-transform flex-shrink-0 ring-2 ring-primary/10"
+                            className="w-8 h-8 rounded-xl text-xs group-hover:scale-105 transition-transform flex-shrink-0 ring-2 ring-primary/20"
                         />
                         <div className="flex-1 min-w-0">
                             <p className="text-xs text-text truncate font-bold group-hover:text-primary transition-colors">{user?.name || 'User'}</p>
@@ -132,15 +132,15 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                                 {activeProfile?.name || user?.storeName || 'Primary Store'}
                             </p>
                         </div>
-                        <HiOutlineCog className="w-4 h-4 text-text-muted/60 group-hover:text-primary group-hover:rotate-90 transition-all flex-shrink-0" />
+                        <HiOutlineCog className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:rotate-90 transition-all flex-shrink-0" />
                     </div>
 
                     {/* Quick controls bar */}
-                    <div className="flex items-center justify-between px-1 pt-1.5 border-t border-border/20">
+                    <div className="flex items-center justify-between px-1 pt-1.5 border-t border-border/40">
                         <select
                             value={currency}
                             onChange={(e) => setCurrency(e.target.value)}
-                            className="bg-surface border border-border/80 text-[11px] font-semibold text-text rounded-lg px-2 py-1 focus:outline-none focus:border-primary cursor-pointer"
+                            className="bg-surface border border-border text-[11px] font-semibold text-text rounded-lg px-2 py-1 focus:outline-none focus:border-primary cursor-pointer"
                             title="Select Currency"
                         >
                             {currencies.map(c => (
@@ -151,10 +151,10 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                         <button
                             type="button"
                             onClick={toggleTheme}
-                            className="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-indigo-500/10 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-primary/10 transition-colors cursor-pointer"
                             title="Toggle Theme"
                         >
-                            {theme === 'dark' ? <HiOutlineSun className="w-4 h-4 text-amber-400" /> : <HiOutlineMoon className="w-4 h-4 text-primary" />}
+                            {theme === 'dark' ? <HiOutlineSun className="w-4 h-4 text-amber-500" /> : <HiOutlineMoon className="w-4 h-4 text-primary" />}
                         </button>
 
                         <button
@@ -170,7 +170,7 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
 
                 {/* Version Tag */}
                 <div className="px-4 pb-3">
-                    <div className="text-[10px] text-text-muted/40 text-center font-mono">PricePilot AI • v1.0</div>
+                    <div className="text-[10px] text-text-muted/60 text-center font-mono">PricePilot AI • v1.0</div>
                 </div>
             </aside>
         </div>

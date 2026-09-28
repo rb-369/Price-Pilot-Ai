@@ -33,7 +33,7 @@ export const Card = ({
             <span className="text-sm font-extrabold tracking-tight px-2.5 py-0.5 rounded-lg bg-white/15 text-white">
               0{i + 1}
             </span>
-            <span className="font-semibold uppercase tracking-wider text-indigo-300">
+            <span className="font-semibold uppercase tracking-wider text-[#B8734F]">
               {badge}
             </span>
           </div>

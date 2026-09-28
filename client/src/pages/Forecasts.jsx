@@ -168,19 +168,18 @@ export default function Forecasts() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider"
-              style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
               AI Forecast Engine
             </span>
             <span className="text-xs text-text-muted">Prophet &amp; Holt-Winters Models</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text">
-            <span className="gradient-text">Inventory Forecasts</span>
+            <span className="text-text">Inventory Forecasts</span>
           </h1>
           <p className="text-text-muted text-sm mt-1.5 flex items-center gap-2">
-            <HiOutlineChip className="w-4 h-4 text-primary-light" />
+            <HiOutlineChip className="w-4 h-4 text-primary" />
             30–60 Day AI Demand Predictions &amp; Automated Reorder Recommendations
           </p>
         </div>
@@ -201,7 +200,7 @@ export default function Forecasts() {
       {products.length === 0 ? (
         /* ── Empty State ── */
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(99,102,241,0.1)' }}>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 bg-primary/10">
             <HiOutlineTrendingUp className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-text mb-3">No Products Found</h2>
@@ -219,8 +218,8 @@ export default function Forecasts() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Total Forecasts</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.12)' }}>
-                  <HiOutlineCube className="w-4 h-4 text-primary-light" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/15 text-primary">
+                  <HiOutlineCube className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">{kpis.total}</p>
@@ -230,7 +229,7 @@ export default function Forecasts() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Stock Depletion Risk</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.12)' }}>
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-danger/15 text-danger">
                   <HiOutlineExclamation className="w-4 h-4 text-danger" />
                 </span>
               </div>
@@ -241,8 +240,8 @@ export default function Forecasts() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Confidence</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.12)' }}>
-                  <HiOutlineShieldCheck className="w-4 h-4 text-success" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B]">
+                  <HiOutlineShieldCheck className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">{kpis.avgConfidence}%</p>
@@ -252,8 +251,8 @@ export default function Forecasts() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Recommended Units</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                  <HiOutlineLightningBolt className="w-4 h-4 text-warning" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#A17A3A]/15 text-[#A17A3A] dark:text-[#C49B55]">
+                  <HiOutlineLightningBolt className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">+{kpis.totalReorder}</p>
@@ -265,8 +264,8 @@ export default function Forecasts() {
           <div className="glass-card p-6 animate-slide-up stagger-3">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.1)' }}>
-                  <HiOutlineChip className="w-4.5 h-4.5 text-accent" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+                  <HiOutlineChip className="w-4.5 h-4.5" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-text">Generate AI Forecast</h2>
@@ -333,18 +332,18 @@ export default function Forecasts() {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted truncate">
                           {p.category || 'General'}
                         </span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.stockLevel < 20 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.stockLevel < 20 ? 'bg-danger/10 text-danger' : 'bg-[#5F806B]/15 text-[#5F806B]'}`}>
                           {p.stockLevel < 20 ? 'Low' : 'OK'}
                         </span>
                       </div>
-                      <p className="text-xs font-semibold text-text truncate group-hover:text-primary-light transition-colors" title={p.name}>
+                      <p className="text-xs font-semibold text-text truncate group-hover:text-primary transition-colors" title={p.name}>
                         {p.name}
                       </p>
                       <p className="text-[11px] text-text-muted mt-1">
                         {p.stockLevel} units in stock
                       </p>
                       {isGenerating && (
-                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary-light font-semibold">
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary font-semibold">
                           <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                           Generating...
                         </div>
@@ -380,15 +379,14 @@ export default function Forecasts() {
                   <div className="flex items-start justify-between mb-5">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{
-                          background: isRisk ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)',
-                        }}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          isRisk ? 'bg-danger/15 text-danger' : 'bg-[#5F806B]/15 text-[#5F806B]'
+                        }`}
                       >
                         {isRisk ? (
                           <HiOutlineExclamation className="w-5 h-5 text-danger animate-pulse" />
                         ) : (
-                          <HiOutlineShieldCheck className="w-5 h-5 text-success" />
+                          <HiOutlineShieldCheck className="w-5 h-5 text-[#5F806B]" />
                         )}
                       </div>
                       <div>
@@ -414,7 +412,7 @@ export default function Forecasts() {
                         className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full ${
                           isRisk
                             ? 'bg-danger/15 text-danger border border-danger/20'
-                            : 'bg-success/15 text-success border border-success/20'
+                            : 'bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/25'
                         }`}
                       >
                         {isRisk ? 'Depletion Risk' : 'Optimal Stock'}
@@ -427,24 +425,24 @@ export default function Forecasts() {
 
                   {/* 3 Metrics Callout Boxes */}
                   <div className="grid grid-cols-3 gap-3 mb-5">
-                    <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
+                    <div className="text-center p-3.5 bg-surface-elevated/70 rounded-xl border border-border">
                       <p className="text-xl font-extrabold text-text">{f.predictedDemand}</p>
                       <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mt-0.5">
                         Predicted
                       </p>
                     </div>
 
-                    <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
+                    <div className="text-center p-3.5 bg-surface-elevated/70 rounded-xl border border-border">
                       <p className="text-xl font-extrabold text-text">{currentStock}</p>
                       <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mt-0.5">
                         Current Stock
                       </p>
                     </div>
 
-                    <div className="text-center p-3.5 bg-surface/50 rounded-xl border border-border">
+                    <div className="text-center p-3.5 bg-surface-elevated/70 rounded-xl border border-border">
                       <p
                         className={`text-xl font-extrabold ${
-                          f.recommendedStockIncrease > 0 ? 'text-warning' : 'text-success'
+                          f.recommendedStockIncrease > 0 ? 'text-[#A17A3A] dark:text-[#C49B55]' : 'text-[#5F806B] dark:text-[#7FA38B]'
                         }`}
                       >
                         +{f.recommendedStockIncrease}
@@ -459,7 +457,7 @@ export default function Forecasts() {
                   <div className="mb-4">
                     <div className="flex justify-between text-xs mb-1.5">
                       <span className="text-text-muted font-medium">Stock Coverage vs Demand</span>
-                      <span className={`font-bold ${demandPct > 100 ? 'text-danger' : 'text-success'}`}>
+                      <span className={`font-bold ${demandPct > 100 ? 'text-danger' : 'text-[#5F806B] dark:text-[#7FA38B]'}`}>
                         {demandPct}%
                       </span>
                     </div>
@@ -467,10 +465,10 @@ export default function Forecasts() {
                       <div
                         className={`progress-fill ${
                           demandPct > 100
-                            ? 'bg-gradient-to-r from-danger to-red-400'
+                            ? 'bg-danger'
                             : demandPct > 70
-                            ? 'bg-gradient-to-r from-warning to-amber-400'
-                            : 'bg-gradient-to-r from-success to-emerald-400'
+                            ? 'bg-[#A17A3A]'
+                            : 'bg-[#5F806B]'
                         }`}
                         style={{ width: `${Math.min(100, demandPct)}%` }}
                       />
@@ -478,8 +476,8 @@ export default function Forecasts() {
                   </div>
 
                   {/* AI Explanation / Reasoning Box */}
-                  <div className="p-3.5 rounded-xl bg-surface/60 border border-border text-xs text-text-muted leading-relaxed flex items-start gap-2">
-                    <HiOutlineChip className="w-4 h-4 text-primary-light shrink-0 mt-0.5" />
+                  <div className="p-3.5 rounded-xl bg-surface-elevated/70 border border-border text-xs text-text-muted leading-relaxed flex items-start gap-2">
+                    <HiOutlineChip className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <span>{f.reason}</span>
                   </div>
                 </div>

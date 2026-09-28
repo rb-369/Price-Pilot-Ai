@@ -194,8 +194,8 @@ export default function ChatAutocompletePopover({
     if (!isOpen || items.length === 0) return null;
 
     return (
-        <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-[rgba(99,102,241,0.2)] rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
-            <div className="p-2 border-b border-[rgba(99,102,241,0.1)] bg-surface-lighter/50 flex items-center justify-between text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+        <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
+            <div className="p-2 border-b border-border bg-surface-lighter/50 flex items-center justify-between text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 <span>
                     {activeTrigger === '@' ? '🏷️ Tag Product' : '⚡ Mention Method'}
                 </span>
@@ -339,10 +339,10 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                     className={
                         isUser
                             ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-primary/20 text-indigo-300 border border-primary/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
+                            : "inline-flex items-center gap-1 bg-primary/10 text-primary-light border border-primary/30 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
                     }
                 >
-                    <HiOutlineCube className="w-3 h-3" /> {cleanName}
+                    <HiOutlineCube className="w-3 h-3 text-copper" /> {cleanName}
                 </span>
             );
         }
@@ -353,8 +353,8 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                     key={index}
                     className={
                         isUser
-                            ? "inline-flex items-center gap-1 bg-cyan-400/30 text-cyan-100 border border-cyan-300/60 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
+                            ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-copper/15 text-copper border border-copper/30 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
                     }
                 >
                     <HiOutlineTag className="w-3 h-3" /> {part}
@@ -369,15 +369,15 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         <span className="block space-y-2">
             <span>{renderedProse}</span>
             {actionPayload && (
-                <span className="block mt-3 pt-3 border-t border-white/10">
-                    <span className="flex flex-col gap-2 p-3 rounded-xl bg-gradient-to-br from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 shadow-lg text-slate-100">
-                        <span className="flex items-center justify-between text-xs font-bold text-indigo-300">
+                <span className="block mt-3 pt-3 border-t border-border">
+                    <span className="flex flex-col gap-2 p-3 rounded-xl bg-surface border border-border shadow-md text-text">
+                        <span className="flex items-center justify-between text-xs font-bold text-copper">
                             <span className="flex items-center gap-1.5">
-                                <HiOutlineLightningBolt className="w-4 h-4 text-warning animate-pulse" />
+                                <HiOutlineLightningBolt className="w-4 h-4 text-copper animate-pulse" />
                                 Interactive Scenario Ready
                             </span>
                         </span>
-                        <span className="text-[11px] text-slate-300 leading-snug">
+                        <span className="text-[11px] text-text-muted leading-snug">
                             {actionPayload.productQuery ? `Product: "${actionPayload.productQuery}"` : ''} {actionPayload.priceChange ? `• Proposed Change: ${actionPayload.priceChange}` : ''}
                         </span>
                         <button
@@ -391,7 +391,7 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                                     window.dispatchEvent(event);
                                 }
                             }}
-                            className="mt-1 w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                            className="mt-1 w-full py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-xs shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
                             <span>🚀 See Details in What-If Simulator</span>
                             <span>→</span>

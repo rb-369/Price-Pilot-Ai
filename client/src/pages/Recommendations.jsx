@@ -260,19 +260,18 @@ export default function Recommendations() {
         <div>
           <div className="flex items-center gap-3 mb-1">
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider"
-              style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8' }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#818cf8] animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
               AI Dynamic Pricing Engine
             </span>
             <span className="text-xs text-text-muted">Gemini 1.5 Pro &amp; Real-time Scrapers</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text">
-            <span className="gradient-text">AI Recommendations</span>
+            <span className="text-text">AI Recommendations</span>
           </h1>
           <p className="text-text-muted text-sm mt-1.5 flex items-center gap-2">
-            <HiOutlineChip className="w-4 h-4 text-primary-light" />
+            <HiOutlineChip className="w-4 h-4 text-primary" />
             Explainable Price Optimization Powered by Competitor Data &amp; Elasticity Models
           </p>
         </div>
@@ -293,7 +292,7 @@ export default function Recommendations() {
       {products.length === 0 ? (
         /* ── Empty State ── */
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ background: 'rgba(99,102,241,0.1)' }}>
+          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 bg-primary/10">
             <HiOutlineLightBulb className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-text mb-3">No Products Found</h2>
@@ -311,8 +310,8 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Total Recommendations</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(99,102,241,0.12)' }}>
-                  <HiOutlineCube className="w-4 h-4 text-primary-light" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/15 text-primary">
+                  <HiOutlineCube className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">{kpis.total}</p>
@@ -322,8 +321,8 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Applied Live</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.12)' }}>
-                  <HiOutlineCheck className="w-4 h-4 text-success" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B]">
+                  <HiOutlineCheck className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">{kpis.accepted}</p>
@@ -333,8 +332,8 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Projected Lift</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.12)' }}>
-                  <HiOutlineTrendingUp className="w-4 h-4 text-accent" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#B8734F]/15 text-[#B8734F]">
+                  <HiOutlineTrendingUp className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">
@@ -346,8 +345,8 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Confidence</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                  <HiOutlineShieldCheck className="w-4 h-4 text-warning" />
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#A17A3A]/15 text-[#A17A3A] dark:text-[#C49B55]">
+                  <HiOutlineShieldCheck className="w-4 h-4" />
                 </span>
               </div>
               <p className="text-3xl font-bold tracking-tight text-text">{kpis.avgConfidence}%</p>
@@ -359,8 +358,8 @@ export default function Recommendations() {
           <div className="glass-card p-6 animate-slide-up stagger-3">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.1)' }}>
-                  <HiOutlineChip className="w-4.5 h-4.5 text-accent" />
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary">
+                  <HiOutlineChip className="w-4.5 h-4.5" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-text">Generate AI Recommendation</h2>
@@ -432,7 +431,7 @@ export default function Recommendations() {
                           {p.category || 'General'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center bg-surface-header/50 p-2 rounded-lg border border-border mt-3">
+                      <div className="flex justify-between items-center bg-surface-elevated p-2 rounded-lg border border-border mt-3">
                           <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
                             <HiOutlineCube className="w-3.5 h-3.5" />
                             Current Price
@@ -441,11 +440,11 @@ export default function Recommendations() {
                             {formatCurrency(p.currentPrice)}
                           </span>
                         </div>
-                      <p className="text-xs font-semibold text-text truncate group-hover:text-primary-light transition-colors" title={p.name}>
+                      <p className="text-xs font-semibold text-text truncate group-hover:text-primary transition-colors" title={p.name}>
                         {p.name}
                       </p>
                       {isGenerating ? (
-                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary-light font-semibold">
+                        <div className="mt-2 flex items-center gap-1.5 text-[11px] text-primary font-semibold">
                           <div className="w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                           Optimizing...
                         </div>
@@ -482,7 +481,7 @@ export default function Recommendations() {
                       ? 'border-t-success'
                       : isIncrease
                       ? 'border-t-primary'
-                      : 'border-t-accent'
+                      : 'border-t-[#B8734F]'
                   }`}
                   style={{ animationDelay: `${0.15 + i * 0.06}s` }}
                 >
@@ -490,15 +489,14 @@ export default function Recommendations() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{
-                          background: isIncrease ? 'rgba(99,102,241,0.12)' : 'rgba(6,182,212,0.12)',
-                        }}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          isIncrease ? 'bg-primary/15 text-primary' : 'bg-[#B8734F]/15 text-[#B8734F]'
+                        }`}
                       >
                         {isIncrease ? (
-                          <HiOutlineArrowUp className="w-5 h-5 text-primary-light" />
+                          <HiOutlineArrowUp className="w-5 h-5 text-primary" />
                         ) : (
-                          <HiOutlineArrowDown className="w-5 h-5 text-accent" />
+                          <HiOutlineArrowDown className="w-5 h-5 text-[#B8734F]" />
                         )}
                       </div>
                       <div>
@@ -526,13 +524,13 @@ export default function Recommendations() {
                             : rec.status === 'rejected'
                             ? 'bg-danger/15 text-danger border border-danger/20'
                             : rec.status === 'in_testing'
-                            ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5'
+                            ? 'bg-primary/15 text-primary border border-primary/25 flex items-center gap-1.5'
                             : 'bg-warning/15 text-warning border border-warning/20'
                         }`}
                       >
                         {rec.status === 'in_testing' ? (
                           <>
-                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span> In Testing
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> In Testing
                           </>
                         ) : (
                           rec.status
@@ -725,17 +723,17 @@ export default function Recommendations() {
                       <button
                         type="button"
                         onClick={() => navigate('/dashboard/ab-tests')}
-                        className="py-2 px-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                        className="py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
                       >
-                        <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
-                        <HiBeaker className="w-4 h-4" /> View Active A/B Test
+                        <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                        <HiBeaker className="w-4 h-4 text-primary" /> View Active A/B Test
                       </button>
                     )}
 
                     {rec.status === 'accepted' && (
                       <button
                         onClick={() => handleRevert(rec._id)}
-                        className="btn-secondary flex items-center gap-2 text-xs text-warning hover:bg-warning/10 hover:border-warning/30 cursor-pointer"
+                        className="btn-secondary flex items-center gap-2 text-xs text-[#A17A3A] dark:text-[#C49B55] hover:bg-[#A17A3A]/10 hover:border-[#A17A3A]/30 cursor-pointer"
                       >
                         <HiOutlineRefresh className="w-4 h-4" /> Undo &amp; Revert Price
                       </button>
@@ -743,9 +741,9 @@ export default function Recommendations() {
 
                     <button
                       onClick={() => setHistoryProduct(rec.productId || { name: rec.productName, currentPrice: rec.currentPrice, baseCost: rec.baseCost || 0 })}
-                      className="btn-secondary flex items-center gap-2 text-xs text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10 cursor-pointer ml-auto"
+                      className="btn-secondary flex items-center gap-2 text-xs text-[#5F806B] dark:text-[#7FA38B] border-[#5F806B]/20 hover:bg-[#5F806B]/10 cursor-pointer ml-auto"
                     >
-                      <HiOutlineChartBar className="w-4 h-4 text-emerald-400" /> View Price Trend
+                      <HiOutlineChartBar className="w-4 h-4 text-[#5F806B]" /> View Price Trend
                     </button>
                   </div>
                 </div>

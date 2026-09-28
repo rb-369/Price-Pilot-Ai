@@ -41,7 +41,7 @@ export default function Animated404() {
                     >
                         {/* Floating Spark Accents around bars */}
                         <MotionSpan
-                            className="absolute -left-2 top-7 w-1 h-3 rounded-full bg-[#0a192f] dark:bg-blue-400 -rotate-12 pointer-events-none"
+                            className="absolute -left-2 top-7 w-1 h-3 rounded-full bg-primary -rotate-12 pointer-events-none"
                             animate={{
                                 opacity: [0.3, 0.9, 0.4, 0.8, 0],
                                 y: [0, -3, 1, -2, 4],
@@ -49,7 +49,7 @@ export default function Animated404() {
                             transition={{ duration: 0.68, ease: 'easeInOut' }}
                         />
                         <MotionSpan
-                            className="absolute -right-2 top-11 w-1 h-3.5 rounded-full bg-[#1d4ed8] dark:bg-sky-400 rotate-25 pointer-events-none"
+                            className="absolute -right-2 top-11 w-1 h-3.5 rounded-full bg-copper rotate-25 pointer-events-none"
                             animate={{
                                 opacity: [0.4, 0.8, 0.3, 0.7, 0],
                                 y: [0, -2, 2, -1, 3],
@@ -57,7 +57,7 @@ export default function Animated404() {
                             transition={{ duration: 0.68, ease: 'easeInOut' }}
                         />
                         <MotionSpan
-                            className="absolute top-1 left-[46%] w-1.5 h-1.5 rounded-full bg-[#1e3a8a] dark:bg-blue-300 pointer-events-none"
+                            className="absolute top-1 left-[46%] w-1.5 h-1.5 rounded-full bg-brass pointer-events-none"
                             animate={{
                                 opacity: [0.2, 0.8, 0.3, 0.6, 0],
                                 scale: [0.8, 1.2, 0.9, 1.1, 0],
@@ -65,10 +65,10 @@ export default function Animated404() {
                             transition={{ duration: 0.68, ease: 'easeInOut' }}
                         />
 
-                        {/* Bar 1 (Left - Navy Blue) */}
+                        {/* Bar 1 (Left - Terracotta) */}
                         <div className="flex flex-col items-center justify-end h-full">
                             <MotionDiv
-                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-[#050b14] via-[#0a192f] to-[#1e293b] dark:from-[#020617] dark:via-[#0f172a] dark:to-[#1e3a8a] shadow-sm"
+                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-primary/80 via-primary to-copper shadow-sm"
                                 initial={{ height: 45 }}
                                 animate={{
                                     height: [45, 80, 55, 75, 12, 0],
@@ -82,10 +82,10 @@ export default function Animated404() {
                             />
                         </div>
 
-                        {/* Bar 2 (Middle - Tallest Dark Blue) */}
+                        {/* Bar 2 (Middle - Tallest Terracotta/Copper) */}
                         <div className="flex flex-col items-center justify-end h-full">
                             <MotionDiv
-                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-[#0f2744] via-[#1e3a8a] to-[#2563eb] dark:from-[#0a192f] dark:via-[#1e40af] dark:to-[#3b82f6] shadow-sm"
+                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-primary via-copper to-brass shadow-sm"
                                 initial={{ height: 75 }}
                                 animate={{
                                     height: [75, 115, 85, 125, 16, 0],
@@ -99,10 +99,10 @@ export default function Animated404() {
                             />
                         </div>
 
-                        {/* Bar 3 (Right - Bit Dark Blue) */}
+                        {/* Bar 3 (Right - Copper/Brass) */}
                         <div className="flex flex-col items-center justify-end h-full">
                             <MotionDiv
-                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] dark:from-[#1d4ed8] dark:via-[#3b82f6] dark:to-[#60a5fa] shadow-sm"
+                                className="w-6 sm:w-8 rounded-t-xl rounded-b-md bg-gradient-to-t from-copper via-brass to-sage shadow-sm"
                                 initial={{ height: 50 }}
                                 animate={{
                                     height: [50, 32, 68, 48, 10, 0],
@@ -134,7 +134,7 @@ export default function Animated404() {
                         {burstRays.map((ray, idx) => (
                             <MotionSpan
                                 key={idx}
-                                className={`absolute ${ray.position} ${ray.angle} w-1 h-3 sm:h-4 rounded-full bg-blue-900/80 dark:bg-blue-400/90 pointer-events-none origin-bottom`}
+                                className={`absolute ${ray.position} ${ray.angle} w-1 h-3 sm:h-4 rounded-full bg-primary/80 pointer-events-none origin-bottom`}
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{
                                     scale: [0, 1.25, 0],
@@ -149,7 +149,7 @@ export default function Animated404() {
                         ))}
 
                         {/* 404 Text - Pops up and remains static */}
-                        <h1 className="text-8xl sm:text-9xl md:text-[140px] font-black tracking-tight leading-none text-slate-900 dark:text-white select-none">
+                        <h1 className="text-8xl sm:text-9xl md:text-[140px] font-black tracking-tight leading-none text-text select-none">
                             404
                         </h1>
                     </MotionDiv>

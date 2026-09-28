@@ -6,12 +6,12 @@ export default function ErrorState({ title = "Something went wrong", message = "
             <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mb-4">
                 <HiOutlineExclamationCircle className="w-8 h-8 text-danger" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-            <p className="text-slate-400 max-w-md mb-6">{message}</p>
+            <h3 className="text-xl font-bold text-text mb-2">{title}</h3>
+            <p className="text-text-muted max-w-md mb-6">{message}</p>
             {onRetry && (
                 <button 
                     onClick={onRetry}
-                    className="btn-secondary flex items-center gap-2 hover:bg-danger/10 hover:border-danger/30 hover:text-danger transition-colors"
+                    className="btn-secondary flex items-center gap-2 hover:bg-danger/10 hover:border-danger/30 hover:text-danger transition-colors cursor-pointer"
                 >
                     <HiRefresh className="w-4 h-4" /> Try Again
                 </button>

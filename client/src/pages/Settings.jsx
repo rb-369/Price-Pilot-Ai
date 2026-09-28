@@ -64,7 +64,7 @@ const PLATFORMS = [
     { id: 'Amazon', name: 'Amazon Seller', color: '#ff9900' },
     { id: 'Flipkart', name: 'Flipkart Hub', color: '#2874f0' },
     { id: 'WooCommerce', name: 'WooCommerce', color: '#96588a' },
-    { id: 'Custom', name: 'Custom API / Direct', color: '#6366f1' },
+    { id: 'Custom', name: 'Custom API / Direct', color: '#A85A3C' },
 ];
 
 const SETTINGS_SALES_CHANNELS = [
@@ -73,16 +73,16 @@ const SETTINGS_SALES_CHANNELS = [
     { id: 'flipkart', name: 'Flipkart', icon: HiOutlineShoppingBag, color: '#2874F0' },
     { id: 'woocommerce', name: 'WooCommerce', icon: SiWoocommerce, color: '#9B5C8F' },
     { id: 'meesho', name: 'Meesho', icon: HiOutlineSparkles, color: '#F43397' },
-    { id: 'quickcommerce', name: 'Quick Commerce', icon: HiOutlineLightningBolt, color: '#10B981' },
-    { id: 'custom', name: 'Custom Store / D2C', icon: HiOutlineGlobeAlt, color: '#6366F1' },
+    { id: 'quickcommerce', name: 'Quick Commerce', icon: HiOutlineLightningBolt, color: '#5F806B' },
+    { id: 'custom', name: 'Custom Store / D2C', icon: HiOutlineGlobeAlt, color: '#A85A3C' },
 ];
 
 const SETTINGS_PRIMARY_GOALS = [
-    { id: 'profit', title: 'Maximize Profit Margins', desc: 'Optimize unit economics & profit retention', icon: HiOutlineCurrencyDollar, color: '#10B981' },
-    { id: 'sales_velocity', title: 'Boost Sales Volume', desc: 'Capture demand & ramp order count', icon: HiOutlineTrendingUp, color: '#6366F1' },
-    { id: 'clear_inventory', title: 'Liquidate Aging Stock', desc: 'Clear overstocked SKUs swiftly', icon: HiOutlineCube, color: '#F59E0B' },
-    { id: 'competitor_defense', title: 'Win Buy Box & Track Rivals', desc: 'Real-time defense against discounters', icon: HiOutlineShieldCheck, color: '#06B6D4' },
-    { id: 'price_testing', title: 'Elasticity & A/B Testing', desc: 'Discover optimal willingness-to-pay', icon: HiOutlineScale, color: '#EC4899' },
+    { id: 'profit', title: 'Maximize Profit Margins', desc: 'Optimize unit economics & profit retention', icon: HiOutlineCurrencyDollar, color: '#5F806B' },
+    { id: 'sales_velocity', title: 'Boost Sales Volume', desc: 'Capture demand & ramp order count', icon: HiOutlineTrendingUp, color: '#A85A3C' },
+    { id: 'clear_inventory', title: 'Liquidate Aging Stock', desc: 'Clear overstocked SKUs swiftly', icon: HiOutlineCube, color: '#B8734F' },
+    { id: 'competitor_defense', title: 'Win Buy Box & Track Rivals', desc: 'Real-time defense against discounters', icon: HiOutlineShieldCheck, color: '#A17A3A' },
+    { id: 'price_testing', title: 'Elasticity & A/B Testing', desc: 'Discover optimal willingness-to-pay', icon: HiOutlineScale, color: '#8C4630' },
 ];
 
 const SETTINGS_CATALOG_SIZES = [
@@ -146,7 +146,7 @@ export default function Settings() {
         platform: 'Shopify',
         role: 'Store Owner',
         currency: 'INR',
-        color: '#6366f1',
+        color: '#A85A3C',
         targetMargin: 20,
     });
 
@@ -199,7 +199,7 @@ export default function Settings() {
                     platform: 'Shopify',
                     role: user.role === 'admin' ? 'Administrator' : 'Store Owner',
                     currency: currency || 'INR',
-                    color: '#6366f1',
+                    color: '#A85A3C',
                     isDefault: true,
                     targetMargin: 20,
                 };
@@ -296,7 +296,7 @@ export default function Settings() {
             platform: 'Shopify',
             role: 'Store Owner',
             currency: 'INR',
-            color: '#6366f1',
+            color: '#A85A3C',
             targetMargin: 20,
         });
 
@@ -442,7 +442,7 @@ export default function Settings() {
 
                 {/* Quick Active Store Status Pill */}
                 <div className="flex items-center gap-3 bg-surface-light/60 border border-border/80 px-4 py-2.5 rounded-2xl backdrop-blur-md flex-shrink-0 self-start md:self-auto">
-                    <div className="w-3 h-3 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: activeProfile?.color || '#6366f1' }} />
+                    <div className="w-3 h-3 rounded-full animate-pulse flex-shrink-0" style={{ backgroundColor: activeProfile?.color || '#A85A3C' }} />
                     <div className="min-w-0">
                         <div className="text-[10px] uppercase font-bold tracking-wider text-text-muted">Active Workspace</div>
                         <div className="text-xs font-bold text-text truncate max-w-[140px] sm:max-w-[180px]">{activeProfile?.name || 'Primary Store'}</div>
@@ -503,7 +503,7 @@ export default function Settings() {
                                     platform: 'Shopify',
                                     role: 'Store Owner',
                                     currency: currency || 'INR',
-                                    color: '#6366f1',
+                                    color: '#A85A3C',
                                     targetMargin: 20,
                                 });
                                 setShowNewProfileModal(true);
@@ -534,7 +534,7 @@ export default function Settings() {
                                             <div className="flex items-center gap-2.5">
                                                 <div
                                                     className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md"
-                                                    style={{ backgroundColor: prof.color || '#6366f1' }}
+                                                    style={{ backgroundColor: prof.color || '#A85A3C' }}
                                                 >
                                                     {prof.platform === 'Shopify' ? <SiShopify className="w-4 h-4" /> :
                                                      prof.platform === 'Amazon' ? <SiAmazon className="w-4 h-4" /> :
@@ -597,7 +597,7 @@ export default function Settings() {
                                                     platform: prof.platform || 'Shopify',
                                                     role: prof.role || 'Store Owner',
                                                     currency: prof.currency || 'INR',
-                                                    color: prof.color || '#6366f1',
+                                                    color: prof.color || '#A85A3C',
                                                     targetMargin: prof.targetMargin || 20,
                                                 });
                                                 setShowNewProfileModal(true);
@@ -1338,13 +1338,13 @@ export default function Settings() {
                             <div>
                                 <label className="block text-xs font-semibold text-text-muted mb-1.5 uppercase tracking-wider">Profile Tag Color</label>
                                 <div className="flex gap-2">
-                                    {['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#14b8a6'].map(col => (
+                                    {['#A85A3C', '#B8734F', '#5F806B', '#A17A3A', '#8C4630', '#3b82f6', '#f59e0b'].map(col => (
                                         <button
                                             key={col}
                                             type="button"
                                             onClick={() => setProfileForm({ ...profileForm, color: col })}
                                             className={`w-8 h-8 rounded-full transition-transform cursor-pointer ${
-                                                profileForm.color === col ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-surface' : 'hover:scale-110'
+                                                profileForm.color === col ? 'scale-125 ring-2 ring-primary ring-offset-2 ring-offset-surface' : 'hover:scale-110'
                                             }`}
                                             style={{ backgroundColor: col }}
                                         />

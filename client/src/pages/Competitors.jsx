@@ -66,7 +66,7 @@ function SearchableProductSelect({ products, selectedProduct, onSelect }) {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1.5 w-full rounded-lg border border-border bg-surface-light p-2 shadow-2xl backdrop-blur-md">
+                <div className="absolute right-0 top-full z-50 mt-1.5 w-full rounded-xl border border-border bg-surface p-2 shadow-2xl backdrop-blur-md">
                     <div className="relative mb-2 flex items-center">
                         <HiOutlineSearch className="absolute left-2.5 z-10 h-3.5 w-3.5 text-text-muted pointer-events-none" />
                         <input
@@ -87,7 +87,7 @@ function SearchableProductSelect({ products, selectedProduct, onSelect }) {
                                 setIsOpen(false);
                                 setSearch('');
                             }}
-                            className={`w-full text-left px-3 py-2 text-xs rounded-md transition-colors ${!selectedProduct ? 'bg-primary/20 text-primary-light font-semibold' : 'text-text-muted hover:bg-surface hover:text-text'}`}
+                            className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors ${!selectedProduct ? 'bg-primary/15 text-primary font-semibold' : 'text-text-muted hover:bg-surface-elevated hover:text-text'}`}
                         >
                             Choose a product to inspect
                         </button>
@@ -101,7 +101,7 @@ function SearchableProductSelect({ products, selectedProduct, onSelect }) {
                                         setIsOpen(false);
                                         setSearch('');
                                     }}
-                                    className={`w-full text-left px-3 py-2 text-xs rounded-md transition-colors truncate ${selectedProduct === product._id ? 'bg-primary/20 text-primary-light font-semibold' : 'text-text hover:bg-surface'}`}
+                                    className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors truncate ${selectedProduct === product._id ? 'bg-primary/15 text-primary font-semibold' : 'text-text hover:bg-surface-elevated'}`}
                                     title={product.name}
                                 >
                                     {product.name}
@@ -380,25 +380,25 @@ export default function Competitors() {
                 </div>
             </header>
 
-            <section className="grid gap-3 sm:grid-cols-3" aria-label="Competitor summary">
-                <div className="border border-border bg-surface-light p-4">
-                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Tracked products</span><HiOutlineCube className="h-4 w-4 text-primary-light" /></div>
-                    <p className="mt-3 text-2xl font-semibold text-text">{summary.products}</p>
+            <section className="grid gap-4 sm:grid-cols-3" aria-label="Competitor summary">
+                <div className="glass-card p-5 border border-border">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Tracked products</span><HiOutlineCube className="h-4 w-4 text-primary" /></div>
+                    <p className="mt-3 text-2xl font-bold text-text">{summary.products}</p>
                 </div>
-                <div className="border border-border bg-surface-light p-4">
-                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Live competitor offers</span><HiOutlineChartBar className="h-4 w-4 text-accent" /></div>
-                    <p className="mt-3 text-2xl font-semibold text-text">{summary.offers}</p>
+                <div className="glass-card p-5 border border-border">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Live competitor offers</span><HiOutlineChartBar className="h-4 w-4 text-[#B8734F]" /></div>
+                    <p className="mt-3 text-2xl font-bold text-text">{summary.offers}</p>
                 </div>
-                <div className="border border-border bg-surface-light p-4">
-                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Priced below us</span><HiOutlineTrendingDown className="h-4 w-4 text-warning" /></div>
-                    <p className="mt-3 text-2xl font-semibold text-text">{summary.lowerPriced}</p>
+                <div className="glass-card p-5 border border-border">
+                    <div className="flex items-center justify-between"><span className="text-xs font-medium text-text-muted">Priced below us</span><HiOutlineTrendingDown className="h-4 w-4 text-[#A17A3A]" /></div>
+                    <p className="mt-3 text-2xl font-bold text-text">{summary.lowerPriced}</p>
                 </div>
             </section>
 
-            <section className="border border-border bg-surface-light">
+            <section className="glass-card overflow-hidden">
                 <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineScale className="h-5 w-5" /></div>
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><HiOutlineScale className="h-5 w-5" /></div>
                         <div><h2 className="text-sm font-semibold text-text">Price history</h2><p className="mt-0.5 text-xs text-text-muted">Latest 15 competitor price observations</p></div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -412,12 +412,12 @@ export default function Competitors() {
                                 type="button"
                                 onClick={() => handleFetchLive(selectedProduct)}
                                 disabled={fetchingLiveProduct === selectedProduct}
-                                className="rounded-lg p-2.5 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary-light border border-border disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                className="rounded-lg p-2.5 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary border border-border disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                                 title="Fetch Live Prices for Selected Product"
                                 aria-label="Fetch Live Prices"
                             >
                                 {fetchingLiveProduct === selectedProduct ? (
-                                    <svg className="h-4 w-4 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none">
+                                    <svg className="h-4 w-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                     </svg>
@@ -431,7 +431,7 @@ export default function Competitors() {
                 <div className="p-4 sm:p-6">
                     {fetchingHistory ? (
                         <div className="flex h-[300px] flex-col items-center justify-center text-center">
-                            <svg className="mb-3 h-9 w-9 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none">
+                            <svg className="mb-3 h-9 w-9 animate-spin text-primary" viewBox="0 0 24 24" fill="none">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
@@ -441,16 +441,15 @@ export default function Competitors() {
                         <div className="h-[300px] sm:h-[340px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={history} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
-                                    <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} width={52} />
-                                    <Tooltip contentStyle={{ background: '#131b2e', border: '1px solid #1e293b', borderRadius: '8px', color: '#f1f5f9' }} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" strokeOpacity={0.4} />
+                                    <XAxis dataKey="day" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                    <YAxis tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} width={52} />
+                                    <Tooltip contentStyle={{ background: 'var(--pp-surface)', border: '1px solid var(--pp-border)', borderRadius: '12px', color: 'var(--pp-text)', boxShadow: '0 12px 28px rgba(0,0,0,0.15)' }} />
                                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
                                     {historyCompetitors.map((competitor, idx) => {
                                         const colors = [
-                                            '#FF9900', '#2874F0', '#10B981', '#FF3E6C', 
-                                            '#8B5CF6', '#F59E0B', '#EC4899', '#3B82F6', 
-                                            '#14B8A6', '#84CC16', '#F43F5E', '#A855F7'
+                                            '#A85A3C', '#5F806B', '#B8734F', '#A17A3A', 
+                                            '#8C4630', '#2563EB', '#7C3AED', '#DB2777'
                                         ];
                                         const color = colors[idx % colors.length];
                                         return <Line key={competitor} type="monotone" dataKey={competitor} stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />
@@ -484,7 +483,7 @@ export default function Competitors() {
                     </div>
                     <div className="flex items-center gap-3">
                         {fetchingPrices && (
-                            <div className="flex items-center gap-2 text-xs text-primary-light">
+                            <div className="flex items-center gap-2 text-xs text-primary">
                                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -499,21 +498,21 @@ export default function Competitors() {
                 {Object.keys(productPrices).length ? (
                     <div className="space-y-4">
                         {Object.entries(productPrices).map(([productId, data]) => (
-                            <article key={productId} className="overflow-hidden border border-border bg-surface-light">
+                            <article key={productId} className="glass-card overflow-hidden">
                                 <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                                     <div className="flex min-w-0 items-center gap-3">
-                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary-light"><HiOutlineCube className="h-4 w-4" /></div>
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><HiOutlineCube className="h-4 w-4" /></div>
                                         <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-text">{data.product.name}</h3><p className="mt-0.5 text-xs text-text-muted">Your price: <span className="font-medium text-text">{formatCurrency(data.product.currentPrice)}</span>{data.product.sku ? `  |  ${data.product.sku}` : ''}</p></div>
                                     </div>
                                     <div className="flex gap-2 self-end sm:self-auto">
-                                        <button type="button" onClick={() => handleFetchLive(productId)} disabled={fetchingLiveProduct === productId} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary-light disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Fetch Live Prices for ${data.product.name}`} title="Fetch Live Prices">
-                                            {fetchingLiveProduct === productId ? <svg className="h-4 w-4 animate-spin text-primary-light" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> : <HiOutlineRefresh className="h-4 w-4" />}
+                                        <button type="button" onClick={() => handleFetchLive(productId)} disabled={fetchingLiveProduct === productId} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Fetch Live Prices for ${data.product.name}`} title="Fetch Live Prices">
+                                            {fetchingLiveProduct === productId ? <svg className="h-4 w-4 animate-spin text-primary" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> : <HiOutlineRefresh className="h-4 w-4" />}
                                         </button>
                                         <button type="button" onClick={() => handleDelete(productId, data.product.name)} className="rounded-lg p-2 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger cursor-pointer" aria-label={`Delete ${data.product.name}`} title="Delete product"><HiOutlineTrash className="h-4 w-4" /></button>
                                     </div>
                                 </div>
 
-                                <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] gap-4 border-b border-border bg-surface px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-text-muted md:grid">
+                                <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(100px,0.75fr)_100px_110px] gap-4 border-b border-border bg-surface-elevated/50 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-text-muted md:grid">
                                     <span>Competitor</span><span className="text-right">Their price</span><span className="text-center">Availability</span><span className="text-right">Difference</span>
                                 </div>
                                 <div className="divide-y divide-border">
@@ -528,7 +527,7 @@ export default function Competitors() {
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-sm font-bold text-text">{competitor.name || 'Amazon'}</span>
                                                                 {!competitor.name?.toUpperCase().includes(data.product.brand?.toUpperCase() || '___NON_EXISTENT___') && competitor.name?.includes('(') && (
-                                                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary-light border border-primary/20">
+                                                                    <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                                                                         Cross-Brand Rival
                                                                     </span>
                                                                 )}
@@ -541,7 +540,7 @@ export default function Competitors() {
                                                                     href={competitor.url ? (competitor.url.startsWith('http') ? competitor.url : `https://www.flipkart.com${competitor.url}`) : `https://www.google.com/search?q=${encodeURIComponent((competitor.name || 'Amazon') + ' ' + competitor.productName)}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="text-xs text-primary-light hover:underline line-clamp-1"
+                                                                    className="text-xs text-primary hover:underline line-clamp-1"
                                                                     title={competitor.productName}
                                                                 >
                                                                     {competitor.productName}
@@ -569,7 +568,7 @@ export default function Competitors() {
                         ))}
                     </div>
                 ) : (
-                    <div className="border border-border bg-surface-light px-6 py-14 text-center">
+                    <div className="glass-card px-6 py-14 text-center">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
                             <span className="text-xl">✕</span>
                         </div>

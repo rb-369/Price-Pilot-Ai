@@ -97,7 +97,15 @@ export default function App() {
           <BrowserRouter>
             <AuthProvider>
               <Toaster position="top-right" toastOptions={{
-                style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
+                style: {
+                  background: 'var(--pp-surface)',
+                  color: 'var(--pp-text)',
+                  border: '1px solid var(--pp-border)',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
+                  fontSize: '13px',
+                  fontWeight: 500
+                },
               }} />
               <ErrorBoundary>
                 <AppRoutes />

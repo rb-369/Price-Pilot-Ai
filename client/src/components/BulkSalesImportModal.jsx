@@ -165,15 +165,15 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
       
       <div className="relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-hover/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-light">
           <div>
-            <h2 className="text-xl font-bold text-text-primary" id="modal-title">Import Sales Data</h2>
-            <p className="text-sm text-text-secondary mt-1">Upload a CSV or Excel file. Our AI will automatically map the columns.</p>
+            <h2 className="text-xl font-bold text-text" id="modal-title">Import Sales Data</h2>
+            <p className="text-sm text-text-muted mt-1">Upload a CSV or Excel file. Our AI will automatically map the columns.</p>
           </div>
-          <button onClick={onClose} className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-full transition-colors" aria-label="Close">
+          <button onClick={onClose} className="p-2 text-text-muted hover:text-text hover:bg-surface-lighter rounded-full transition-colors" aria-label="Close">
             <FiX className="w-5 h-5" />
           </button>
         </div>
@@ -181,38 +181,38 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
         <div className="flex-1 overflow-y-auto p-6">
           {mappingState === 'idle' && (
             <div className="space-y-6">
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-surface-hover/50 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:bg-surface-light hover:border-primary/50 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <FiUpload className="w-8 h-8 text-primary mx-auto mb-3" />
-                <p className="text-sm font-medium text-text-primary">Click to upload CSV or Excel</p>
-                <p className="text-xs text-text-secondary mt-1">Any tabular format is supported.</p>
+                <p className="text-sm font-semibold text-text">Click to upload CSV or Excel</p>
+                <p className="text-xs text-text-muted mt-1">Any tabular format is supported.</p>
                 <input type="file" accept=".csv,.xlsx" className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
               </div>
               
-              <div className="bg-surface-hover/50 border border-border rounded-xl p-5">
+              <div className="bg-surface-light border border-border rounded-xl p-5">
                   <label className="flex items-start gap-3 cursor-pointer">
                       <input 
                           type="checkbox" 
-                          className="mt-1 w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary focus:ring-offset-surface"
+                          className="mt-1 w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary focus:ring-offset-surface accent-[#A85A3C]"
                           checked={isHistorical}
                           onChange={(e) => setIsHistorical(e.target.checked)}
                       />
                       <div>
-                          <p className="text-sm font-semibold text-text-primary">Importing Historical Data?</p>
-                          <p className="text-xs text-text-secondary mt-1">Enable this if you are importing old sales data. When enabled, this import will <strong className="text-primary">NOT</strong> deduct from your current product stock levels.</p>
+                          <p className="text-sm font-semibold text-text">Importing Historical Data?</p>
+                          <p className="text-xs text-text-muted mt-1">Enable this if you are importing old sales data. When enabled, this import will <strong className="text-primary font-semibold">NOT</strong> deduct from your current product stock levels.</p>
                       </div>
                   </label>
               </div>
               
-              <div className="bg-surface-hover/30 border border-border rounded-xl p-5 text-sm text-text-secondary space-y-4">
+              <div className="bg-surface-light/60 border border-border rounded-xl p-5 text-sm text-text-muted space-y-4">
                   <div>
-                      <h4 className="font-semibold text-text-primary mb-1">Recommended Format</h4>
-                      <p>For best results, include columns for: <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">productName</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">orderId</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">quantity</code>, <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">salePrice</code>, and <code className="text-primary font-mono bg-primary/10 px-1 py-0.5 rounded">purchasedAt</code>.</p>
+                      <h4 className="font-semibold text-text mb-1">Recommended Format</h4>
+                      <p>For best results, include columns for: <code className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">productName</code>, <code className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">orderId</code>, <code className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">quantity</code>, <code className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">salePrice</code>, and <code className="text-primary font-mono bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">purchasedAt</code>.</p>
                   </div>
                   <div>
-                      <h4 className="font-semibold text-text-primary mb-2">Need to clean messy data?</h4>
+                      <h4 className="font-semibold text-text mb-2">Need to clean messy data?</h4>
                       <p className="mb-2">Copy this prompt and paste it into ChatGPT, Claude, or Gemini along with your messy data:</p>
                       <div className="bg-surface border border-border rounded-lg p-3">
-                          <code className="text-xs text-text-primary/90 block whitespace-pre-wrap">
+                          <code className="text-xs text-text/90 block whitespace-pre-wrap">
                               Please format my sales data into a clean CSV with the following columns: productName, orderId, quantity, salePrice, purchasedAt.{"\n\n"}
                               IMPORTANT: If any crucial information is missing (like sales volume, price, or product identifier), DO NOT guess. Instead, give me a clear ERROR MESSAGE telling me exactly which fields are missing for which rows so I can fix them.
                           </code>
@@ -225,42 +225,42 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           {mappingState === 'mapping' && (
             <div className="py-12 flex flex-col items-center justify-center">
               <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-              <p className="text-sm font-medium text-text-primary">AI is analyzing columns and validating data...</p>
+              <p className="text-sm font-medium text-text">AI is analyzing columns and validating data...</p>
             </div>
           )}
 
           {mappingState === 'mapping_done' && validation && (
              <div className="space-y-6">
-                <div className="p-4 bg-surface-hover rounded-xl border border-border flex items-center justify-between">
+                <div className="p-4 bg-surface-light rounded-xl border border-border flex items-center justify-between">
                    <div className="flex items-center gap-3">
                        <FiFileText className="w-6 h-6 text-primary" />
                        <div>
-                           <p className="font-semibold text-text-primary">File Analyzed</p>
-                           <p className="text-xs text-text-secondary">AI successfully mapped columns.</p>
+                           <p className="font-semibold text-text">File Analyzed</p>
+                           <p className="text-xs text-text-muted">AI successfully mapped columns.</p>
                        </div>
                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                        <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                    <div className="p-4 bg-sage/10 border border-sage/20 rounded-xl">
+                        <div className="flex items-center gap-2 text-sage mb-1">
                             <FiCheckCircle className="w-4 h-4" />
                             <h4 className="font-semibold text-sm">Valid Rows</h4>
                         </div>
-                        <p className="text-2xl font-bold text-text-primary">{validation.valid.length}</p>
+                        <p className="text-2xl font-bold text-text">{validation.valid.length}</p>
                     </div>
-                    <div className={`p-4 rounded-xl border ${validation.invalid.length > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-surface-hover border-border'}`}>
-                        <div className={`flex items-center gap-2 mb-1 ${validation.invalid.length > 0 ? 'text-red-400' : 'text-text-secondary'}`}>
+                    <div className={`p-4 rounded-xl border ${validation.invalid.length > 0 ? 'bg-danger/10 border-danger/20' : 'bg-surface-light border-border'}`}>
+                        <div className={`flex items-center gap-2 mb-1 ${validation.invalid.length > 0 ? 'text-danger' : 'text-text-muted'}`}>
                             <FiAlertCircle className="w-4 h-4" />
                             <h4 className="font-semibold text-sm">Rows with Errors</h4>
                         </div>
-                        <p className="text-2xl font-bold text-text-primary">{validation.invalid.length}</p>
+                        <p className="text-2xl font-bold text-text">{validation.invalid.length}</p>
                     </div>
                 </div>
 
                 {validation.invalid.length > 0 && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                        <p className="text-sm text-red-400">
+                    <div className="p-3 bg-danger/10 border border-danger/20 rounded-lg">
+                        <p className="text-sm text-danger">
                             <strong>Note:</strong> We found errors in {validation.invalid.length} rows (e.g. missing price or invalid numbers). You can proceed to import only the valid rows, or cancel to fix your file.
                         </p>
                     </div>
@@ -270,27 +270,27 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
 
           {mappingState === 'wizard' && (
              <div className="space-y-4">
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
-                    <h3 className="text-amber-500 font-semibold flex items-center justify-between gap-2">
+                <div className="p-4 bg-brass/10 border border-brass/20 rounded-xl mb-4">
+                    <h3 className="text-brass font-semibold flex items-center justify-between gap-2">
                         <span className="flex items-center gap-2"><FiAlertCircle /> Missing Products Found</span>
-                        <span className="text-xs font-bold bg-amber-500/20 px-2 py-1 rounded-full">Product {currentMissingIndex + 1} of {missingProducts.length}</span>
+                        <span className="text-xs font-bold bg-brass/20 px-2 py-1 rounded-full text-brass">Product {currentMissingIndex + 1} of {missingProducts.length}</span>
                     </h3>
-                    <p className="text-sm text-amber-500/80 mt-1">
+                    <p className="text-sm text-brass/90 mt-1">
                         We couldn't find the following products in your PricePilot database. Please fill in their details below.
                     </p>
                 </div>
                 
                 {missingProducts.length > 0 && (
-                <div className="border border-border rounded-xl p-5 space-y-4 bg-surface-hover/30">
+                <div className="border border-border rounded-xl p-5 space-y-4 bg-surface-light">
                     <div>
-                        <label className="block text-xs font-medium text-text-secondary mb-1">Product Name</label>
-                        <input type="text" className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary" readOnly value={missingProducts[currentMissingIndex].name} />
+                        <label className="block text-xs font-semibold text-text-muted mb-1">Product Name</label>
+                        <input type="text" className="w-full bg-surface-lighter border border-border rounded-lg px-3 py-2 text-text font-medium" readOnly value={missingProducts[currentMissingIndex].name} />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-text-secondary mb-1">SKU <span className="text-red-400">*</span></label>
-                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                            <label className="block text-xs font-semibold text-text-muted mb-1">SKU <span className="text-danger">*</span></label>
+                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 transition-colors" 
                                 value={missingProducts[currentMissingIndex].sku} 
                                 onChange={e => {
                                     const newArr = [...missingProducts];
@@ -301,8 +301,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-text-secondary mb-1">Category</label>
-                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                            <label className="block text-xs font-semibold text-text-muted mb-1">Category</label>
+                            <input type="text" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 transition-colors" 
                                 value={missingProducts[currentMissingIndex].category} 
                                 onChange={e => {
                                     const newArr = [...missingProducts];
@@ -316,8 +316,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                     
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-xs font-medium text-text-secondary mb-1">Base Cost ($) <span className="text-red-400">*</span></label>
-                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                            <label className="block text-xs font-semibold text-text-muted mb-1">Base Cost ($) <span className="text-danger">*</span></label>
+                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 transition-colors" 
                                 value={missingProducts[currentMissingIndex].baseCost} 
                                 onChange={e => {
                                     const newArr = [...missingProducts];
@@ -327,8 +327,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-text-secondary mb-1">Sale Price ($) <span className="text-red-400">*</span></label>
-                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                            <label className="block text-xs font-semibold text-text-muted mb-1">Sale Price ($) <span className="text-danger">*</span></label>
+                            <input type="number" step="0.01" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 transition-colors" 
                                 value={missingProducts[currentMissingIndex].currentPrice} 
                                 onChange={e => {
                                     const newArr = [...missingProducts];
@@ -338,8 +338,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-text-secondary mb-1">Initial Stock <span className="text-red-400">*</span></label>
-                            <input type="number" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary" 
+                            <label className="block text-xs font-semibold text-text-muted mb-1">Initial Stock <span className="text-danger">*</span></label>
+                            <input type="number" className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 transition-colors" 
                                 value={missingProducts[currentMissingIndex].stockLevel} 
                                 onChange={e => {
                                     const newArr = [...missingProducts];
@@ -351,8 +351,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                     </div>
                     
                     <div>
-                        <label className="block text-xs font-medium text-text-secondary mb-1">Description (Optional)</label>
-                        <textarea className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text-primary h-20 resize-none" 
+                        <label className="block text-xs font-semibold text-text-muted mb-1">Description (Optional)</label>
+                        <textarea className="w-full bg-surface border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none rounded-lg px-3 py-2 text-text placeholder:text-text-muted/60 h-20 resize-none transition-colors" 
                             value={missingProducts[currentMissingIndex].description} 
                             onChange={e => {
                                 const newArr = [...missingProducts];
@@ -369,23 +369,23 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           
           {mappingState === 'done_with_warnings' && (
              <div className="space-y-4">
-                <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-4 text-center">
-                    <FiCheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-                    <h3 className="text-emerald-500 font-semibold text-lg">Sales Imported Successfully</h3>
-                    <p className="text-sm text-emerald-500/80 mt-1">Most of your sales were imported without issues.</p>
+                <div className="p-5 bg-sage/10 border border-sage/20 rounded-xl mb-4 text-center">
+                    <FiCheckCircle className="w-10 h-10 text-sage mx-auto mb-2" />
+                    <h3 className="text-sage font-semibold text-lg">Sales Imported Successfully</h3>
+                    <p className="text-sm text-sage/90 mt-1">Most of your sales were imported without issues.</p>
                 </div>
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <h3 className="text-red-400 font-semibold flex items-center gap-2 mb-2">
+                <div className="p-4 bg-danger/10 border border-danger/20 rounded-xl">
+                    <h3 className="text-danger font-semibold flex items-center gap-2 mb-2">
                         <FiAlertCircle /> Out of Stock Skipped Rows ({outOfStockWarnings.length})
                     </h3>
-                    <p className="text-sm text-red-400/80 mb-3">
+                    <p className="text-sm text-danger/80 mb-3">
                         The following sales were skipped because the products do not have enough inventory on record. Please update your stock levels on the Products page and re-import these rows, or check "Historical Data".
                     </p>
                     <div className="max-h-40 overflow-y-auto space-y-2">
                         {outOfStockWarnings.map((w, i) => (
-                            <div key={i} className="text-xs bg-red-500/5 p-2 rounded border border-red-500/10 flex justify-between">
-                                <span className="font-medium text-red-300">{w.productName}</span>
-                                <span className="text-red-400/70">Stock: {w.currentStock} | Required: {w.requestedQuantity}</span>
+                            <div key={i} className="text-xs bg-danger/5 p-2 rounded border border-danger/10 flex justify-between">
+                                <span className="font-medium text-text">{w.productName}</span>
+                                <span className="text-danger/80">Stock: {w.currentStock} | Required: {w.requestedQuantity}</span>
                             </div>
                         ))}
                     </div>
@@ -394,8 +394,8 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-border bg-surface flex justify-end gap-3">
-          <button type="button" onClick={onClose} disabled={importing} className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-hover rounded-lg transition-colors">
+        <div className="px-6 py-4 border-t border-border bg-surface-light flex justify-end gap-3">
+          <button type="button" onClick={onClose} disabled={importing} className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text hover:bg-surface-lighter rounded-lg transition-colors">
             Cancel
           </button>
           
@@ -404,7 +404,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                   type="button" 
                   onClick={() => handleImport()} 
                   disabled={importing || validation?.valid.length === 0} 
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover shadow-sm rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
               >
                   {importing ? (
                       <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Importing...</>
@@ -438,7 +438,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                           handleImport(finalProducts, finalOrders);
                       }} 
                       disabled={importing}
-                      className="px-4 py-2 text-sm font-medium text-text-secondary bg-surface-hover hover:bg-border rounded-lg transition-colors disabled:opacity-50"
+                      className="px-4 py-2 text-sm font-medium text-text-muted bg-surface hover:bg-surface-lighter border border-border rounded-lg transition-colors disabled:opacity-50"
                   >
                       Finish & Import Now
                   </button>
@@ -457,7 +457,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                               }
                           }} 
                           disabled={importing}
-                          className="px-4 py-2 text-sm font-medium text-text-primary bg-surface-hover hover:bg-border border border-border rounded-lg transition-colors disabled:opacity-50"
+                          className="px-4 py-2 text-sm font-medium text-text bg-surface hover:bg-surface-lighter border border-border rounded-lg transition-colors disabled:opacity-50"
                       >
                           Skip Product
                       </button>
@@ -490,7 +490,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                               }
                           }} 
                           disabled={importing} 
-                          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                          className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover shadow-sm rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
                       >
                           {importing ? (
                               <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
@@ -511,7 +511,7 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
                       if (onSuccess) onSuccess();
                       onClose();
                   }} 
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover shadow-sm rounded-lg transition-all"
               >
                   Acknowledge & Close
               </button>

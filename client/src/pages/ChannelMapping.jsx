@@ -212,7 +212,7 @@ export default function ChannelMapping() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-[rgba(99,102,241,0.08)] bg-surface-lighter/50 text-xs font-bold uppercase tracking-wider text-text-muted">
+                            <tr className="border-b border-border bg-surface-lighter/50 text-xs font-bold uppercase tracking-wider text-text-muted">
                                 <th className="p-4">Central Product</th>
                                 <th className="p-4">Shopify Link</th>
                                 <th className="p-4">Amazon SP-API</th>
@@ -220,7 +220,7 @@ export default function ChannelMapping() {
                                 <th className="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[rgba(99,102,241,0.05)] text-sm">
+                        <tbody className="divide-y divide-border text-sm">
                             {loading ? (
                                 <tr>
                                     <td colSpan="5" className="p-8 text-center text-text-muted">
@@ -257,8 +257,8 @@ export default function ChannelMapping() {
                                                         <div className="font-semibold text-text">{product.name}</div>
                                                         <div className="text-xs text-text-muted font-mono flex items-center gap-2">
                                                             <span>SKU: {product.sku}</span>
-                                                            <span className="text-primary-light">Stock: {product.stockLevel}</span>
-                                                            <span className="text-warning">Buffer: {product.safetyBuffer || 2}</span>
+                                                            <span className="text-copper">Stock: {product.stockLevel}</span>
+                                                            <span className="text-brass">Buffer: {product.safetyBuffer || 2}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -324,7 +324,7 @@ export default function ChannelMapping() {
             {/* Manual Link Modal */}
             {showMapModal && selectedProduct && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-surface border border-[rgba(99,102,241,0.15)] rounded-2xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
+                    <div className="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
                         <h2 className="text-xl font-bold text-text mb-1">Map Channel</h2>
                         <p className="text-sm text-text-muted mb-4">
                             Link <span className="text-primary font-semibold">{selectedProduct.name}</span> to an external marketplace listing.
@@ -380,7 +380,7 @@ export default function ChannelMapping() {
                                 />
                             </div>
 
-                            <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)] mt-6">
+                            <div className="flex gap-3 justify-end pt-4 border-t border-border mt-6">
                                 <button type="button" onClick={() => setShowMapModal(false)} className="btn-secondary px-5 text-sm">
                                     Cancel
                                 </button>
@@ -434,7 +434,7 @@ function ChannelCell({ mapping, externalId, platform, onConfirm, onReject, onDel
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => onConfirm(mapping._id)}
-                        className="text-xs text-success hover:underline font-semibold flex items-center gap-0.5"
+                        className="text-xs text-sage hover:underline font-semibold flex items-center gap-0.5"
                     >
                         <HiOutlineCheckCircle className="w-3.5 h-3.5" /> Confirm
                     </button>
@@ -453,7 +453,7 @@ function ChannelCell({ mapping, externalId, platform, onConfirm, onReject, onDel
     // Confirmed Link
     return (
         <div className="flex items-center gap-2 group">
-            <span className="font-mono text-xs text-success-light bg-success/10 px-2 py-0.5 rounded font-medium flex items-center gap-1">
+            <span className="font-mono text-xs text-sage bg-sage/10 border border-sage/20 px-2 py-0.5 rounded font-medium flex items-center gap-1">
                 <HiOutlineTag className="w-3 h-3" /> {displayId || 'Linked'}
             </span>
             {mapping && (

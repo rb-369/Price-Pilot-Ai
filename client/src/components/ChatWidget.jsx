@@ -323,11 +323,11 @@ const ChatWidget = () => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="relative group bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-4 rounded-full shadow-[0_0_25px_rgba(99,102,241,0.4)] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/20"
+                    className="relative group bg-primary hover:bg-primary-dark text-white p-4 rounded-full shadow-[0_4px_24px_rgba(168,90,60,0.4)] hover:shadow-[0_6px_28px_rgba(168,90,60,0.55)] transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/20"
                 >
                     <div className="relative">
-                        <img src="/chabot-assistant-without-bg.png" alt="AI Assistant" className="w-8 h-8 object-contain filter drop-shadow-md" />
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full animate-pulse"></span>
+                        <img src="/chabot-assistant-without-bg.png" alt="AI Assistant" className="w-8 h-8 object-contain filter drop-shadow-xs" />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-sage border-2 border-surface rounded-full animate-pulse"></span>
                     </div>
                     <span className="font-semibold text-sm pr-1 tracking-wide hidden sm:inline">Ask PricePilot AI</span>
                 </button>
@@ -335,26 +335,26 @@ const ChatWidget = () => {
 
             {/* Chat Drawer Widget */}
             <div className={`transition-all duration-300 ease-in-out transform ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-8 pointer-events-none absolute bottom-0 right-0'}`}>
-                <div className={`bg-slate-900/90 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden transition-all duration-300 ${
+                <div className={`bg-surface/95 backdrop-blur-xl border border-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden transition-all duration-300 ${
                     isExpanded 
                     ? 'w-[calc(100vw-3rem)] h-[calc(100vh-6rem)] max-w-5xl rounded-3xl' 
                     : 'w-[90vw] sm:w-[420px] h-[580px] rounded-3xl'
                 }`}>
                     {/* Header */}
-                    <div className="p-4 bg-slate-800/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between">
+                    <div className="p-4 bg-surface-lighter/80 backdrop-blur-md border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5 shadow-md">
-                                <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center overflow-hidden">
+                            <div className="relative w-9 h-9 rounded-xl bg-primary/10 border border-primary/25 p-0.5 shadow-xs">
+                                <div className="w-full h-full bg-surface rounded-[10px] flex items-center justify-center overflow-hidden">
                                     <img src="/chabot-assistant-without-bg.png" alt="AI" className="w-7 h-7 object-contain" />
                                 </div>
                             </div>
                             <div>
-                                <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2">
+                                <h3 className="font-bold text-text text-sm tracking-wide flex items-center gap-2">
                                     PricePilot AI
-                                    <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-medium">Assistant</span>
+                                    <span className="text-[10px] bg-primary/15 text-primary-light border border-primary/25 px-2 py-0.5 rounded-full font-medium">Assistant</span>
                                 </h3>
-                                <p className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active • Type @ for products, / for methods
+                                <p className="text-[11px] text-text-muted flex items-center gap-1.5 mt-0.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-sage animate-pulse"></span> Active • Type @ for products, / for methods
                                 </p>
                             </div>
                         </div>
@@ -362,21 +362,21 @@ const ChatWidget = () => {
                         <div className="flex items-center gap-1">
                             <button 
                                 onClick={handleNewChat}
-                                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                                className="p-2 text-text-muted hover:text-text hover:bg-surface-lighter rounded-lg transition-colors"
                                 title="New Conversation"
                             >
                                 <HiOutlinePlus className="w-4 h-4" />
                             </button>
                             <button 
                                 onClick={() => navigate('/dashboard/chat')}
-                                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                                className="p-2 text-text-muted hover:text-text hover:bg-surface-lighter rounded-lg transition-colors"
                                 title="Open Full Screen AI Workspace"
                             >
                                 <HiOutlineChatAlt2 className="w-4 h-4" />
                             </button>
                             <button 
                                 onClick={() => setIsOpen(false)}
-                                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                                className="p-2 text-text-muted hover:text-text hover:bg-surface-lighter rounded-lg transition-colors"
                                 title="Close"
                             >
                                 <HiOutlineX className="w-4 h-4" />
@@ -387,21 +387,21 @@ const ChatWidget = () => {
                     {/* Messages Body */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                         {messages.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-3">
-                                <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center border border-white/5">
-                                    <HiOutlineChatAlt2 className="w-8 h-8 text-indigo-400" />
+                            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-text-muted space-y-3">
+                                <div className="w-16 h-16 rounded-full bg-surface-lighter flex items-center justify-center border border-border">
+                                    <HiOutlineChatAlt2 className="w-8 h-8 text-primary" />
                                 </div>
-                                <p className="text-sm font-semibold text-slate-200">Start a new conversation</p>
-                                <p className="text-xs text-slate-400">Type <code className="text-indigo-400">@</code> to tag products or <code className="text-purple-400">/</code> to run methods.</p>
+                                <p className="text-sm font-semibold text-text">Start a new conversation</p>
+                                <p className="text-xs text-text-muted">Type <code className="text-primary font-mono font-bold">@</code> to tag products or <code className="text-copper font-mono font-bold">/</code> to run methods.</p>
                             </div>
                         )}
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                                 <div className="max-w-[85%] flex flex-col">
-                                    <div className={`px-4 py-3 shadow-lg relative ${
+                                    <div className={`px-4 py-3 shadow-xs relative ${
                                         msg.role === 'user' 
-                                        ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-2xl rounded-tr-sm border border-white/10 self-end' 
-                                        : 'bg-slate-800/80 backdrop-blur-md border border-white/5 text-slate-200 rounded-2xl rounded-tl-sm self-start'
+                                        ? 'bg-primary text-white rounded-2xl rounded-tr-xs border border-primary/40 self-end' 
+                                        : 'bg-surface-light border border-border text-text rounded-2xl rounded-tl-xs self-start'
                                     }`}>
                                         {msg.role === 'user' ? (
                                             editingIndex === idx ? (
@@ -409,7 +409,7 @@ const ChatWidget = () => {
                                                     <textarea
                                                         value={editingText}
                                                         onChange={(e) => setEditingText(e.target.value)}
-                                                        className="w-full rounded-lg bg-black/30 border border-white/20 p-2 text-xs text-white outline-none focus:border-indigo-400 min-h-[50px] custom-scrollbar"
+                                                        className="w-full rounded-lg bg-black/30 border border-white/20 p-2 text-xs text-white outline-none focus:border-primary min-h-[50px] custom-scrollbar"
                                                     />
                                                     <div className="flex items-center justify-end gap-1.5 text-[11px]">
                                                         <button
@@ -423,7 +423,7 @@ const ChatWidget = () => {
                                                             type="button"
                                                             onClick={() => handleSaveEdit(idx)}
                                                             disabled={!editingText.trim() || isLoading}
-                                                            className="px-2 py-1 rounded bg-white text-indigo-900 font-bold hover:bg-white/90 disabled:opacity-50"
+                                                            className="px-2 py-1 rounded bg-white text-primary font-bold hover:bg-white/90 disabled:opacity-50 cursor-pointer"
                                                         >
                                                             Save & Submit
                                                         </button>
@@ -451,17 +451,17 @@ const ChatWidget = () => {
 
                                     {/* Action Bar (Copy, Edit Pencil for User / Copy, Like, Dislike for Model) */}
                                     {editingIndex !== idx && (
-                                        <div className={`mt-1 flex items-center gap-1.5 text-[11px] ${msg.role === 'user' ? 'justify-end text-slate-400' : 'justify-start text-slate-400'}`}>
+                                        <div className={`mt-1 flex items-center gap-1.5 text-[11px] ${msg.role === 'user' ? 'justify-end text-text-muted' : 'justify-start text-text-muted'}`}>
                                             <button
                                                 type="button"
                                                 onClick={() => handleCopyText(msg.content, idx)}
-                                                className="inline-flex items-center gap-1 px-1 py-0.5 rounded hover:bg-slate-800 hover:text-white transition-colors"
+                                                className="inline-flex items-center gap-1 px-1 py-0.5 rounded hover:bg-surface-lighter hover:text-text transition-colors"
                                                 title="Copy text"
                                             >
                                                 {copiedIndex === idx ? (
                                                     <>
-                                                        <HiOutlineCheck className="w-3.5 h-3.5 text-emerald-400" />
-                                                        <span className="text-[10px] font-semibold text-emerald-400">Copied!</span>
+                                                        <HiOutlineCheck className="w-3.5 h-3.5 text-sage" />
+                                                        <span className="text-[10px] font-semibold text-sage">Copied!</span>
                                                     </>
                                                 ) : (
                                                     <HiOutlineDuplicate className="w-3.5 h-3.5" />
@@ -472,7 +472,7 @@ const ChatWidget = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleStartEdit(idx, msg.content)}
-                                                    className="inline-flex items-center gap-1 px-1 py-0.5 rounded hover:bg-slate-800 hover:text-indigo-300 transition-colors"
+                                                    className="inline-flex items-center gap-1 px-1 py-0.5 rounded hover:bg-surface-lighter hover:text-primary transition-colors"
                                                     title="Edit prompt"
                                                 >
                                                     <HiOutlinePencil className="w-3.5 h-3.5" />
@@ -484,8 +484,8 @@ const ChatWidget = () => {
                                                         onClick={() => handleQuickLike(idx, msg)}
                                                         className={`p-1 rounded transition-colors ${
                                                             msg.feedback?.rating === 'like'
-                                                                ? 'text-emerald-400 bg-emerald-500/10'
-                                                                : 'hover:text-emerald-400 hover:bg-slate-800'
+                                                                ? 'text-sage bg-sage/10'
+                                                                : 'hover:text-sage hover:bg-surface-lighter'
                                                         }`}
                                                         title="Like response"
                                                     >
@@ -497,8 +497,8 @@ const ChatWidget = () => {
                                                         onClick={() => handleOpenFeedbackModal(idx)}
                                                         className={`p-1 rounded transition-colors ${
                                                             msg.feedback?.rating === 'dislike'
-                                                                ? 'text-rose-400 bg-rose-500/10'
-                                                                : 'hover:text-rose-400 hover:bg-slate-800'
+                                                                ? 'text-danger bg-danger/10'
+                                                                : 'hover:text-danger hover:bg-surface-lighter'
                                                         }`}
                                                         title="Dislike / Give feedback"
                                                     >
@@ -506,12 +506,12 @@ const ChatWidget = () => {
                                                     </button>
 
                                                     {msg.feedback?.status === 'ignored_offtopic' && (
-                                                        <span className="text-[9px] text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-full font-medium ml-1">
+                                                        <span className="text-[9px] text-brass bg-brass/10 border border-brass/20 px-1.5 py-0.5 rounded-full font-medium ml-1">
                                                             Off-topic
                                                         </span>
                                                     )}
                                                     {msg.feedback?.status === 'accepted' && (
-                                                        <span className="text-[9px] text-emerald-300 bg-emerald-500/20 px-1.5 py-0.5 rounded-full font-medium ml-1">
+                                                        <span className="text-[9px] text-sage bg-sage/10 border border-sage/20 px-1.5 py-0.5 rounded-full font-medium ml-1">
                                                             Recorded
                                                         </span>
                                                     )}
@@ -531,10 +531,10 @@ const ChatWidget = () => {
                     {/* Attachment Indicator */}
                     {attachedFile && (
                         <div className="px-4 pb-2">
-                            <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs px-3 py-1.5 rounded-full">
+                            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary-light text-xs px-3 py-1.5 rounded-full">
                                 <HiOutlineDocumentText className="w-4 h-4" />
                                 <span className="truncate max-w-[200px]">{attachedFile.name}</span>
-                                <button onClick={() => {setAttachedFile(null); setExtractedText(null);}} className="hover:text-white ml-1">
+                                <button onClick={() => {setAttachedFile(null); setExtractedText(null);}} className="hover:text-text ml-1">
                                     <HiOutlineX className="w-3 h-3" />
                                 </button>
                             </div>
@@ -542,7 +542,7 @@ const ChatWidget = () => {
                     )}
 
                     {/* Input Area */}
-                    <div className="p-3.5 bg-slate-900/80 backdrop-blur-md border-t border-white/5 relative z-20">
+                    <div className="p-3.5 bg-surface/95 backdrop-blur-md border-t border-border relative z-20">
                         {/* Autocomplete Popover */}
                         <ChatAutocompletePopover
                             input={input}
@@ -567,7 +567,7 @@ const ChatWidget = () => {
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="absolute left-3 text-slate-400 hover:text-indigo-400 transition-colors z-10"
+                                className="absolute left-3 text-text-muted hover:text-primary transition-colors z-10"
                                 title="Attach PDF or Text file"
                             >
                                 <HiOutlinePaperClip className="w-5 h-5" />
@@ -579,14 +579,14 @@ const ChatWidget = () => {
                                 value={input}
                                 onChange={handleInputChange}
                                 placeholder={extractedText ? "Ask about attached file..." : "Type @ for products, / for methods..."}
-                                className="w-full bg-slate-800/80 border border-white/10 rounded-full pl-10 pr-12 py-3 text-xs text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 focus:bg-slate-800 transition-all placeholder-slate-500"
+                                className="w-full bg-surface-light border border-border rounded-full pl-10 pr-12 py-3 text-xs text-text focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-text-muted"
                             />
                             
                             <button
                                 id="chat-widget-submit-btn"
                                 type="submit"
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-2 rounded-full hover:from-indigo-400 hover:to-purple-500 shadow-[0_0_15px_rgba(99,102,241,0.3)] disabled:opacity-50 transition-all duration-300"
+                                className="absolute right-1.5 bg-primary hover:bg-primary-dark text-white p-2 rounded-full shadow-[0_2px_10px_rgba(168,90,60,0.35)] disabled:opacity-50 transition-all duration-300"
                             >
                                 <svg className="w-3.5 h-3.5 translate-x-[1px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                             </button>
@@ -600,10 +600,10 @@ const ChatWidget = () => {
                 <div className="fixed bottom-24 right-6 z-50 animate-bounce-in">
                     <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border shadow-2xl text-xs font-semibold ${
                         toastMessage.type === 'success'
-                            ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'
+                            ? 'bg-surface border-sage/40 text-sage'
                             : toastMessage.type === 'info'
-                            ? 'bg-amber-950/90 border-amber-500/40 text-amber-200'
-                            : 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+                            ? 'bg-surface border-brass/40 text-brass'
+                            : 'bg-surface border-danger/40 text-danger'
                     }`}>
                         <span>{toastMessage.text}</span>
                         <button type="button" onClick={() => setToastMessage(null)} className="p-0.5 hover:opacity-80">
@@ -616,18 +616,18 @@ const ChatWidget = () => {
             {/* Feedback Modal */}
             {feedbackModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-                    <div className="relative w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl p-5 shadow-2xl space-y-3.5 text-slate-100">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div className="relative w-full max-w-sm bg-surface border border-border rounded-2xl p-5 shadow-2xl space-y-3.5 text-text">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
                             <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                                <div className="w-7 h-7 rounded-lg bg-danger/10 text-danger flex items-center justify-center">
                                     <HiOutlineThumbDown className="w-4 h-4" />
                                 </div>
-                                <h3 className="font-bold text-white text-sm">Provide AI Response Feedback</h3>
+                                <h3 className="font-bold text-text text-sm">Provide AI Response Feedback</h3>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setFeedbackModalOpen(false)}
-                                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                                className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
                             >
                                 <HiOutlineX className="w-4 h-4" />
                             </button>
@@ -635,7 +635,7 @@ const ChatWidget = () => {
 
                         <form onSubmit={handleSubmitFeedbackModal} className="space-y-3">
                             <div>
-                                <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                                <label className="block text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-1.5">
                                     What was the issue with this response?
                                 </label>
                                 <div className="flex flex-wrap gap-1.5">
@@ -652,8 +652,8 @@ const ChatWidget = () => {
                                             onClick={() => setFeedbackCategory(cat)}
                                             className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
                                                 feedbackCategory === cat
-                                                    ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300 font-semibold'
-                                                    : 'bg-slate-800 border-white/10 text-slate-400 hover:text-white'
+                                                    ? 'bg-primary/20 border-primary/40 text-primary-light font-semibold'
+                                                    : 'bg-surface-lighter border-border text-text-muted hover:text-text'
                                             }`}
                                         >
                                             {cat}
@@ -663,29 +663,29 @@ const ChatWidget = () => {
                             </div>
 
                             <div>
-                                <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                                <label className="block text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-1">
                                     Additional details (optional)
                                 </label>
                                 <textarea
                                     value={feedbackComment}
                                     onChange={(e) => setFeedbackComment(e.target.value)}
                                     placeholder="Tell us how PricePilot AI can improve..."
-                                    className="w-full rounded-xl bg-slate-800/90 border border-white/10 p-2.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none focus:border-indigo-500/50 min-h-[75px] custom-scrollbar"
+                                    className="w-full rounded-xl bg-surface-light border border-border p-2.5 text-xs text-text placeholder:text-text-muted outline-none focus:border-primary/50 min-h-[75px] custom-scrollbar"
                                 />
                             </div>
 
-                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                                 <button
                                     type="button"
                                     onClick={() => setFeedbackModalOpen(false)}
-                                    className="px-3 py-1.5 rounded-lg border border-white/10 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                                    className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={feedbackSubmitting}
-                                    className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white text-xs font-bold transition-all disabled:opacity-50"
+                                    className="px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-xs font-bold transition-all disabled:opacity-50"
                                 >
                                     {feedbackSubmitting ? 'Submitting...' : 'Submit Feedback'}
                                 </button>

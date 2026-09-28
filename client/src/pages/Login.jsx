@@ -142,16 +142,16 @@ export default function Login() {
                     <button
                         type="button"
                         onClick={handleGoogleLogin}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-surface-light hover:bg-surface-lighter transition-all shadow-sm cursor-pointer"
                     >
-                        <SiGoogle className="w-5 h-5" style={{ color: '#4285F4' }} />
+                        <SiGoogle className="w-4 h-4" style={{ color: '#4285F4' }} />
                         <p className="text-sm font-semibold text-text">Google</p>
                     </button>
 
                     <button
                         type="button"
                         onClick={handlePhoneLogin}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-surface-light hover:bg-surface-lighter transition-all shadow-sm cursor-pointer"
                     >
                         <HiOutlinePhone className="w-5 h-5 text-primary" />
                         <p className="text-sm font-semibold text-text">Phone</p>

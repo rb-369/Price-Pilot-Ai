@@ -12,39 +12,39 @@ import {
 
 const tierConfigs = {
     critical: {
-        bg: 'bg-red-50/95 dark:bg-[#18090d]/95 border-red-300 dark:border-red-500/30 text-slate-900 dark:text-red-100',
-        badgeBg: 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30',
-        glow: 'shadow-xl shadow-red-500/15 ring-1 ring-red-500/30',
-        barColor: 'bg-red-500',
+        bg: 'bg-surface border-danger/40 text-text',
+        badgeBg: 'bg-danger/15 text-danger border border-danger/30',
+        glow: 'shadow-xl shadow-danger/15 ring-1 ring-danger/30',
+        barColor: 'bg-danger',
         icon: HiOutlineExclamation,
-        iconColor: 'text-red-600 dark:text-red-400',
+        iconColor: 'text-danger',
         defaultLabel: 'Emergency Alert',
     },
     high: {
-        bg: 'bg-amber-50/95 dark:bg-[#1a1207]/95 border-amber-300 dark:border-amber-500/30 text-slate-900 dark:text-amber-100',
-        badgeBg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-        glow: 'shadow-xl shadow-amber-500/15 ring-1 ring-amber-500/30',
-        barColor: 'bg-amber-500',
+        bg: 'bg-surface border-brass/40 text-text',
+        badgeBg: 'bg-brass/15 text-brass border border-brass/30',
+        glow: 'shadow-xl shadow-brass/15 ring-1 ring-brass/30',
+        barColor: 'bg-brass',
         icon: HiOutlineLightningBolt,
-        iconColor: 'text-amber-600 dark:text-amber-400',
+        iconColor: 'text-brass',
         defaultLabel: 'High Priority Alert',
     },
     recommendation: {
-        bg: 'bg-emerald-50/95 dark:bg-[#071913]/95 border-emerald-300 dark:border-emerald-500/30 text-slate-900 dark:text-emerald-100',
-        badgeBg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-        glow: 'shadow-xl shadow-emerald-500/15 ring-1 ring-emerald-500/30',
-        barColor: 'bg-emerald-500',
+        bg: 'bg-surface border-sage/40 text-text',
+        badgeBg: 'bg-sage/15 text-sage border border-sage/30',
+        glow: 'shadow-xl shadow-sage/15 ring-1 ring-sage/30',
+        barColor: 'bg-sage',
         icon: HiOutlineLightBulb,
-        iconColor: 'text-emerald-600 dark:text-emerald-400',
+        iconColor: 'text-sage',
         defaultLabel: 'AI Price Opportunity',
     },
     info: {
-        bg: 'bg-slate-50/95 dark:bg-[#0d1326]/95 border-indigo-200 dark:border-indigo-500/30 text-slate-900 dark:text-slate-100',
-        badgeBg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
-        glow: 'shadow-xl shadow-indigo-500/15 ring-1 ring-indigo-500/25',
-        barColor: 'bg-indigo-500',
+        bg: 'bg-surface border-border text-text',
+        badgeBg: 'bg-primary/15 text-primary border border-primary/30',
+        glow: 'shadow-xl shadow-primary/10 ring-1 ring-primary/25',
+        barColor: 'bg-primary',
         icon: HiOutlineBell,
-        iconColor: 'text-indigo-600 dark:text-indigo-400',
+        iconColor: 'text-primary',
         defaultLabel: 'System Notification',
     }
 };
@@ -210,17 +210,17 @@ export default function SlidableNotificationToast({
             {/* Notification Body */}
             <div className="flex items-start gap-3 pl-0.5">
                 <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                    <p className="text-xs sm:text-sm text-text leading-relaxed font-medium">
                         {message}
                     </p>
 
                     {/* Action Navigation */}
                     {actionUrl && (
-                        <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-end">
+                        <div className="mt-2.5 pt-2 border-t border-border flex items-center justify-end">
                             <button
                                 type="button"
                                 onClick={handleActionClick}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer group"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer group"
                             >
                                 <span>{actionLabel || 'View Details'}</span>
                                 <HiOutlineArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -231,7 +231,7 @@ export default function SlidableNotificationToast({
             </div>
 
             {/* Countdown Progress Bar */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-200/50 dark:bg-slate-800/50 overflow-hidden">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-border/40 overflow-hidden">
                 <div 
                     className={`h-full ${config.barColor} transition-all duration-75`}
                     style={{ width: `${progress}%` }}

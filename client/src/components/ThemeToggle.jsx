@@ -9,14 +9,14 @@ const ThemeToggle = memo(function ThemeToggle({ className = '' }) {
         <button
             type="button"
             onClick={toggleTheme}
-            className={`p-2 rounded-xl text-slate-600 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5 border border-slate-200 dark:border-white/10 transition-colors ${className}`}
+            className={`p-2 rounded-xl text-[#3D1F12] hover:bg-[#3D1F12]/5 dark:text-[#F0EEE6] dark:hover:bg-white/5 border border-[#3D1F12]/15 dark:border-[#4A3930] transition-colors ${className}`}
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Theme"
         >
             {theme === 'dark' ? (
-                <HiOutlineSun className="w-4 h-4 text-amber-400" />
+                <HiOutlineSun className="w-4 h-4 text-[#B8734F]" />
             ) : (
-                <HiOutlineMoon className="w-4 h-4 text-indigo-600" />
+                <HiOutlineMoon className="w-4 h-4 text-[#3D1F12]" />
             )}
         </button>
     );

@@ -80,22 +80,22 @@ export default function PriceHistoryModal({ product, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-surface-card border border-border rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-header">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-lighter">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <FiTrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+              <h2 className="text-lg font-bold text-text flex items-center gap-2">
                 Price History Trend
                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-semibold">
                   {product.sku || 'SKU'}
                 </span>
               </h2>
-              <p className="text-xs text-text-secondary truncate max-w-md">
+              <p className="text-xs text-text-muted truncate max-w-md">
                 {product.name}
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function PriceHistoryModal({ product, onClose }) {
 
           <div className="flex items-center gap-3">
             {/* Range Toggle */}
-            <div className="flex items-center bg-surface border border-border rounded-lg p-1 text-xs">
+            <div className="flex items-center bg-surface-light border border-border rounded-lg p-1 text-xs">
               {[7, 30, 90].map(d => (
                 <button
                   key={d}
@@ -111,7 +111,7 @@ export default function PriceHistoryModal({ product, onClose }) {
                   className={`px-2.5 py-1 rounded-md font-medium transition-all ${
                     days === d
                       ? 'bg-primary text-white shadow-sm'
-                      : 'text-text-secondary hover:text-text-primary'
+                      : 'text-text-muted hover:text-text'
                   }`}
                 >
                   {d}d
@@ -121,7 +121,7 @@ export default function PriceHistoryModal({ product, onClose }) {
 
             <button
               onClick={() => fetchHistory(days)}
-              className="p-2 rounded-lg border border-border hover:bg-surface text-text-secondary hover:text-text-primary transition"
+              className="p-2 rounded-lg border border-border hover:bg-surface-lighter text-text-muted hover:text-text transition"
               title="Refresh Trend"
             >
               <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -129,7 +129,7 @@ export default function PriceHistoryModal({ product, onClose }) {
 
             <button
               onClick={onClose}
-              className="p-2 rounded-lg border border-border hover:bg-surface text-text-secondary hover:text-text-primary transition"
+              className="p-2 rounded-lg border border-border hover:bg-surface-lighter text-text-muted hover:text-text transition"
             >
               <FiX className="w-5 h-5" />
             </button>
@@ -141,57 +141,57 @@ export default function PriceHistoryModal({ product, onClose }) {
           
           {/* KPI Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-3.5 rounded-xl bg-surface border border-border/80">
-              <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
+            <div className="p-3.5 rounded-xl bg-surface-light border border-border">
+              <span className="text-xs font-medium text-text-muted flex items-center gap-1.5">
                 <FiDollarSign className="w-3.5 h-3.5 text-primary" /> Current Price
               </span>
-              <p className="text-xl font-bold text-text-primary mt-1">{formatCurrency(currentPrice)}</p>
-              <span className="text-[11px] text-emerald-500 font-semibold">{marginPct}% margin</span>
+              <p className="text-xl font-bold text-text mt-1">{formatCurrency(currentPrice)}</p>
+              <span className="text-[11px] text-sage font-semibold">{marginPct}% margin</span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-surface border border-border/80">
-              <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
-                <FiTrendingDown className="w-3.5 h-3.5 text-emerald-400" /> Lowest Price
+            <div className="p-3.5 rounded-xl bg-surface-light border border-border">
+              <span className="text-xs font-medium text-text-muted flex items-center gap-1.5">
+                <FiTrendingDown className="w-3.5 h-3.5 text-sage" /> Lowest Price
               </span>
-              <p className="text-xl font-bold text-emerald-400 mt-1">{formatCurrency(stats?.lowestPrice || currentPrice)}</p>
-              <span className="text-[11px] text-text-secondary">Historical Floor</span>
+              <p className="text-xl font-bold text-sage mt-1">{formatCurrency(stats?.lowestPrice || currentPrice)}</p>
+              <span className="text-[11px] text-text-muted">Historical Floor</span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-surface border border-border/80">
-              <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
-                <FiTrendingUp className="w-3.5 h-3.5 text-amber-400" /> Highest Price
+            <div className="p-3.5 rounded-xl bg-surface-light border border-border">
+              <span className="text-xs font-medium text-text-muted flex items-center gap-1.5">
+                <FiTrendingUp className="w-3.5 h-3.5 text-copper" /> Highest Price
               </span>
-              <p className="text-xl font-bold text-amber-400 mt-1">{formatCurrency(stats?.highestPrice || currentPrice)}</p>
-              <span className="text-[11px] text-text-secondary">Historical Ceiling</span>
+              <p className="text-xl font-bold text-copper mt-1">{formatCurrency(stats?.highestPrice || currentPrice)}</p>
+              <span className="text-[11px] text-text-muted">Historical Ceiling</span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-surface border border-border/80">
-              <span className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
-                <FiShoppingBag className="w-3.5 h-3.5 text-blue-400" /> Competitor Avg
+            <div className="p-3.5 rounded-xl bg-surface-light border border-border">
+              <span className="text-xs font-medium text-text-muted flex items-center gap-1.5">
+                <FiShoppingBag className="w-3.5 h-3.5 text-brass" /> Competitor Avg
               </span>
-              <p className="text-xl font-bold text-blue-400 mt-1">{formatCurrency(stats?.avgCompetitorPrice || currentPrice)}</p>
-              <span className="text-[11px] text-text-secondary">Market Benchmark</span>
+              <p className="text-xl font-bold text-brass mt-1">{formatCurrency(stats?.avgCompetitorPrice || currentPrice)}</p>
+              <span className="text-[11px] text-text-muted">Market Benchmark</span>
             </div>
           </div>
 
           {/* Interactive Chart */}
-          <div className="bg-surface border border-border rounded-xl p-4">
+          <div className="bg-surface-light border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-text flex items-center gap-2">
                 Price Trajectory vs Competitors ({days} Days)
               </h3>
               <div className="flex items-center gap-4 text-xs font-medium">
-                <span className="flex items-center gap-1 text-primary">
+                <span className="flex items-center gap-1 text-primary font-semibold">
                   <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span> Your Price
                 </span>
-                <span className="flex items-center gap-1 text-orange-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block"></span> Amazon
+                <span className="flex items-center gap-1 text-copper font-semibold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-copper inline-block"></span> Amazon
                 </span>
-                <span className="flex items-center gap-1 text-blue-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span> Flipkart
+                <span className="flex items-center gap-1 text-brass font-semibold">
+                  <span className="w-2.5 h-2.5 rounded-full bg-brass inline-block"></span> Flipkart
                 </span>
-                <span className="flex items-center gap-1 text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span> Base Cost
+                <span className="flex items-center gap-1 text-text-muted">
+                  <span className="w-2.5 h-2.5 rounded-full bg-border inline-block"></span> Base Cost
                 </span>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function PriceHistoryModal({ product, onClose }) {
                 <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
               </div>
             ) : historyData.length === 0 ? (
-              <div className="h-72 flex flex-col items-center justify-center text-text-secondary text-sm">
+              <div className="h-72 flex flex-col items-center justify-center text-text-muted text-sm">
                 <FiCalendar className="w-8 h-8 opacity-40 mb-2" />
                 No historical price records found for this timeframe.
               </div>
@@ -211,30 +211,30 @@ export default function PriceHistoryModal({ product, onClose }) {
                   <ComposedChart data={historyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
+                        <stop offset="5%" stopColor="#A85A3C" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#A85A3C" stopOpacity={0.0}/>
                       </linearGradient>
                       <linearGradient id="colorAmazon" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0.0}/>
+                        <stop offset="5%" stopColor="#B8734F" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#B8734F" stopOpacity={0.0}/>
                       </linearGradient>
                       <linearGradient id="colorFlipkart" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0084ff" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#0084ff" stopOpacity={0.0}/>
+                        <stop offset="5%" stopColor="#A17A3A" stopOpacity={0.25}/>
+                        <stop offset="95%" stopColor="#A17A3A" stopOpacity={0.0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                    <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                    <YAxis yAxisId="left" stroke="#94a3b8" fontSize={11} tickLine={false} domain={['auto', 'auto']} />
-                    <YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={11} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" opacity={0.4} />
+                    <XAxis dataKey="date" stroke="var(--pp-text-muted)" fontSize={11} tickLine={false} />
+                    <YAxis yAxisId="left" stroke="var(--pp-text-muted)" fontSize={11} tickLine={false} domain={['auto', 'auto']} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#5F806B" fontSize={11} tickLine={false} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#1e293b',
-                        borderColor: '#334155',
+                        backgroundColor: 'var(--pp-surface)',
+                        borderColor: 'var(--pp-border)',
                         borderRadius: '12px',
-                        color: '#f8fafc',
+                        color: 'var(--pp-text)',
                         fontSize: '12px',
-                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)'
+                        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)'
                       }}
                       formatter={(value, name) => {
                         if (name === 'Sales Volume') return [value, name];
@@ -242,11 +242,11 @@ export default function PriceHistoryModal({ product, onClose }) {
                       }}
                       labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || label}
                     />
-                    <Bar yAxisId="right" dataKey="SalesVolume" fill="#10b981" fillOpacity={0.3} barSize={20} name="Sales Volume" />
-                    <Area yAxisId="left" type="monotone" dataKey="Price" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" name="Your Price" />
-                    <Area yAxisId="left" type="monotone" dataKey="Amazon" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorAmazon)" name="Amazon" />
-                    <Area yAxisId="left" type="monotone" dataKey="Flipkart" stroke="#0084ff" strokeWidth={2} fillOpacity={1} fill="url(#colorFlipkart)" name="Flipkart" />
-                    <Area yAxisId="left" type="monotone" dataKey="BaseCost" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fill="none" name="Base Cost" />
+                    <Bar yAxisId="right" dataKey="SalesVolume" fill="#5F806B" fillOpacity={0.3} barSize={20} name="Sales Volume" />
+                    <Area yAxisId="left" type="monotone" dataKey="Price" stroke="#A85A3C" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" name="Your Price" />
+                    <Area yAxisId="left" type="monotone" dataKey="Amazon" stroke="#B8734F" strokeWidth={2} fillOpacity={1} fill="url(#colorAmazon)" name="Amazon" />
+                    <Area yAxisId="left" type="monotone" dataKey="Flipkart" stroke="#A17A3A" strokeWidth={2} fillOpacity={1} fill="url(#colorFlipkart)" name="Flipkart" />
+                    <Area yAxisId="left" type="monotone" dataKey="BaseCost" stroke="var(--pp-text-muted)" strokeWidth={1.5} strokeDasharray="4 4" fill="none" name="Base Cost" />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -254,11 +254,11 @@ export default function PriceHistoryModal({ product, onClose }) {
           </div>
 
           {/* Footer note */}
-          <div className="flex items-center justify-between text-xs text-text-secondary pt-2">
+          <div className="flex items-center justify-between text-xs text-text-muted pt-2">
             <span>Historical baseline tracks manual price edits, accepted AI recommendations, and scraped competitor benchmarks.</span>
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-surface border border-border text-text-primary hover:bg-surface-header font-medium transition"
+              className="px-4 py-2 rounded-xl bg-surface border border-border text-text hover:bg-surface-lighter font-medium transition"
             >
               Close
             </button>

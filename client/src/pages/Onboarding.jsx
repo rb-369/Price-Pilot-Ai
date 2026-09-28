@@ -90,9 +90,9 @@ const SALES_CHANNELS = [
         desc: 'Custom API or retail store',
         badge: 'Omnichannel',
         icon: HiOutlineGlobeAlt,
-        color: '#6366F1',
-        borderColor: 'hover:border-[#6366F1]/60',
-        activeBg: 'bg-[#6366F1]/10 border-[#6366F1] ring-1 ring-[#6366F1]/30',
+        color: '#A85A3C',
+        borderColor: 'hover:border-[#A85A3C]/60',
+        activeBg: 'bg-[#A85A3C]/10 border-[#A85A3C] ring-1 ring-[#A85A3C]/30',
     },
 ];
 
@@ -103,7 +103,7 @@ const PRIMARY_GOALS = [
         desc: 'Optimize unit economics & defend healthy profit margins without losing volume.',
         icon: HiOutlineCurrencyDollar,
         highlight: 'Target: +18-25% Gross Margin',
-        color: '#10B981',
+        color: '#5F806B',
     },
     {
         id: 'sales_velocity',
@@ -111,7 +111,7 @@ const PRIMARY_GOALS = [
         desc: 'Capture peak market demand, boost organic rankings, and ramp order counts.',
         icon: HiOutlineTrendingUp,
         highlight: 'Target: High Sales Velocity',
-        color: '#6366F1',
+        color: '#B8734F',
     },
     {
         id: 'clear_inventory',
@@ -119,7 +119,7 @@ const PRIMARY_GOALS = [
         desc: 'Swiftly clear overstocked SKUs before warehouse holding fees accumulate.',
         icon: HiOutlineCube,
         highlight: 'Target: Reduce Holding Days',
-        color: '#F59E0B',
+        color: '#A17A3A',
     },
     {
         id: 'competitor_defense',
@@ -127,7 +127,7 @@ const PRIMARY_GOALS = [
         desc: 'Stay ahead of aggressive discounters with real-time price monitoring and undercutting.',
         icon: HiOutlineShieldCheck,
         highlight: 'Target: 95%+ Buy Box Win Rate',
-        color: '#06B6D4',
+        color: '#A85A3C',
     },
     {
         id: 'price_testing',
@@ -135,7 +135,7 @@ const PRIMARY_GOALS = [
         desc: 'Algorithmically discover maximum willingness-to-pay using live elasticity tests.',
         icon: HiOutlineScale,
         highlight: 'Target: Optimal Price Frontier',
-        color: '#EC4899',
+        color: '#B8734F',
     },
 ];
 
@@ -346,7 +346,7 @@ export default function Onboarding() {
                         {/* Animated Step Checklist */}
                         <div className="w-full max-w-md bg-surface/70 border border-border/60 rounded-2xl p-5 text-left space-y-3 shadow-inner">
                             <div className={`flex items-center gap-3 text-xs transition-opacity duration-300 ${calibrationPhase >= 0 ? 'opacity-100' : 'opacity-30'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 0 ? 'bg-success text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 0 ? 'bg-sage text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
                                     {calibrationPhase > 0 ? <HiOutlineCheck className="w-3.5 h-3.5" /> : '1'}
                                 </div>
                                 <span className="font-medium text-text">
@@ -355,7 +355,7 @@ export default function Onboarding() {
                             </div>
 
                             <div className={`flex items-center gap-3 text-xs transition-opacity duration-300 ${calibrationPhase >= 1 ? 'opacity-100' : 'opacity-30'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 1 ? 'bg-success text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 1 ? 'bg-sage text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
                                     {calibrationPhase > 1 ? <HiOutlineCheck className="w-3.5 h-3.5" /> : '2'}
                                 </div>
                                 <span className="font-medium text-text">
@@ -364,7 +364,7 @@ export default function Onboarding() {
                             </div>
 
                             <div className={`flex items-center gap-3 text-xs transition-opacity duration-300 ${calibrationPhase >= 2 ? 'opacity-100' : 'opacity-30'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 2 ? 'bg-success text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase > 2 ? 'bg-sage text-white' : 'bg-primary/20 text-primary animate-pulse'}`}>
                                     {calibrationPhase > 2 ? <HiOutlineCheck className="w-3.5 h-3.5" /> : '3'}
                                 </div>
                                 <span className="font-medium text-text">
@@ -372,8 +372,8 @@ export default function Onboarding() {
                                 </span>
                             </div>
 
-                            <div className={`flex items-center gap-3 text-xs transition-opacity duration-300 ${calibrationPhase >= 3 ? 'opacity-100 text-success' : 'opacity-30'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase >= 3 ? 'bg-success text-white' : 'bg-primary/20 text-primary'}`}>
+                            <div className={`flex items-center gap-3 text-xs transition-opacity duration-300 ${calibrationPhase >= 3 ? 'opacity-100 text-sage' : 'opacity-30'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${calibrationPhase >= 3 ? 'bg-sage text-white' : 'bg-primary/20 text-primary'}`}>
                                     {calibrationPhase >= 3 ? <HiOutlineCheck className="w-3.5 h-3.5" /> : '4'}
                                 </div>
                                 <span className="font-bold">
@@ -573,13 +573,13 @@ export default function Onboarding() {
                                 {/* Safety Floor Slider & Automation Level */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                     {/* Profit Margin Floor */}
-                                    <div className="p-4 rounded-2xl bg-surface-light/40 border border-border/70 space-y-3">
+                                    <div className="p-4 rounded-2xl bg-surface-light border border-border space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <HiOutlineShieldCheck className="w-4 h-4 text-emerald-400" />
+                                                <HiOutlineShieldCheck className="w-4 h-4 text-sage" />
                                                 <span className="text-xs font-bold text-text">Minimum Profit Margin Floor</span>
                                             </div>
-                                            <span className="text-sm font-extrabold text-emerald-400 px-2 py-0.5 rounded-lg bg-emerald-400/10">
+                                            <span className="text-sm font-extrabold text-sage px-2 py-0.5 rounded-lg bg-sage/10">
                                                 {targetMarginFloor}%
                                             </span>
                                         </div>
@@ -590,7 +590,7 @@ export default function Onboarding() {
                                             step="1"
                                             value={targetMarginFloor}
                                             onChange={(e) => setTargetMarginFloor(e.target.value)}
-                                            className="w-full accent-emerald-400 cursor-pointer h-2 bg-surface-lighter rounded-lg"
+                                            className="w-full accent-[#5F806B] cursor-pointer h-2 bg-surface-lighter rounded-lg"
                                         />
                                         <p className="text-[11px] text-text-muted">
                                             AI will NEVER suggest or publish prices that dip below this profit margin threshold.

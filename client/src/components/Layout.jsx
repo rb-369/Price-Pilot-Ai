@@ -33,7 +33,7 @@ export default function Layout() {
     }, [location.pathname, isDesktop]);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-surface">
+        <div className="flex h-screen overflow-hidden bg-[#F0EEE6] dark:bg-[#211610] text-[#241812] dark:text-[#F3EDE3] transition-colors duration-200">
             {/* Top accent gradient bar */}
             <div className="accent-bar fixed top-0 left-0 right-0 z-[100]" />
 

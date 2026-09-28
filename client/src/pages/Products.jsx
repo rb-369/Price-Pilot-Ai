@@ -365,7 +365,7 @@ export default function Products() {
 
             {showForm && (
                 <div className="glass-card p-6 md:p-8 animate-slide-up mb-8 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-amber-500 to-emerald-500"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#B8734F] to-[#5F806B]"></div>
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-xl font-bold text-text tracking-tight flex items-center gap-2">
@@ -441,7 +441,7 @@ export default function Products() {
                                 </button>
                             </div>
                             <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2.5 text-xs text-primary-light">
-                                <HiOutlineLightBulb className="w-4 h-4 shrink-0 text-amber-500" />
+                                <HiOutlineLightBulb className="w-4 h-4 shrink-0 text-[#A17A3A]" />
                                 <span>Pasting a product URL auto-fills title, live selling price, specs, category, and sales channel links!</span>
                             </div>
                         </div>
@@ -453,13 +453,13 @@ export default function Products() {
                             <span className="font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
                                 <HiOutlineShieldCheck className="w-4 h-4 text-primary" /> AI Competitor Matching Precision
                             </span>
-                            <span className={`font-bold ${calculatePrecision() >= 90 ? 'text-emerald-500' : calculatePrecision() >= 70 ? 'text-amber-500' : 'text-primary'}`}>
+                            <span className={`font-bold ${calculatePrecision() >= 90 ? 'text-[#5F806B] dark:text-[#7FA38B]' : calculatePrecision() >= 70 ? 'text-[#A17A3A] dark:text-[#C49B55]' : 'text-primary'}`}>
                                 {calculatePrecision()}% {calculatePrecision() >= 90 ? 'High Precision' : 'Basic Precision'}
                             </span>
                         </div>
                         <div className="w-full bg-surface border border-border h-2 rounded-full overflow-hidden">
                             <div 
-                                className="bg-gradient-to-r from-primary via-amber-500 to-emerald-500 h-full transition-all duration-500" 
+                                className="bg-gradient-to-r from-primary via-[#B8734F] to-[#5F806B] h-full transition-all duration-500" 
                                 style={{ width: `${calculatePrecision()}%` }}
                             />
                         </div>

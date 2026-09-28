@@ -64,8 +64,8 @@ export default function Analytics() {
             {/* Page Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sales &amp; Revenue Analytics</h1>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Track revenue elasticity, velocity curves, and volume drivers.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-text">Sales &amp; Revenue Analytics</h1>
+                    <p className="mt-1 text-sm text-text-muted">Track revenue elasticity, velocity curves, and volume drivers.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <AskAIButton
@@ -86,9 +86,9 @@ export default function Analytics() {
             </div>
 
             {/* Contextual AI Prompt Chips */}
-            <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/70 dark:bg-[#0d1326] dark:border-indigo-500/20 shadow-sm dark:shadow-md">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider mb-2.5">
-                    <HiOutlineLightBulb className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+            <div className="p-4 rounded-2xl bg-surface border border-border shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-wider mb-2.5">
+                    <HiOutlineLightBulb className="w-4 h-4 text-primary" />
                     Recommended Analytical Inquiries
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -120,23 +120,23 @@ export default function Analytics() {
                 <>
                     {/* KPIs */}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-                        <div className="glass-card p-6 border-l-4 border-l-emerald-500">
+                        <div className="glass-card p-6 border-l-4 border-l-[#5F806B]">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <div className="p-2.5 rounded-xl bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/30">
                                     <HiOutlineCurrencyDollar className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Revenue (30d)</h3>
+                                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Revenue (30d)</h3>
                             </div>
-                            <p className="text-3xl font-extrabold text-white mt-2">{formatCurrency(data.totalRevenue)}</p>
+                            <p className="text-3xl font-extrabold text-text mt-2">{formatCurrency(data.totalRevenue)}</p>
                         </div>
-                        <div className="glass-card p-6 border-l-4 border-l-indigo-500">
+                        <div className="glass-card p-6 border-l-4 border-l-primary">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                <div className="p-2.5 rounded-xl bg-primary/15 text-primary dark:text-[#C57A5A] border border-primary/30">
                                     <HiOutlineCube className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Units Sold (30d)</h3>
+                                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Units Sold (30d)</h3>
                             </div>
-                            <p className="text-3xl font-extrabold text-white mt-2">{data.totalUnitsSold}</p>
+                            <p className="text-3xl font-extrabold text-text mt-2">{data.totalUnitsSold}</p>
                         </div>
                     </div>
 
@@ -144,11 +144,11 @@ export default function Analytics() {
                     <div className="grid gap-6 lg:grid-cols-3">
                         <div className="glass-card p-6 lg:col-span-2">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                                    <HiOutlineChartBar className="text-emerald-400" />
+                                <h3 className="text-base font-bold text-text tracking-tight flex items-center gap-2">
+                                    <HiOutlineChartBar className="text-primary" />
                                     Revenue Trend Timeline
                                 </h3>
-                                <span className="text-xs text-slate-400">Daily Trajectory</span>
+                                <span className="text-xs text-text-muted">Daily Trajectory</span>
                             </div>
                             <div className="h-72 w-full">
                                 {data.trend.length > 0 ? (
@@ -156,24 +156,24 @@ export default function Analytics() {
                                         <AreaChart data={data.trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                                    <stop offset="5%" stopColor="#A85A3C" stopOpacity={0.35}/>
+                                                    <stop offset="95%" stopColor="#A85A3C" stopOpacity={0.02}/>
                                                 </linearGradient>
                                             </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#818cf8' }} dy={10} minTickGap={30} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#818cf8' }} tickFormatter={(val) => `${config.symbol}${val >= 1000 ? (val/1000).toFixed(1)+'k' : val}`} />
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--pp-border)" strokeOpacity={0.5} />
+                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--pp-text-muted)' }} dy={10} minTickGap={30} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--pp-text-muted)' }} tickFormatter={(val) => `${config.symbol}${val >= 1000 ? (val/1000).toFixed(1)+'k' : val}`} />
                                             <RechartsTooltip 
-                                                contentStyle={{ backgroundColor: '#0d1326', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '12px', color: '#fff' }}
+                                                contentStyle={{ backgroundColor: 'var(--pp-surface)', border: '1px solid var(--pp-border)', borderRadius: '12px', color: 'var(--pp-text)', boxShadow: '0 12px 28px rgba(0,0,0,0.15)' }}
                                                 formatter={(value) => [formatCurrency(value), 'Revenue']}
-                                                labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                                                labelStyle={{ color: 'var(--pp-text-muted)', marginBottom: '4px' }}
                                             />
-                                            <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                                            <Area type="monotone" dataKey="revenue" stroke="#A85A3C" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">
-                                        <HiOutlineTrendingUp className="w-12 h-12 mb-2 opacity-50" />
+                                    <div className="h-full flex flex-col items-center justify-center text-text-muted text-xs">
+                                        <HiOutlineTrendingUp className="w-12 h-12 mb-2 opacity-50 text-text-muted" />
                                         <p>No sales data available. Import or simulate sales.</p>
                                     </div>
                                 )}
@@ -181,22 +181,22 @@ export default function Analytics() {
                         </div>
 
                         <div className="glass-card p-6">
-                            <h3 className="text-base font-bold text-white mb-4 tracking-tight">Top Volume Drivers</h3>
+                            <h3 className="text-base font-bold text-text mb-4 tracking-tight">Top Volume Drivers</h3>
                             {data.topProducts.length > 0 ? (
                                 <div className="space-y-4">
                                     {data.topProducts.map((prod, idx) => (
-                                        <div key={prod._id || idx} className="flex items-center justify-between group p-2 rounded-xl hover:bg-slate-800/40 transition-colors">
+                                        <div key={prod._id || idx} className="flex items-center justify-between group p-2.5 rounded-xl hover:bg-surface-elevated border border-transparent hover:border-border transition-colors">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex w-7 h-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs font-bold text-indigo-300">
+                                                <div className="flex w-7 h-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 text-xs font-bold text-primary">
                                                     {idx + 1}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-bold text-white truncate max-w-[140px]" title={prod.name}>{prod.name}</p>
-                                                    <p className="text-[10px] text-slate-400">{prod.category || 'General'}</p>
+                                                    <p className="text-xs font-bold text-text truncate max-w-[140px]" title={prod.name}>{prod.name}</p>
+                                                    <p className="text-[10px] text-text-muted">{prod.category || 'General'}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-xs font-extrabold text-emerald-400">{formatCurrency(prod.revenue)}</p>
+                                                <p className="text-xs font-extrabold text-[#5F806B] dark:text-[#7FA38B]">{formatCurrency(prod.revenue)}</p>
                                                 <AskAIButton
                                                     variant="icon-button"
                                                     prompt={`Analyze sales performance and pricing elasticity for top selling product: ${prod.name} (Revenue: ₹${prod.revenue}).`}
@@ -207,7 +207,7 @@ export default function Analytics() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="h-48 flex items-center justify-center text-slate-500 text-xs">
+                                <div className="h-48 flex items-center justify-center text-text-muted text-xs">
                                     No products found.
                                 </div>
                             )}

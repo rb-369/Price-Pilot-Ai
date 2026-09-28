@@ -79,7 +79,7 @@ export function AuthProvider({ children }) {
         platform: 'Shopify',
         role: user?.role === 'admin' ? 'Administrator' : 'Store Owner',
         currency: 'INR',
-        color: '#6366f1',
+        color: '#A85A3C',
     };
 
     return (
