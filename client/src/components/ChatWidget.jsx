@@ -6,6 +6,7 @@ import {
 import { HiOutlineTrash, HiOutlinePlus, HiOutlineChatAlt2, HiOutlineX, HiOutlinePaperClip, HiOutlineDocumentText, HiOutlineDuplicate, HiOutlinePencil, HiOutlineCheck, HiOutlineThumbUp, HiOutlineThumbDown } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage } from './ChatAutocompletePopover';
 import AILoadingState from './AILoadingState';
+import ChatbotAiAvatar from './ChatbotAiAvatar';
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -323,13 +324,14 @@ const ChatWidget = () => {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="relative group bg-primary hover:bg-primary-dark text-white p-4 rounded-full shadow-[0_4px_24px_rgba(168,90,60,0.4)] hover:shadow-[0_6px_28px_rgba(168,90,60,0.55)] transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center gap-3 border border-white/20"
+                    aria-label="PricePilot AI Chatbot"
+                    title="PricePilot AI Chatbot"
+                    className="relative group w-14 h-14 bg-primary hover:bg-primary-dark text-white rounded-full shadow-[0_4px_24px_rgba(168,90,60,0.4)] hover:shadow-[0_6px_28px_rgba(168,90,60,0.55)] transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center border border-white/20 cursor-pointer"
                 >
-                    <div className="relative">
-                        <img src="/chabot-assistant-without-bg.png" alt="AI Assistant" className="w-8 h-8 object-contain filter drop-shadow-xs" />
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-sage border-2 border-surface rounded-full animate-pulse"></span>
+                    <div className="relative flex items-center justify-center">
+                        <ChatbotAiAvatar className="w-8 h-8 text-white filter drop-shadow-xs transition-transform duration-200 group-hover:scale-110" />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-sage border-2 border-primary rounded-full animate-pulse"></span>
                     </div>
-                    <span className="font-semibold text-sm pr-1 tracking-wide hidden sm:inline">Ask PricePilot AI</span>
                 </button>
             )}
 
@@ -343,10 +345,8 @@ const ChatWidget = () => {
                     {/* Header */}
                     <div className="p-4 bg-surface-lighter/80 backdrop-blur-md border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="relative w-9 h-9 rounded-xl bg-primary/10 border border-primary/25 p-0.5 shadow-xs">
-                                <div className="w-full h-full bg-surface rounded-[10px] flex items-center justify-center overflow-hidden">
-                                    <img src="/chabot-assistant-without-bg.png" alt="AI" className="w-7 h-7 object-contain" />
-                                </div>
+                            <div className="relative w-9 h-9 rounded-xl bg-primary/10 border border-primary/25 p-0.5 shadow-xs flex items-center justify-center">
+                                <ChatbotAiAvatar className="w-6 h-6 text-primary" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-text text-sm tracking-wide flex items-center gap-2">

@@ -26,6 +26,7 @@ import {
 } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage, SLASH_COMMANDS } from '../components/ChatAutocompletePopover';
 import AILoadingState from '../components/AILoadingState';
+import ChatbotAiAvatar from '../components/ChatbotAiAvatar';
 
 const GREETING = "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?";
 
@@ -518,8 +519,8 @@ const Chat = () => {
                             {messages.length === 0 ? (
                                 <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-4 sm:py-10">
                                     <div className="flex items-start gap-4 border-b border-border pb-7">
-                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10">
-                                            <img src="/chabot-assistant-without-bg.png" alt="" className="h-full w-full scale-110 object-cover" />
+                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-primary/20 bg-primary/10 p-2 shadow-xs">
+                                            <ChatbotAiAvatar className="h-full w-full text-primary" />
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">AI workspace</p>
@@ -550,8 +551,8 @@ const Chat = () => {
                                     {messages.map((message, index) => (
                                         <article key={`${message.role}-${index}`} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
                                             {message.role !== 'user' && (
-                                                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter">
-                                                    <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
+                                                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-primary/10 p-1">
+                                                    <ChatbotAiAvatar className="h-full w-full text-primary" />
                                                 </div>
                                             )}
                                             
@@ -668,8 +669,8 @@ const Chat = () => {
                                     ))}
                                     {isLoading && (
                                         <div className="flex items-start gap-3">
-                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter shrink-0 mt-1">
-                                                <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
+                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-primary/10 shrink-0 mt-1 p-1">
+                                                <ChatbotAiAvatar className="h-full w-full text-primary" />
                                             </div>
                                             <AILoadingState variant="chat" />
                                         </div>
