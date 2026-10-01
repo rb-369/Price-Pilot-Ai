@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="client/src/assets/FINAL.png" alt="PricePilot AI Logo" width="120" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="client/src/assets/new_dark_logo.png" />
+    <source media="(prefers-color-scheme: light)" srcset="client/src/assets/new_light_logo.png" />
+    <img src="client/src/assets/new_dark_logo.png" alt="PricePilot AI Logo" width="240" />
+  </picture>
 </p>
 
 <h1 align="center">🚀 PricePilot AI — Dynamic Pricing & Inventory Intelligence Platform</h1>
@@ -92,8 +96,17 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 - **Ephemeral Working Memory System**: Each chat session dynamically assembles System Prompt + Chat History + RAG Context into a single context window
 - **Dual Vector Store RAG**: Semantic Memory (durable facts & rules) + Episodic Memory (past conversations) via ChromaDB
 - **LangChain Integration**: Full RAG chain with `ChatGoogleGenerativeAI` (Gemini) as primary LLM and OpenRouter as fallback
-- **Document Upload**: PDF/document context injection into conversation for intelligent Q&A
+- **Slash Commands & Autocomplete**: Built-in support for `/what-if`, `/explain-simply`, `/analyze-competitors`, `/demand-signals`, `/inventory-forecast`, and `/pricing-recommendation` with popover suggestions
+- **Inline @Product Tagging**: Tag any catalog product with `@` to inject live pricing, stock, and SKU chips directly into the prompt
+- **Interactive What-If Scenario Cards**: Chatbot generates executable scenario cards that seamlessly launch the What-If Simulator with pre-populated values
+- **Intelligent Fallback Engine**: Resilient multi-tier architecture automatically falls back from Gemini to OpenRouter or contextual local catalog summaries during upstream outages
+- **Document Context Injection**: Upload and inspect pricing policies and documents directly within the conversation
 - **Background Consolidation**: Fire-and-forget episodic interaction saving for future recall
+
+### 📱 Mobile-First Responsive Experience
+- **Dedicated Mobile Bottom Nav (`MobileBottomNav`)**: Ergonomic thumb-zone navigation bar for swift switching between Home, Products, Chat, Alerts, and Search
+- **Mobile Hero KPI Cards (`MobileHeroCards`)**: High-density horizontal carousel delivering essential revenue, stock health, and margin metrics on smaller viewports
+- **Universal Command Palette (`MobileSearchModal` / `Cmd+K`)**: Instant search modal across all products, forecasts, alerts, and navigation routes
 
 ### 📊 Demand Forecasting
 - **Facebook Prophet Integration**: Advanced Bayesian time-series model decomposing weekly/yearly seasonality and non-linear trend curves
@@ -125,38 +138,40 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 - Statistical significance tracking for pricing strategy validation
 - Revenue impact measurement per test variant
 
-### 🔗 Integrations Hub
+### 🔗 Integrations Hub & Channels
+- Multi-channel sales platform mapping (Amazon, Flipkart, WooCommerce, Meesho, Quick Commerce, Custom D2C)
 - API key management for external services (Rainforest, SerpAPI, OpenWeather, NewsAPI, SendGrid)
 - Connection status monitoring and health checks
 - Centralized configuration UI
 
 ### 🔐 Authentication & Security
+- **Google OAuth 2.0 Integration**: One-click Google sign-in and automatic account provisioning (`@react-oauth/google`)
 - JWT-based authentication with secure token management
 - Password reset flow (forgot password → email → reset token)
-- Role-based access control
-- Password hashing with bcrypt
+- Role-based access control & password hashing with bcrypt
 - Protected API routes with middleware guards
 - API rate limiting (express-rate-limit)
 - NoSQL injection prevention (express-mongo-sanitize)
 - XSS protection (xss-clean)
-- Security headers (Helmet)
-- Gzip compression
+- Security headers (Helmet) & Gzip compression
 
 ### ⚡ Performance & Reliability
+- **Universal 3-Bar Chart Loader (`PricePilotChartLoader`)**: Fluid animated loading states with realistic auth and catalog buffers
 - **Redis Caching**: Instantaneous dashboard metrics by caching heavy aggregations
 - **Async Job Queue (BullMQ)**: Non-blocking AI recommendations and forecasting processes
 - **Server-Sent Events (SSE)**: Real-time streaming for AI generation progress
-- **Error Boundaries**: React ErrorBoundary components with graceful fallback UIs
-- **Skeleton Loaders**: Premium loading states for better perceived performance
+- **Error Boundaries**: React ErrorBoundary components with collapsible debug traces and graceful fallback UIs
+- **Skeleton Loaders**: Premium loading states for optimal perceived performance
 - **Automated Testing**: pytest (AI service) and Jest (Node server) test suites
 
-### 🎨 Premium UI/UX
-- Dark-mode + Light-mode glassmorphism design system with theme toggle
-- Smooth micro-animations and transitions
-- Responsive layout with collapsible sidebar
-- Gradient accent colors and floating orb backgrounds
-- Professional landing page with FAQ section
-- Privacy Policy and About pages
+### 🎨 Premium UI/UX & Design System
+- Unified design system: Calibrated Terracotta (`#A85A3C`), Warm Cream (`#F0EEE6`), Sage Green (`#5F806B`), and Copper palettes
+- Dark-mode + Light-mode glassmorphism design with seamless theme toggle
+- Vector SVG icons & custom avatars replacing legacy emojis
+- Custom animated 404 page (`NotFound` / `Animated404`) with interactive bar graph sequence
+- Stacking card animations on landing page
+- Multi-currency conversion via `CurrencyContext`
+- Responsive layout with collapsible desktop sidebar and mobile bottom sheet drawer
 
 ---
 
@@ -255,12 +270,13 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 |-----------|---------|
 | React 19 | UI framework |
 | Vite 7 | Build tool & dev server |
-| Tailwind CSS 4 | Utility-first styling |
-| Recharts | Data visualization (charts) |
-| React Router 7 | Client-side routing |
-| Axios | HTTP client |
+| Tailwind CSS 4 | Utility-first styling & design token system |
+| Recharts | Data visualization & interactive charts |
+| React Router 7 | Client-side routing with direct route aliases |
+| @react-oauth/google | Google Identity & OAuth 2.0 authentication |
+| Axios | HTTP client with automatic auth injection |
 | React Hot Toast | Toast notifications |
-| React Icons (Heroicons) | Icon library |
+| React Icons (Heroicons) | Vector icon library |
 
 ### Backend (Node.js)
 | Technology | Purpose |
@@ -271,6 +287,7 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 | Redis + BullMQ | In-memory caching & async job queues |
 | JWT (jsonwebtoken) | Authentication tokens |
 | bcryptjs | Password hashing |
+| Google OAuth v3 | Access token verification |
 | Helmet | Security headers |
 | express-mongo-sanitize | NoSQL injection prevention |
 | xss-clean | XSS protection |
@@ -316,38 +333,46 @@ ecom-ai-project/
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── index.js             # Centralized Axios API client
-│   │   ├── assets/                  # Images, logos, backgrounds
+│   │   ├── assets/                  # new_dark_logo.png, new_light_logo.png, SVGs
 │   │   ├── components/
-│   │   │   ├── Layout.jsx           # App shell with sidebar toggle
-│   │   │   ├── Sidebar.jsx          # Navigation sidebar (collapsible)
-│   │   │   ├── ChatWidget.jsx       # Floating AI chat widget
+│   │   │   ├── Layout.jsx           # App shell with desktop & mobile nav
+│   │   │   ├── Sidebar.jsx          # Collapsible desktop navigation
+│   │   │   ├── Header.jsx           # Top bar with Cmd+K search & sync state
+│   │   │   ├── MobileBottomNav.jsx  # Mobile thumb-zone navigation bar
+│   │   │   ├── MobileHeroCards.jsx  # Mobile horizontal KPI carousel
+│   │   │   ├── MobileSearchModal.jsx# Universal Cmd+K quick search modal
+│   │   │   ├── ChatWidget.jsx       # Floating AI copilot drawer
+│   │   │   ├── ChatbotAiAvatar.jsx  # Vector SVG chatbot identity
+│   │   │   ├── PricePilotChartLoader.jsx # Universal 3-bar animated loader
+│   │   │   ├── Animated404.jsx      # Interactive 404 bar graph illustration
 │   │   │   ├── ExplainabilityPanel.jsx # AI decision explanation UI
-│   │   │   ├── ErrorBoundary.jsx    # React error boundary
-│   │   │   ├── ErrorState.jsx       # Error fallback UI
+│   │   │   ├── ErrorBoundary.jsx    # React error boundary with trace inspector
 │   │   │   └── Skeleton.jsx         # Loading skeleton components
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx      # Authentication state management
-│   │   │   └── ThemeContext.jsx     # Dark/Light theme management
+│   │   │   ├── AuthContext.jsx      # JWT & Google OAuth authentication
+│   │   │   ├── ThemeContext.jsx     # Dark/Light theme management
+│   │   │   └── CurrencyContext.jsx  # Multi-currency exchange & formatting
 │   │   ├── pages/
-│   │   │   ├── Landing.jsx          # Public landing page with FAQ
-│   │   │   ├── Dashboard.jsx        # Main dashboard with KPIs & charts
-│   │   │   ├── Products.jsx         # Product CRUD management
-│   │   │   ├── Competitors.jsx      # Competitor price tracking
-│   │   │   ├── DemandSignals.jsx    # Demand signal monitoring
-│   │   │   ├── Forecasts.jsx        # AI demand forecasting
-│   │   │   ├── Recommendations.jsx  # AI pricing recommendations
-│   │   │   ├── Chat.jsx             # Full-page AI chatbot interface
-│   │   │   ├── Alerts.jsx           # Alert management
-│   │   │   ├── Integrations.jsx     # API integrations hub
-│   │   │   ├── About.jsx            # About page
-│   │   │   ├── Docs.jsx             # Documentation page
-│   │   │   ├── PrivacyPolicy.jsx    # Privacy policy
-│   │   │   ├── Login.jsx            # User login
-│   │   │   ├── Register.jsx         # User registration
-│   │   │   ├── ForgotPassword.jsx   # Password recovery
-│   │   │   └── ResetPassword.jsx    # Password reset
-│   │   ├── App.jsx                  # Root component with routing
-│   │   ├── index.css                # Global styles & design system
+│   │   │   ├── Landing.jsx          # Public landing page with stacking cards
+│   │   │   ├── Dashboard.jsx        # Main executive KPI & analytics dashboard
+│   │   │   ├── Products.jsx         # Product catalog CRUD management
+│   │   │   ├── Competitors.jsx      # Live Amazon & Flipkart price tracking
+│   │   │   ├── DemandSignals.jsx    # Multi-signal demand & weather scoring
+│   │   │   ├── Forecasts.jsx        # Prophet Bayesian demand forecasting
+│   │   │   ├── Recommendations.jsx  # AI pricing recommendation feed
+│   │   │   ├── ABTestDashboard.jsx  # Price elasticity A/B experiments
+│   │   │   ├── ChannelMapping.jsx   # Multi-channel marketplace connector
+│   │   │   ├── Chat.jsx             # Dedicated AI conversation workspace
+│   │   │   ├── Alerts.jsx           # Severity-prioritized stock & margin alerts
+│   │   │   ├── Integrations.jsx     # External API credentials hub
+│   │   │   ├── Settings.jsx         # Profile, store preferences & avatar picker
+│   │   │   ├── Login.jsx            # Sign in with email or Google OAuth
+│   │   │   ├── Register.jsx         # User registration with onboarding step
+│   │   │   ├── ForgotPassword.jsx   # Password recovery email request
+│   │   │   ├── ResetPassword.jsx    # Token-based secure password reset
+│   │   │   └── NotFound.jsx         # Custom animated 404 page
+│   │   ├── App.jsx                  # Root router with direct alias guards
+│   │   ├── index.css                # Global styles, variables & design tokens
 │   │   └── main.jsx                 # React entry point
 │   ├── index.html
 │   ├── vite.config.js
@@ -541,6 +566,7 @@ The app will be available at:
 | `OPENWEATHER_API_KEY` | Weather data API | ❌ |
 | `NEWSAPI_KEY` | News sentiment data API | ❌ |
 | `SENDGRID_API_KEY` | Email notifications | ❌ |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth 2.0 Web Client ID | ❌ |
 | `CLIENT_URL` | Allowed CORS origin in production | ❌ |
 | `NODE_ENV` | Environment (`development` / `production`) | ❌ |
 
@@ -554,6 +580,7 @@ The app will be available at:
 |--------|----------|-------------|
 | POST | `/api/auth/register` | User registration |
 | POST | `/api/auth/login` | User login (returns JWT) |
+| POST | `/api/auth/google` | Google OAuth login & auto-registration |
 | POST | `/api/auth/forgot-password` | Password recovery email |
 | POST | `/api/auth/reset-password` | Reset password with token |
 | GET | `/api/products` | List user's products |
