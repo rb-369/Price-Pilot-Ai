@@ -36,7 +36,7 @@ def _build_prophet_dataframe(demand_history: List[Dict]):
     df = pd.DataFrame(rows)
     if not df.empty:
         # Floor datetimes to daily frequency to eliminate duplicate labels in Prophet
-        df["ds"] = pd.to_datetime(df["ds"]).dt.floor("d")
+        df["ds"] = pd.to_datetime(df["ds"]).dt.tz_localize(None).dt.floor("d")
         df = df.groupby("ds", as_index=False)["y"].mean().sort_values("ds").reset_index(drop=True)
 
     return df
@@ -47,8 +47,10 @@ def _forecast_with_prophet(scores_df, forecast_days: int) -> List[float]:
     Run Facebook Prophet on the prepared DataFrame.
     Returns a list of forecasted demand scores (0–1).
     """
+    import pandas as pd
     from prophet import Prophet
 
+    scores_df = scores_df.drop_duplicates(subset=["ds"]).sort_values("ds").reset_index(drop=True)
     n = len(scores_df)
 
     model = Prophet(
@@ -73,6 +75,8 @@ def _forecast_with_prophet(scores_df, forecast_days: int) -> List[float]:
     model.fit(scores_df)
 
     future = model.make_future_dataframe(periods=forecast_days, freq="D")
+    future["ds"] = pd.to_datetime(future["ds"]).dt.tz_localize(None).dt.floor("d")
+    future = future.drop_duplicates(subset=["ds"]).reset_index(drop=True)
     forecast = model.predict(future)
 
     # Extract only the future forecast rows

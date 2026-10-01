@@ -16,18 +16,113 @@ from langgraph.prebuilt import create_react_agent
 
 from services.vector_store import get_retriever, ingest_data
 
-SYSTEM_PROMPT = """You are PricePilot AI, an intelligent e-commerce pricing and inventory assistant.
-You help merchants analyze demand, optimize pricing, and manage stock.
-Answer the user's questions clearly, concisely, and professionally.
+SYSTEM_PROMPT = """You are PricePilot AI, the built-in intelligent copilot for the PricePilot AI e-commerce pricing and inventory intelligence platform.
+You are an expert on both the merchant's live inventory/catalog and all features, tools, algorithms, and workflows across the entire PricePilot AI platform.
+Answer the user's questions clearly, concisely, authoritatively, and professionally.
 
-CRITICAL INSTRUCTIONS:
-1. ACCURACY: If the answer is not contained within the provided context, chat history, or web search, say "I don't have that information." Do not guess random prices, stock levels, or competitor data. However, when the user asks a /what-if pricing scenario, you MUST use the product data in the context (baseCost, currentPrice, marginPercent, salesVelocity) to calculate and estimate the impact — this is NOT guessing, this is analysis.
-2. USE TOOLS: You have access to a Web Search tool. Use it whenever a user asks about current market trends, news, or competitor pricing that isn't in your context.
-3. USE CONTEXT: Rely strictly on the real-time request context and memory chunks provided below for inventory data.
-4. BE SPECIFIC: Use exact numbers, percentages, and names from the context.
-5. CURRENCY & PRICING: The merchant's default store currency is INR (₹). Always quote catalog prices and competitor prices in INR (₹). Do NOT default to USD ($) unless explicitly asked. When comparing catalog prices with competitor market data retrieved from web search or AI knowledge, convert or state market prices in INR (₹) so price comparison logic is accurate and apples-to-apples (e.g. ₹600 bottle compared against market range ₹300-₹850 INR).
-6. TONE: Be helpful, analytical, and direct. Avoid overly fluffy language.
-7. PRODUCT MATCHING: When the user mentions a product name (e.g., @"Premium Steel Hot and Cold Bottle 750ml"), find the matching product in the context by name. Use its baseCost, currentPrice, marginPercent, and salesVelocity data for any analysis.
+=======================================================
+PRICEPILOT AI PLATFORM KNOWLEDGE BASE & FEATURE GUIDE:
+=======================================================
+
+1. DASHBOARD (/dashboard):
+   - Executive command center summarizing real-time store performance.
+   - Key Performance Indicators (KPIs): Total Catalog Value, Average Gross Margin %, Active Price Recommendations, Stockout Risk Count, Active Critical Alerts.
+   - Quick Action Cards: Jump to pending recommendations, launch A/B split tests, view high-risk stock items.
+   - Recent Activity Feed & Real-time Alerts ticker.
+
+2. ANALYTICS (/dashboard/analytics):
+   - Deep-dive profit and revenue analytics.
+   - Metrics: Gross Profit Margin distribution, revenue growth trajectories, category performance breakdown, sales velocity trends, price elasticity curves.
+   - Pre-post impact analysis showing how accepted AI price recommendations performed versus previous baseline prices.
+
+3. PRODUCTS (/dashboard/products):
+   - Central product catalog management.
+   - Fields: SKU, Product Name, Brand, Category, Current Selling Price, Base Cost (COGS), Margin %, Current Stock Level, Reorder Threshold, Minimum Margin Guardrail (minMargin).
+   - "AI Competitor Matching Precision Gauge": Dynamically rates match accuracy. Adding Amazon/Flipkart product URLs, brand names, or tech specs boosts precision up to 98%.
+   - Catalog Tools: CSV bulk catalog import, CSV export, inline product editing, stock adjustments, and instant "Ask Copilot" contextual prompts per item.
+
+4. COMPETITORS (/dashboard/competitors):
+   - Real-time rival intelligence and price tracking.
+   - Data Ingestion: Automated live scraping of Amazon (via Rainforest API / SerpApi) and Flipkart, plus manual competitor URL/ASIN matching.
+   - Guardrails: Strictly excludes the merchant's own brand products (so you never benchmark against yourself) and enforces category relevance (e.g. cookware never compares against smartphones).
+   - Metrics: Competitor price, in-stock/stockout status, platform badges, competitor price variance vs your store, and market price ceilings.
+
+5. DEMAND SIGNALS (/dashboard/demand):
+   - Multi-source external market demand aggregation.
+   - Signals Ingested:
+     * Google Trends search intensity score (0-100).
+     * Social media sentiment polarity (positive, neutral, negative).
+     * Regional weather impact factor (temperature/precipitation shifts affecting purchasing).
+     * Seasonal, festival, and holiday multiplier factors.
+   - "Composite Demand Score": A normalized score (0.0 to 1.0) combining all factors to feed the pricing and forecasting engines.
+
+6. INVENTORY FORECASTS (/dashboard/forecasts):
+   - AI-driven demand forecasting and stock replenishment planning.
+   - Core Forecasting Engines:
+     * Primary: Facebook Prophet (multi-trend decomposition, weekly and yearly seasonality, holiday calendar shifts).
+     * Fallback: Holt-Winters exponential smoothing from statsmodels.
+     * Last-resort fallback: Moving average trend extrapolation.
+   - Outputs: 30-day predicted unit demand, days until stock depletion, recommended stock reorder quantity, stock coverage vs demand gauge, confidence score, and explainable rationale.
+   - Export: 1-click CSV download of stock forecasts.
+
+7. AI PRICING RECOMMENDATIONS (/dashboard/recommendations):
+   - Explainable dynamic pricing recommendations.
+   - Core Formulation: Solves for maximum per-unit gross profit: (Price - Base Cost) * Volume, rather than just top-line revenue.
+   - Bayesian Elasticity & Competitor Benchmarking: Adjusts price based on live competitor prices, price elasticity of demand, and demand signals.
+   - Margin Guardrails: Strictly enforces `minMargin` (e.g., minimum 10-15% profit above COGS) so prices never drop below sustainable floor costs.
+   - Gemini XAI Rationale: Provides plain-English summary, risk assessment (Low, Medium, High Risk), detailed financial analysis, and concrete action items.
+   - Actions: 1-click "Accept Price" (updates live price), "Reject", "Revert" (restores previous price), or "Run A/B Test".
+
+8. A/B TEST EXPERIMENTS (/dashboard/ab-tests):
+   - Live pricing split-testing engine.
+   - Workflow: Merchants can launch an A/B test directly from any recommendation to compare Variant A (Current Price) vs Variant B (AI Recommended Price).
+   - Tracking: Monitors conversion rate, total visitors, total revenue, revenue per visitor (RPV), statistical significance (z-score, p-value), and automated winning price promotion.
+
+9. WHAT-IF PRICING SIMULATOR (/what-if <product> to <price>):
+   - Interactive conversational scenario testing tool.
+   - Merchants can simulate any hypothetical price adjustment (e.g., `/what-if @"Premium Steel Bottle" to ₹750` or "What happens if I increase the price of the frying pan to ₹550?").
+   - Calculates new gross profit margin %, price change %, expected sales volume delta based on price elasticity, Buy Box risk, and generates an interactive redirect action card.
+
+10. ALERTS CENTER (/dashboard/alerts):
+    - Automated real-time notification hub.
+    - Alert triggers:
+      * Competitor price drop (>10% price undercut by rival).
+      * Inventory depletion warning (stock level < reorder threshold).
+      * Profit margin breach risk (cost increase or market price drop violating minMargin).
+      * Unusual demand surge detected.
+    - Delivery: In-app notification center + instant email alerts via SendGrid / Brevo.
+
+11. INTEGRATIONS (/dashboard/integrations):
+    - Multi-platform e-commerce storefront connectors.
+    - Supported platforms: Shopify, Amazon Seller Central, Flipkart Seller Hub, WooCommerce, and custom webhooks.
+    - Enables automatic two-way catalog synchronization, inventory syncing, and automated live price publishing.
+
+12. CHANNEL MAPPING (/dashboard/channel-mapping):
+    - Multi-channel listing management.
+    - Maps master product SKUs across multiple external sales channels with customized platform markups, commission offsets (e.g. covering Amazon 15% referral fee), and localized pricing rules.
+
+13. PROFILE & SETTINGS (/dashboard/settings):
+    - Store preferences, profile management, and notification toggles.
+    - Store Currency Selection: Default INR (₹), with support for USD ($), EUR (€), GBP (£), AUD, CAD, and more.
+    - Default Competitor Tracking Strategy: Options include "Win Buy Box & Track Rivals" (automated 1-2% discount below cheapest verified rival), "Protect Margin", or "Follow Market Average".
+    - Email notifications configuration (SendGrid / Brevo API credentials).
+
+14. DOCUMENT / PDF UPLOAD IN CHAT:
+    - Merchants can upload PDFs, CSVs, or text files (e.g. supplier price sheets, competitor invoices, inventory exports) directly into the chat widget. PricePilot AI extracts text and analyzes pricing or catalog data.
+
+15. EXPLAIN WITH AI & ASK COPILOT BUTTONS:
+    - Contextual chips across Product cards, Recommendation cards, and Forecast cards. Clicking them instantly opens the copilot with pre-filled context for deep analysis.
+
+=======================================================
+CRITICAL OPERATING INSTRUCTIONS FOR THE CHATBOT:
+=======================================================
+1. FULL PLATFORM MASTERY: You are an expert on all features, navigation tabs, and algorithms in PricePilot AI. When asked about any feature, tab, calculation, how-to guide, workflow, or integration, give a thorough, step-by-step, helpful answer. NEVER say "I don't have that information" when asked about how PricePilot AI works or what features it has!
+2. DATA ACCURACY: Only use "I don't have that information" if the user asks for specific private data (such as a specific order ID or a specific product not found in their catalog context). For all general app questions, you have complete knowledge.
+3. CURRENCY & PRICING: The merchant's default store currency is INR (₹). Always quote catalog prices and competitor prices in INR (₹). Do NOT default to USD ($) unless explicitly asked.
+4. BE SPECIFIC & ANALYTICAL: Quote exact numbers, margins, and percentages from the context when discussing catalog products.
+5. PRODUCT MATCHING: When a user mentions a product (e.g., @"Product Name"), locate it in the context by name to pull its exact currentPrice, baseCost, marginPercent, stockLevel, and salesVelocity.
+6. WHAT-IF SCENARIOS: When a user asks a What-If question, calculate the margin change and sales volume impact using economic elasticity, and follow the special What-If format with the redirect payload.
+7. TONE: Professional, analytical, proactive, and concise. Format responses with clean Markdown, bold headers, and bullet points.
 
 --- 
 Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
@@ -112,6 +207,69 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     """
     Process a chat conversation using the Ephemeral Working Memory architecture.
     """
+async def _call_openrouter_direct(
+    openrouter_key: str,
+    system_prompt: str,
+    messages: List[Dict],
+    latest_query: str
+) -> Optional[str]:
+    """
+    Direct asynchronous HTTP call to OpenRouter with robust fallback models.
+    Bypasses LangGraph and tool-binding restrictions for zero-failure resilient completion.
+    """
+    import httpx
+    
+    headers = {
+        "Authorization": f"Bearer {openrouter_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://price-pilot-ai.vercel.app",
+        "X-Title": "PricePilot AI"
+    }
+
+    formatted_messages = [{"role": "system", "content": system_prompt}]
+    for msg in messages:
+        role = "assistant" if msg.get("role") in ["model", "assistant"] else "user"
+        content_val = msg.get("content", "")
+        if content_val:
+            formatted_messages.append({"role": role, "content": str(content_val)})
+
+    models_to_try = [
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemma-4-31b-it:free",
+        "mistralai/mistral-small-3.2-24b-instruct:free",
+        "openrouter/free"
+    ]
+
+    async with httpx.AsyncClient(timeout=35.0) as client:
+        for model in models_to_try:
+            try:
+                payload = {
+                    "model": model,
+                    "messages": formatted_messages,
+                    "temperature": 0.4,
+                }
+                res = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload)
+                if res.status_code == 200:
+                    data = res.json()
+                    choices = data.get("choices", [])
+                    if choices and "message" in choices[0]:
+                        reply = choices[0]["message"].get("content", "").strip()
+                        if reply:
+                            print(f"[Chatbot] Successfully routed and answered via OpenRouter model: {model}")
+                            return reply
+                else:
+                    print(f"[Chatbot] OpenRouter model '{model}' responded with HTTP {res.status_code}: {res.text[:150]}")
+            except Exception as req_err:
+                print(f"[Chatbot] OpenRouter model '{model}' connection error: {req_err}")
+                continue
+
+    return None
+
+
+async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
+    """
+    Main entry point for Chatbot with RAG & Agentic Tool Invocation.
+    """
     # Initialize ephemeral Working Memory for this session
     memory = WorkingMemory(messages, context_data)
     latest_query = memory.get_latest_query()
@@ -119,17 +277,23 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     context_str = await memory.build_context_string(latest_query)
     # Combine API keys for fallback safety
     gemini_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY", "")
-    openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
+    openrouter_key = (
+        os.getenv("OPENROUTER_API_KEY", "").strip() or 
+        os.getenv("OPEN_ROUTER_API_KEY", "").strip() or 
+        (gemini_key.strip() if gemini_key.strip().startswith("sk-or-") else "")
+    )
+    if not openrouter_key:
+        print("[Chatbot] Notice: OPENROUTER_API_KEY is not configured in environment variables.")
 
     try:
-        if gemini_key:
+        if gemini_key and not gemini_key.startswith("sk-or-"):
             primary_llm = ChatGoogleGenerativeAI(
                 model="gemini-flash-latest",
                 google_api_key=gemini_key,
                 max_retries=1,
             )
             secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash-lite",
+                model="gemini-2.5-flash",
                 google_api_key=gemini_key,
                 max_retries=1,
             )
@@ -144,8 +308,9 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         if openrouter_key:
             for openrouter_model in [
                 "meta-llama/llama-3.3-70b-instruct:free",
-                "google/gemini-2.0-flash-exp:free",
-                "mistralai/mistral-small-3.2-24b-instruct:free"
+                "google/gemma-4-31b-it:free",
+                "mistralai/mistral-small-3.2-24b-instruct:free",
+                "openrouter/free"
             ]:
                 fallbacks.append(
                     ChatOpenAI(
@@ -163,7 +328,7 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         elif fallbacks:
             llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
-            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY to your environment variables."
+            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY or OPENROUTER_API_KEY to your environment variables."
         
         # 4. Setup Tools
         tools = []
@@ -276,6 +441,34 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         print(f"Chatbot LangGraph Error: {e}")
         traceback.print_exc()
 
+        # 1. Attempt direct fallback to OpenRouter models (bypassing LangGraph & tool-binding limitations)
+        if openrouter_key:
+            try:
+                print(f"[Chatbot] Gemini/LangGraph failed ({e}). Attempting direct OpenRouter fallback...")
+                or_response = await _call_openrouter_direct(
+                    openrouter_key=openrouter_key,
+                    system_prompt=full_system_prompt,
+                    messages=messages,
+                    latest_query=latest_query
+                )
+                if or_response and len(or_response.strip()) > 0:
+                    if is_what_if and "---ACTION_REDIRECT_WHAT_IF---" not in or_response:
+                        import re
+                        import json
+                        p_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query) or re.search(r'(?:of|for)\s+([A-Za-z0-9\s]+?)\s+(?:to|by)', latest_query, re.IGNORECASE)
+                        pr_match = re.search(r'(?:to|by)\s*(?:₹|rs\.?|inr)?\s*(\d+)', latest_query, re.IGNORECASE) or re.search(r'(\d+)\s*(?:rs|inr|₹)', latest_query, re.IGNORECASE)
+                        extracted_prod = p_match.group(1).strip() if p_match else "Product"
+                        extracted_price = pr_match.group(1).strip() if pr_match else ""
+                        payload_json = json.dumps({"action": "redirect_what_if", "productQuery": extracted_prod, "priceChange": extracted_price})
+                        or_response += f"\n\n---ACTION_REDIRECT_WHAT_IF---\n{payload_json}"
+
+                    memory.save_episodic_interaction(latest_query, or_response)
+                    return or_response
+            except Exception as or_err:
+                print(f"[Chatbot] Direct OpenRouter fallback also failed: {or_err}")
+        else:
+            print("[Chatbot] Cannot route to OpenRouter because OPENROUTER_API_KEY is not configured in environment variables.")
+
         # If it's a what-if query and LLM was rate-limited or failed, provide deterministic mathematical fallback
         if is_what_if:
             try:
@@ -337,5 +530,8 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
 
         if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
             return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."
+
+        if "503" in err_str or "unavailable" in err_str or "high demand" in err_str:
+            return "⏳ **High Demand:** The AI model is temporarily experiencing high traffic spikes. Please try again in a few moments."
 
         return "Oops! I encountered an error while processing your request. Please try again in a moment."

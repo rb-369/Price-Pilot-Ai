@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   getRecommendations,
   getProducts,
@@ -300,9 +300,9 @@ export default function Recommendations() {
           <p className="text-text-muted max-w-md mx-auto mb-8">
             Add products to your catalog to generate AI-driven dynamic pricing recommendations based on competitor pricing and demand signals.
           </p>
-          <a href="/products" className="btn-primary">
+          <Link to="/dashboard/products" className="btn-primary">
             Add Your First Product
-          </a>
+          </Link>
         </div>
       ) : (
         <>
@@ -583,12 +583,22 @@ export default function Recommendations() {
                       <HiOutlineLightBulb className="w-4 h-4 text-warning" /> Gemini AI Insight &amp; Rationale
                     </h4>
                     {(() => {
-                      try {
-                        const parsed = JSON.parse(rec.insight);
+                      let parsed = null;
+                      if (typeof rec.insight === 'object' && rec.insight !== null) {
+                        parsed = rec.insight;
+                      } else if (typeof rec.insight === 'string') {
+                        try {
+                          parsed = JSON.parse(rec.insight);
+                        } catch {
+                          parsed = null;
+                        }
+                      }
+
+                      if (parsed && typeof parsed === 'object') {
                         return (
                           <div className="space-y-3">
                             <div className="flex items-start justify-between gap-4">
-                              <p className="text-sm font-semibold text-text">{parsed.summary}</p>
+                              <p className="text-sm font-semibold text-text">{String(parsed.summary || '')}</p>
                               {parsed.risk_level && (
                                 <span
                                   className={`text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
@@ -599,26 +609,40 @@ export default function Recommendations() {
                                       : 'bg-warning/15 text-warning border border-warning/20'
                                   }`}
                                 >
-                                  {parsed.risk_level} Risk
+                                  {String(parsed.risk_level)} Risk
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-text-muted leading-relaxed">{parsed.detailed_analysis}</p>
-                            {parsed.action_items && parsed.action_items.length > 0 && (
+                            {parsed.detailed_analysis && (
+                              <p className="text-xs text-text-muted leading-relaxed">{String(parsed.detailed_analysis)}</p>
+                            )}
+                            {Array.isArray(parsed.action_items) && parsed.action_items.length > 0 && (
                               <div className="mt-2.5 pt-2.5 border-t border-border">
                                 <p className="text-[11px] text-text-muted uppercase font-semibold mb-1.5">Action Items:</p>
                                 <ul className="list-disc pl-4 space-y-1">
                                   {parsed.action_items.map((item, idx) => (
-                                    <li key={idx} className="text-xs text-text">{item}</li>
+                                    <li key={idx} className="text-xs text-text">
+                                      {typeof item === 'object' ? JSON.stringify(item) : String(item)}
+                                    </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
                           </div>
                         );
-                      } catch {
-                        return <p className="text-xs text-text-muted leading-relaxed">{rec.insight || rec.reason}</p>;
                       }
+
+                      const fallbackText = typeof rec.insight === 'string'
+                        ? rec.insight
+                        : typeof rec.reason === 'string'
+                        ? rec.reason
+                        : typeof rec.insight === 'object' && rec.insight !== null
+                        ? JSON.stringify(rec.insight)
+                        : typeof rec.reason === 'object' && rec.reason !== null
+                        ? JSON.stringify(rec.reason)
+                        : 'No detailed rationale available.';
+
+                      return <p className="text-xs text-text-muted leading-relaxed">{fallbackText}</p>;
                     })()}
                   </div>
 
@@ -685,19 +709,19 @@ export default function Recommendations() {
                   )}
 
                   {/* Actions Bar */}
-                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border">
+                  <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 pt-3 border-t border-border">
                     {rec.status === 'pending' && (
                       <>
                         <button
                           onClick={() => handleAccept(rec._id, rec.expectedRevenueImpact)}
-                          className="btn-primary flex items-center gap-2 text-xs"
+                          className="btn-primary flex items-center justify-center gap-2 text-xs py-2.5 sm:py-2 w-full sm:w-auto"
                         >
                           <HiOutlineCheck className="w-4 h-4" /> Accept &amp; Apply Price
                         </button>
                         
                         <button
                           onClick={() => handleTestPrice(rec)}
-                          className="py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                          className="py-2.5 sm:py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-bold flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer w-full sm:w-auto"
                         >
                           <HiBeaker className="w-4 h-4 text-primary" /> Test Price (A/B)
                         </button>
@@ -712,7 +736,7 @@ export default function Recommendations() {
                               toast.error('Failed to reject recommendation');
                             }
                           }}
-                          className="btn-secondary flex items-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer"
+                          className="btn-secondary flex items-center justify-center gap-2 text-xs text-danger hover:bg-danger/10 hover:border-danger/30 cursor-pointer py-2.5 sm:py-2 w-full sm:w-auto"
                         >
                           <HiOutlineXMark className="w-4 h-4" /> Reject
                         </button>
@@ -723,7 +747,7 @@ export default function Recommendations() {
                       <button
                         type="button"
                         onClick={() => navigate('/dashboard/ab-tests')}
-                        className="py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-bold flex items-center gap-2 text-xs transition-colors cursor-pointer"
+                        className="py-2.5 sm:py-2 px-3.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-bold flex items-center justify-center gap-2 text-xs transition-colors cursor-pointer w-full sm:w-auto"
                       >
                         <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
                         <HiBeaker className="w-4 h-4 text-primary" /> View Active A/B Test
@@ -733,7 +757,7 @@ export default function Recommendations() {
                     {rec.status === 'accepted' && (
                       <button
                         onClick={() => handleRevert(rec._id)}
-                        className="btn-secondary flex items-center gap-2 text-xs text-[#A17A3A] dark:text-[#C49B55] hover:bg-[#A17A3A]/10 hover:border-[#A17A3A]/30 cursor-pointer"
+                        className="btn-secondary flex items-center justify-center gap-2 text-xs text-[#A17A3A] dark:text-[#C49B55] hover:bg-[#A17A3A]/10 hover:border-[#A17A3A]/30 cursor-pointer py-2.5 sm:py-2 w-full sm:w-auto"
                       >
                         <HiOutlineRefresh className="w-4 h-4" /> Undo &amp; Revert Price
                       </button>

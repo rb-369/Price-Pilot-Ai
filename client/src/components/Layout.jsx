@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import MobileBottomNav from './MobileBottomNav';
 import useRealTimeUpdates from '../hooks/useRealTimeUpdates';
 
 export default function Layout() {
@@ -53,12 +54,15 @@ export default function Layout() {
                 {/* Persistent Top Header */}
                 <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isDesktop={isDesktop} />
 
-                {/* Page Content Container */}
-                <main className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-8'}>
+                {/* Page Content Container with bottom padding on mobile for floating nav & FAB */}
+                <main className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-8 pb-28 sm:pb-32 lg:pb-8'}>
                     <div className={isChatPage ? 'h-full w-full' : 'mx-auto w-full max-w-[1440px] animate-fade-in'}>
                         <Outlet context={{ sidebarOpen, setSidebarOpen, isDesktop }} />
                     </div>
                 </main>
+
+                {/* Mobile Floating Pill Navigation Bar & AI Spark FAB (User reference design) */}
+                {!isChatPage && <MobileBottomNav />}
             </div>
         </div>
     );

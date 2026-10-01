@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -86,8 +86,31 @@ function AppRoutes() {
         <Route path="channel-mapping" element={<ChannelMapping />} />
         <Route path="settings" element={<Settings />} />
       </Route>
+      {/* Shorthand / Direct Route Aliases */}
+      <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+      <Route path="/competitors" element={<Navigate to="/dashboard/competitors" replace />} />
+      <Route path="/recommendations" element={<Navigate to="/dashboard/recommendations" replace />} />
+      <Route path="/forecasts" element={<Navigate to="/dashboard/forecasts" replace />} />
+      <Route path="/analytics" element={<Navigate to="/dashboard/analytics" replace />} />
+      <Route path="/ab-tests" element={<Navigate to="/dashboard/ab-tests" replace />} />
+      <Route path="/chat" element={<Navigate to="/dashboard/chat" replace />} />
+      <Route path="/alerts" element={<Navigate to="/dashboard/alerts" replace />} />
+      <Route path="/integrations" element={<Navigate to="/dashboard/integrations" replace />} />
+      <Route path="/channel-mapping" element={<Navigate to="/dashboard/channel-mapping" replace />} />
+      <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+      <Route path="/demand" element={<Navigate to="/dashboard/demand" replace />} />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
+  );
+}
+
+function RouteErrorBoundary({ children }) {
+  const location = useLocation();
+  return (
+    <ErrorBoundary key={location.pathname}>
+      {children}
+    </ErrorBoundary>
   );
 }
 
@@ -111,9 +134,9 @@ export default function App() {
                   fontWeight: 500
                 },
               }} />
-              <ErrorBoundary>
+              <RouteErrorBoundary>
                 <AppRoutes />
-              </ErrorBoundary>
+              </RouteErrorBoundary>
             </AuthProvider>
           </BrowserRouter>
         </CurrencyProvider>

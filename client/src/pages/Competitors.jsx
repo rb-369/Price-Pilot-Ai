@@ -311,7 +311,7 @@ export default function Competitors() {
             Competitor_Name: competitor.name,
             Competitor_Price: competitor.price,
             In_Stock: competitor.inStock ? 'Yes' : 'No',
-            Difference_Pct: (((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1),
+            Difference_Pct: (data.product.currentPrice && data.product.currentPrice > 0) ? (((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1) : '0.0',
         })));
         exportToCSV(exportData, 'competitor-prices');
     };
@@ -324,7 +324,7 @@ export default function Competitors() {
             competitor.name,
             formatCurrency(competitor.price),
             competitor.inStock ? 'In Stock' : 'Out of Stock',
-            `${(((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1)}%`
+            (data.product.currentPrice && data.product.currentPrice > 0) ? `${(((competitor.price - data.product.currentPrice) / data.product.currentPrice) * 100).toFixed(1)}%` : '0.0%'
         ]));
 
         exportReportToPdf({

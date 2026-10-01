@@ -78,3 +78,5 @@ ai-service/models/*eval_*
 ai-service/models/*test_user*
 ai-service/.coverage
 ai-service/evaluation_reports/*
+
+.impeccable/*

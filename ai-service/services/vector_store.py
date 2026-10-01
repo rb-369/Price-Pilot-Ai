@@ -12,7 +12,7 @@ def _get_embeddings():
     # 1. Primary: Cloud-based Google Generative AI Embeddings (Zero RAM overhead on Render)
     api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
     if api_key:
-        for model_name in ["models/gemini-embedding-001", "models/gemini-embedding-2", "models/embedding-001"]:
+        for model_name in ["models/text-embedding-004", "models/embedding-001", "models/gemini-embedding-001"]:
             try:
                 from langchain_google_genai import GoogleGenerativeAIEmbeddings
                 embeddings = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
@@ -52,19 +52,26 @@ def get_vectorstore(collection_name="ecommerce_data"):
             from qdrant_client.models import VectorParams, Distance
             client = QdrantClient(url=qdrant_url, api_key=qdrant_key)
 
-            # Ensure collection exists before querying/storing
+            # Ensure collection exists before querying/storing and matches embedding dimensions
             try:
-                if not client.collection_exists(collection_name):
-                    vec_size = 768
-                    try:
-                        probe = embeddings.embed_query("probe")
-                        if probe and len(probe) > 0:
-                            vec_size = len(probe)
-                    except Exception:
-                        pass
+                probe = embeddings.embed_query("probe")
+                target_size = len(probe) if (probe and len(probe) > 0) else 768
+                
+                if client.collection_exists(collection_name):
+                    col_info = client.get_collection(collection_name)
+                    v_config = getattr(col_info.config.params, "vectors", None)
+                    existing_dim = getattr(v_config, "size", None) if v_config else None
+                    if existing_dim is not None and existing_dim != target_size:
+                        print(f"[Qdrant] Dimension mismatch ({existing_dim} vs {target_size}). Recreating collection '{collection_name}'...")
+                        client.delete_collection(collection_name)
+                        client.create_collection(
+                            collection_name=collection_name,
+                            vectors_config=VectorParams(size=target_size, distance=Distance.COSINE)
+                        )
+                else:
                     client.create_collection(
                         collection_name=collection_name,
-                        vectors_config=VectorParams(size=vec_size, distance=Distance.COSINE)
+                        vectors_config=VectorParams(size=target_size, distance=Distance.COSINE)
                     )
             except Exception as collection_err:
                 print(f"Qdrant collection creation check notice: {collection_err}")

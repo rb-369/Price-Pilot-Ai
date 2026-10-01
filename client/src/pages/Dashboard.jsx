@@ -23,6 +23,7 @@ import WhatIfSimulator from '../components/WhatIfSimulator';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import AskAIButton from '../components/AskAIButton';
+import MobileHeroCards from '../components/MobileHeroCards';
 import { warmupAIService } from '../utils/aiWarmup';
 import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
@@ -103,9 +104,14 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="space-y-8">
-            {/* Top Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
+        <div className="space-y-6 sm:space-y-8">
+            {/* Mobile Hero Action Cards, Quick Squircles & Scratch Pad (Direct match to reference image) */}
+            <div className="md:hidden">
+                <MobileHeroCards stats={stats} />
+            </div>
+
+            {/* Desktop Top Header */}
+            <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
                     <h1 className="page-header text-3xl font-extrabold text-text tracking-tight">Executive Dashboard</h1>
                     <p className="text-text-muted mt-1 text-sm">Autonomous dynamic pricing &amp; inventory intelligence command center</p>
@@ -338,15 +344,24 @@ export default function Dashboard() {
                                     <div key={i} className="p-3.5 bg-surface-elevated/70 rounded-xl border border-border hover:border-primary/40 transition-all">
                                         <div className="flex items-start justify-between mb-1">
                                             <p className="text-sm font-medium text-text">{rec.productId?.name || 'Product'}</p>
-                                            <span className="badge-info text-[10px]">{(rec.confidenceScore * 100).toFixed(0)}%</span>
+                                            <span className="badge-info text-[10px]">
+                                                {Math.round((rec.confidenceScore != null ? rec.confidenceScore : 0.85) * 100)}%
+                                            </span>
                                         </div>
                                         <p className="text-xs text-text-muted line-clamp-2">
                                             {(() => {
-                                                try {
-                                                    return JSON.parse(rec.insight).summary;
-                                                } catch {
-                                                    return rec.insight || rec.reason;
+                                                let summary = null;
+                                                if (typeof rec.insight === 'object' && rec.insight !== null) {
+                                                    summary = rec.insight.summary;
+                                                } else if (typeof rec.insight === 'string') {
+                                                    try {
+                                                        const parsed = JSON.parse(rec.insight);
+                                                        summary = parsed?.summary;
+                                                    } catch {
+                                                        summary = rec.insight;
+                                                    }
                                                 }
+                                                return String(summary || rec.reason || 'AI price optimization computed.');
                                             })()}
                                         </p>
                                         <div className="flex items-center justify-between gap-3 mt-2 text-xs">

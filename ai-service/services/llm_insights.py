@@ -118,15 +118,26 @@ async def _generate_with_gemini(
             risk_level: str
 
         client = genai.Client(api_key=api_key)
-        response = await client.aio.models.generate_content(
-            model="gemini-2.5-pro",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=InsightResponse,
-                temperature=0.4
-            )
-        )
+        response = None
+        for cand_model in ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.1-pro-preview"]:
+            try:
+                response = await client.aio.models.generate_content(
+                    model=cand_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=InsightResponse,
+                        temperature=0.4
+                    )
+                )
+                break
+            except Exception as cand_err:
+                print(f"[LLMInsights] Model {cand_model} failed: {cand_err}")
+                continue
+
+        if response is None:
+            raise RuntimeError("All Gemini insight models failed or timed out.")
+
         return response.text.strip()
     except Exception as e:
         print(f"Gemini failed: {e}. Trying OpenRouter fallback...")

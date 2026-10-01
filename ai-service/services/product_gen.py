@@ -77,7 +77,7 @@ async def generate_product_copy(product_name: str, category: str = "") -> dict:
             }
             fallback_models = [
                 "meta-llama/llama-3.3-70b-instruct:free",
-                "google/gemini-2.0-flash-exp:free",
+                "google/gemma-4-31b-it:free",
                 "mistralai/mistral-small-3.2-24b-instruct:free",
                 "openrouter/auto"
             ]

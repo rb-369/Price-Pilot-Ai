@@ -168,7 +168,15 @@ const ChatWidget = () => {
         };
 
         window.addEventListener('open_explain_with_ai', handleExplainWithAI);
-        return () => window.removeEventListener('open_explain_with_ai', handleExplainWithAI);
+        const handleOpenChat = () => setIsOpen(true);
+        const handleToggleChat = () => setIsOpen(prev => !prev);
+        window.addEventListener('open_chat_widget', handleOpenChat);
+        window.addEventListener('toggle_chat_widget', handleToggleChat);
+        return () => {
+            window.removeEventListener('open_explain_with_ai', handleExplainWithAI);
+            window.removeEventListener('open_chat_widget', handleOpenChat);
+            window.removeEventListener('toggle_chat_widget', handleToggleChat);
+        };
     }, []);
 
     useEffect(() => {
@@ -319,8 +327,12 @@ const ChatWidget = () => {
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-            {/* Floating Trigger Button */}
+        <div className={`fixed z-[9999] flex flex-col items-end ${
+            isOpen 
+                ? 'inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6' 
+                : 'bottom-6 right-6 hidden lg:flex'
+        }`}>
+            {/* Floating Trigger Button (Desktop only; on mobile the bottom spark FAB triggers this) */}
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
@@ -336,12 +348,14 @@ const ChatWidget = () => {
             )}
 
             {/* Chat Drawer Widget */}
-            <div className={`transition-all duration-300 ease-in-out transform ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-8 pointer-events-none absolute bottom-0 right-0'}`}>
+            <div className={`transition-all duration-300 ease-in-out transform w-full sm:w-auto ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-8 pointer-events-none absolute bottom-0 right-0'}`}>
                 <div className={`bg-surface/95 backdrop-blur-xl border border-border shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden transition-all duration-300 ${
                     isExpanded 
-                    ? 'w-[calc(100vw-3rem)] h-[calc(100vh-6rem)] max-w-5xl rounded-3xl' 
-                    : 'w-[90vw] sm:w-[420px] h-[580px] rounded-3xl'
+                    ? 'w-full sm:w-[calc(100vw-3rem)] h-[90vh] sm:h-[calc(100vh-6rem)] max-w-5xl rounded-t-3xl sm:rounded-3xl' 
+                    : 'w-full sm:w-[420px] h-[85vh] sm:h-[580px] rounded-t-3xl sm:rounded-3xl'
                 }`}>
+                    {/* Top drag indicator bar on mobile */}
+                    <div className="sm:hidden w-12 h-1 bg-slate-700/80 rounded-full mx-auto mt-2" />
                     {/* Header */}
                     <div className="p-4 bg-surface-lighter/80 backdrop-blur-md border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -430,12 +444,12 @@ const ChatWidget = () => {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
+                                                <div className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
                                                     {renderFormattedChatMessage(msg.content, true)}
-                                                </p>
+                                                </div>
                                             )
                                         ) : (
-                                            <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-normal">
+                                            <div className="text-[13px] leading-relaxed font-normal">
                                                 {renderFormattedChatMessage(msg.content, false, (payload) => {
                                                     if (location.pathname !== '/dashboard') {
                                                         navigate('/dashboard');
@@ -445,7 +459,7 @@ const ChatWidget = () => {
                                                         window.dispatchEvent(event);
                                                     }, 200);
                                                 })}
-                                            </p>
+                                            </div>
                                         )}
                                     </div>
 
