@@ -78,5 +78,18 @@ describe('Product Endpoints', () => {
         expect(res.body.shortName.length).toBeGreaterThan(5);
         expect(res.body.shortName).toMatch(/Godrej/i);
     }, 15000);
+
+    it('should clean brand names properly from marketplace titles and stores', () => {
+        const { cleanBrandName, generateSensibleShortName } = require('../controllers/productController');
+        expect(cleanBrandName('Visit the Godrej Store')).toEqual('Godrej');
+        expect(cleanBrandName('Visit the godrej')).toEqual('Godrej');
+        expect(cleanBrandName('Godrej Store')).toEqual('Godrej');
+        expect(cleanBrandName('Brand: Godrej')).toEqual('Godrej');
+        expect(cleanBrandName('The Derma Co')).toEqual('The Derma Co');
+
+        const title = 'Godrej 223 L 3 Star, New Launch with 5 Years Comprehensive Warranty, 6-In-1 Freezer Convertible, 30 Days Farm Freshness, Inverter Double Door Refrigerator (RF EON 244CN RCIF ST RH, Steel Rush)';
+        const shortName = generateSensibleShortName(title, 'Visit the Godrej Store');
+        expect(shortName).toEqual('Godrej 223 L 3 Star Double Door Refrigerator');
+    });
 });
 

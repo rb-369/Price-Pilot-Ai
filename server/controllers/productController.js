@@ -70,8 +70,10 @@ exports.createProduct = async (req, res) => {
         // Set Short Name & Full Name fallbacks
         safeBody.fullName = safeBody.fullName || safeBody.name;
         safeBody.shortName = safeBody.shortName || safeBody.name.slice(0, 40);
-        if (!safeBody.brand && safeBody.fullName) {
-            safeBody.brand = safeBody.fullName.split(/[,|\-–—\s]/)[0].trim();
+        if (safeBody.brand) {
+            safeBody.brand = cleanBrandName(safeBody.brand);
+        } else if (safeBody.fullName) {
+            safeBody.brand = cleanBrandName(safeBody.fullName.split(/[,|\-–—\s]/)[0]);
         }
 
         const product = await Product.create({ ...safeBody, userId: req.user._id });
@@ -125,6 +127,10 @@ exports.updateProduct = async (req, res) => {
             }
         }
 
+        if (safeBody.brand) {
+            safeBody.brand = cleanBrandName(safeBody.brand);
+        }
+
         const product = await Product.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
             safeBody,
@@ -150,14 +156,39 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
+// Clean raw brand strings from stores (e.g. "Visit the Godrej Store" -> "Godrej")
+const cleanBrandName = (str) => {
+    if (!str || typeof str !== 'string') return '';
+    let b = str
+        .replace(/<[^>]+>/g, '')
+        .replace(/\bVisit the\s+/gi, '')
+        .replace(/\s+Store\b/gi, '')
+        .replace(/\bBrand\s*[:\-–—]\s*/gi, '')
+        .replace(/^By\s+/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (b.toLowerCase().startsWith('visit the ')) {
+        b = b.slice(10).trim();
+    }
+    if (b.toLowerCase().endsWith(' store')) {
+        b = b.slice(0, -6).trim();
+    }
+    if (b.length > 0 && (b === b.toLowerCase() || b === b.toUpperCase())) {
+        b = b.charAt(0).toUpperCase() + b.slice(1).toLowerCase();
+    }
+    return b;
+};
+
 // Intelligent product short-name cleanser — generates concise, sensible names for UI display
 const generateSensibleShortName = (rawTitle, detectedBrand = '', category = '') => {
     if (!rawTitle || typeof rawTitle !== 'string') return '';
 
+    const cleanBrand = cleanBrandName(detectedBrand);
     let title = rawTitle
         .replace(/\s*:\s*Amazon\.in.*$/i, '')
         .replace(/\s*-\s*Amazon\.in.*$/i, '')
         .replace(/\s*\|\s*Flipkart.*$/i, '')
+        .replace(/\bVisit the\s+[^,()]+\s+Store\b/gi, '')
         .trim();
 
     // Common e-commerce product nouns (ordered from most specific to least specific)
@@ -188,6 +219,9 @@ const generateSensibleShortName = (rawTitle, detectedBrand = '', category = '') 
 
     // Marketing junk phrases to strip
     const marketingFluffPatterns = [
+        /\bVisit the\s+[^,()]+\s+Store\b/gi,
+        /\bVisit the\s+/gi,
+        /\bStore\b/gi,
         /\b(?:new launch|newly launched|latest model|bestseller|best seller)\b/gi,
         /\bwith \d+\s*(?:years?|yrs?|months?)\s*(?:comprehensive)?\s*warranty\b/gi,
         /\b\d+\s*(?:years?|yrs?|months?)\s*(?:comprehensive)?\s*warranty\b/gi,
@@ -241,8 +275,8 @@ const generateSensibleShortName = (rawTitle, detectedBrand = '', category = '') 
     // If first segment does not contain the noun (e.g. "Godrej 223 L 3 Star" or "ASUS Vivobook 15")
     if (foundNoun) {
         let prefix = cleanTrailing(rawSegments[0] || '');
-        let brandToUse = detectedBrand || '';
-        if (brandToUse && !new RegExp(`\\b${brandToUse}\\b`, 'i').test(prefix)) {
+        let brandToUse = cleanBrand || '';
+        if (brandToUse && !new RegExp(`\\b${brandToUse.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(prefix)) {
             prefix = `${brandToUse} ${prefix}`.trim();
         }
 
@@ -383,7 +417,7 @@ exports.extractUrlMetadata = async (req, res) => {
                     const p = rfData?.product;
                     if (p && p.title) {
                         metadata.fullName = cleanText(p.title);
-                        metadata.brand = p.brand || '';
+                        metadata.brand = cleanBrandName(p.brand || '');
                         metadata.source = 'rainforest_api';
 
                         const priceVal = p.buybox_winner?.price?.value ?? p.price?.value ?? p.prices?.[0]?.value;
@@ -466,7 +500,7 @@ exports.extractUrlMetadata = async (req, res) => {
                     }
 
                     if (!metadata.brand && pr.brand) {
-                        metadata.brand = pr.brand;
+                        metadata.brand = cleanBrandName(pr.brand);
                     }
 
                     if (!metadata.description && serpData?.product_description) {
@@ -637,7 +671,7 @@ exports.extractUrlMetadata = async (req, res) => {
                                 html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
 
             if (bylineMatch && bylineMatch[1]) {
-                const cleanBrand = cleanText(bylineMatch[1]).replace(/Visit the|Store|Brand:|Brand\s*-/gi, '').trim();
+                const cleanBrand = cleanBrandName(cleanText(bylineMatch[1]));
                 if (cleanBrand.length > 0 && cleanBrand.length < 40) metadata.brand = cleanBrand;
             }
 
@@ -936,3 +970,6 @@ async function _generateHistoricalDemandSignals(product) {
 
     console.log(`[ProductCreate] Generated ${demandOps.length} demand signals for "${product.name}"`);
 }
+
+exports.cleanBrandName = cleanBrandName;
+exports.generateSensibleShortName = generateSensibleShortName;

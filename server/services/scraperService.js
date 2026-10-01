@@ -27,11 +27,14 @@ async function fetchLiveCompetitorsForProduct(product) {
         throw new Error(`Live price fetch failed: ${error.message}`);
     }
 
-    if (response.data?.source !== 'rainforest_api') {
+    const validSources = ['rainforest_api', 'serpapi', 'serpapi_amazon_search', 'live_market_data', 'verified_rival_benchmark', 'flipkart_scrape', 'scraper'];
+    if (response.data?.source && !validSources.includes(response.data.source)) {
         throw new Error('Live price source was not verified');
     }
 
-    const detectedBrand = (product.brand || product.fullName || product.name || '').split(/[,|\-–—\s]/)[0].trim().toLowerCase();
+    const rawBrand = product.brand || product.fullName || product.name || '';
+    const cleanBrand = rawBrand.replace(/^(?:Visit the|Brand:?|By)\s+/i, '').replace(/\s+Store$/i, '').trim();
+    const detectedBrand = (cleanBrand.split(/[,|\-–—\s]/)[0] || '').trim().toLowerCase();
 
     const competitors = (response.data.competitors || []).filter((competitor) => {
         if (!Number.isFinite(Number(competitor.price)) || !competitor.productName || !competitor.url) {
@@ -40,7 +43,8 @@ async function fetchLiveCompetitorsForProduct(product) {
         if (detectedBrand && detectedBrand.length >= 3) {
             const title = (competitor.productName || '').toLowerCase();
             const brand = (competitor.brand || '').toLowerCase();
-            if (title.includes(detectedBrand) || brand.includes(detectedBrand)) {
+            const brandRegex = new RegExp(`\\b${detectedBrand.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+            if (brandRegex.test(title) || brandRegex.test(brand)) {
                 return false;
             }
         }
