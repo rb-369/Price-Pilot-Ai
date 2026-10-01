@@ -120,7 +120,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
-    // When active product changes, sync base price, cogs, and run simulation with real product data
+    // When active product changes, sync base price & cogs without auto-simulating
     useEffect(() => {
         if (activeProduct) {
             const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
@@ -129,16 +129,10 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                 : Math.round(price * 0.6 * 100) / 100;
             setTargetPrice(price);
             setCogs(cost);
-            handleRunSimulation({
-                productId: activeProduct._id,
-                targetPrice: price,
-                cogs: cost,
-                competitorStrategy,
-                demandMultiplier,
-                timeHorizonDays
-            });
+            setSimulation(null);
+            setError(null);
         }
-    }, [activeProduct, handleRunSimulation, competitorStrategy, demandMultiplier, timeHorizonDays]);
+    }, [activeProduct]);
 
     // Track pending launch event if products are still fetching
     const pendingLaunchRef = useRef(null);
@@ -559,16 +553,20 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                         <button
                             type="button"
                             onClick={() => setShowCommitModal(true)}
-                            disabled={!selectedProductId}
+                            disabled={!selectedProductId || !simulation}
                             className="w-full bg-surface border-2 border-sage/60 hover:border-sage text-sage hover:bg-sage/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-xs"
                         >
                             <HiOutlineCheckCircle className="w-4 h-4" />
                             Commit Price Change
                         </button>
                     </div>
-                    {!selectedProductId && (
+                    {!selectedProductId ? (
                         <p className="text-[11px] text-brass text-center">
                             Select a product above to commit price changes.
+                        </p>
+                    ) : !simulation && (
+                        <p className="text-[11px] text-text-muted text-center">
+                            Click &ldquo;Run AI Simulation&rdquo; to model price impact before committing.
                         </p>
                     )}
                 </div>
@@ -586,6 +584,45 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                         <div className="p-4 bg-danger/10 text-danger border border-danger/20 rounded-xl text-xs flex items-center gap-2">
                             <HiOutlineExclamation className="w-5 h-5 flex-shrink-0" />
                             {error}
+                        </div>
+                    ) : !simulation ? (
+                        <div className="glass-card p-8 rounded-2xl border border-dashed border-primary/30 flex flex-col items-center justify-center text-center space-y-4 py-16 animate-fade-in">
+                            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                                <HiOutlineLightningBolt className="w-8 h-8" />
+                            </div>
+                            <div className="max-w-md space-y-1.5">
+                                <h3 className="text-base font-bold text-text">Ready to Simulate</h3>
+                                <p className="text-xs text-text-muted leading-relaxed">
+                                    Adjust your proposed target price, cost, competitor stance, and market multiplier on the left, then click <strong className="text-primary font-semibold">Run AI Simulation</strong> to generate elasticity projections and profit sensitivity curves.
+                                </p>
+                            </div>
+                            {activeProduct && (
+                                <div className="flex flex-wrap items-center justify-center gap-3 text-xs bg-surface/80 px-4 py-2.5 rounded-xl border border-border mt-1">
+                                    <div>
+                                        <span className="text-text-muted">Current Price: </span>
+                                        <span className="font-bold text-text">{formatCurrency(activeProduct.currentPrice)}</span>
+                                    </div>
+                                    <span className="text-border hidden xs:inline">|</span>
+                                    <div>
+                                        <span className="text-text-muted">Base Cost: </span>
+                                        <span className="font-bold text-text">{formatCurrency(activeProduct.baseCost || Math.round(activeProduct.currentPrice * 0.6))}</span>
+                                    </div>
+                                    <span className="text-border hidden xs:inline">|</span>
+                                    <div>
+                                        <span className="text-text-muted">Proposed: </span>
+                                        <span className="font-bold text-primary">{formatCurrency(targetPrice)}</span>
+                                    </div>
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => handleRunSimulation()}
+                                disabled={simulating}
+                                className="mt-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-dark text-white flex items-center gap-2 shadow-lg shadow-primary/25 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                            >
+                                <HiOutlineLightningBolt className="w-4 h-4 text-brass" />
+                                Run AI Simulation ({formatCurrency(targetPrice)})
+                            </button>
                         </div>
                     ) : (
                         <>
