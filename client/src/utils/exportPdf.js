@@ -5,8 +5,8 @@ export const exportReportToPdf = ({ title, subtitle, columns, data, filename = '
   const doc = new jsPDF('p', 'mm', 'a4');
 
   // Colors
-  const primaryColor = [99, 102, 241]; // #6366f1 Indigo
-  const textColor = [30, 41, 59]; // #1e293b Slate
+  const primaryColor = [168, 90, 60]; // #A85A3C Terracotta
+  const textColor = [36, 24, 18]; // #241812 Warm Dark
 
   // Header Banner
   doc.setFillColor(...primaryColor);
@@ -28,7 +28,7 @@ export const exportReportToPdf = ({ title, subtitle, columns, data, filename = '
   doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 14, 36);
   if (subtitle) {
     doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139);
+    doc.setTextColor(128, 115, 106);
     doc.text(subtitle, 14, 42);
   }
 
@@ -49,7 +49,7 @@ export const exportReportToPdf = ({ title, subtitle, columns, data, filename = '
       textColor: textColor,
     },
     alternateRowStyles: {
-      fillColor: [248, 250, 252],
+      fillColor: [247, 243, 235],
     },
     margin: { top: 40, left: 14, right: 14, bottom: 20 },
   });

@@ -26,6 +26,7 @@ import {
 } from 'react-icons/hi';
 import ChatAutocompletePopover, { renderFormattedChatMessage, SLASH_COMMANDS } from '../components/ChatAutocompletePopover';
 import AILoadingState from '../components/AILoadingState';
+import ChatbotAiAvatar from '../components/ChatbotAiAvatar';
 
 const GREETING = "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?";
 
@@ -518,8 +519,8 @@ const Chat = () => {
                             {messages.length === 0 ? (
                                 <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center py-4 sm:py-10">
                                     <div className="flex items-start gap-4 border-b border-border pb-7">
-                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/20 bg-primary/10">
-                                            <img src="/chabot-assistant-without-bg.png" alt="" className="h-full w-full scale-110 object-cover" />
+                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-primary/20 bg-primary/10 p-2 shadow-xs">
+                                            <ChatbotAiAvatar className="h-full w-full text-primary" />
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary-light">AI workspace</p>
@@ -550,8 +551,8 @@ const Chat = () => {
                                     {messages.map((message, index) => (
                                         <article key={`${message.role}-${index}`} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
                                             {message.role !== 'user' && (
-                                                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter">
-                                                    <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
+                                                <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-primary/10 p-1">
+                                                    <ChatbotAiAvatar className="h-full w-full text-primary" />
                                                 </div>
                                             )}
                                             
@@ -606,8 +607,8 @@ const Chat = () => {
                                                         >
                                                             {copiedIndex === index ? (
                                                                 <>
-                                                                    <HiOutlineCheck className="w-3.5 h-3.5 text-emerald-400" />
-                                                                    <span className="text-[10px] font-semibold text-emerald-400">Copied!</span>
+                                                                    <HiOutlineCheck className="w-3.5 h-3.5 text-sage" />
+                                                                    <span className="text-[10px] font-semibold text-sage">Copied!</span>
                                                                 </>
                                                             ) : (
                                                                 <HiOutlineDuplicate className="w-3.5 h-3.5" />
@@ -618,7 +619,7 @@ const Chat = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleStartEdit(index, message.content)}
-                                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-surface-lighter hover:text-primary-light transition-colors text-[11px]"
+                                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-surface-lighter hover:text-primary transition-colors text-[11px]"
                                                                 title="Edit prompt"
                                                             >
                                                                 <HiOutlinePencil className="w-3.5 h-3.5" />
@@ -630,8 +631,8 @@ const Chat = () => {
                                                                     onClick={() => handleQuickLike(index, message)}
                                                                     className={`p-1 rounded transition-colors ${
                                                                         message.feedback?.rating === 'like'
-                                                                            ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20'
-                                                                            : 'hover:text-emerald-400 hover:bg-surface-lighter'
+                                                                            ? 'text-sage bg-sage/10 border border-sage/20'
+                                                                            : 'hover:text-sage hover:bg-surface-lighter'
                                                                     }`}
                                                                     title="Like response"
                                                                 >
@@ -643,8 +644,8 @@ const Chat = () => {
                                                                     onClick={() => handleOpenFeedbackModal(index)}
                                                                     className={`p-1 rounded transition-colors ${
                                                                         message.feedback?.rating === 'dislike'
-                                                                            ? 'text-rose-400 bg-rose-500/10 border border-rose-500/20'
-                                                                            : 'hover:text-rose-400 hover:bg-surface-lighter'
+                                                                            ? 'text-danger bg-danger/10 border border-danger/20'
+                                                                            : 'hover:text-danger hover:bg-surface-lighter'
                                                                     }`}
                                                                     title="Dislike / Give feedback"
                                                                 >
@@ -652,12 +653,12 @@ const Chat = () => {
                                                                 </button>
 
                                                                 {message.feedback?.status === 'ignored_offtopic' && (
-                                                                    <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium ml-1">
+                                                                    <span className="text-[10px] text-brass bg-brass/10 border border-brass/20 px-2 py-0.5 rounded-full font-medium ml-1">
                                                                         Off-topic (Filtered)
                                                                     </span>
                                                                 )}
                                                                 {message.feedback?.status === 'accepted' && (
-                                                                    <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium ml-1">
+                                                                    <span className="text-[10px] text-sage bg-sage/10 border border-sage/20 px-2 py-0.5 rounded-full font-medium ml-1">
                                                                         Feedback Recorded
                                                                     </span>
                                                                 )}
@@ -670,8 +671,8 @@ const Chat = () => {
                                     ))}
                                     {isLoading && (
                                         <div className="flex items-start gap-3">
-                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-border bg-surface-lighter shrink-0 mt-1">
-                                                <img src="/chabot-assistant-without-bg.png" alt="PricePilot AI" className="h-full w-full scale-110 object-cover" />
+                                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-primary/20 bg-primary/10 shrink-0 mt-1 p-1">
+                                                <ChatbotAiAvatar className="h-full w-full text-primary" />
                                             </div>
                                             <AILoadingState variant="chat" />
                                         </div>
@@ -707,9 +708,9 @@ const Chat = () => {
                                         key={cmd.cmd}
                                         type="button"
                                         onClick={() => handleSend(null, cmd.prompt)}
-                                        className="shrink-0 inline-flex items-center gap-1 bg-surface-lighter hover:bg-primary/10 border border-border hover:border-primary/30 text-text-muted hover:text-primary-light px-2.5 py-0.5 rounded-full font-mono text-[11px] transition-colors"
+                                        className="shrink-0 inline-flex items-center gap-1 bg-surface-lighter hover:bg-primary/10 border border-border hover:border-primary/30 text-text-muted hover:text-primary px-2.5 py-0.5 rounded-full font-mono text-[11px] transition-colors"
                                     >
-                                        <HiOutlineTag className="w-3 h-3 text-cyan-400" />
+                                        <HiOutlineTag className="w-3 h-3 text-copper" />
                                         {cmd.cmd}
                                     </button>
                                 ))}
@@ -747,10 +748,10 @@ const Chat = () => {
                 <div className="fixed bottom-20 right-6 z-50 animate-bounce-in">
                     <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold ${
                         toastMessage.type === 'success'
-                            ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'
+                            ? 'bg-surface border-sage/40 text-sage'
                             : toastMessage.type === 'info'
-                            ? 'bg-amber-950/90 border-amber-500/40 text-amber-200'
-                            : 'bg-rose-950/90 border-rose-500/40 text-rose-200'
+                            ? 'bg-surface border-brass/40 text-brass'
+                            : 'bg-surface border-danger/40 text-danger'
                     }`}>
                         <span>{toastMessage.text}</span>
                         <button type="button" onClick={() => setToastMessage(null)} className="p-0.5 hover:opacity-80">
@@ -766,7 +767,7 @@ const Chat = () => {
                     <div className="relative w-full max-w-md bg-surface border border-border rounded-2xl p-6 shadow-2xl space-y-4">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-lg bg-danger/10 text-danger flex items-center justify-center">
                                     <HiOutlineThumbDown className="w-4 h-4" />
                                 </div>
                                 <h3 className="font-bold text-text text-sm sm:text-base">Provide Response Feedback</h3>

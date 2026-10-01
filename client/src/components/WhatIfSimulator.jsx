@@ -8,7 +8,8 @@ import {
     HiOutlineAdjustments, HiOutlineLightningBolt, HiOutlineCheckCircle,
     HiOutlineExclamation, HiOutlineTrendingUp, HiOutlineTrendingDown,
     HiOutlineCurrencyDollar, HiOutlineCube, HiOutlineScale,
-    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineChip
+    HiOutlineRefresh, HiOutlineInformationCircle, HiOutlineChip,
+    HiOutlineX
 } from 'react-icons/hi';
 import AskAIButton from './AskAIButton';
 import { useCurrency } from '../context/CurrencyContext';
@@ -277,7 +278,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             {/* Simulator Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/50">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-indigo-600 to-accent flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
                         <HiOutlineChip className="w-5 h-5" />
                     </div>
                     <div>
@@ -331,19 +332,19 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             {verdict && (
                 <div className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                     verdict.type === 'positive'
-                        ? 'bg-emerald-500/10 border-emerald-500/30'
+                        ? 'bg-sage/10 border-sage/30'
                         : verdict.type === 'negative'
                         ? 'bg-danger/10 border-danger/30'
-                        : 'bg-warning/10 border-warning/30'
+                        : 'bg-brass/10 border-brass/30'
                 }`}>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
                                 verdict.type === 'positive'
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                    ? 'bg-sage/20 text-sage border border-sage/40'
                                     : verdict.type === 'negative'
                                     ? 'bg-danger/20 text-danger border border-danger/40'
-                                    : 'bg-warning/20 text-warning border border-warning/40'
+                                    : 'bg-brass/20 text-brass border border-brass/40'
                             }`}>
                                 {verdict.label}
                             </span>
@@ -364,29 +365,29 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             {simulation?.presets && (
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                     <span className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1">
-                        <HiOutlineLightningBolt className="text-warning" /> Scenario Presets:
+                        <HiOutlineLightningBolt className="text-brass" /> Scenario Presets:
                     </span>
                     <button
                         onClick={() => applyPreset('maximize_margin')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sage/10 text-sage border border-sage/30 hover:bg-sage/20 transition-all flex items-center gap-1.5"
                     >
                         <HiOutlineTrendingUp className="w-3.5 h-3.5" /> Max Profit Margin (P* = {formatCurrency(opt?.price || 0)})
                     </button>
                     <button
                         onClick={() => applyPreset('market_growth')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-copper/10 text-copper border border-copper/30 hover:bg-copper/20 transition-all flex items-center gap-1.5"
                     >
                         <HiOutlineCube className="w-3.5 h-3.5" /> Market Share Growth
                     </button>
                     <button
                         onClick={() => applyPreset('defend_undercut')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-warning/10 text-warning border border-warning/30 hover:bg-warning/20 transition-all flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brass/10 text-brass border border-brass/30 hover:bg-brass/20 transition-all flex items-center gap-1.5"
                     >
                         <HiOutlineScale className="w-3.5 h-3.5" /> Defend Undercut
                     </button>
                     <button
                         onClick={() => applyPreset('inflation_passthrough')}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500/20 transition-all flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-all flex items-center gap-1.5"
                     >
                         <HiOutlineCurrencyDollar className="w-3.5 h-3.5" /> Inflation Pass-Through
                     </button>
@@ -533,7 +534,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             type="button"
                             onClick={() => handleRunSimulation()}
                             disabled={simulating}
-                            className="w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-gradient-to-r from-indigo-600 via-purple-600 to-accent text-white flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider bg-primary hover:bg-primary-dark text-white flex items-center justify-center gap-2 shadow-lg shadow-primary/25 hover:opacity-95 active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
                         >
                             {simulating ? (
                                 <>
@@ -542,7 +543,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </>
                             ) : (
                                 <>
-                                    <HiOutlineLightningBolt className="w-4 h-4 text-warning" />
+                                    <HiOutlineLightningBolt className="w-4 h-4 text-brass" />
                                     Run AI Simulation ({formatCurrency(targetPrice)})
                                 </>
                             )}
@@ -552,14 +553,14 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             type="button"
                             onClick={() => setShowCommitModal(true)}
                             disabled={!selectedProductId}
-                            className="w-full bg-surface border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full bg-surface border border-sage/40 text-sage hover:bg-sage/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                         >
                             <HiOutlineCheckCircle className="w-4 h-4" />
                             Commit Price Change
                         </button>
                     </div>
                     {!selectedProductId && (
-                        <p className="text-[11px] text-warning text-center">
+                        <p className="text-[11px] text-brass text-center">
                             Select a product above to commit price changes.
                         </p>
                     )}
@@ -588,7 +589,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                     <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Projected Revenue</p>
                                     <p className="text-xl font-bold text-text mt-0.5">{formatCurrency(sim?.predictedRevenue || 0)}</p>
                                     <div className="flex items-center gap-1 mt-1 text-xs font-semibold">
-                                        <span className={(deltas?.revenueUplift || 0) >= 0 ? 'text-success' : 'text-danger'}>
+                                        <span className={(deltas?.revenueUplift || 0) >= 0 ? 'text-sage' : 'text-danger'}>
                                             {(deltas?.revenueUplift || 0) >= 0 ? '+' : ''}{formatCurrency(deltas?.revenueUplift || 0)}
                                         </span>
                                         <span className="text-[10px] text-text-muted">({deltas?.revenueUpliftPct || 0}%)</span>
@@ -596,11 +597,11 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </div>
 
                                 {/* Net Profit Metric */}
-                                <div className="glass-card p-4 border-l-4 border-l-emerald-500">
+                                <div className="glass-card p-4 border-l-4 border-l-sage">
                                     <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Projected Net Profit</p>
                                     <p className="text-xl font-bold text-text mt-0.5">{formatCurrency(sim?.predictedProfit || 0)}</p>
                                     <div className="flex items-center gap-1 mt-1 text-xs font-semibold">
-                                        <span className={(deltas?.profitUplift || 0) >= 0 ? 'text-emerald-400' : 'text-danger'}>
+                                        <span className={(deltas?.profitUplift || 0) >= 0 ? 'text-sage' : 'text-danger'}>
                                             {(deltas?.profitUplift || 0) >= 0 ? '+' : ''}{formatCurrency(deltas?.profitUplift || 0)}
                                         </span>
                                         <span className="text-[10px] text-text-muted">({deltas?.profitUpliftPct || 0}%)</span>
@@ -608,7 +609,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </div>
 
                                 {/* Sales Volume Metric */}
-                                <div className="glass-card p-4 border-l-4 border-l-accent">
+                                <div className="glass-card p-4 border-l-4 border-l-copper">
                                     <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Forecast Volume</p>
                                     <p className="text-xl font-bold text-text mt-0.5">{sim?.predictedVolume || 0} units</p>
                                     <p className="text-[10px] text-text-muted mt-1">
@@ -617,9 +618,9 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </div>
 
                                 {/* Profit Margin % & Elasticity */}
-                                <div className="glass-card p-4 border-l-4 border-l-purple-500">
+                                <div className="glass-card p-4 border-l-4 border-l-brass">
                                     <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">Net Margin %</p>
-                                    <p className="text-xl font-bold text-purple-400 mt-0.5">{sim?.marginPct || 0}%</p>
+                                    <p className="text-xl font-bold text-brass mt-0.5">{sim?.marginPct || 0}%</p>
                                     <p className="text-[10px] text-text-muted mt-1">
                                         Elasticity ($\epsilon$): <span className="font-semibold text-text">{sim?.effectiveElasticity || -1.0}</span>
                                     </p>
@@ -633,9 +634,9 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                         <HiOutlineInformationCircle className="text-primary w-4 h-4" /> 95% Confidence Bounds (P10 - P90):
                                     </span>
                                     <span className="font-semibold text-text">
-                                        Revenue: <span className="text-primary-light">{formatCurrency(sim.confidenceBounds.revenueP10)}</span> – <span className="text-primary-light">{formatCurrency(sim.confidenceBounds.revenueP90)}</span>
+                                        Revenue: <span className="text-copper">{formatCurrency(sim.confidenceBounds.revenueP10)}</span> – <span className="text-copper">{formatCurrency(sim.confidenceBounds.revenueP90)}</span>
                                         <span className="mx-2 text-border">|</span>
-                                        Profit: <span className="text-emerald-400">{formatCurrency(sim.confidenceBounds.profitP10)}</span> – <span className="text-emerald-400">{formatCurrency(sim.confidenceBounds.profitP90)}</span>
+                                        Profit: <span className="text-sage">{formatCurrency(sim.confidenceBounds.profitP10)}</span> – <span className="text-sage">{formatCurrency(sim.confidenceBounds.profitP90)}</span>
                                     </span>
                                 </div>
                             )}
@@ -647,7 +648,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                         <HiOutlineTrendingUp className="text-primary" /> Revenue & Net Profit Peak Sensitivity Curve
                                     </h4>
                                     {opt?.price && (
-                                        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                        <span className="text-[11px] font-semibold text-sage bg-sage/10 px-2 py-0.5 rounded-full border border-sage/20">
                                             Optimal P* = {formatCurrency(opt.price)}
                                         </span>
                                     )}
@@ -657,26 +658,27 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                     {simulation?.sensitivityCurve ? (
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart data={simulation.sensitivityCurve}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.08)" />
-                                                <XAxis dataKey="price" tick={{ fill: '#94a3b8', fontSize: 10 }} unit=" $" />
-                                                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                                                <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" strokeOpacity={0.4} />
+                                                <XAxis dataKey="price" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} unit=" $" />
+                                                <YAxis tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} />
                                                 <Tooltip
                                                     contentStyle={{
-                                                        background: '#0d1326',
-                                                        border: '1px solid rgba(99,102,241,0.2)',
+                                                        background: 'var(--pp-surface)',
+                                                        border: '1px solid var(--pp-border)',
                                                         borderRadius: '12px',
                                                         fontSize: '11px',
-                                                        color: '#f1f5f9'
+                                                        color: 'var(--pp-text)',
+                                                        boxShadow: '0 12px 28px rgba(0,0,0,0.15)'
                                                     }}
                                                     formatter={(val, name) => [formatCurrency(val), name === 'revenue' ? 'Revenue' : 'Net Profit']}
                                                 />
-                                                <Line type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2} dot={false} name="Revenue" />
-                                                <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={2.5} dot={false} name="Net Profit" />
+                                                <Line type="monotone" dataKey="revenue" stroke="#A85A3C" strokeWidth={2} dot={false} name="Revenue" />
+                                                <Line type="monotone" dataKey="profit" stroke="#5F806B" strokeWidth={2.5} dot={false} name="Net Profit" />
                                                 {opt?.price && (
-                                                    <ReferenceLine x={opt.price} stroke="#10b981" strokeDasharray="4 4" label={{ value: 'Optimal P*', fill: '#10b981', fontSize: 10 }} />
+                                                    <ReferenceLine x={opt.price} stroke="#5F806B" strokeDasharray="4 4" label={{ value: 'Optimal P*', fill: '#5F806B', fontSize: 10 }} />
                                                 )}
                                                 {targetPrice && (
-                                                    <ReferenceLine x={targetPrice} stroke="#f59e0b" strokeDasharray="2 2" label={{ value: 'Target', fill: '#f59e0b', fontSize: 10 }} />
+                                                    <ReferenceLine x={targetPrice} stroke="#B8734F" strokeDasharray="2 2" label={{ value: 'Target', fill: '#B8734F', fontSize: 10 }} />
                                                 )}
                                             </LineChart>
                                         </ResponsiveContainer>
@@ -697,7 +699,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                     </div>
                                     <div className="text-right">
                                         <p className="text-text-muted font-medium">Undercut Risk Score:</p>
-                                        <span className={`text-sm font-bold ${sim?.undercutRisk > 50 ? 'text-danger' : 'text-emerald-400'}`}>
+                                        <span className={`text-sm font-bold ${sim?.undercutRisk > 50 ? 'text-danger' : 'text-sage'}`}>
                                             {sim?.undercutRisk || 0}% ({sim?.undercutRisk > 50 ? 'High' : 'Low'})
                                         </span>
                                     </div>
@@ -715,13 +717,14 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                     <div className="glass-card max-w-lg w-full p-6 space-y-5 border border-primary/30 shadow-2xl">
                         <div className="flex items-start justify-between border-b border-border/50 pb-3">
                             <h3 className="text-lg font-bold text-text flex items-center gap-2">
-                                <HiOutlineCheckCircle className="text-emerald-400 w-5 h-5" /> Confirm Price Commit
+                                <HiOutlineCheckCircle className="text-sage w-5 h-5" /> Confirm Price Commit
                             </h3>
                             <button
                                 onClick={() => setShowCommitModal(false)}
-                                className="text-text-muted hover:text-text text-sm font-bold"
+                                className="text-text-muted hover:text-text transition-colors p-1 rounded-lg hover:bg-surface-lighter"
+                                title="Close"
                             >
-                                ✕
+                                <HiOutlineX className="w-5 h-5" />
                             </button>
                         </div>
 
@@ -739,7 +742,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 </div>
                                 <div className="flex justify-between border-t border-border/40 pt-2">
                                     <span>Expected Monthly Profit Uplift:</span>
-                                    <span className={(deltas?.profitUplift || 0) >= 0 ? 'font-bold text-emerald-400' : 'font-bold text-danger'}>
+                                    <span className={(deltas?.profitUplift || 0) >= 0 ? 'font-bold text-sage' : 'font-bold text-danger'}>
                                         {(deltas?.profitUplift || 0) >= 0 ? '+' : ''}{formatCurrency(deltas?.profitUplift || 0)}
                                     </span>
                                 </div>

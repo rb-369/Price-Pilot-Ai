@@ -15,7 +15,8 @@ import {
   HiDocumentDownload,
   HiBadgeCheck,
   HiRefresh,
-  HiOutlineSearch
+  HiOutlineSearch,
+  HiX
 } from 'react-icons/hi';
 import { SkeletonCard } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -258,7 +259,7 @@ export default function ABTestDashboard() {
                 </div>
                 
                 <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-500/20">2</div>
+                  <div className="w-7 h-7 rounded-lg bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] flex items-center justify-center font-bold text-xs shrink-0 border border-[#5F806B]/25">2</div>
                   <div>
                     <p className="text-xs font-bold text-text">Compare RPV</p>
                     <p className="text-[11px] text-text-muted">Revenue Per Visitor (RPV = Revenue ÷ Views) proves true profitability</p>
@@ -266,7 +267,7 @@ export default function ABTestDashboard() {
                 </div>
 
                 <div className="p-3 rounded-xl bg-surface-lighter/60 border border-border flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">3</div>
+                  <div className="w-7 h-7 rounded-lg bg-[#A17A3A]/15 text-[#A17A3A] dark:text-[#C49B55] flex items-center justify-center font-bold text-xs shrink-0 border border-[#A17A3A]/25">3</div>
                   <div>
                     <p className="text-xs font-bold text-text">Auto-Apply Winner</p>
                     <p className="text-[11px] text-text-muted">When Variant B hits 95%+ confidence, 1-click update live store catalog</p>
@@ -317,15 +318,15 @@ export default function ABTestDashboard() {
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider block mb-1">
                 AI Winner Rate
               </span>
-              <p className="text-2xl font-bold text-emerald-500">{winRate}%</p>
-              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">Variant B outperform</span>
+              <p className="text-2xl font-bold text-[#5F806B] dark:text-[#7FA38B]">{winRate}%</p>
+              <span className="text-[11px] text-[#5F806B] dark:text-[#7FA38B] font-semibold">Variant B outperform</span>
             </div>
 
             <div className="glass-card p-4.5">
               <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider block mb-1">
                 Avg Confidence
               </span>
-              <p className="text-2xl font-bold text-amber-500">
+              <p className="text-2xl font-bold text-[#A17A3A] dark:text-[#C49B55]">
                 {activeTests.length > 0
                   ? Math.round(activeTests.reduce((sum, t) => sum + (t.confidenceLevel || 0), 0) / activeTests.length)
                   : 95}%
@@ -337,7 +338,7 @@ export default function ABTestDashboard() {
           {/* Active Experiments List */}
           <div>
             <h2 className="text-lg font-bold text-text mb-4 flex items-center gap-2">
-              <HiPlay className="w-5 h-5 text-emerald-500" /> Active Experiments ({activeTests.length})
+              <HiPlay className="w-5 h-5 text-[#5F806B]" /> Active Experiments ({activeTests.length})
             </h2>
 
             {activeTests.length === 0 ? (
@@ -369,8 +370,8 @@ export default function ABTestDashboard() {
                             <h3 className="font-bold text-text text-base">{pName}</h3>
                             <p className="text-xs text-text-muted">SKU: {pSku} • Started {new Date(test.startDate).toLocaleDateString()}</p>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/25 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#5F806B] animate-pulse"></span> Active
                           </span>
                         </div>
 
@@ -447,7 +448,7 @@ export default function ABTestDashboard() {
                               </div>
                               <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border">
                                 <div 
-                                  className="bg-slate-400 dark:bg-slate-500 h-full transition-all duration-500" 
+                                  className="bg-text-muted/40 h-full transition-all duration-500" 
                                   style={{ width: `${Math.min(100, (rpvA / maxRpv) * 100)}%` }} 
                                 />
                               </div>
@@ -459,7 +460,7 @@ export default function ABTestDashboard() {
                               </div>
                               <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border">
                                 <div 
-                                  className="bg-gradient-to-r from-primary to-emerald-500 h-full transition-all duration-500" 
+                                  className="bg-gradient-to-r from-primary to-[#5F806B] h-full transition-all duration-500" 
                                   style={{ width: `${Math.min(100, (rpvB / maxRpv) * 100)}%` }} 
                                 />
                               </div>
@@ -471,11 +472,11 @@ export default function ABTestDashboard() {
                         <div className="mb-4">
                           <div className="flex justify-between text-xs mb-1 font-medium">
                             <span className="text-text-muted">Statistical Confidence (Z-Test)</span>
-                            <span className="text-amber-500 font-bold">{test.confidenceLevel || 0}%</span>
+                            <span className="text-[#A17A3A] dark:text-[#C49B55] font-bold">{test.confidenceLevel || 0}%</span>
                           </div>
                           <div className="w-full bg-surface-lighter border border-border h-2 rounded-full overflow-hidden">
                             <div
-                              className="bg-gradient-to-r from-primary to-emerald-500 h-full transition-all duration-500"
+                              className="bg-gradient-to-r from-primary to-[#5F806B] h-full transition-all duration-500"
                               style={{ width: `${Math.min(100, test.confidenceLevel || 0)}%` }}
                             />
                           </div>
@@ -515,13 +516,13 @@ export default function ABTestDashboard() {
             <div className="glass-card overflow-hidden">
               <div className="p-5 border-b border-border">
                 <h3 className="font-bold text-text text-base flex items-center gap-2">
-                  <HiBadgeCheck className="w-5 h-5 text-amber-500" /> Completed Experiments History
+                  <HiBadgeCheck className="w-5 h-5 text-[#A17A3A]" /> Completed Experiments History
                 </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border text-[11px] font-semibold uppercase text-text-muted bg-surface-lighter">
+                    <tr className="border-b border-border text-[11px] font-semibold uppercase text-text-muted bg-surface-elevated/50">
                       <th className="p-4">Product</th>
                       <th className="p-4">Variant A Price</th>
                       <th className="p-4">Variant B Price</th>
@@ -537,7 +538,7 @@ export default function ABTestDashboard() {
                       const rpvB = t.results?.variantB?.views > 0 ? (t.results.variantB.revenue / t.results.variantB.views) : 0;
 
                       return (
-                        <tr key={t._id} className="hover:bg-surface-lighter/50 transition-colors">
+                        <tr key={t._id} className="hover:bg-surface-elevated/40 transition-colors">
                           <td className="p-4 font-medium text-text">{t.productId?.name || 'Product'}</td>
                           <td className="p-4 text-text-muted">{formatCurrency(t.variantA?.price)}</td>
                           <td className="p-4 text-primary font-semibold">{formatCurrency(t.variantB?.price)}</td>
@@ -546,15 +547,15 @@ export default function ABTestDashboard() {
                           <td className="p-4 text-center">
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
                               t.winner === 'B'
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                ? 'bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border-[#5F806B]/25'
                                 : t.winner === 'A'
-                                ? 'bg-primary/10 text-primary border-primary/30'
-                                : 'bg-slate-500/10 text-text-muted border-border'
+                                ? 'bg-primary/10 text-primary border-primary/25'
+                                : 'bg-surface-elevated text-text-muted border-border'
                             }`}>
                               {t.winner === 'B' ? 'Variant B (AI)' : t.winner === 'A' ? 'Variant A (Control)' : 'Tie'}
                             </span>
                           </td>
-                          <td className="p-4 text-right font-semibold text-amber-500">{t.confidenceLevel || 0}%</td>
+                          <td className="p-4 text-right font-semibold text-[#A17A3A] dark:text-[#C49B55]">{t.confidenceLevel || 0}%</td>
                         </tr>
                       );
                     })}
@@ -568,8 +569,8 @@ export default function ABTestDashboard() {
 
       {/* Create New Test Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-light border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-slide-up">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="text-lg font-bold text-text flex items-center gap-2">
                 <HiBeaker className="w-5 h-5 text-primary" /> Start A/B Price Experiment
@@ -577,9 +578,10 @@ export default function ABTestDashboard() {
               <button 
                 type="button" 
                 onClick={() => setShowCreateModal(false)} 
-                className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter transition-colors"
+                className="p-1 rounded-lg text-text-muted hover:text-text hover:bg-surface-elevated transition-colors"
+                title="Close"
               >
-                ✕
+                <HiX className="w-5 h-5" />
               </button>
             </div>
 
@@ -594,7 +596,7 @@ export default function ABTestDashboard() {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Search products..."
-                      className="w-full bg-surface-lighter border border-border text-xs rounded-xl py-2 pl-9 pr-3 text-text placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                      className="w-full bg-surface-elevated border border-border text-xs rounded-xl py-2 pl-9 pr-3 text-text placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                     />
                   </div>
                 </div>
@@ -614,7 +616,7 @@ export default function ABTestDashboard() {
                         className={`p-3 text-left border rounded-xl transition-all relative flex flex-col justify-between ${
                           isSelected
                             ? 'border-primary bg-primary/10 ring-2 ring-primary/40 shadow-sm'
-                            : 'border-border bg-surface hover:border-primary/40 hover:bg-surface-lighter'
+                            : 'border-border bg-surface-elevated/40 hover:border-primary/40 hover:bg-surface-elevated'
                         }`}
                       >
                         <div>
@@ -622,7 +624,7 @@ export default function ABTestDashboard() {
                             <span className="text-[9px] font-bold text-text-muted uppercase truncate">
                               {p.category || 'General'}
                             </span>
-                            <span className="text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <span className="text-[9px] font-bold bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                               <HiChip className="w-2.5 h-2.5" /> +8.5%
                             </span>
                           </div>
@@ -646,7 +648,7 @@ export default function ABTestDashboard() {
               </div>
 
               {selectedProductId && (
-                <div className="bg-surface-lighter/60 p-4 rounded-xl border border-border mt-2 space-y-2">
+                <div className="bg-surface-elevated/60 p-4 rounded-xl border border-border mt-2 space-y-2">
                   <label className="text-xs font-semibold text-text-muted uppercase tracking-wider block">Variant B Price (AI / Test Target)</label>
                   <input
                     type="number"
@@ -667,14 +669,14 @@ export default function ABTestDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-border text-text-muted hover:text-text hover:bg-surface-lighter text-sm font-semibold transition-colors"
+                  className="btn-secondary flex-1 py-2.5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !selectedProductId}
-                  className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-md shadow-primary/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="btn-primary flex-1 py-2.5 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? 'Starting...' : 'Launch Experiment'}
                 </button>
@@ -687,8 +689,8 @@ export default function ABTestDashboard() {
       {/* Winner Decision Modal */}
       {pendingCompletionTest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface-light border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-slide-up text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/20">
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 animate-slide-up text-center">
+            <div className="w-12 h-12 rounded-full bg-[#5F806B]/15 text-[#5F806B] flex items-center justify-center mx-auto border border-[#5F806B]/25">
               <HiBadgeCheck className="w-7 h-7" />
             </div>
             
@@ -697,10 +699,10 @@ export default function ABTestDashboard() {
               <p className="text-xs text-text-muted mt-1">{pendingCompletionTest.pName}</p>
             </div>
             
-            <div className="p-4 rounded-xl bg-surface-lighter/80 border border-border text-left space-y-2 text-xs">
+            <div className="p-4 rounded-xl bg-surface-elevated/80 border border-border text-left space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-text-muted">Winning Performance:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase">
+                <span className="font-bold text-[#5F806B] dark:text-[#7FA38B] uppercase">
                   {pendingCompletionTest.winner === 'B' ? 'Variant B (AI Target)' : pendingCompletionTest.winner === 'A' ? 'Variant A (Control)' : 'Tie / Equal'}
                 </span>
               </div>
@@ -714,7 +716,7 @@ export default function ABTestDashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-text-muted">Statistical Confidence:</span>
-                <span className="font-bold text-amber-500">{pendingCompletionTest.confidence}%</span>
+                <span className="font-bold text-[#A17A3A] dark:text-[#C49B55]">{pendingCompletionTest.confidence}%</span>
               </div>
             </div>
 
@@ -726,14 +728,14 @@ export default function ABTestDashboard() {
               <button
                 type="button"
                 onClick={() => handleConfirmComplete('reject')}
-                className="py-2.5 rounded-xl border border-danger/30 bg-danger/10 hover:bg-danger/20 text-danger text-xs font-bold transition-colors"
+                className="py-2.5 rounded-xl border border-danger/30 bg-danger/10 hover:bg-danger/20 text-danger text-xs font-bold transition-colors cursor-pointer"
               >
                 Reject & Keep ₹{pendingCompletionTest.variantAPrice}
               </button>
               <button
                 type="button"
                 onClick={() => handleConfirmComplete('accept')}
-                className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-colors"
+                className="btn-primary py-2.5 text-xs font-bold cursor-pointer"
               >
                 Accept & Apply Price
               </button>

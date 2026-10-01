@@ -8,9 +8,9 @@ const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-slate-800 border border-slate-700 p-3 rounded-xl shadow-xl">
-                <p className="text-sm font-semibold text-slate-200">{data.name}</p>
-                <p className={`text-xs mt-1 ${data.type === 'positive' ? 'text-success' : 'text-danger'}`}>
+            <div className="bg-surface border border-border p-3 rounded-xl shadow-xl">
+                <p className="text-sm font-semibold text-text">{data.name}</p>
+                <p className={`text-xs mt-1 font-medium ${data.type === 'positive' ? 'text-sage' : 'text-danger'}`}>
                     Impact: {data.type === 'positive' ? '+' : ''}{data.impact}%
                 </p>
             </div>
@@ -54,20 +54,20 @@ const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
     }, [xaiData, recommendations, products, selectedProductId]);
 
     return (
-        <div className="glass-card p-6 border-t-2 border-t-indigo-500 col-span-1 md:col-span-2">
+        <div className="glass-card p-6 border-t-2 border-t-primary col-span-1 md:col-span-2">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
                 <div>
                     <h2 className="text-lg font-bold text-text flex items-center gap-2">
-                        <HiOutlineInformationCircle className="w-6 h-6 text-indigo-400" />
+                        <HiOutlineInformationCircle className="w-6 h-6 text-primary" />
                         Explainable AI (XAI) Engine
                     </h2>
                     <p className="text-sm text-text-muted mt-1">Understanding the factors driving current price recommendations</p>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                    <label className="text-xs font-semibold text-slate-400">Target:</label>
+                    <label className="text-xs font-semibold text-text-muted">Target:</label>
                     <select 
-                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-surface-light border border-border rounded-xl px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         value={selectedProductId}
                         onChange={(e) => setSelectedProductId(e.target.value)}
                         disabled={products.length === 0}
@@ -83,17 +83,17 @@ const ExplainabilityPanel = ({ xaiData, recommendations = [] }) => {
             </div>
 
             {/* Feature Importance Chart */}
-            <div className="bg-surface/50 border border-primary/10 rounded-2xl p-5">
-                <h3 className="text-sm font-semibold text-slate-300 mb-4 text-center uppercase tracking-widest">Global Feature Impact Factors</h3>
+            <div className="bg-surface-light border border-border rounded-2xl p-5">
+                <h3 className="text-xs font-bold text-text-muted mb-4 text-center uppercase tracking-widest">Global Feature Impact Factors</h3>
                 <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart layout="vertical" data={currentFactors} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" width={140} tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                            <YAxis dataKey="name" type="category" width={140} tick={{ fill: 'var(--pp-text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--pp-surface-lighter)', opacity: 0.4 }} />
                             <Bar dataKey="impact" radius={[0, 6, 6, 0]}>
                                 {currentFactors.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.type === 'positive' ? '#10b981' : '#ef4444'} />
+                                    <Cell key={`cell-${index}`} fill={entry.type === 'positive' ? 'var(--color-sage)' : 'var(--color-danger)'} />
                                 ))}
                             </Bar>
                         </BarChart>

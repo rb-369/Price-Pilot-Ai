@@ -27,7 +27,7 @@ const DEMO_PRODUCTS = [
         competitorPrice: 25490,
         elasticity: -1.85,
         inventory: 142,
-        image: '🎧',
+        icon: HiOutlineChip,
     },
     {
         id: 'demo-2',
@@ -38,7 +38,7 @@ const DEMO_PRODUCTS = [
         competitorPrice: 799,
         elasticity: -1.35,
         inventory: 650,
-        image: '🍶',
+        icon: HiOutlineCube,
     },
     {
         id: 'demo-3',
@@ -49,7 +49,7 @@ const DEMO_PRODUCTS = [
         competitorPrice: 4299,
         elasticity: -2.10,
         inventory: 88,
-        image: '👟',
+        icon: HiOutlineTrendingUp,
     },
 ];
 
@@ -166,7 +166,9 @@ export default function Demo() {
                                                 : 'border-border/60 bg-surface hover:border-border'
                                         }`}
                                     >
-                                        <div className="text-2xl mb-2">{prod.image}</div>
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center mb-2">
+                                            <prod.icon className="w-4 h-4" />
+                                        </div>
                                         <div className="font-bold text-xs text-text line-clamp-2 mb-1">{prod.title}</div>
                                         <div className="text-[11px] text-text-muted">{formatCurrency(prod.currentPrice)}</div>
                                     </button>

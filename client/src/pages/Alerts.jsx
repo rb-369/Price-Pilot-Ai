@@ -10,6 +10,7 @@ import {
     HiOutlineLightBulb
 } from 'react-icons/hi';
 import AskAIButton from '../components/AskAIButton';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 const typeIcons = {
     price_drop: HiOutlineTrendingDown,
@@ -23,14 +24,14 @@ const typeIcons = {
 };
 
 const typeColors = {
-    price_drop: 'text-accent bg-accent/10 border-accent/20',
+    price_drop: 'text-copper bg-copper/10 border-copper/20',
     stockout_risk: 'text-danger bg-danger/10 border-danger/20',
-    competitor_undercut: 'text-warning bg-warning/10 border-warning/20',
-    competitor_stockout: 'text-success bg-success/10 border-success/20',
-    promotion: 'text-purple-400 bg-purple-400/10 border-purple-400/20',
-    reorder: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
-    recommendation: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-    demand: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+    competitor_undercut: 'text-brass bg-brass/10 border-brass/20',
+    competitor_stockout: 'text-sage bg-sage/10 border-sage/20',
+    promotion: 'text-primary bg-primary/10 border-primary/20',
+    reorder: 'text-copper bg-copper/10 border-copper/20',
+    recommendation: 'text-sage bg-sage/10 border-sage/20',
+    demand: 'text-brass bg-brass/10 border-brass/20',
 };
 
 export default function Alerts() {
@@ -66,9 +67,12 @@ export default function Alerts() {
             alerts.filter(a => a.type === filter);
 
     if (loading) return (
-        <div className="flex items-center justify-center h-96">
-            <div className="w-12 h-12 border-[3px] border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-        </div>
+        <PricePilotChartLoader
+            size="medium"
+            message="Loading alerts & incidents..."
+            onRetry={fetchAlerts}
+            className="h-96"
+        />
     );
 
     const unreadCount = alerts.filter(a => !a.read).length;
@@ -78,15 +82,15 @@ export default function Alerts() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Alerts &amp; Incident Feed</h1>
-                    <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm flex items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight text-text">Alerts &amp; Incident Feed</h1>
+                    <p className="text-text-muted mt-1 text-sm flex items-center gap-2">
                         {unreadCount > 0 ? (
                             <>
-                                <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">{unreadCount} unread incidents</span>
+                                <span className="inline-block w-2 h-2 rounded-full bg-danger animate-pulse" />
+                                <span className="font-semibold text-text">{unreadCount} unread incidents</span>
                             </>
                         ) : (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">All alerts resolved &amp; clear</span>
+                            <span className="text-sage font-medium">All alerts resolved &amp; clear</span>
                         )}
                     </p>
                 </div>
@@ -127,8 +131,8 @@ export default function Alerts() {
                                 onClick={() => setFilter(f)}
                                 className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all uppercase tracking-wider cursor-pointer ${
                                     filter === f
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-500'
-                                        : 'bg-slate-100/90 text-slate-700 hover:text-slate-900 hover:bg-slate-200 border border-slate-200 dark:bg-[#131b2e] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/80 dark:border-slate-800'
+                                        ? 'bg-primary text-white shadow-sm border border-primary'
+                                        : 'bg-surface text-text-muted hover:text-text hover:bg-surface-lighter border border-border'
                                 }`}
                             >
                                 {f === 'all' ? `All (${alerts.length})` : f === 'unread' ? `Unread (${unreadCount})` : f.replace(/_/g, ' ')}
@@ -140,15 +144,15 @@ export default function Alerts() {
                     <div className="space-y-3">
                         {filtered.map((alert, i) => {
                             const Icon = typeIcons[alert.type] || HiOutlineBell;
-                            const colorClass = typeColors[alert.type] || 'text-slate-400 bg-slate-800/50 border-slate-700/50';
+                            const colorClass = typeColors[alert.type] || 'text-text-muted bg-surface border-border';
 
                             return (
                                 <div 
                                     key={alert._id}
                                     className={`glass-card p-5 flex items-start gap-4 transition-all animate-slide-up ${
                                         !alert.read 
-                                            ? 'ring-1 ring-indigo-500/40 bg-indigo-50/40 dark:bg-indigo-950/15' 
-                                            : 'opacity-80 hover:opacity-100'
+                                            ? 'border-primary/40 bg-primary/5' 
+                                            : 'opacity-85 hover:opacity-100'
                                     }`}
                                     style={{ animationDelay: `${0.1 + i * 0.03}s` }}
                                 >
@@ -157,21 +161,21 @@ export default function Alerts() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between mb-1">
-                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{alert.title}</h3>
+                                            <h3 className="text-sm font-bold text-text tracking-tight">{alert.title}</h3>
                                             <div className="flex items-center gap-2 shrink-0 ml-4">
                                                 <span className={`badge ${
                                                     alert.severity === 'critical' ? 'badge-danger' :
                                                         alert.severity === 'high' ? 'badge-warning' :
                                                             alert.severity === 'medium' ? 'badge-info' : 'badge-success'
                                                 }`}>{alert.severity}</span>
-                                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                                                <span className="text-[11px] text-text-muted font-mono">
                                                     {new Date(alert.timestamp || alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{alert.message}</p>
+                                        <p className="text-xs text-text-muted leading-relaxed">{alert.message}</p>
                                         {alert.productId && (
-                                            <p className="text-[11px] text-indigo-400 font-medium mt-1 uppercase tracking-wider">
+                                            <p className="text-[11px] text-copper font-medium mt-1 uppercase tracking-wider">
                                                 SKU: {alert.productId.sku || alert.productId.name || '—'}
                                             </p>
                                         )}
@@ -187,10 +191,10 @@ export default function Alerts() {
                                     {!alert.read && (
                                         <button 
                                             onClick={() => handleMarkRead(alert._id)}
-                                            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-all shrink-0 cursor-pointer border border-transparent hover:border-slate-700"
+                                            className="p-2 rounded-xl text-text-muted hover:text-text hover:bg-surface-lighter transition-all shrink-0 cursor-pointer border border-transparent hover:border-border"
                                             title="Mark as read"
                                         >
-                                            <HiOutlineCheck className="w-4 h-4 text-emerald-400" />
+                                            <HiOutlineCheck className="w-4 h-4 text-sage" />
                                         </button>
                                     )}
                                 </div>
@@ -199,10 +203,10 @@ export default function Alerts() {
                     </div>
 
                     {filtered.length === 0 && (
-                        <div className="glass-card p-12 text-center text-slate-400">
-                            <HiOutlineBell className="w-12 h-12 mx-auto mb-3 text-slate-600" />
-                            <h3 className="text-base font-bold text-white mb-1">No alerts matching filter</h3>
-                            <p className="text-xs text-slate-400">All alerts in this category are resolved.</p>
+                        <div className="glass-card p-12 text-center text-text-muted">
+                            <HiOutlineBell className="w-12 h-12 mx-auto mb-3 text-text-muted/60" />
+                            <h3 className="text-base font-bold text-text mb-1">No alerts matching filter</h3>
+                            <p className="text-xs text-text-muted">All alerts in this category are resolved.</p>
                         </div>
                     )}
                 </>

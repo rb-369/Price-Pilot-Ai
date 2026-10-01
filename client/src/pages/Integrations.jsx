@@ -232,7 +232,7 @@ export default function Integrations() {
 
             {/* Live Sync Activity Feed Table */}
             <div className="glass-card p-6 space-y-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                <div className="flex items-center justify-between border-b border-[rgba(99,102,241,0.08)] pb-4">
+                <div className="flex items-center justify-between border-b border-border pb-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10 text-primary">
                             <HiOutlineLightningBolt className="w-5 h-5" />
@@ -250,7 +250,7 @@ export default function Integrations() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="text-xs font-bold uppercase tracking-wider text-text-muted border-b border-[rgba(99,102,241,0.08)] bg-surface-lighter/50">
+                            <tr className="text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border bg-surface-lighter/50">
                                 <th className="p-3">Time</th>
                                 <th className="p-3">Platform</th>
                                 <th className="p-3">Action</th>
@@ -258,7 +258,7 @@ export default function Integrations() {
                                 <th className="p-3">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[rgba(99,102,241,0.05)] text-xs font-medium">
+                        <tbody className="divide-y divide-border text-xs font-medium">
                             {loading ? (
                                 <tr>
                                     <td colSpan="5" className="p-6 text-center text-text-muted">Loading sync logs...</td>
@@ -273,14 +273,14 @@ export default function Integrations() {
                                         <td className="p-3 text-text-muted font-mono whitespace-nowrap">
                                             {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                         </td>
-                                        <td className="p-3 uppercase font-bold text-primary-light">
+                                        <td className="p-3 uppercase font-bold text-primary">
                                             {log.platform || 'System'}
                                         </td>
                                         <td className="p-3">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                                log.action === 'order_ingested' ? 'bg-success/15 text-success' :
-                                                log.action === 'stock_pushed' ? 'bg-primary/15 text-primary-light' :
-                                                log.action === 'reconciliation' ? 'bg-accent/15 text-accent' : 'bg-surface-lighter text-text-muted'
+                                                log.action === 'order_ingested' ? 'bg-sage/15 text-sage' :
+                                                log.action === 'stock_pushed' ? 'bg-primary/15 text-primary' :
+                                                log.action === 'reconciliation' ? 'bg-copper/15 text-copper' : 'bg-surface-lighter text-text-muted'
                                             }`}>
                                                 {log.action?.replace('_', ' ')}
                                             </span>
@@ -294,7 +294,7 @@ export default function Integrations() {
                                         </td>
                                         <td className="p-3">
                                             {log.status === 'success' ? (
-                                                <span className="text-success flex items-center gap-1 font-bold">
+                                                <span className="text-sage flex items-center gap-1 font-bold">
                                                     <HiOutlineCheckCircle className="w-4 h-4" /> Success
                                                 </span>
                                             ) : (
@@ -336,7 +336,7 @@ export default function Integrations() {
                                 required
                             />
                         </div>
-                        <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)] mt-6">
+                        <div className="flex gap-3 justify-end pt-4 border-t border-border mt-6">
                             <button type="button" onClick={() => setShowShopifyModal(false)} className="btn-secondary px-5 text-sm">Cancel</button>
                             <button type="submit" disabled={connecting} className="btn-primary px-5 text-sm">{connecting ? 'Connecting...' : 'Connect'}</button>
                         </div>
@@ -391,7 +391,7 @@ export default function Integrations() {
                                 <option value="A1F83G8C2ARO7P">UK (Amazon.co.uk - A1F83G8C2ARO7P)</option>
                             </select>
                         </div>
-                        <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)] mt-6">
+                        <div className="flex gap-3 justify-end pt-4 border-t border-border mt-6">
                             <button type="button" onClick={() => setShowAmazonModal(false)} className="btn-secondary px-5 text-sm">Cancel</button>
                             <button type="submit" disabled={connecting} className="btn-primary px-5 text-sm">{connecting ? 'Connecting...' : 'Connect'}</button>
                         </div>
@@ -424,7 +424,7 @@ export default function Integrations() {
                                 required
                             />
                         </div>
-                        <div className="flex gap-3 justify-end pt-4 border-t border-[rgba(99,102,241,0.08)] mt-6">
+                        <div className="flex gap-3 justify-end pt-4 border-t border-border mt-6">
                             <button type="button" onClick={() => setShowFlipkartModal(false)} className="btn-secondary px-5 text-sm">Cancel</button>
                             <button type="submit" disabled={connecting} className="btn-primary px-5 text-sm">{connecting ? 'Connecting...' : 'Connect'}</button>
                         </div>
@@ -457,7 +457,7 @@ function PlatformCard({ title, subtitle, integration, isSyncing, onConnect, onDi
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-text">{title}</h3>
                     {isConnected ? (
-                        <span className="flex items-center gap-1 text-xs font-semibold text-success bg-success/15 px-2.5 py-1 rounded-full">
+                        <span className="flex items-center gap-1 text-xs font-semibold text-sage bg-sage/15 px-2.5 py-1 rounded-full">
                             <HiOutlineCheckCircle className="w-4 h-4" /> Connected
                         </span>
                     ) : (
@@ -469,7 +469,7 @@ function PlatformCard({ title, subtitle, integration, isSyncing, onConnect, onDi
                 <p className="text-sm text-text-muted mb-6">{subtitle}</p>
 
                 {isConnected && (
-                    <div className="text-xs bg-[rgba(99,102,241,0.05)] border border-[rgba(99,102,241,0.1)] rounded-xl p-3 mb-6 space-y-1">
+                    <div className="text-xs bg-surface-lighter border border-border rounded-xl p-3 mb-6 space-y-1">
                         <p className="text-text-muted flex justify-between">
                             <span>Last Poll:</span>
                             <span className="text-text font-medium">{integration.lastOrderPollAt ? new Date(integration.lastOrderPollAt).toLocaleTimeString() : 'Never'}</span>
@@ -482,7 +482,7 @@ function PlatformCard({ title, subtitle, integration, isSyncing, onConnect, onDi
                 )}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-[rgba(99,102,241,0.08)] pt-4 mt-2">
+            <div className="flex flex-col gap-2 border-t border-border pt-4 mt-2">
                 {isConnected ? (
                     <div className="flex items-center gap-2">
                         <button
@@ -522,7 +522,7 @@ function PlatformCard({ title, subtitle, integration, isSyncing, onConnect, onDi
 function Modal({ title, children, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-surface border border-[rgba(99,102,241,0.15)] rounded-2xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
+            <div className="bg-surface border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold text-text">{title}</h2>
                     <button onClick={onClose} className="text-text-muted hover:text-text font-bold text-lg">×</button>

@@ -19,6 +19,7 @@ import Recommendations from './pages/Recommendations';
 import ABTestDashboard from './pages/ABTestDashboard';
 import Alerts from './pages/Alerts';
 import ChatWidget from './components/ChatWidget';
+import PricePilotChartLoader from './components/PricePilotChartLoader';
 import Chat from './pages/Chat';
 import Integrations from './pages/Integrations';
 import ChannelMapping from './pages/ChannelMapping';
@@ -32,6 +33,7 @@ import About from './pages/About';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Demo from './pages/Demo';
+import NotFound from './pages/NotFound';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -47,9 +49,12 @@ function AppRoutes() {
   const { user, loading } = useAuth();
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-surface">
-      <div className="w-10 h-10 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
-    </div>
+    <PricePilotChartLoader
+      size="medium"
+      variant="fullscreen"
+      showDelay={350}
+      message="Initializing PricePilot..."
+    />
   );
 
   return (
@@ -95,7 +100,7 @@ function AppRoutes() {
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/demand" element={<Navigate to="/dashboard/demand" replace />} />
 
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
@@ -119,7 +124,15 @@ export default function App() {
           <BrowserRouter>
             <AuthProvider>
               <Toaster position="top-right" toastOptions={{
-                style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '12px' },
+                style: {
+                  background: 'var(--pp-surface)',
+                  color: 'var(--pp-text)',
+                  border: '1px solid var(--pp-border)',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
+                  fontSize: '13px',
+                  fontWeight: 500
+                },
               }} />
               <RouteErrorBoundary>
                 <AppRoutes />

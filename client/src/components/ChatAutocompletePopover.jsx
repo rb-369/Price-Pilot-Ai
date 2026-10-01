@@ -195,10 +195,20 @@ export default function ChatAutocompletePopover({
     if (!isOpen || items.length === 0) return null;
 
     return (
-        <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-[rgba(99,102,241,0.2)] rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
-            <div className="p-2 border-b border-[rgba(99,102,241,0.1)] bg-surface-lighter/50 flex items-center justify-between text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                <span>
-                    {activeTrigger === '@' ? '🏷️ Tag Product' : '⚡ Mention Method'}
+        <div className="absolute bottom-full left-0 right-0 mb-2 z-50 bg-surface/95 backdrop-blur-md border border-border rounded-xl shadow-2xl overflow-hidden animate-slide-up max-h-64 overflow-y-auto custom-scrollbar">
+            <div className="p-2 border-b border-border bg-surface-lighter/50 flex items-center justify-between text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                <span className="flex items-center gap-1.5">
+                    {activeTrigger === '@' ? (
+                        <>
+                            <HiOutlineTag className="w-3.5 h-3.5 text-primary" />
+                            <span>Tag Product</span>
+                        </>
+                    ) : (
+                        <>
+                            <HiOutlineLightningBolt className="w-3.5 h-3.5 text-primary" />
+                            <span>Mention Method</span>
+                        </>
+                    )}
                 </span>
                 <span className="text-[10px] normal-case opacity-70">
                     ↑↓ Navigate • Tab / Enter to select • Esc to dismiss
@@ -544,15 +554,15 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         <div className="space-y-1">
             <div>{blocks}</div>
             {actionPayload && (
-                <div className="mt-3 pt-3 border-t border-white/10">
-                    <div className="flex flex-col gap-2 p-3 rounded-xl bg-gradient-to-br from-indigo-950/80 to-purple-950/80 border border-indigo-500/30 shadow-lg text-slate-100">
-                        <div className="flex items-center justify-between text-xs font-bold text-indigo-300">
+                <div className="mt-3 pt-3 border-t border-border">
+                    <div className="flex flex-col gap-2 p-3 rounded-xl bg-surface border border-border shadow-md text-text">
+                        <div className="flex items-center justify-between text-xs font-bold text-copper">
                             <span className="flex items-center gap-1.5">
-                                <HiOutlineLightningBolt className="w-4 h-4 text-warning animate-pulse" />
+                                <HiOutlineLightningBolt className="w-4 h-4 text-copper animate-pulse" />
                                 Interactive Scenario Ready
                             </span>
                         </div>
-                        <span className="text-[11px] text-slate-300 leading-snug">
+                        <span className="text-[11px] text-text-muted leading-snug">
                             {actionPayload.productQuery ? `Product: "${actionPayload.productQuery}"` : ''} {actionPayload.priceChange ? `• Proposed Change: ${actionPayload.priceChange}` : ''}
                         </span>
                         <button
@@ -566,9 +576,9 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                                     window.dispatchEvent(event);
                                 }
                             }}
-                            className="mt-1 w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-extrabold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                            className="mt-1 w-full py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-xs shadow-md shadow-primary/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
                         >
-                            <span>🚀 See Details in What-If Simulator</span>
+                            <span>See Details in What-If Simulator</span>
                             <span>→</span>
                         </button>
                     </div>

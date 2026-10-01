@@ -8,6 +8,7 @@ import newDarkLogo from '../assets/new_dark_logo.png';
 import { SiGoogle } from 'react-icons/si';
 import { HiOutlinePhone } from 'react-icons/hi';
 import { useGoogleLogin } from '@react-oauth/google';
+import PricePilotChartLoader from '../components/PricePilotChartLoader';
 
 export default function Login() {
     const { theme } = useTheme();
@@ -16,6 +17,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isBuffering, setIsBuffering] = useState(false);
     const { login, loginWithGoogle } = useAuth();
     const navigate = useNavigate();
 
@@ -24,6 +26,9 @@ export default function Login() {
         setLoading(true);
         try {
             const userData = await login(email, password);
+            setIsBuffering(true);
+            setLoading(false);
+            await new Promise((res) => setTimeout(res, 2000));
             toast.success('Welcome back!');
             if (userData?.onboarding?.completed) {
                 navigate('/dashboard');
@@ -31,9 +36,9 @@ export default function Login() {
                 navigate('/onboarding');
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Login failed');
-        } finally {
+            setIsBuffering(false);
             setLoading(false);
+            toast.error(err.response?.data?.message || 'Login failed');
         }
     };
 
@@ -52,6 +57,9 @@ export default function Login() {
                     googleId: userInfo.sub,
                     picture: userInfo.picture,
                 });
+                setIsBuffering(true);
+                setLoading(false);
+                await new Promise((res) => setTimeout(res, 2000));
                 toast.success('Welcome back!');
                 if (userData?.onboarding?.completed) {
                     navigate('/dashboard');
@@ -59,10 +67,10 @@ export default function Login() {
                     navigate('/onboarding');
                 }
             } catch (err) {
+                setIsBuffering(false);
+                setLoading(false);
                 console.error('Google auth error:', err);
                 toast.error(err.response?.data?.message || err.message || 'Google login failed');
-            } finally {
-                setLoading(false);
             }
         },
         onError: (err) => {
@@ -78,6 +86,20 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex items-center justify-center auth-bg p-4 relative overflow-x-hidden overflow-y-auto">
+            {/* 2-Second Post-Login Buffering Overlay */}
+            {isBuffering && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-md animate-fade-in p-4">
+                    <div className="glass-card p-8 rounded-3xl border border-border shadow-2xl flex flex-col items-center">
+                        <PricePilotChartLoader
+                            size="large"
+                            variant="card"
+                            showDelay={0}
+                            message="Authenticating session & preparing dashboard..."
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Top Back to Home Button */}
             <Link to="/" className="absolute top-6 left-6 z-20 inline-flex items-center gap-2 text-xs font-semibold text-text-muted hover:text-text bg-surface-light/80 hover:bg-surface-lighter px-3.5 py-2 rounded-xl border border-border backdrop-blur-md transition-colors">
                 ← Back to Home
@@ -124,9 +146,15 @@ export default function Login() {
                         </div>
                     </div>
 
-                    <button type="submit" disabled={loading}
+                    <button type="submit" disabled={loading || isBuffering}
                         className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-sm disabled:opacity-50">
-                        {loading ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Sign In'}
+                        {loading ? (
+                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : isBuffering ? (
+                            'Opening Dashboard...'
+                        ) : (
+                            'Sign In'
+                        )}
                     </button>
                 </form>
 
@@ -142,16 +170,16 @@ export default function Login() {
                     <button
                         type="button"
                         onClick={handleGoogleLogin}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-surface-light hover:bg-surface-lighter transition-all shadow-sm cursor-pointer"
                     >
-                        <SiGoogle className="w-5 h-5" style={{ color: '#4285F4' }} />
+                        <SiGoogle className="w-4 h-4" style={{ color: '#4285F4' }} />
                         <p className="text-sm font-semibold text-text">Google</p>
                     </button>
 
                     <button
                         type="button"
                         onClick={handlePhoneLogin}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-primary/10 bg-surface/60 backdrop-blur-md hover:border-primary/30 hover:bg-surface/80 transition-all shadow-lg"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-surface-light hover:bg-surface-lighter transition-all shadow-sm cursor-pointer"
                     >
                         <HiOutlinePhone className="w-5 h-5 text-primary" />
                         <p className="text-sm font-semibold text-text">Phone</p>

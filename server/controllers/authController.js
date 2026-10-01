@@ -64,31 +64,49 @@ exports.login = async (req, res) => {
 
 exports.googleAuth = async (req, res) => {
     try {
-        const { email, name, googleId, picture } = req.body;
-        if (!email) {
-            return res.status(400).json({ message: 'Google email is required' });
-        }
-        console.log(`Google Auth attempt for: ${email}`);
+        let { access_token, email, name, picture } = req.body;
+        let userEmail = email;
+        let userName = name;
 
-        let user = await User.findOne({ email });
+        if (access_token && !userEmail) {
+            try {
+                const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${access_token}` }
+                });
+                if (response.ok) {
+                    const info = await response.json();
+                    userEmail = info.email;
+                    userName = info.name || info.given_name || 'Google User';
+                    if (!picture) picture = info.picture;
+                }
+            } catch (err) {
+                console.error('Google userinfo fetch error:', err.message);
+            }
+        }
+
+        if (!userEmail) {
+            return res.status(400).json({ message: 'Could not obtain email from Google authentication' });
+        }
+        console.log(`Google Auth attempt for: ${userEmail}`);
+
+        let user = await User.findOne({ email: userEmail });
         if (!user) {
-            // Auto-register user if first time
             const randomPassword = crypto.randomBytes(16).toString('hex');
             user = await User.create({
-                name: name || email.split('@')[0],
-                email,
+                name: userName || userEmail.split('@')[0],
+                email: userEmail,
                 password: randomPassword,
                 storeType: 'general',
                 avatar: picture || '',
             });
-            console.log(`Google registration created new user for: ${email}`);
+            console.log(`Google registration created new user for: ${userEmail}`);
 
             // Send welcome email (fire-and-forget)
             sendWelcomeEmail(user).catch(err => {
                 console.error('[Welcome Email Error - Google Auth]', err.message);
             });
         } else {
-            console.log(`Google login matched existing user for: ${email}`);
+            console.log(`Google login matched existing user for: ${userEmail}`);
         }
 
         const token = generateToken(user._id);
@@ -112,6 +130,8 @@ exports.googleAuth = async (req, res) => {
         res.status(500).json({ message: error.message || 'Google authentication failed' });
     }
 };
+
+exports.googleLogin = exports.googleAuth;
 
 exports.getProfile = async (req, res) => {
     res.json(req.user);

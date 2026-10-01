@@ -34,7 +34,7 @@ class ErrorBoundary extends Component {
                             </p>
                         </div>
                         {this.state.error && (
-                            <details className="text-left text-xs bg-surface/80 p-3 rounded-lg border border-border">
+                            <details className="text-left text-xs bg-surface/60 p-3 rounded-xl border border-border">
                                 <summary className="cursor-pointer text-text-muted hover:text-text font-mono">View error details</summary>
                                 <p className="mt-2 text-danger/80 font-mono break-all whitespace-pre-wrap">
                                     {this.state.error.toString()}

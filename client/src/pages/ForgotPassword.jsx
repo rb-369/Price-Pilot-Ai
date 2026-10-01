@@ -78,26 +78,26 @@ export default function ForgotPassword() {
                     </form>
                 ) : (
                     <div className="text-center space-y-5 py-4">
-                        <div className="w-14 h-14 bg-indigo-500/10 border border-indigo-500/25 rounded-full flex items-center justify-center mx-auto text-primary-light">
+                        <div className="w-14 h-14 bg-primary/10 border border-primary/25 rounded-full flex items-center justify-center mx-auto text-primary">
                             <svg className="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-2.25-1.5a2 2 0 00-2.22 0l-2.25 1.5" />
                             </svg>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-lg font-bold text-white">Check Your Inbox</h3>
+                            <h3 className="text-lg font-bold text-text">Check Your Inbox</h3>
                             <p className="text-xs text-text-muted leading-relaxed">
-                                If an account exists for <span className="text-primary-light font-medium">{email}</span>, a password reset link has been dispatched.
+                                If an account exists for <span className="text-primary font-medium">{email}</span>, a password reset link has been dispatched.
                             </p>
                         </div>
-                        <div className="pt-2 bg-[rgba(99,102,241,0.05)] border border-[rgba(99,102,241,0.1)] rounded-xl p-3.5 text-xs text-text-muted leading-normal text-left">
-                            <strong className="text-primary-light uppercase tracking-wider block mb-1 text-[10px]">Development Note:</strong>
+                        <div className="pt-2 bg-surface-light border border-border rounded-xl p-3.5 text-xs text-text-muted leading-normal text-left">
+                            <strong className="text-primary uppercase tracking-wider block mb-1 text-[10px]">Development Note:</strong>
                             No email server? The reset link has also been printed directly to the backend **server terminal log**! Copy it to proceed.
                         </div>
                     </div>
                 )}
 
-                <div className="mt-6 pt-4 border-t border-white/5 text-center">
-                    <Link to="/login" className="text-sm text-primary-light font-semibold hover:text-primary transition-colors">
+                <div className="mt-6 pt-4 border-t border-border text-center">
+                    <Link to="/login" className="text-sm text-primary font-semibold hover:text-primary-hover transition-colors">
                         ← Back to Sign In
                     </Link>
                 </div>

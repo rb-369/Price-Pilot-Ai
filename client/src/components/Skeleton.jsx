@@ -19,14 +19,14 @@ export function SkeletonCard({ className = '' }) {
 
 export function SkeletonTable({ rows = 5, columns = 4, className = '' }) {
     return (
-        <div className={`w-full overflow-hidden rounded-xl border border-primary/10 bg-surface-lighter/30 ${className}`}>
-            <div className="grid border-b border-[rgba(99,102,241,0.08)] p-4" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+        <div className={`w-full overflow-hidden rounded-xl border border-border bg-surface ${className}`}>
+            <div className="grid border-b border-border p-4 bg-surface-light" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
                 {Array.from({ length: columns }).map((_, i) => (
                     <div key={i} className="skeleton h-4 w-20 rounded-md"></div>
                 ))}
             </div>
             {Array.from({ length: rows }).map((_, i) => (
-                <div key={i} className="grid border-b border-[rgba(99,102,241,0.08)] p-4 hover:bg-[rgba(99,102,241,0.02)] transition-colors" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+                <div key={i} className="grid border-b border-border p-4 hover:bg-surface-lighter/50 transition-colors" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
                     {Array.from({ length: columns }).map((_, j) => (
                         <div key={j} className="skeleton h-4 w-full max-w-[80%] rounded-md"></div>
                     ))}

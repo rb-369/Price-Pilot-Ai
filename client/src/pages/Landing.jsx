@@ -37,56 +37,63 @@ const TypewriterEffect = ({ text }) => {
 
     return (
         <span className="inline-flex items-center">
-            <span>{displayText}</span>
-            <span className="inline-block w-[3px] h-[0.9em] ml-1.5 bg-indigo-500 animate-pulse"></span>
+            <span className="bg-gradient-to-r from-[#8C4630] via-[#A85A3C] to-[#C87D55] dark:from-[#C87D55] dark:via-[#D98A66] dark:to-[#F0B094] bg-clip-text text-transparent">
+                {displayText}
+            </span>
+            <span className="inline-block w-[3px] h-[0.9em] ml-1.5 bg-[#C87D55] dark:bg-[#F0B094] animate-pulse"></span>
         </span>
     );
 };
 
-const faqData = [
-    {
-        question: 'How does PricePilot AI protect my proprietary pricing data?',
-        answer: 'We secure your pricing, competitor tracking, and forecast data using encryption and strict access controls. Your data is used only to improve your pricing strategy and is never shared externally without permission.',
-        category: 'Security & Privacy'
-    },
-    {
-        question: 'Is there a full privacy policy available?',
-        answer: 'Yes, our full privacy policy is available on the Privacy Policy page and explains exactly how data is collected, stored, and used.',
-        category: 'Security & Privacy'
-    },
-    {
-        question: 'How do I get started with PricePilot AI?',
-        answer: 'Start by signing up for an account, connecting your product catalog, and reviewing the onboarding guide. Our demo and docs help you launch in minutes.',
-        category: 'Integrations'
-    },
-    {
-        question: 'Which e-commerce platforms do you support out-of-the-box?',
-        answer: 'PricePilot AI integrates with popular platforms and marketplaces, plus it can ingest data via CSV or custom API connections.',
-        category: 'Integrations'
-    },
-    {
-        question: 'What is Explainable AI (XAI) and why does it matter?',
-        answer: 'Explainable AI provides transparent insights into pricing decisions so you can trust the recommendations and understand the drivers behind each price change.',
-        category: 'Pricing & AI'
-    },
-    {
-        question: 'How frequently does the algorithm update my product prices?',
-        answer: 'The algorithm can refresh prices in near real-time based on competitor moves, demand signals, and predefined business rules.',
-        category: 'Pricing & AI'
-    }
-];
-
 const teamMembers = [
     {
         name: 'Aryan Desale',
-        role: 'Design & Frontend Engineering',
-        linkedin: 'https://www.linkedin.com/in/aryan-desale-18330a377'
+        role: 'Full-Stack & Backend Systems Lead',
+        linkedin: 'https://www.linkedin.com/in/aryan-desale-46603a27a/',
     },
     {
         name: 'Rudra Babar',
-        role: 'Backend & AI Systems Architecture',
-        linkedin: 'http://www.linkedin.com/in/rudra-babar-8594a8379'
-    }
+        role: 'AI / Machine Learning & Architecture Lead',
+        linkedin: 'https://www.linkedin.com/in/rudrababar/',
+    },
+];
+
+const faqData = [
+    {
+        category: 'Pricing & AI',
+        question: 'How does the dynamic elasticity algorithm calculate optimal price points?',
+        answer: 'PricePilot runs dynamic log-linear regression against historical sales velocities, competitor scrape data, and promotional seasonality. A binary search optimizer converges on the price equilibrium that maximizes gross margin rather than just gross volume.',
+    },
+    {
+        category: 'Pricing & AI',
+        question: 'What is Google Gemini Explainable AI (XAI) and why does it matter?',
+        answer: 'Instead of treating machine learning recommendations as black boxes, Gemini XAI generates audit-ready natural language rationales. It clearly explains the market signals, competitor actions, and demand elasticity metrics that justified every single price recommendation.',
+    },
+    {
+        category: 'Integrations',
+        question: 'Can PricePilot sync price updates directly to Shopify, WooCommerce, or Amazon?',
+        answer: 'Yes. PricePilot provides native REST and webhook integrations that synchronize updated price points back into your merchant catalog with sub-second execution speeds, eliminating manual CSV uploads.',
+    },
+    {
+        category: 'Security & Privacy',
+        question: 'Is competitor price scraping legal and compliant with rate limits?',
+        answer: 'All external market benchmarks are retrieved using distributed proxy networks with automated rate limiting and robots.txt compliance. We only collect publicly visible retail pricing data.',
+    },
+    {
+        category: 'Pricing & AI',
+        question: 'Can I set guardrails such as minimum floor and maximum ceiling prices?',
+        answer: 'Absolutely. Merchant safeguards allow you to configure hard margin floors (e.g. minimum 18% net margin) and ceiling bounds to protect brand equity and avoid destructive price wars.',
+    },
+    {
+        category: 'Integrations',
+        question: 'How fast can our engineering team get started with the sandbox API?',
+        answer: 'You can test recommendations immediately via our interactive Swagger API portal. Simply submit sample SKU cost, current price, and competitor benchmarks to receive instant optimized price payloads.',
+    },
+    {
+        category: 'Security & Privacy',
+        question: 'How is store catalog data secured?',
+        answer: 'All catalog and transaction data is encrypted both in transit (TLS 1.3) and at rest (AES-256). Enterprise multi-tenant isolation ensures your proprietary margins and sales figures remain completely private.',
+    },
 ];
 
 const integrationLogos = [
@@ -98,17 +105,17 @@ const integrationLogos = [
 
 const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }) {
     return (
-        <div className="rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/90 dark:bg-[#0B1120]/80 backdrop-blur-xl overflow-hidden hover:border-indigo-500/40 hover:shadow-lg">
+        <div className="rounded-2xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-xl overflow-hidden hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 hover:shadow-lg transition-all">
             <button
                 type="button"
                 onClick={onClick}
                 className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left"
             >
-                <span className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <span className="text-base sm:text-lg font-semibold text-[#3D1F12] dark:text-[#F0EEE6]">
                     {faq.question}
                 </span>
                 <span
-                    className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-lg text-indigo-600 dark:text-indigo-300 transition-transform duration-300 ${isOpen ? 'rotate-45' : ''
+                    className={`flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-[#3D1F12]/5 dark:bg-[#30251F] border border-[#3D1F12]/15 dark:border-[#4A3930] text-lg text-[#3D1F12] dark:text-[#F0EEE6] transition-transform duration-300 ${isOpen ? 'rotate-45' : ''
                         }`}
                 >
                     +
@@ -121,7 +128,7 @@ const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }
             >
                 <div className="overflow-hidden">
                     <div className="px-5 sm:px-6 pb-6">
-                        <div className="border-t border-slate-200 dark:border-white/10 pt-4 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                        <div className="border-t border-[#3D1F12]/10 dark:border-[#4A3930] pt-4 text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-sm leading-relaxed">
                             {faq.answer}
                         </div>
                     </div>
@@ -148,7 +155,6 @@ export default function Landing() {
         return faqData.filter((faq) => {
             const matchesCategory = activeCategory === 'All Questions' || faq.category === activeCategory;
             const matchesSearch =
-                searchTerm.trim() === '' ||
                 faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 faq.answer.toLowerCase().includes(searchTerm.toLowerCase());
             return matchesCategory && matchesSearch;
@@ -157,12 +163,12 @@ export default function Landing() {
 
     const pipelineProjects = [
         {
-            title: 'Multi-Signal Data Ingestion',
-            description: 'Continuous real-time ingestion of competitor catalog prices, Google Trends search intensity, and live inventory levels.',
+            title: 'Real-Time Competitor Ingestion',
+            description: 'Scrapes live market benchmarks, competitor stock levels, and price promotions across marketplaces every 60 seconds.',
             badge: 'Scraping + API',
             metric: '350+ Signals/min',
             link: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800&auto=format&fit=crop',
-            color: '#1e1b4b',
+            color: '#2D211B',
         },
         {
             title: 'Deterministic Elasticity Engine',
@@ -170,7 +176,7 @@ export default function Landing() {
             badge: 'ML Elasticity',
             metric: 'e = -1.85 Curve',
             link: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=800&auto=format&fit=crop',
-            color: '#0f172a',
+            color: '#382B23',
         },
         {
             title: 'Google Gemini Explainable AI',
@@ -178,7 +184,7 @@ export default function Landing() {
             badge: 'XAI Reasoning',
             metric: '100% Auditable',
             link: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop',
-            color: '#064e3b',
+            color: '#30251F',
         },
         {
             title: 'Autonomous Storefront Sync',
@@ -186,63 +192,63 @@ export default function Landing() {
             badge: 'Instant Execution',
             metric: '< 150ms Sync',
             link: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
-            color: '#3b0764',
+            color: '#261C16',
         },
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col selection:bg-indigo-500/20 selection:text-indigo-950 dark:selection:bg-indigo-500/30 dark:selection:text-white relative overflow-x-clip font-sans">
-            {/* Ambient Background Grid and Atmosphere */}
-            <div className="fixed inset-0 bg-grid-dark pointer-events-none opacity-40 dark:opacity-30 z-0" />
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-indigo-200/40 via-sky-100/30 to-transparent dark:from-indigo-500/10 dark:via-cyan-500/5 dark:to-transparent blur-[120px] pointer-events-none z-0" />
+        <div className="min-h-screen bg-[#F0EEE6] dark:bg-[#241812] text-[#3D1F12] dark:text-[#F0EEE6] flex flex-col selection:bg-[#3D1F12]/20 dark:selection:bg-[#A85A3C]/30 selection:text-[#3D1F12] dark:selection:text-[#F0EEE6] relative overflow-x-clip font-sans transition-colors duration-300">
+            {/* Ambient Atmosphere */}
+            <div className="fixed inset-0 bg-grid-dark pointer-events-none opacity-20 dark:opacity-10 z-0" />
+            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-gradient-to-b from-[#3D1F12]/5 dark:from-[#A85A3C]/10 to-transparent blur-[120px] pointer-events-none z-0" />
 
             {/* Navbar */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#070B14]/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/[0.08]">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0EEE6]/90 dark:bg-[#241812]/90 backdrop-blur-xl border-b border-[#3D1F12]/10 dark:border-[#4A3930] transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-20 items-center">
                         {/* Brand Logo */}
                         <Link to="/" className="flex items-center gap-3 group">
-                            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1.5 shadow-sm group-hover:border-indigo-500/50 transition-colors">
+                            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#3D1F12]/5 dark:bg-[#2D211B] border border-[#3D1F12]/15 dark:border-[#4A3930] p-1.5 shadow-sm group-hover:border-[#3D1F12]/40 dark:group-hover:border-[#A85A3C]/50 transition-colors">
                                 <img src={newDarkLogo} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm hidden dark:block" />
                                 <img src={newLightLogo} alt="PricePilot AI Logo" className="w-full h-full object-contain drop-shadow-sm block dark:hidden" />
                             </div>
-                            <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white">
-                                PricePilot <span className="text-indigo-600 dark:text-indigo-400">AI</span>
+                            <span className="font-display font-extrabold text-xl sm:text-2xl tracking-tight text-[#3D1F12] dark:text-[#F0EEE6]">
+                                PricePilot <span className="text-[#3D1F12] dark:text-[#F0EEE6]">AI</span>
                             </span>
                         </Link>
 
                         {/* Navigation Links & Actions */}
                         <div className="flex items-center space-x-2 sm:space-x-6">
                             <nav className="hidden md:flex items-center space-x-6">
-                                <Link to="/docs" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                <Link to="/docs" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors text-sm font-medium">
                                     Docs
                                 </Link>
-                                <a href="#features" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                <a href="#features" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors text-sm font-medium">
                                     Features
                                 </a>
-                                <a href="#pipeline" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                <a href="#pipeline" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors text-sm font-medium">
                                     Architecture
                                 </a>
-                                <a href="#faq" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                <a href="#faq" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors text-sm font-medium">
                                     FAQ
                                 </a>
-                                <a href="#about" className="text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors text-sm font-medium">
+                                <a href="#about" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors text-sm font-medium">
                                     About
                                 </a>
                             </nav>
 
                             <div className="flex items-center gap-2 sm:gap-3">
-                                <Link to="/login" className="text-slate-700 hover:text-indigo-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white text-sm font-medium px-3 py-2 rounded-lg dark:hover:bg-white/5 transition-colors">
+                                <Link to="/login" className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] hover:bg-[#3D1F12]/5 dark:hover:bg-white/5 text-sm font-medium px-3 py-2 rounded-lg transition-colors">
                                     Sign In
                                 </Link>
 
-                                {/* Isolated Theme Toggle Button */}
+                                {/* Theme Toggle */}
                                 <ThemeToggle />
 
-                                {/* Primary CTA */}
+                                {/* Primary CTA Button */}
                                 <Link
                                     to="/register"
-                                    className="btn-primary py-2 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/20"
+                                    className="bg-[#3D1F12] hover:bg-[#2c160d] dark:bg-[#A85A3C] dark:hover:bg-[#8C4630] text-white py-2 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-[#3D1F12]/20 dark:shadow-[#A85A3C]/20 transition-all"
                                 >
                                     Get Started
                                 </Link>
@@ -260,26 +266,24 @@ export default function Landing() {
                     {/* Left Column: Value Prop & CTAs */}
                     <div className="lg:col-span-6 text-center lg:text-left flex flex-col items-center lg:items-start animate-fade-in">
                         {/* Status Eyebrow Badge */}
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-6 shadow-sm">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#3D1F12]/10 dark:bg-[#2D211B] border border-[#3D1F12]/20 dark:border-[#4A3930] text-[#3D1F12] dark:text-[#F0EEE6] text-xs font-semibold mb-6 shadow-sm">
                             <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600 dark:bg-indigo-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3D1F12] dark:bg-[#4C7C5C] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3D1F12] dark:bg-[#4C7C5C]"></span>
                             </span>
                             <span>PricePilot 1.0 Live</span>
-                            <span className="text-slate-400 dark:text-slate-500">|</span>
-                            <span className="text-slate-600 dark:text-slate-300">Autonomous Pricing</span>
+                            <span className="text-[#3D1F12]/30 dark:text-[#F0EEE6]/30">|</span>
+                            <span className="text-[#3D1F12]/80 dark:text-[#F0EEE6]/80">Autonomous Pricing</span>
                         </div>
 
                         {/* Display Headline */}
-                        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6">
+                        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#3D1F12] dark:text-[#F0EEE6] leading-[1.1] mb-6">
                             Dynamic Pricing.<br />
-                            <span className="bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600 dark:from-indigo-400 dark:via-sky-300 dark:to-emerald-400 bg-clip-text text-transparent">
-                                <TypewriterEffect text="Engineered for Profit." />
-                            </span>
+                            <TypewriterEffect text="Engineered for Profit." />
                         </h1>
 
                         {/* Value Prop Subtext */}
-                        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-lg leading-relaxed">
+                        <p className="text-base sm:text-lg text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 mb-8 max-w-lg leading-relaxed">
                             Autonomous elasticity modeling, real-time competitor tracking, and explainable AI to protect margins and accelerate revenue.
                         </p>
 
@@ -287,28 +291,28 @@ export default function Landing() {
                         <div className="flex flex-col sm:flex-row gap-3.5 w-full sm:w-auto">
                             <Link
                                 to="/register"
-                                className="btn-primary text-sm sm:text-base px-7 py-3 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
+                                className="bg-[#3D1F12] hover:bg-[#2c160d] dark:bg-[#A85A3C] dark:hover:bg-[#8C4630] text-white text-sm sm:text-base px-7 py-3 rounded-xl shadow-lg shadow-[#3D1F12]/20 dark:shadow-[#A85A3C]/20 flex items-center justify-center gap-2 transition-all font-semibold"
                             >
                                 <span>Start Optimizing Now</span>
                                 <HiOutlineArrowRight className="w-4 h-4" />
                             </Link>
                             <Link
                                 to="/demo"
-                                className="btn-secondary text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700/60 hover:border-indigo-500/40 bg-white dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all text-slate-800 dark:text-slate-200 shadow-sm"
+                                className="text-sm sm:text-base px-6 py-3 rounded-xl flex items-center justify-center gap-2 border border-[#3D1F12]/20 dark:border-[#4A3930] hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 bg-white/80 dark:bg-[#2D211B] hover:bg-white dark:hover:bg-[#352720] transition-all text-[#3D1F12] dark:text-[#F0EEE6] shadow-sm font-semibold"
                             >
                                 <span>Live Sandbox</span>
-                                <span className="text-xs text-indigo-600 dark:text-indigo-400">→</span>
+                                <span className="text-xs text-[#A85A3C]">→</span>
                             </Link>
                         </div>
 
                         {/* Quick Trust Highlights */}
-                        <div className="mt-8 flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-8 flex items-center gap-6 text-xs text-[#3D1F12]/60 dark:text-[#A99D91]">
                             <div className="flex items-center gap-1.5">
-                                <HiOutlineCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <HiOutlineCheckCircle className="w-4 h-4 text-[#A85A3C]" />
                                 <span>No credit card required</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <HiOutlineCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <HiOutlineCheckCircle className="w-4 h-4 text-[#A85A3C]" />
                                 <span>5-minute catalog sync</span>
                             </div>
                         </div>
@@ -321,9 +325,9 @@ export default function Landing() {
                 </section>
 
                 {/* Social Proof & Integration Logo Bar */}
-                <section className="py-8 border-y border-slate-200/80 dark:border-white/[0.08] bg-white/40 dark:bg-transparent mb-24 relative transition-colors duration-300">
+                <section className="py-8 border-y border-[#3D1F12]/10 dark:border-[#4A3930] bg-[#3D1F12]/5 dark:bg-white/5 mb-24 relative transition-colors duration-300">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center md:text-left">
+                        <span className="text-xs font-semibold text-[#3D1F12]/60 dark:text-[#A99D91] uppercase tracking-wider text-center md:text-left">
                             Seamless 2-Way Sync Across Modern Commerce Platforms
                         </span>
 
@@ -331,7 +335,7 @@ export default function Landing() {
                             {integrationLogos.map((item) => {
                                 const IconComponent = item.icon;
                                 return (
-                                    <div key={item.name} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">
+                                    <div key={item.name} className="flex items-center gap-2 text-[#3D1F12]/75 hover:text-[#3D1F12] dark:text-[#F0EEE6]/75 dark:hover:text-[#F0EEE6] transition-colors">
                                         <IconComponent className="w-6 h-6" />
                                         <span className="text-sm font-semibold tracking-wide">{item.name}</span>
                                     </div>
@@ -344,62 +348,62 @@ export default function Landing() {
                 {/* Asymmetric Bento Intelligence Suite */}
                 <section id="features" className="max-w-7xl w-full mx-auto mb-28">
                     <div className="text-center md:text-left mb-12">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-3">
-                            <HiOutlineLightningBolt className="w-4 h-4" />
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#3D1F12]/10 dark:bg-[#2D211B] border border-[#3D1F12]/20 dark:border-[#4A3930] text-[#3D1F12] dark:text-[#F0EEE6] text-xs font-bold uppercase tracking-wider mb-3">
+                            <HiOutlineLightningBolt className="w-4 h-4 text-[#A85A3C]" />
                             Core Intelligence Suite
                         </div>
-                        <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        <h2 className="font-display text-3xl sm:text-4xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] tracking-tight">
                             Engineered for Precision and Margin Protection
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 mt-2 max-w-2xl text-sm sm:text-base leading-relaxed">
+                        <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 mt-2 max-w-2xl text-sm sm:text-base leading-relaxed">
                             Replace arbitrary guesswork with deterministic price elasticity models, multi-signal demand forecasts, and transparent generative AI reasoning.
                         </p>
                     </div>
 
                     <div className="grid lg:grid-cols-12 gap-6 items-stretch">
                         {/* Large Bento Card (7 Columns): Dynamic Margin Engine */}
-                        <div className="lg:col-span-7 rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-8 sm:p-10 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-indigo-500/30 transition-all duration-300">
+                        <div className="lg:col-span-7 rounded-3xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-xl p-8 sm:p-10 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all duration-300">
                             <div>
                                 <div className="flex items-center justify-between mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shadow-sm">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#3D1F12]/5 dark:bg-[#30251F] border border-[#3D1F12]/15 dark:border-[#4A3930] text-[#A85A3C] flex items-center justify-center text-xl shadow-sm">
                                         <HiOutlineLightningBolt className="w-6 h-6" />
                                     </div>
-                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 font-mono">
+                                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#3D1F12]/10 dark:bg-[#30251F] text-[#3D1F12] dark:text-[#F0EEE6] border border-[#3D1F12]/20 dark:border-[#4A3930] font-mono">
                                         Deterministic + ML
                                     </span>
                                 </div>
 
-                                <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-3">
+                                <h3 className="font-display text-2xl font-bold text-[#3D1F12] dark:text-[#F0EEE6] mb-3">
                                     Real-Time Price Elasticity and Margin Optimization
                                 </h3>
-                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 text-sm sm:text-base">
+                                <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 leading-relaxed mb-6 text-sm sm:text-base">
                                     Binary search margin optimization paired with dynamic log-linear elasticity models to pinpoint the exact price where revenue and profit curves maximize.
                                 </p>
 
                                 {/* Micro visualizer inside the card */}
-                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 space-y-3 mb-6">
+                                <div className="p-4 rounded-2xl bg-[#FAF6F0] dark:bg-[#241812] border border-[#3D1F12]/15 dark:border-[#4A3930] space-y-3 mb-6">
                                     <div className="flex justify-between items-center text-xs">
-                                        <span className="font-semibold text-slate-700 dark:text-slate-300">Elasticity Curve (e = -1.85)</span>
-                                        <span className="font-bold text-emerald-700 dark:text-emerald-400">+18.4% Projected Margin</span>
+                                        <span className="font-semibold text-[#3D1F12] dark:text-[#F0EEE6]">Elasticity Curve (e = -1.85)</span>
+                                        <span className="font-bold text-[#A85A3C]">+18.4% Projected Margin</span>
                                     </div>
-                                    <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                                        <div className="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full w-[78%] rounded-full" />
+                                    <div className="w-full bg-[#3D1F12]/10 dark:bg-[#30251F] h-2 rounded-full overflow-hidden">
+                                        <div className="bg-[#A85A3C] h-full w-[78%] rounded-full" />
                                     </div>
-                                    <div className="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                                    <div className="flex justify-between text-[11px] text-[#3D1F12]/60 dark:text-[#A99D91] font-mono">
                                         <span>COGS: ₹840</span>
-                                        <span className="font-bold text-slate-900 dark:text-white">Optimal Price: ₹1,299</span>
+                                        <span className="font-bold text-[#3D1F12] dark:text-[#F0EEE6]">Optimal Price: ₹1,299</span>
                                         <span>Competitor: ₹1,349</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                            <div className="pt-4 border-t border-[#3D1F12]/15 dark:border-[#4A3930] flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <span className="text-xs text-[#3D1F12]/60 dark:text-[#A99D91]">
                                     Simulate pricing across 10,000+ catalog SKUs
                                 </span>
                                 <Link
                                     to="/demo"
-                                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-2.5 px-5 text-xs font-bold transition-all shadow-md shadow-indigo-500/20 text-center flex items-center justify-center gap-1.5"
+                                    className="w-full sm:w-auto bg-[#3D1F12] hover:bg-[#2c160d] dark:bg-[#A85A3C] dark:hover:bg-[#8C4630] text-white rounded-xl py-2.5 px-5 text-xs font-bold transition-all shadow-md shadow-[#3D1F12]/20 dark:shadow-[#A85A3C]/20 text-center flex items-center justify-center gap-1.5"
                                 >
                                     <span>Try What-If Simulator</span>
                                     <HiOutlineArrowRight className="w-3.5 h-3.5" />
@@ -410,25 +414,25 @@ export default function Landing() {
                         {/* Right Stacked Bento Cards (5 Columns) */}
                         <div className="lg:col-span-5 flex flex-col gap-6">
                             {/* Card A: Multi-Signal Demand */}
-                            <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-purple-500/30 transition-all duration-300 flex-1">
+                            <div className="rounded-3xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all duration-300 flex-1">
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg">
+                                        <div className="w-10 h-10 rounded-xl bg-[#3D1F12]/5 dark:bg-[#30251F] border border-[#3D1F12]/15 dark:border-[#4A3930] text-[#A85A3C] flex items-center justify-center text-lg">
                                             <HiOutlineCubeTransparent className="w-5 h-5" />
                                         </div>
-                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20 font-mono">
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#3D1F12]/10 dark:bg-[#30251F] text-[#3D1F12] dark:text-[#F0EEE6] border border-[#3D1F12]/20 dark:border-[#4A3930] font-mono">
                                             Prophet Forecasts
                                         </span>
                                     </div>
-                                    <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="font-display text-lg font-bold text-[#3D1F12] dark:text-[#F0EEE6] mb-2">
                                         Multi-Signal Demand Intelligence
                                     </h3>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                    <p className="text-xs text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 leading-relaxed mb-4">
                                         Forecast sales velocity combining historical checkout patterns with Google Trends search volumes, seasonal trends, and competitor stockouts.
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
-                                    <Link to="/docs" className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 inline-flex items-center gap-1">
+                                <div className="pt-3 border-t border-[#3D1F12]/15 dark:border-[#4A3930] flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-[#A85A3C] dark:text-[#B8734F] hover:underline inline-flex items-center gap-1">
                                         <span>View Documentation</span>
                                         <span>→</span>
                                     </Link>
@@ -436,25 +440,25 @@ export default function Landing() {
                             </div>
 
                             {/* Card B: Explainable AI */}
-                            <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/70 backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-emerald-500/30 transition-all duration-300 flex-1">
+                            <div className="rounded-3xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-xl p-7 flex flex-col justify-between shadow-xl dark:shadow-2xl hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all duration-300 flex-1">
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg">
+                                        <div className="w-10 h-10 rounded-xl bg-[#3D1F12]/5 dark:bg-[#30251F] border border-[#3D1F12]/15 dark:border-[#4A3930] text-[#A85A3C] flex items-center justify-center text-lg">
                                             <HiOutlineShieldCheck className="w-5 h-5" />
                                         </div>
-                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 font-mono">
+                                        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#3D1F12]/10 dark:bg-[#30251F] text-[#3D1F12] dark:text-[#F0EEE6] border border-[#3D1F12]/20 dark:border-[#4A3930] font-mono">
                                             Google Gemini XAI
                                         </span>
                                     </div>
-                                    <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="font-display text-lg font-bold text-[#3D1F12] dark:text-[#F0EEE6] mb-2">
                                         Explainable AI (XAI)
                                     </h3>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                    <p className="text-xs text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 leading-relaxed mb-4">
                                         Never guess why an algorithm made a recommendation. Natural language executive summaries outline the exact market signals driving every rupee change.
                                     </p>
                                 </div>
-                                <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between items-center">
-                                    <Link to="/docs" className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1">
+                                <div className="pt-3 border-t border-[#3D1F12]/15 dark:border-[#4A3930] flex justify-between items-center">
+                                    <Link to="/docs" className="text-xs font-bold text-[#3D1F12] dark:text-[#F0EEE6] hover:text-[#A85A3C] dark:hover:text-[#B8734F] hover:underline inline-flex items-center gap-1">
                                         <span>Explore XAI Framework</span>
                                         <span>→</span>
                                     </Link>
@@ -467,15 +471,15 @@ export default function Landing() {
                 {/* Dynamic Engine Architecture Pipeline */}
                 <section id="pipeline" className="max-w-7xl w-full mx-auto mb-28">
                     <div className="text-center max-w-2xl mx-auto mb-12">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs font-bold uppercase tracking-wider mb-3">
-                            <HiOutlineChip className="w-4 h-4" />
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3D1F12]/10 dark:bg-[#2D211B] border border-[#3D1F12]/20 dark:border-[#4A3930] text-[#3D1F12] dark:text-[#F0EEE6] text-xs font-bold uppercase tracking-wider mb-3">
+                            <HiOutlineChip className="w-4 h-4 text-[#A85A3C]" />
                             Autonomous Execution Pipeline
                         </div>
-                        <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        <h2 className="font-display text-3xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] tracking-tight">
                             How PricePilot Generates Maximum Margin
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm mt-2">
-                            From competitor price scraping to automated catalog checkout synchronization. Scroll down! 👇
+                        <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-sm mt-2">
+                            From competitor price scraping to automated catalog checkout synchronization. Scroll down to explore.
                         </p>
                     </div>
 
@@ -483,16 +487,16 @@ export default function Landing() {
                 </section>
 
                 {/* Research & Economic Insights */}
-                <section className="max-w-7xl w-full mx-auto mb-28 border-t border-slate-200/80 dark:border-white/[0.08] pt-16 transition-colors duration-300">
+                <section className="max-w-7xl w-full mx-auto mb-28 border-t border-[#3D1F12]/15 dark:border-[#4A3930] pt-16 transition-colors duration-300">
                     <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
                         <div>
-                            <span className="text-xs font-bold font-mono text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-2">
+                            <span className="text-xs font-bold font-mono text-[#3D1F12] dark:text-[#A99D91] uppercase tracking-widest block mb-2">
                                 Research and Policy
                             </span>
-                            <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-snug">
+                            <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] leading-snug">
                                 Building autonomous pricing algorithms for sustainable long-term profitability.
                             </h3>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm mt-4 leading-relaxed max-w-md">
+                            <p className="text-[#3D1F12]/75 text-sm mt-4 leading-relaxed max-w-md">
                                 Read our foundational research on algorithmic price elasticity, model interpretability, and market fairness guidelines.
                             </p>
                         </div>
@@ -506,15 +510,15 @@ export default function Landing() {
                             ].map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="p-4 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-white/80 dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900/80 hover:border-indigo-500/30 transition-all flex items-center justify-between group cursor-pointer shadow-sm"
+                                    className="p-4 rounded-xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] hover:bg-white dark:hover:bg-[#352720] hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all flex items-center justify-between group cursor-pointer shadow-sm"
                                 >
                                     <div>
-                                        <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
+                                        <h4 className="text-sm font-semibold text-[#3D1F12] dark:text-[#F0EEE6] group-hover:text-[#3D1F12] dark:group-hover:text-[#F0EEE6] transition-colors">
                                             {item.title}
                                         </h4>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block">{item.category}</span>
+                                        <span className="text-xs text-[#3D1F12]/60 dark:text-[#A99D91] mt-0.5 block">{item.category}</span>
                                     </div>
-                                    <span className="text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors text-sm">→</span>
+                                    <span className="text-[#3D1F12]/50 dark:text-[#F0EEE6]/50 group-hover:text-[#3D1F12] dark:group-hover:text-[#F0EEE6] transition-colors text-sm">→</span>
                                 </div>
                             ))}
                         </div>
@@ -525,13 +529,13 @@ export default function Landing() {
                 <section id="faq" className="max-w-7xl w-full mx-auto mb-28">
                     <div className="grid gap-8 lg:grid-cols-[340px_1fr] items-start">
                         {/* Left Search & Categories Sidebar */}
-                        <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-6 sm:p-8 shadow-xl dark:shadow-2xl transition-colors duration-300">
-                            <span className="inline-flex items-center rounded-full border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300 mb-6 font-mono">
+                        <div className="rounded-3xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-xl p-6 sm:p-8 shadow-lg transition-colors duration-300">
+                            <span className="inline-flex items-center rounded-full border border-[#3D1F12]/20 dark:border-[#4A3930] bg-[#3D1F12]/10 dark:bg-[#30251F] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#3D1F12] dark:text-[#F0EEE6] mb-6 font-mono">
                                 FAQ Helpdesk
                             </span>
 
-                            <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white mb-3">Got Questions?</h2>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
+                            <h2 className="font-display text-3xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] mb-3">Got Questions?</h2>
+                            <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-sm leading-relaxed mb-6">
                                 Everything you need to know about our dynamic price optimization engine, real-time tracking, and data security.
                             </p>
 
@@ -539,20 +543,20 @@ export default function Landing() {
                             <div className="mb-6">
                                 <label htmlFor="faq-search" className="sr-only">Search FAQ</label>
                                 <div className="relative">
-                                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                    <HiOutlineSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#3D1F12]/50 dark:text-[#F0EEE6]/50 w-4 h-4" />
                                     <input
                                         id="faq-search"
                                         type="text"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         placeholder="Search answers..."
-                                        className="w-full rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-black/40 pl-10 pr-10 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                        className="w-full rounded-xl border border-[#3D1F12]/20 dark:border-[#4A3930] bg-white/80 dark:bg-[#241812] pl-10 pr-10 py-2.5 text-sm text-[#3D1F12] dark:text-[#F0EEE6] placeholder:text-[#3D1F12]/40 dark:placeholder:text-[#F0EEE6]/40 focus:border-[#3D1F12] dark:focus:border-[#A85A3C] focus:outline-none focus:ring-1 focus:ring-[#3D1F12] dark:focus:ring-[#A85A3C]"
                                     />
                                     {searchTerm && (
                                         <button
                                             type="button"
                                             onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3D1F12]/50 dark:text-[#F0EEE6]/50 hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] text-xs"
                                         >
                                             Clear
                                         </button>
@@ -568,8 +572,8 @@ export default function Landing() {
                                         type="button"
                                         onClick={() => setActiveCategory(item)}
                                         className={`w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition ${activeCategory === item
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5'
+                                            ? 'bg-[#3D1F12] dark:bg-[#A85A3C] text-white shadow-md'
+                                            : 'text-[#3D1F12]/80 dark:text-[#F0EEE6]/80 hover:bg-[#3D1F12]/10 dark:hover:bg-white/5'
                                             }`}
                                     >
                                         {item}
@@ -590,7 +594,7 @@ export default function Landing() {
                                     />
                                 ))
                             ) : (
-                                <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-10 text-center text-slate-500 dark:text-slate-400">
+                                <div className="rounded-2xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] p-10 text-center text-[#3D1F12]/60 dark:text-[#F0EEE6]/60">
                                     No questions match your search. Try another keyword or category.
                                 </div>
                             )}
@@ -600,17 +604,17 @@ export default function Landing() {
 
                 {/* About Us & Engineering Team Section */}
                 <section id="about" className="max-w-4xl w-full mx-auto mb-20">
-                    <div className="rounded-3xl border border-slate-200/90 dark:border-white/[0.08] bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl p-8 sm:p-12 shadow-xl dark:shadow-2xl text-center transition-colors duration-300">
-                        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 p-3 shadow-inner flex items-center justify-center mb-6">
+                    <div className="rounded-3xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] backdrop-blur-2xl p-8 sm:p-12 shadow-lg text-center transition-colors duration-300">
+                        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#3D1F12]/5 dark:bg-[#30251F] border border-[#3D1F12]/15 dark:border-[#4A3930] p-3 shadow-inner flex items-center justify-center mb-6">
                             <img src={newDarkLogo} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm hidden dark:block" />
                             <img src={newLightLogo} alt="PricePilot Logo" className="w-full h-full object-contain drop-shadow-sm block dark:hidden" />
                         </div>
 
-                        <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
+                        <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] mb-3">
                             PricePilot AI Engineering Team
                         </h3>
 
-                        <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-8">
+                        <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-8">
                             PricePilot AI was built as a full-stack engineering initiative to deliver enterprise-grade dynamic price optimization, machine learning forecasting, and explainable AI to modern merchants.
                         </p>
 
@@ -619,20 +623,20 @@ export default function Landing() {
                             {teamMembers.map((member) => (
                                 <div
                                     key={member.name}
-                                    className="p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-950/60 text-center hover:border-indigo-500/40 transition-all shadow-sm"
+                                    className="p-5 rounded-2xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/70 dark:bg-[#30251F] text-center hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all shadow-sm"
                                 >
-                                    <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-tr from-indigo-600 to-sky-500 flex items-center justify-center text-sm font-bold text-white mb-3 shadow-md">
+                                    <div className="w-12 h-12 mx-auto rounded-full bg-[#3D1F12] dark:bg-[#A85A3C] flex items-center justify-center text-sm font-bold text-white mb-3 shadow-md">
                                         {member.name.split(' ').map((n) => n[0]).join('')}
                                     </div>
-                                    <h4 className="font-bold text-slate-900 dark:text-white text-base">{member.name}</h4>
-                                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mb-3 font-medium">{member.role}</p>
+                                    <h4 className="font-bold text-[#3D1F12] dark:text-[#F0EEE6] text-base">{member.name}</h4>
+                                    <p className="text-xs text-[#3D1F12]/80 dark:text-[#A99D91] mb-3 font-medium">{member.role}</p>
                                     <a
                                         href={member.linkedin}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition-colors font-medium"
+                                        className="inline-flex items-center gap-1.5 text-xs text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 hover:text-[#3D1F12] dark:hover:text-[#A85A3C] transition-colors font-medium"
                                     >
-                                        <FaLinkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
+                                        <FaLinkedin className="w-3.5 h-3.5 text-[#3D1F12] dark:text-[#F0EEE6]" />
                                         <span>LinkedIn Profile</span>
                                     </a>
                                 </div>
@@ -640,21 +644,21 @@ export default function Landing() {
                         </div>
 
                         {/* Verified GitHub Repository Badge */}
-                        <div className="pt-6 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <div className="pt-6 border-t border-[#3D1F12]/15 dark:border-[#4A3930] flex flex-col sm:flex-row items-center justify-center gap-4">
                             <a
                                 href="https://github.com/rb-369/Price-Pilot-Ai"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:border-indigo-500/40 hover:bg-slate-200/80 dark:hover:bg-white/10 transition-all text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm"
+                                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/60 dark:bg-[#30251F] hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 hover:bg-white dark:hover:bg-[#382B23] transition-all text-xs font-semibold text-[#3D1F12] dark:text-[#F0EEE6] shadow-sm"
                             >
-                                <FaGithub className="w-4 h-4 text-slate-900 dark:text-white" />
+                                <FaGithub className="w-4 h-4 text-[#3D1F12] dark:text-[#F0EEE6]" />
                                 <span>rb-369/Price-Pilot-Ai</span>
                             </a>
                             <a
                                 href="mailto:pricepilot5@gmail.com"
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:border-indigo-500/40 hover:bg-slate-200/80 dark:hover:bg-white/10 transition-all text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/60 dark:bg-[#30251F] hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 hover:bg-white dark:hover:bg-[#382B23] transition-all text-xs font-semibold text-[#3D1F12] dark:text-[#F0EEE6] shadow-sm"
                             >
-                                <HiOutlineMail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                                <HiOutlineMail className="w-4 h-4 text-[#3D1F12] dark:text-[#F0EEE6]" />
                                 <span>pricepilot5@gmail.com</span>
                             </a>
                         </div>
@@ -664,67 +668,67 @@ export default function Landing() {
                 {/* Back to Top Floating Button */}
                 <button
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="fixed bottom-8 right-8 z-50 px-4 py-2.5 rounded-full bg-white/90 dark:bg-[#0B1120]/95 border border-slate-200 dark:border-white/10 shadow-xl flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-white transition-all backdrop-blur-xl"
+                    className="fixed bottom-8 right-8 z-50 px-4 py-2.5 rounded-full bg-white/95 dark:bg-[#2D211B]/95 border border-[#3D1F12]/20 dark:border-[#4A3930] shadow-xl flex items-center gap-2 text-xs font-semibold text-[#3D1F12] dark:text-[#F0EEE6] hover:border-[#3D1F12]/50 dark:hover:border-[#A85A3C] transition-all backdrop-blur-xl"
                     aria-label="Back to Top"
                 >
-                    <HiOutlineArrowUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                    <HiOutlineArrowUp className="w-3.5 h-3.5 text-[#3D1F12] dark:text-[#F0EEE6]" />
                     <span>Top</span>
                 </button>
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 w-full bg-slate-100 dark:bg-[#050810] border-t border-slate-200 dark:border-white/[0.08] py-14 text-slate-600 dark:text-slate-400 transition-colors duration-300">
+            <footer className="relative z-10 w-full bg-[#F0EEE6] dark:bg-[#1E140E] border-t border-[#3D1F12]/15 dark:border-[#4A3930] py-14 text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 transition-colors duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
                     <div className="col-span-2">
                         <div className="flex items-center gap-2.5 mb-4">
-                            <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-1 flex items-center justify-center shadow-sm">
+                            <div className="w-7 h-7 rounded-lg bg-[#3D1F12]/5 dark:bg-[#2D211B] border border-[#3D1F12]/15 dark:border-[#4A3930] p-1 flex items-center justify-center shadow-sm">
                                 <img src={newDarkLogo} alt="Logo" className="w-full h-full object-contain hidden dark:block" />
                                 <img src={newLightLogo} alt="Logo" className="w-full h-full object-contain block dark:hidden" />
                             </div>
-                            <span className="font-display font-bold text-lg text-slate-900 dark:text-white">PricePilot AI</span>
+                            <span className="font-display font-bold text-lg text-[#3D1F12] dark:text-[#F0EEE6]">PricePilot AI</span>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-xs leading-relaxed mb-4">
+                        <p className="text-[#3D1F12]/75 dark:text-[#F0EEE6]/75 text-xs sm:text-sm max-w-xs leading-relaxed mb-4">
                             Autonomous dynamic pricing, Prophet demand forecasting, and Google Gemini XAI for high-growth e-commerce merchants.
                         </p>
-                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-100/80 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-400 text-[11px] font-mono font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+                        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#3D1F12]/10 dark:bg-[#2D211B] border border-[#3D1F12]/20 dark:border-[#4A3930] text-[#3D1F12] dark:text-[#F0EEE6] text-[11px] font-mono font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#3D1F12] dark:bg-[#4C7C5C] animate-pulse"></span>
                             <span>All Systems Operational</span>
                         </div>
                     </div>
 
                     <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Products</h4>
+                        <h4 className="font-semibold text-[#3D1F12] dark:text-[#F0EEE6] text-xs uppercase tracking-wider mb-4">Products</h4>
                         <ul className="space-y-2.5 text-xs">
-                            <li><Link to="/demo" className="hover:text-slate-900 dark:hover:text-white transition-colors">Live Demo</Link></li>
-                            <li><Link to="/docs" className="hover:text-slate-900 dark:hover:text-white transition-colors">Documentation</Link></li>
-                            <li><a href="#features" className="hover:text-slate-900 dark:hover:text-white transition-colors">Intelligence Suite</a></li>
-                            <li><a href="#pipeline" className="hover:text-slate-900 dark:hover:text-white transition-colors">Architecture</a></li>
+                            <li><Link to="/demo" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Live Demo</Link></li>
+                            <li><Link to="/docs" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Documentation</Link></li>
+                            <li><a href="#features" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Intelligence Suite</a></li>
+                            <li><a href="#pipeline" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Architecture</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Company</h4>
+                        <h4 className="font-semibold text-[#3D1F12] dark:text-[#F0EEE6] text-xs uppercase tracking-wider mb-4">Company</h4>
                         <ul className="space-y-2.5 text-xs">
-                            <li><a href="#about" className="hover:text-slate-900 dark:hover:text-white transition-colors">About Team</a></li>
-                            <li><a href="#faq" className="hover:text-slate-900 dark:hover:text-white transition-colors">FAQ</a></li>
-                            <li><a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 dark:hover:text-white transition-colors">GitHub Repository</a></li>
+                            <li><a href="#about" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">About Team</a></li>
+                            <li><a href="#faq" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">FAQ</a></li>
+                            <li><a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">GitHub Repository</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-4">Legal</h4>
+                        <h4 className="font-semibold text-[#3D1F12] dark:text-[#F0EEE6] text-xs uppercase tracking-wider mb-4">Legal</h4>
                         <ul className="space-y-2.5 text-xs">
-                            <li><Link to="/privacy" className="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy Policy</Link></li>
-                            <li><Link to="/terms" className="hover:text-slate-900 dark:hover:text-white transition-colors">Terms of Service</Link></li>
+                            <li><Link to="/privacy" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Privacy Policy</Link></li>
+                            <li><Link to="/terms" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">Terms of Service</Link></li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-[#3D1F12]/10 dark:border-[#4A3930] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#3D1F12]/60 dark:text-[#F0EEE6]/60">
                     <p>&copy; {new Date().getFullYear()} PricePilot AI. All rights reserved.</p>
                     <div className="flex items-center gap-4">
-                        <a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <FaGithub className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+                        <a href="https://github.com/rb-369/Price-Pilot-Ai" target="_blank" rel="noopener noreferrer" className="hover:text-[#3D1F12] dark:hover:text-[#F0EEE6] transition-colors">
+                            <FaGithub className="w-4 h-4 text-[#3D1F12] dark:text-[#F0EEE6]" />
                         </a>
                     </div>
                 </div>
