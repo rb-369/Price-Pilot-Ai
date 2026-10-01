@@ -117,18 +117,23 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
             response.raise_for_status()
             data = response.json()
 
-        product = data.get("product", {})
+        product = data.get("product_results") or data.get("product", {})
         if not product:
             return None
 
         # Extract buybox / listing price
-        buybox = product.get("buybox_winner", {})
-        price_value = _extract_price_value(buybox.get("price")) or _extract_price_value(product.get("price"))
+        buybox = product.get("buybox_winner", {}) or data.get("purchase_options", {}).get("single_offer", {})
+        price_value = (
+            product.get("extracted_price")
+            or _extract_price_value(buybox.get("price"))
+            or _extract_price_value(product.get("price"))
+            or _extract_price_value(data.get("purchase_options", {}).get("single_offer", {}).get("price"))
+        )
 
         if price_value is None:
             return None
 
-        in_stock = buybox.get("availability", {}).get("type", "in_stock") == "in_stock"
+        in_stock = buybox.get("availability", {}).get("type", "in_stock") == "in_stock" or "in stock" in str(buybox.get("stock", "")).lower()
 
         return {
             "platform": "Amazon",

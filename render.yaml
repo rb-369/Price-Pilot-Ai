@@ -34,6 +34,10 @@ services:
         value: https://price-pilot-ai-service.onrender.com   # Python AI microservice
       - key: LLM_API_KEY
         sync: false         # Google Gemini API key
+      - key: RAINFOREST_API_KEY
+        sync: false         # Rainforest API key for Amazon scraper
+      - key: SERPAPI_KEY
+        sync: false         # SerpAPI key for search and Amazon product engine
       - key: ENABLE_CRON
         value: "0"          # set to "1" only on a single instance
       - key: REDIS_URL

@@ -56,4 +56,27 @@ describe('Product Endpoints', () => {
         expect(res.body.data).toBeDefined();
         expect(res.body.data.length).toEqual(1);
     });
+
+    it('should return 400 if URL is missing in extract-url', async () => {
+        const res = await request(app)
+            .post('/api/products/extract-url')
+            .send({});
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body.message).toContain('required');
+    });
+
+    it('should extract metadata and sensible shortName from product URL', async () => {
+        const res = await request(app)
+            .post('/api/products/extract-url')
+            .send({ url: 'https://amzn.in/d/0eBjbC8S' });
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body.fullName).toBeDefined();
+        expect(res.body.shortName).toBeDefined();
+        // Should contain the product noun (e.g. Refrigerator) and brand, not just truncated star rating
+        expect(res.body.shortName.length).toBeGreaterThan(5);
+        expect(res.body.shortName).toMatch(/Godrej/i);
+    }, 15000);
 });
+
