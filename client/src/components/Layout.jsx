@@ -55,7 +55,7 @@ export default function Layout() {
                 <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isDesktop={isDesktop} />
 
                 {/* Page Content Container with bottom padding on mobile for floating nav & FAB */}
-                <main className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-8 pb-28 sm:pb-32 lg:pb-8'}>
+                <main className={isChatPage ? 'relative flex h-full w-full min-h-0 flex-1 flex-col overflow-hidden' : 'min-h-0 flex-1 overflow-y-auto p-3 sm:p-5 lg:p-8 pb-24 md:pb-6 lg:pb-8'}>
                     <div className={isChatPage ? 'h-full w-full' : 'mx-auto w-full max-w-[1440px] animate-fade-in'}>
                         <Outlet context={{ sidebarOpen, setSidebarOpen, isDesktop }} />
                     </div>

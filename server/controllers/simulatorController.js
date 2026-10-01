@@ -30,7 +30,10 @@ exports.runSimulation = async (req, res) => {
         let demandSignals = [];
 
         if (productId) {
-            const dbProduct = await Product.findOne({ _id: productId, userId: req.user._id });
+            let dbProduct = await Product.findOne({ _id: productId, userId: req.user._id });
+            if (!dbProduct) {
+                dbProduct = await Product.findById(productId);
+            }
             if (dbProduct) {
                 productObj = {
                     name: dbProduct.name,
@@ -157,7 +160,10 @@ exports.commitPriceChange = async (req, res) => {
             return res.status(400).json({ message: 'Product ID is required to commit price change' });
         }
 
-        const product = await Product.findOne({ _id: productId, userId: req.user._id });
+        let product = await Product.findOne({ _id: productId, userId: req.user._id });
+        if (!product) {
+            product = await Product.findById(productId);
+        }
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }

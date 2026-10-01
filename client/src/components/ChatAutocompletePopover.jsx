@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getProducts } from '../api';
+import { useCurrency } from '../context/CurrencyContext';
 import {
     HiOutlineChartBar, HiOutlineTrendingUp, HiOutlineLightningBolt,
     HiOutlineLightBulb, HiOutlineBeaker, HiOutlineSwitchHorizontal,
@@ -91,6 +92,7 @@ export default function ChatAutocompletePopover({
     query,
     setQuery,
 }) {
+    const { formatCurrency } = useCurrency();
     const [products, setProducts] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selectedItemRef = useRef(null);
@@ -246,7 +248,7 @@ export default function ChatAutocompletePopover({
                                     </div>
                                 </div>
                                 <div className="text-right text-[11px] shrink-0 ml-2">
-                                    <span className="font-bold text-primary-light">${item.currentPrice}</span>
+                                    <span className="font-bold text-primary-light">{formatCurrency ? formatCurrency(item.currentPrice) : `₹${item.currentPrice}`}</span>
                                     <span className="text-[10px] text-text-muted block">Stock: {item.stockLevel}</span>
                                 </div>
                             </button>

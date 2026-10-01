@@ -97,18 +97,6 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         return products.find(p => p._id === selectedProductId) || null;
     }, [products, selectedProductId]);
 
-    // When active product changes, sync base price & cogs
-    useEffect(() => {
-        if (activeProduct) {
-            const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
-            const cost = typeof activeProduct.baseCost === 'number'
-                ? Math.round(activeProduct.baseCost * 100) / 100
-                : Math.round(price * 0.6 * 100) / 100;
-            setTargetPrice(price);
-            setCogs(cost);
-        }
-    }, [activeProduct]);
-
     // Run simulation via API — MUST be defined before any useEffect that references it
     const handleRunSimulation = useCallback(async (customParams = null) => {
         setSimulating(true);
@@ -131,6 +119,26 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             setSimulating(false);
         }
     }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
+
+    // When active product changes, sync base price, cogs, and run simulation with real product data
+    useEffect(() => {
+        if (activeProduct) {
+            const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
+            const cost = typeof activeProduct.baseCost === 'number'
+                ? Math.round(activeProduct.baseCost * 100) / 100
+                : Math.round(price * 0.6 * 100) / 100;
+            setTargetPrice(price);
+            setCogs(cost);
+            handleRunSimulation({
+                productId: activeProduct._id,
+                targetPrice: price,
+                cogs: cost,
+                competitorStrategy,
+                demandMultiplier,
+                timeHorizonDays
+            });
+        }
+    }, [activeProduct, handleRunSimulation, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
     // Track pending launch event if products are still fetching
     const pendingLaunchRef = useRef(null);
@@ -200,13 +208,6 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         window.addEventListener('launch_what_if_simulator', handleLaunch);
         return () => window.removeEventListener('launch_what_if_simulator', handleLaunch);
     }, [products, executeLaunch]);
-
-    // Initial run when active product changes
-    useEffect(() => {
-        if (selectedProductId) {
-            handleRunSimulation();
-        }
-    }, [selectedProductId]);
 
     // Apply Scenario Presets
     const applyPreset = (presetKey) => {
@@ -660,12 +661,12 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                     )}
                                 </div>
 
-                                <div className="h-56 w-full">
+                                <div className="h-56 w-full min-w-0">
                                     {simulation?.sensitivityCurve ? (
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
                                             <LineChart data={simulation.sensitivityCurve}>
                                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" strokeOpacity={0.4} />
-                                                <XAxis dataKey="price" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} unit=" $" />
+                                                <XAxis dataKey="price" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} unit=" ₹" />
                                                 <YAxis tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} />
                                                 <Tooltip
                                                     contentStyle={{

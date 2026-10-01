@@ -42,7 +42,7 @@
   <script>
     // Eagerly ping the Render backend to wake it from sleep on free tier
     try {
-      fetch('https://price-pilot-ai.onrender.com/api/ready', { method: 'HEAD', mode: 'no-cors' }).catch(e => console.log('Wake ping skipped'));
+      fetch('https://price-pilot-ai.onrender.com/api/ready', { method: 'GET', mode: 'cors' }).catch(() => {});
     } catch (e) {}
   </script>
 </head>

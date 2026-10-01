@@ -43,6 +43,7 @@ app.use(helmet({
     contentSecurityPolicy: false, // SSE responses are blocked by strict CSP; allow it for now
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
 // ── Compression (gzip) ──
