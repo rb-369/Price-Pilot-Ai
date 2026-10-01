@@ -727,8 +727,26 @@ async def search_competitors_by_keyword(
 ) -> List[Dict]:
     """
     Search Amazon and Flipkart for genuine RIVAL / COMPETING brands.
+    Uses LangGraph AI Agent (OpenRouter Nemotron + Gemini fallback) with deterministic heuristics fallback.
     Strictly excludes the user's own brand to ensure rival market benchmarking.
     """
+    try:
+        from services.competitor_agent import run_competitor_discovery_agent
+        agent_result = await run_competitor_discovery_agent(
+            product_name=keyword,
+            raw_brand=brand,
+            category=category,
+            price=price,
+            asin=asin,
+            amazon_domain=amazon_domain,
+            max_results=max_results,
+        )
+        agent_competitors = agent_result.get("competitors", [])
+        if agent_competitors and len(agent_competitors) > 0:
+            return agent_competitors
+    except Exception as agent_err:
+        print(f"[RivalSearch] LangGraph agent execution note: {agent_err}, falling back to deterministic flow")
+
     try:
         from services.flipkart_scraper import scrape_flipkart_prices
         import asyncio
