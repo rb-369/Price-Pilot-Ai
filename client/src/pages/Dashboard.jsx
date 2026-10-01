@@ -96,11 +96,11 @@ export default function Dashboard() {
     const primaryGoalTitle = goalTitles[primaryGoalKey] || 'Profit & Revenue Growth';
 
     const statCards = [
-        { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, iconBg: 'bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B]', topAccent: 'border-t-2 border-t-[#5F806B]', change: null },
-        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, iconBg: 'bg-primary/15 text-primary dark:text-[#C57A5A]', topAccent: 'border-t-2 border-t-primary', change: null },
-        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, iconBg: 'bg-[#B8734F]/15 text-[#B8734F] dark:text-[#D4936F]', topAccent: 'border-t-2 border-t-[#B8734F]', change: null },
-        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, iconBg: 'bg-[#A17A3A]/15 text-[#A17A3A] dark:text-[#C49B55]', topAccent: 'border-t-2 border-t-[#A17A3A]', change: null },
-        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, iconBg: 'bg-primary/15 text-primary dark:text-[#C57A5A]', topAccent: 'border-t-2 border-t-primary', change: `${stats?.acceptedRecommendations || 0} accepted` },
+        { label: 'Inventory Value', value: formatCurrency(stats?.inventoryValue || stats?.totalRevenue || 0), icon: HiOutlineCurrencyDollar, iconBg: 'bg-success/15 text-success', topAccent: 'border-t-2 border-t-success', change: null },
+        { label: 'Products', value: stats?.totalProducts || 0, icon: HiOutlineCube, iconBg: 'bg-primary/15 text-primary', topAccent: 'border-t-2 border-t-primary', change: null },
+        { label: 'Avg Margin', value: `${stats?.avgMargin || 0}%`, icon: HiOutlineTrendingUp, iconBg: 'bg-copper/15 text-copper', topAccent: 'border-t-2 border-t-copper', change: null },
+        { label: 'Low Stock Items', value: stats?.lowStockProducts || 0, icon: HiOutlineExclamation, iconBg: 'bg-warning/15 text-warning', topAccent: 'border-t-2 border-t-warning', change: null },
+        { label: 'AI Suggestions', value: stats?.pendingRecommendations || 0, icon: HiOutlineLightBulb, iconBg: 'bg-primary/15 text-primary', topAccent: 'border-t-2 border-t-primary', change: `${stats?.acceptedRecommendations || 0} accepted` },
     ];
 
     return (
@@ -400,16 +400,16 @@ export default function Dashboard() {
                                 {alerts.length ? alerts.map((alert, i) => (
                                     <div key={i} className={`p-3.5 rounded-xl border transition-all ${alert.severity === 'critical' ? 'bg-danger/5 border-danger/25' :
                                             alert.severity === 'high' ? 'bg-warning/5 border-warning/25' :
-                                                'bg-surface-elevated/70 border-border'
+                                                'bg-surface-elevated/70 border-border hover:border-primary/30'
                                         }`}>
-                                        <div className="flex items-start justify-between mb-1">
-                                            <p className="text-sm font-medium text-text">{alert.title}</p>
-                                            <span className={
+                                        <div className="flex items-start justify-between gap-3 mb-1.5">
+                                            <p className="text-sm font-semibold text-text leading-snug">{alert.title}</p>
+                                            <span className={`shrink-0 ${
                                                 alert.severity === 'critical' ? 'badge-danger' :
                                                     alert.severity === 'high' ? 'badge-warning' : 'badge-info'
-                                            }>{alert.severity}</span>
+                                            }`}>{alert.severity}</span>
                                         </div>
-                                        <p className="text-xs text-text-muted">{alert.message}</p>
+                                        <p className="text-xs text-text-muted leading-relaxed">{alert.message}</p>
                                     </div>
                                 )) : <p className="text-text-muted text-sm text-center py-8">No alerts</p>}
                             </div>

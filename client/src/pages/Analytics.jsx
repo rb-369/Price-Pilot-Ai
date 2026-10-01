@@ -120,9 +120,9 @@ export default function Analytics() {
                 <>
                     {/* KPIs */}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-                        <div className="glass-card p-6 border-l-4 border-l-[#5F806B]">
+                        <div className="glass-card p-6 border-l-4 border-l-success">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 rounded-xl bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/30">
+                                <div className="p-2.5 rounded-xl bg-success/15 text-success border border-success/30">
                                     <HiOutlineCurrencyDollar className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Revenue (30d)</h3>
@@ -131,7 +131,7 @@ export default function Analytics() {
                         </div>
                         <div className="glass-card p-6 border-l-4 border-l-primary">
                             <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2.5 rounded-xl bg-primary/15 text-primary dark:text-[#C57A5A] border border-primary/30">
+                                <div className="p-2.5 rounded-xl bg-primary/15 text-primary border border-primary/30">
                                     <HiOutlineCube className="w-5 h-5" />
                                 </div>
                                 <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider">Total Units Sold (30d)</h3>
@@ -196,7 +196,7 @@ export default function Analytics() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-xs font-extrabold text-[#5F806B] dark:text-[#7FA38B]">{formatCurrency(prod.revenue)}</p>
+                                                <p className="text-xs font-extrabold text-success">{formatCurrency(prod.revenue)}</p>
                                                 <AskAIButton
                                                     variant="icon-button"
                                                     prompt={`Analyze sales performance and pricing elasticity for top selling product: ${prod.name} (Revenue: ₹${prod.revenue}).`}

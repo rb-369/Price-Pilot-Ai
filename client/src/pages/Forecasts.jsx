@@ -381,13 +381,13 @@ export default function Forecasts() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          isRisk ? 'bg-danger/15 text-danger' : 'bg-[#5F806B]/15 text-[#5F806B]'
+                          isRisk ? 'bg-danger/15 text-danger' : 'bg-success/15 text-success'
                         }`}
                       >
                         {isRisk ? (
                           <HiOutlineExclamation className="w-5 h-5 text-danger animate-pulse" />
                         ) : (
-                          <HiOutlineShieldCheck className="w-5 h-5 text-[#5F806B]" />
+                          <HiOutlineShieldCheck className="w-5 h-5 text-success" />
                         )}
                       </div>
                       <div>
@@ -413,7 +413,7 @@ export default function Forecasts() {
                         className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full ${
                           isRisk
                             ? 'bg-danger/15 text-danger border border-danger/20'
-                            : 'bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/25'
+                            : 'bg-success/15 text-success border border-success/25'
                         }`}
                       >
                         {isRisk ? 'Depletion Risk' : 'Optimal Stock'}
@@ -443,7 +443,7 @@ export default function Forecasts() {
                     <div className="text-center p-3.5 bg-surface-elevated/70 rounded-xl border border-border">
                       <p
                         className={`text-xl font-extrabold ${
-                          f.recommendedStockIncrease > 0 ? 'text-[#A17A3A] dark:text-[#C49B55]' : 'text-[#5F806B] dark:text-[#7FA38B]'
+                          f.recommendedStockIncrease > 0 ? 'text-warning' : 'text-success'
                         }`}
                       >
                         +{f.recommendedStockIncrease}
@@ -458,7 +458,7 @@ export default function Forecasts() {
                   <div className="mb-4">
                     <div className="flex justify-between text-xs mb-1.5">
                       <span className="text-text-muted font-medium">Stock Coverage vs Demand</span>
-                      <span className={`font-bold ${demandPct > 100 ? 'text-danger' : 'text-[#5F806B] dark:text-[#7FA38B]'}`}>
+                      <span className={`font-bold ${demandPct > 100 ? 'text-danger' : 'text-success'}`}>
                         {demandPct}%
                       </span>
                     </div>
@@ -468,8 +468,8 @@ export default function Forecasts() {
                           demandPct > 100
                             ? 'bg-danger'
                             : demandPct > 70
-                            ? 'bg-[#A17A3A]'
-                            : 'bg-[#5F806B]'
+                            ? 'bg-warning'
+                            : 'bg-success'
                         }`}
                         style={{ width: `${Math.min(100, demandPct)}%` }}
                       />

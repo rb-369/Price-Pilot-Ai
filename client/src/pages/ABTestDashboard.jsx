@@ -370,8 +370,8 @@ export default function ABTestDashboard() {
                             <h3 className="font-bold text-text text-base">{pName}</h3>
                             <p className="text-xs text-text-muted">SKU: {pSku} • Started {new Date(test.startDate).toLocaleDateString()}</p>
                           </div>
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B] border border-[#5F806B]/25 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#5F806B] animate-pulse"></span> Active
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-success/15 text-success border border-success/25 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span> Active
                           </span>
                         </div>
 

@@ -373,7 +373,7 @@ export default function Products() {
 
             {showForm && (
                 <div className="glass-card p-6 md:p-8 animate-slide-up mb-8 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-[#B8734F] to-[#5F806B]"></div>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-copper to-sage"></div>
                     {/* 1-Second Product Creation Buffering Animation */}
                     {isSavingProduct && (
                         <div className="absolute inset-0 bg-surface/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 animate-fade-in">

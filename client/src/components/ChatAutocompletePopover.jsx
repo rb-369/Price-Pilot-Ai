@@ -315,7 +315,7 @@ function parseInlineMarkdownTokens(text, isUser = false) {
                     <Link
                         key={index}
                         to={cleanUrl}
-                        className="inline-flex items-center gap-0.5 text-indigo-400 hover:text-indigo-300 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-0.5 text-primary hover:text-primary-dark underline font-semibold transition-colors cursor-pointer"
                     >
                         {linkText}
                     </Link>
@@ -327,7 +327,7 @@ function parseInlineMarkdownTokens(text, isUser = false) {
                     href={cleanUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-indigo-400 hover:text-indigo-300 dark:text-indigo-400 dark:hover:text-indigo-300 underline font-semibold transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-0.5 text-primary hover:text-primary-dark underline font-semibold transition-colors cursor-pointer"
                 >
                     {linkText}
                 </a>
@@ -337,7 +337,7 @@ function parseInlineMarkdownTokens(text, isUser = false) {
         // 2. Bold: **text**
         if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
             const boldContent = part.slice(2, -2);
-            return <strong key={index} className="font-bold text-slate-100">{boldContent}</strong>;
+            return <strong key={index} className="font-bold text-text">{boldContent}</strong>;
         }
 
         // 3. Inline code: `code`
@@ -359,7 +359,7 @@ function parseInlineMarkdownTokens(text, isUser = false) {
                     className={
                         isUser
                             ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-primary/20 text-indigo-300 border border-primary/40 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
+                            : "inline-flex items-center gap-1 bg-primary/10 text-primary border border-primary/25 rounded px-1.5 py-0.5 text-xs font-semibold my-0.5 mx-0.5"
                     }
                 >
                     <HiOutlineCube className="w-3 h-3 shrink-0" /> {cleanName}
@@ -374,8 +374,8 @@ function parseInlineMarkdownTokens(text, isUser = false) {
                     key={index}
                     className={
                         isUser
-                            ? "inline-flex items-center gap-1 bg-cyan-400/30 text-cyan-100 border border-cyan-300/60 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
-                            : "inline-flex items-center gap-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
+                            ? "inline-flex items-center gap-1 bg-white/20 text-white border border-white/40 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5 backdrop-blur-xs shadow-xs"
+                            : "inline-flex items-center gap-1 bg-copper/10 text-copper border border-copper/25 rounded px-1.5 py-0.5 text-xs font-mono font-bold my-0.5 mx-0.5"
                     }
                 >
                     <HiOutlineTag className="w-3 h-3 shrink-0" /> {part}
@@ -513,7 +513,7 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         // Heading 3
         if (trimmed.startsWith('### ')) {
             blocks.push(
-                <h4 key={`h3-${lineIdx}`} className="mt-3 mb-1 text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                <h4 key={`h3-${lineIdx}`} className="mt-3 mb-1 text-sm font-bold text-text flex items-center gap-1.5">
                     {parseInlineMarkdownTokens(trimmed.slice(4), isUser)}
                 </h4>
             );
@@ -523,7 +523,7 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         // Heading 2
         if (trimmed.startsWith('## ')) {
             blocks.push(
-                <h3 key={`h2-${lineIdx}`} className="mt-4 mb-1.5 text-sm sm:text-base font-bold text-slate-100 border-b border-border/40 pb-1">
+                <h3 key={`h2-${lineIdx}`} className="mt-4 mb-1.5 text-sm sm:text-base font-bold text-text border-b border-border pb-1">
                     {parseInlineMarkdownTokens(trimmed.slice(3), isUser)}
                 </h3>
             );
@@ -533,7 +533,7 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
         // Heading 1
         if (trimmed.startsWith('# ')) {
             blocks.push(
-                <h2 key={`h1-${lineIdx}`} className="mt-4 mb-2 text-base sm:text-lg font-extrabold text-slate-100">
+                <h2 key={`h1-${lineIdx}`} className="mt-4 mb-2 text-base sm:text-lg font-extrabold text-text">
                     {parseInlineMarkdownTokens(trimmed.slice(2), isUser)}
                 </h2>
             );

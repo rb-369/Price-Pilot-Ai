@@ -7,7 +7,7 @@ import {
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
     HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal,
-    HiOutlineCog
+    HiOutlineCog, HiOutlineChevronLeft
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import newLightLogo from '../assets/new_light_logo.png';
@@ -79,15 +79,15 @@ export default function Sidebar({ isOpen, onClose, isDesktop }) {
                         </div>
                     </div>
 
-                    {/* Close button (visible and prominent on mobile) */}
+                    {/* Collapse / Close toggle button */}
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-8 h-8 rounded-lg bg-[#EFE8DF] dark:bg-[#382821] hover:bg-danger/10 hover:text-danger border border-[#D8D0C0] dark:border-[#594239] flex items-center justify-center text-text-muted hover:text-text transition-all cursor-pointer flex-shrink-0"
-                        aria-label="Close sidebar"
-                        title="Close sidebar"
+                        className="w-8 h-8 rounded-lg bg-[#EFE8DF] dark:bg-[#382821] hover:bg-primary/10 hover:text-primary border border-[#D8D0C0] dark:border-[#594239] flex items-center justify-center text-text-muted hover:text-text transition-all cursor-pointer flex-shrink-0"
+                        aria-label={isDesktop ? "Collapse sidebar" : "Close sidebar"}
+                        title={isDesktop ? "Collapse sidebar" : "Close sidebar"}
                     >
-                        <FiX size={17} />
+                        {isDesktop ? <HiOutlineChevronLeft size={18} /> : <FiX size={17} />}
                     </button>
                 </div>
 

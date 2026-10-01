@@ -261,7 +261,7 @@ export default function DemandSignals() {
       <div className="glass-card p-6 animate-slide-up stagger-3">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-danger/10 text-danger">
               <HiOutlineFire className="w-4.5 h-4.5 text-danger" />
             </div>
             <div>
@@ -271,13 +271,13 @@ export default function DemandSignals() {
           </div>
           <div className="hidden md:flex items-center gap-4 text-[10px] uppercase tracking-wider font-semibold text-text-muted">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(239,68,68,0.5)' }}></span> High
+              <span className="w-2 h-2 rounded-sm bg-danger"></span> High
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(245,158,11,0.5)' }}></span> Medium
+              <span className="w-2 h-2 rounded-sm bg-warning"></span> Medium
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(99,102,241,0.3)' }}></span> Low
+              <span className="w-2 h-2 rounded-sm bg-sage/60"></span> Low
             </span>
           </div>
         </div>
@@ -447,8 +447,8 @@ export default function DemandSignals() {
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(6,182,212,0.08)' }}>
-                <HiOutlineTrendingUp className="w-8 h-8 text-accent" style={{ opacity: 0.5 }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-primary/10 text-primary">
+                <HiOutlineTrendingUp className="w-8 h-8 opacity-70" />
               </div>
               <h3 className="text-base font-semibold text-text mb-1.5">Select a Product</h3>
               <p className="text-sm text-text-muted max-w-xs mx-auto">Choose a product from the dropdown or click a card above to see its demand signal breakdown across all dimensions.</p>
@@ -459,7 +459,7 @@ export default function DemandSignals() {
         {/* Signal Sources Sidebar */}
         <div className="glass-card p-6 animate-slide-up stagger-5">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)' }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-success/15 text-success">
               <svg className="w-4.5 h-4.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>

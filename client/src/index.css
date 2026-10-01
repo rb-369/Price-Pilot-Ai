@@ -12,6 +12,12 @@
   --color-copper: #B8734F;
   --color-espresso: #241812;
   --color-pearl: #F0EEE6;
+  --color-sage: #5F806B;
+  --color-sage-light: #7FA38B;
+  --color-sage-dark: #466352;
+  --color-brass: #C49B55;
+  --color-brass-light: #DFC085;
+  --color-amber: #A17A3A;
   --color-surface: var(--pp-surface);
   --color-surface-light: var(--pp-surface-elevated);
   --color-surface-lighter: var(--pp-surface-elevated);
@@ -31,53 +37,61 @@
 :root,
 html.light,
 html:not(.dark) {
-  --pp-bg: #F0EEE6;
-  --pp-surface: #F7F3EB;
-  --pp-surface-elevated: #FBF8F1;
+  --pp-bg: #F5F2EB;
+  --pp-surface: #FFFFFF;
+  --pp-surface-elevated: #FAF7F2;
   --pp-text: #241812;
-  --pp-text-secondary: #5E5149;
-  --pp-text-muted: #80736A;
-  --pp-border: #D8D0C0;
-  --pp-divider: #E3DDD2;
+  --pp-text-secondary: #584B43;
+  --pp-text-muted: #7E7066;
+  --pp-border: #DED6C7;
+  --pp-divider: #EAE3D6;
   --pp-primary: #A85A3C;
   --pp-primary-dark: #8C4630;
   --pp-primary-light: #B8734F;
   --pp-accent: #B8734F;
-  --pp-success: #5F806B;
-  --pp-warning: #A17A3A;
-  --pp-danger: #C0392B;
+  --pp-success: #33714A;
+  --pp-warning: #945B18;
+  --pp-danger: #BA2E20;
 
-  --color-surface: #F7F3EB;
-  --color-surface-light: #FBF8F1;
-  --color-surface-lighter: #FBF8F1;
+  --color-surface: #FFFFFF;
+  --color-surface-light: #FAF7F2;
+  --color-surface-lighter: #FAF7F2;
   --color-text: #241812;
-  --color-text-muted: #80736A;
-  --color-border: #D8D0C0;
+  --color-text-secondary: #584B43;
+  --color-text-muted: #7E7066;
+  --color-border: #DED6C7;
+  --color-sage: #33714A;
+  --color-sage-light: #488660;
+  --color-brass: #945B18;
 }
 
 html.dark {
-  --pp-bg: #211610;
-  --pp-surface: #30231D;
-  --pp-surface-elevated: #382821;
-  --pp-text: #F3EDE3;
-  --pp-text-secondary: #C0B3A9;
-  --pp-text-muted: #94857B;
-  --pp-border: #594239;
-  --pp-divider: #46352D;
-  --pp-primary: #A85A3C;
-  --pp-primary-dark: #8C4630;
-  --pp-primary-light: #B8734F;
-  --pp-accent: #B8734F;
-  --pp-success: #5F806B;
-  --pp-warning: #A17A3A;
-  --pp-danger: #D9534F;
+  --pp-bg: #1B120D;
+  --pp-surface: #271C16;
+  --pp-surface-elevated: #33241D;
+  --pp-text: #F5EFEB;
+  --pp-text-secondary: #C8BBB1;
+  --pp-text-muted: #9E8E83;
+  --pp-border: #4D372E;
+  --pp-divider: #3D2B23;
+  --pp-primary: #B86545;
+  --pp-primary-dark: #9E4F32;
+  --pp-primary-light: #C97B59;
+  --pp-accent: #C97B59;
+  --pp-success: #78B08B;
+  --pp-warning: #E8B052;
+  --pp-danger: #F0685A;
 
-  --color-surface: #30231D;
-  --color-surface-light: #382821;
-  --color-surface-lighter: #382821;
-  --color-text: #F3EDE3;
-  --color-text-muted: #94857B;
-  --color-border: #594239;
+  --color-surface: #271C16;
+  --color-surface-light: #33241D;
+  --color-surface-lighter: #33241D;
+  --color-text: #F5EFEB;
+  --color-text-secondary: #C8BBB1;
+  --color-text-muted: #9E8E83;
+  --color-border: #4D372E;
+  --color-sage: #78B08B;
+  --color-sage-light: #9BC9AB;
+  --color-brass: #E8B052;
 }
 
 h1,
@@ -256,49 +270,49 @@ body {
 /* ─── Card System (Warm Pearl / Espresso Foundation) ─── */
 html.dark .glass-card,
 .glass-card {
-  background: #30231D;
-  border: 1px solid #594239;
+  background: #271C16;
+  border: 1px solid #4D372E;
   border-radius: 1rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45), 0 1px 3px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 html.light .glass-card,
 html:not(.dark) .glass-card {
-  background: #F7F3EB;
-  border: 1px solid #D8D0C0;
+  background: #FFFFFF;
+  border: 1px solid #DED6C7;
   border-radius: 1rem;
-  box-shadow: 0 4px 16px -2px rgba(36, 24, 18, 0.04), 0 1px 3px 0 rgba(36, 24, 18, 0.02);
+  box-shadow: 0 4px 18px -4px rgba(36, 24, 18, 0.06), 0 1px 3px rgba(36, 24, 18, 0.03);
 }
 
 html.dark .glass-card-hover,
 .glass-card-hover {
-  background: #30231D;
-  border: 1px solid #594239;
+  background: #271C16;
+  border: 1px solid #4D372E;
   border-radius: 1rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.light .glass-card-hover,
 html:not(.dark) .glass-card-hover {
-  background: #F7F3EB;
-  border: 1px solid #D8D0C0;
+  background: #FFFFFF;
+  border: 1px solid #DED6C7;
   border-radius: 1rem;
-  box-shadow: 0 4px 16px -2px rgba(36, 24, 18, 0.04);
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 18px -4px rgba(36, 24, 18, 0.06);
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .glass-card-hover:hover,
 .glass-card-hover:hover {
-  border-color: rgba(168, 90, 60, 0.5);
-  box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.5);
+  border-color: rgba(184, 101, 69, 0.6);
+  box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
 }
 
 html.light .glass-card-hover:hover,
 html:not(.dark) .glass-card-hover:hover {
-  border-color: rgba(168, 90, 60, 0.4);
-  box-shadow: 0 10px 24px -4px rgba(36, 24, 18, 0.08);
+  border-color: rgba(168, 90, 60, 0.5);
+  box-shadow: 0 12px 28px -4px rgba(36, 24, 18, 0.1);
   transform: translateY(-2px);
 }
 
@@ -476,40 +490,81 @@ html:not(.dark) select option {
   padding: 0.5rem;
 }
 
-/* ─── Badges ─── */
-.badge {
+/* ─── Badges (Self-Contained High-Contrast Pills) ─── */
+.badge,
+.badge-success,
+.badge-warning,
+.badge-danger,
+.badge-info,
+.badge-brass {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.65rem;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  line-height: 1.2;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .badge-success {
-  background: rgba(95, 128, 107, 0.15);
-  color: #5F806B;
-  border: 1px solid rgba(95, 128, 107, 0.3);
+  background: rgba(51, 113, 74, 0.12);
+  color: #2F6C45;
+  border: 1px solid rgba(51, 113, 74, 0.25);
+}
+html.dark .badge-success {
+  background: rgba(120, 176, 139, 0.15);
+  color: #78B08B;
+  border: 1px solid rgba(120, 176, 139, 0.3);
 }
 
 .badge-warning {
-  background: rgba(161, 122, 58, 0.15);
-  color: #A17A3A;
-  border: 1px solid rgba(161, 122, 58, 0.3);
+  background: rgba(148, 91, 24, 0.12);
+  color: #8D5414;
+  border: 1px solid rgba(148, 91, 24, 0.25);
+}
+html.dark .badge-warning {
+  background: rgba(232, 176, 82, 0.15);
+  color: #E8B052;
+  border: 1px solid rgba(232, 176, 82, 0.3);
 }
 
 .badge-danger {
-  background: rgba(192, 57, 43, 0.15);
-  color: #C0392B;
-  border: 1px solid rgba(192, 57, 43, 0.3);
+  background: rgba(186, 46, 32, 0.12);
+  color: #B12B1E;
+  border: 1px solid rgba(186, 46, 32, 0.25);
+}
+html.dark .badge-danger {
+  background: rgba(240, 104, 90, 0.15);
+  color: #F0685A;
+  border: 1px solid rgba(240, 104, 90, 0.3);
 }
 
 .badge-info {
   background: rgba(168, 90, 60, 0.12);
-  color: #A85A3C;
+  color: #9E5135;
   border: 1px solid rgba(168, 90, 60, 0.25);
+}
+html.dark .badge-info {
+  background: rgba(201, 123, 89, 0.16);
+  color: #D48868;
+  border: 1px solid rgba(201, 123, 89, 0.3);
+}
+
+.badge-brass {
+  background: rgba(196, 155, 85, 0.12);
+  color: #8C6624;
+  border: 1px solid rgba(196, 155, 85, 0.25);
+}
+html.dark .badge-brass {
+  background: rgba(212, 163, 89, 0.16);
+  color: #DFC085;
+  border: 1px solid rgba(212, 163, 89, 0.3);
 }
 
 /* ─── Page Header ─── */

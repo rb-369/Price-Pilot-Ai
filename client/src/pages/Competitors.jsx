@@ -447,7 +447,7 @@ export default function Competitors() {
                                     {historyCompetitors.map((competitor, idx) => {
                                         const colors = [
                                             '#A85A3C', '#5F806B', '#B8734F', '#A17A3A', 
-                                            '#8C4630', '#2563EB', '#7C3AED', '#DB2777'
+                                            '#8C4630', '#4A7C59', '#D98A66', '#C49B55'
                                         ];
                                         const color = colors[idx % colors.length];
                                         return <Line key={competitor} type="monotone" dataKey={competitor} stroke={color} strokeWidth={2} dot={false} activeDot={{ r: 4 }} connectNulls={true} />

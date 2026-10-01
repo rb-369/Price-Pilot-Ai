@@ -322,7 +322,7 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Applied Live</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#5F806B]/15 text-[#5F806B] dark:text-[#7FA38B]">
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-success/15 text-success">
                   <HiOutlineCheck className="w-4 h-4" />
                 </span>
               </div>
@@ -333,7 +333,7 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Projected Lift</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#B8734F]/15 text-[#B8734F]">
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-copper/15 text-copper">
                   <HiOutlineTrendingUp className="w-4 h-4" />
                 </span>
               </div>
@@ -346,7 +346,7 @@ export default function Recommendations() {
             <div className="glass-card glass-card-hover p-5">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Avg Confidence</span>
-                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#A17A3A]/15 text-[#A17A3A] dark:text-[#C49B55]">
+                <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-warning/15 text-warning">
                   <HiOutlineShieldCheck className="w-4 h-4" />
                 </span>
               </div>

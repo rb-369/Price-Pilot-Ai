@@ -963,13 +963,13 @@ export default function Settings() {
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-primary-light">
+                                    <div className="w-10 h-10 rounded-xl bg-[#1B120D] border border-[#3D2C22] flex items-center justify-center text-copper shadow-inner">
                                         <HiOutlineMoon className="w-5 h-5" />
                                     </div>
                                     {theme === 'dark' && <HiOutlineCheck className="w-5 h-5 text-primary" />}
                                 </div>
-                                <h3 className="text-sm font-bold text-text">Dark Obsidian (Recommended)</h3>
-                                <p className="text-xs text-text-muted mt-1">High-contrast dark mode tailored for low eye strain and premium feel.</p>
+                                <h3 className="text-sm font-bold text-text">Dark Espresso (Recommended)</h3>
+                                <p className="text-xs text-text-muted mt-1">High-contrast dark mode tailored for low eye strain and luxury editorial depth.</p>
                             </button>
 
                             <button
@@ -985,13 +985,13 @@ export default function Settings() {
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-amber-500">
+                                    <div className="w-10 h-10 rounded-xl bg-[#F5F2EB] border border-[#DED6C7] flex items-center justify-center text-brass shadow-sm">
                                         <HiOutlineSun className="w-5 h-5" />
                                     </div>
                                     {theme === 'light' && <HiOutlineCheck className="w-5 h-5 text-primary" />}
                                 </div>
-                                <h3 className="text-sm font-bold text-text">Clean Light</h3>
-                                <p className="text-xs text-text-muted mt-1">Crisp, high-clarity daylight theme with soft shadows and slate tones.</p>
+                                <h3 className="text-sm font-bold text-text">Warm Bone Light</h3>
+                                <p className="text-xs text-text-muted mt-1">Crisp, high-clarity daylight theme with rich typography and pure white cards.</p>
                             </button>
                         </div>
 

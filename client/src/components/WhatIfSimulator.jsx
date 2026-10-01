@@ -672,13 +672,13 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                                     }}
                                                     formatter={(val, name) => [formatCurrency(val), name === 'revenue' ? 'Revenue' : 'Net Profit']}
                                                 />
-                                                <Line type="monotone" dataKey="revenue" stroke="#A85A3C" strokeWidth={2} dot={false} name="Revenue" />
-                                                <Line type="monotone" dataKey="profit" stroke="#5F806B" strokeWidth={2.5} dot={false} name="Net Profit" />
+                                                <Line type="monotone" dataKey="revenue" stroke="#C87A54" strokeWidth={2.5} dot={false} name="Revenue" />
+                                                <Line type="monotone" dataKey="profit" stroke="#78B08B" strokeWidth={2.5} dot={false} name="Net Profit" />
                                                 {opt?.price && (
-                                                    <ReferenceLine x={opt.price} stroke="#5F806B" strokeDasharray="4 4" label={{ value: 'Optimal P*', fill: '#5F806B', fontSize: 10 }} />
+                                                    <ReferenceLine x={opt.price} stroke="#78B08B" strokeDasharray="4 4" label={{ value: 'Optimal P*', fill: '#78B08B', fontSize: 10 }} />
                                                 )}
                                                 {targetPrice && (
-                                                    <ReferenceLine x={targetPrice} stroke="#B8734F" strokeDasharray="2 2" label={{ value: 'Target', fill: '#B8734F', fontSize: 10 }} />
+                                                    <ReferenceLine x={targetPrice} stroke="#C87A54" strokeDasharray="2 2" label={{ value: 'Target', fill: '#C87A54', fontSize: 10 }} />
                                                 )}
                                             </LineChart>
                                         </ResponsiveContainer>
