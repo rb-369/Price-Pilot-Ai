@@ -398,7 +398,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                 {/* Left Panel: Simulation Controls (5 cols) */}
-                <div className="lg:col-span-5 space-y-5 bg-surface/40 p-5 rounded-2xl border border-border/40">
+                <div className="lg:col-span-5 space-y-5 glass-card p-6 border border-border shadow-sm">
                     <h3 className="text-sm font-semibold text-text uppercase tracking-wider flex items-center gap-2">
                         <HiOutlineAdjustments className="w-4 h-4 text-primary" /> Simulation Controls
                     </h3>
@@ -416,36 +416,41 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             step={1}
                             value={targetPrice}
                             onChange={(e) => setTargetPrice(Number(e.target.value))}
-                            className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-primary"
+                            className="w-full h-2 bg-surface-lighter border border-border rounded-lg appearance-none cursor-pointer accent-primary"
                         />
                         <div className="flex items-center gap-2 pt-1">
                             <button
+                                type="button"
                                 onClick={() => setTargetPrice(Math.round((base?.price || targetPrice) * 0.9))}
-                                className="px-2 py-1 bg-surface border border-border rounded-md text-[11px] font-medium text-text-muted hover:text-text"
+                                className="px-2.5 py-1.5 bg-surface border border-border hover:border-primary/50 rounded-lg text-[11px] font-medium text-text-muted hover:text-text transition-colors shadow-2xs"
                             >
                                 -10%
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTargetPrice(Math.round((base?.price || targetPrice) * 0.95))}
-                                className="px-2 py-1 bg-surface border border-border rounded-md text-[11px] font-medium text-text-muted hover:text-text"
+                                className="px-2.5 py-1.5 bg-surface border border-border hover:border-primary/50 rounded-lg text-[11px] font-medium text-text-muted hover:text-text transition-colors shadow-2xs"
                             >
                                 -5%
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTargetPrice(base?.price || targetPrice)}
-                                className="px-2 py-1 bg-surface border border-border rounded-md text-[11px] font-medium text-primary hover:bg-primary/10"
+                                className="px-2.5 py-1.5 bg-surface border border-primary/40 hover:border-primary rounded-lg text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors shadow-2xs"
                             >
                                 Reset
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTargetPrice(Math.round((base?.price || targetPrice) * 1.05))}
-                                className="px-2 py-1 bg-surface border border-border rounded-md text-[11px] font-medium text-text-muted hover:text-text"
+                                className="px-2.5 py-1.5 bg-surface border border-border hover:border-primary/50 rounded-lg text-[11px] font-medium text-text-muted hover:text-text transition-colors shadow-2xs"
                             >
                                 +5%
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTargetPrice(Math.round((base?.price || targetPrice) * 1.1))}
-                                className="px-2 py-1 bg-surface border border-border rounded-md text-[11px] font-medium text-text-muted hover:text-text"
+                                className="px-2.5 py-1.5 bg-surface border border-border hover:border-primary/50 rounded-lg text-[11px] font-medium text-text-muted hover:text-text transition-colors shadow-2xs"
                             >
                                 +10%
                             </button>
@@ -453,7 +458,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                 type="number"
                                 value={targetPrice}
                                 onChange={(e) => setTargetPrice(Number(e.target.value))}
-                                className="w-20 ml-auto bg-surface border border-border text-xs font-bold text-text rounded-lg px-2 py-1 text-right focus:outline-none focus:border-primary"
+                                className="w-20 ml-auto bg-surface border border-border hover:border-primary/50 text-xs font-bold text-text rounded-lg px-2.5 py-1.5 text-right focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs"
                             />
                         </div>
                     </div>
@@ -468,7 +473,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             type="number"
                             value={cogs}
                             onChange={(e) => setCogs(Number(e.target.value))}
-                            className="w-full bg-surface border border-border text-xs font-medium text-text rounded-xl px-3 py-2 focus:outline-none focus:border-primary"
+                            className="w-full bg-surface border border-border hover:border-primary/40 text-xs font-medium text-text rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-2xs transition-colors"
                         />
                     </div>
 
@@ -478,7 +483,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                         <select
                             value={competitorStrategy}
                             onChange={(e) => setCompetitorStrategy(e.target.value)}
-                            className="w-full bg-surface border border-border text-xs font-medium text-text rounded-xl px-3 py-2 focus:outline-none focus:border-primary cursor-pointer"
+                            className="w-full bg-surface border border-border hover:border-primary/40 text-xs font-medium text-text rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs transition-colors"
                         >
                             <option value="neutral">Neutral / Static (No Competitor Reaction)</option>
                             <option value="aggressive">Aggressive Price Match (Competitors cut prices to defend)</option>
@@ -499,7 +504,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             step={0.05}
                             value={demandMultiplier}
                             onChange={(e) => setDemandMultiplier(Number(e.target.value))}
-                            className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
+                            className="w-full h-2 bg-surface-lighter border border-border rounded-lg appearance-none cursor-pointer accent-accent"
                         />
                         <div className="flex justify-between text-[10px] text-text-muted">
                             <span>0.5x (Slump)</span>
@@ -517,10 +522,11 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                                     key={days}
                                     type="button"
                                     onClick={() => setTimeHorizonDays(days)}
-                                    className={`py-2 rounded-xl text-xs font-bold transition-all ${timeHorizonDays === days
-                                        ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                        : 'bg-surface text-text-muted hover:text-text hover:bg-surface-lighter'
-                                        }`}
+                                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                                        timeHorizonDays === days
+                                            ? 'bg-primary text-white border-primary shadow-md shadow-primary/30'
+                                            : 'bg-surface text-text-muted border-border hover:text-text hover:bg-surface-lighter hover:border-primary/40'
+                                    }`}
                                 >
                                     {days} Days
                                 </button>
@@ -553,7 +559,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                             type="button"
                             onClick={() => setShowCommitModal(true)}
                             disabled={!selectedProductId}
-                            className="w-full bg-surface border border-sage/40 text-sage hover:bg-sage/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                            className="w-full bg-surface border-2 border-sage/60 hover:border-sage text-sage hover:bg-sage/10 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-xs"
                         >
                             <HiOutlineCheckCircle className="w-4 h-4" />
                             Commit Price Change
@@ -629,7 +635,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
 
                             {/* Confidence Interval Readout */}
                             {sim?.confidenceBounds && (
-                                <div className="p-3 bg-surface/60 border border-primary/15 rounded-xl flex items-center justify-between text-xs">
+                                <div className="p-3.5 bg-surface border border-border rounded-xl flex items-center justify-between text-xs shadow-2xs">
                                     <span className="text-text-muted flex items-center gap-1.5 font-medium">
                                         <HiOutlineInformationCircle className="text-primary w-4 h-4" /> 95% Confidence Bounds (P10 - P90):
                                     </span>
@@ -690,7 +696,7 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
 
                             {/* Competitor Positioning Spectrum */}
                             {comps && comps.count > 0 && (
-                                <div className="p-4 bg-surface/30 rounded-xl border border-border/40 flex items-center justify-between text-xs">
+                                <div className="p-4 glass-card rounded-xl border border-border flex items-center justify-between text-xs shadow-2xs">
                                     <div>
                                         <p className="text-text-muted font-medium">Competitor Market Range:</p>
                                         <p className="text-text font-bold mt-0.5">
