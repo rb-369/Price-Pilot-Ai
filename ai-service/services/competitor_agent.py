@@ -261,6 +261,24 @@ async def execute_market_search_node(state: CompetitorDiscoveryState) -> Dict[st
     product_type = state.get("product_type", "")
     price = state.get("price")
     cat_name = state.get("detected_category", "")
+    asin = state.get("asin")
+
+    primary_item = None
+    excluded_asins = set()
+    if asin:
+        try:
+            from services.rainforest import fetch_product_by_asin, is_same_brand
+            primary_item = await fetch_product_by_asin(asin, amazon_domain)
+            if primary_item:
+                if clean_brand and is_same_brand(
+                    primary_item.get("productName", ""),
+                    primary_item.get("brand", ""),
+                    clean_brand
+                ):
+                    excluded_asins.add(asin)
+                    primary_item = None
+        except Exception as e:
+            print(f"[CompetitorAgent] Error fetching primary ASIN {asin}: {e}")
 
     search_tasks = []
     # Concurrently launch scraping tasks alternating Flipkart and Amazon
@@ -285,12 +303,12 @@ async def execute_market_search_node(state: CompetitorDiscoveryState) -> Dict[st
     competitors = _filter_rival_competitors(
         items=raw_items,
         user_brand=clean_brand,
-        excluded_asins=set(),
+        excluded_asins=excluded_asins,
         rival_brands=rival_brands,
         generic_product=product_type,
         price=price,
         max_results=max_results,
-        primary_item=None,
+        primary_item=primary_item,
         cat_name=cat_name,
     )
 
@@ -308,10 +326,12 @@ async def execute_market_search_node(state: CompetitorDiscoveryState) -> Dict[st
             if not any(c.get("productName") == b["productName"] for c in competitors):
                 competitors.append(b)
 
-    # Stamp agent source
+    # Stamp agent source and ensure asin key exists on every competitor item
     agent_used = state.get("agent_used", "ai_agent")
-    for c in competitors:
+    for idx, c in enumerate(competitors):
         c["ai_agent"] = agent_used
+        if "asin" not in c or not c["asin"]:
+            c["asin"] = c.get("asin") or f"COMP_ASIN_{idx+1}"
 
     print(f"[CompetitorAgent] Final competitor count: {len(competitors[:max_results])}")
     return {"competitors": competitors[:max_results]}

@@ -598,6 +598,7 @@ def _generate_rival_benchmark_fallbacks(
             "platform": platform,
             "brand": rival,
             "productName": title,
+            "asin": f"BENCH_{i+1}",
             "url": url,
             "price": comp_price,
             "inStock": True,
