@@ -5,7 +5,7 @@ Uses LangChain RAG with ChromaDB, Gemini as primary LLM, and OpenRouter as fallb
 import os
 import asyncio
 import hashlib
-from typing import List, Dict
+from typing import List, Dict, Optional, Any
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -203,10 +203,6 @@ class WorkingMemory:
         except Exception as e:
             print(f"Failed to save episodic interaction: {e}")
 
-async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
-    """
-    Process a chat conversation using the Ephemeral Working Memory architecture.
-    """
 async def _call_openrouter_direct(
     openrouter_key: str,
     system_prompt: str,
