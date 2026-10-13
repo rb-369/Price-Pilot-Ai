@@ -42,10 +42,30 @@ export default function Alerts() {
 
     const fetchAlerts = () => {
         setLoading(true);
-        Promise.all([
-            getAlerts().then(r => setAlerts(r.data)),
-            getProducts().then(r => setProducts(r.data.data || r.data))
-        ]).catch(() => { }).finally(() => setLoading(false));
+        Promise.allSettled([
+            getAlerts(),
+            getProducts()
+        ]).then(([alertsRes, prodsRes]) => {
+            if (alertsRes.status === 'fulfilled') {
+                const d = alertsRes.value?.data;
+                const list = d?.data || d;
+                setAlerts(Array.isArray(list) ? list : []);
+            } else {
+                setAlerts([]);
+            }
+            if (prodsRes.status === 'fulfilled') {
+                const d = prodsRes.value?.data;
+                const list = d?.data || d;
+                setProducts(Array.isArray(list) ? list : []);
+            } else {
+                setProducts([]);
+            }
+        }).catch(() => {
+            setAlerts([]);
+            setProducts([]);
+        }).finally(() => {
+            setLoading(false);
+        });
     };
 
     useEffect(() => {

@@ -144,13 +144,15 @@ export default function Competitors() {
             getProducts(),
         ]).then(([pricesResult, productsResult]) => {
             if (pricesResult.status === 'fulfilled') {
-                setPrices(pricesResult.value.data);
+                const d = pricesResult.value.data;
+                setPrices(Array.isArray(d) ? d : (d?.data || []));
             } else {
                 setPrices([]);
                 setPricesFetchFailed(true);
             }
             if (productsResult.status === 'fulfilled') {
-                setProducts(productsResult.value.data.data || productsResult.value.data);
+                const d = productsResult.value.data?.data || productsResult.value.data;
+                setProducts(Array.isArray(d) ? d : []);
             } else {
                 setProducts([]);
             }
@@ -179,15 +181,20 @@ export default function Competitors() {
 
     const productPrices = useMemo(() => {
         const grouped = {};
-        products.forEach(p => {
-            grouped[p._id] = { product: p, competitors: [] };
+        const safeProducts = Array.isArray(products) ? products : [];
+        const safePrices = Array.isArray(prices) ? prices : [];
+
+        safeProducts.forEach(p => {
+            if (p && p._id) {
+                grouped[p._id] = { product: p, competitors: [] };
+            }
         });
 
-        prices.forEach((price) => {
-            const productId = price._id?.productId?.toString();
+        safePrices.forEach((price) => {
+            const productId = price?._id?.productId?.toString();
             if (!productId || !grouped[productId]) return;
             grouped[productId].competitors.push({
-                name: price._id.competitorName,
+                name: price._id?.competitorName || 'Competitor',
                 productName: price._id?.productName || price.productName || '',
                 url: price.url || price.competitorUrl || '',
                 price: price.latestPrice,

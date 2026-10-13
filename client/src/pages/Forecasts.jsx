@@ -32,10 +32,36 @@ export default function Forecasts() {
   const fetchData = () => {
     setLoading(true);
     setError(false);
-    Promise.all([
-      getForecasts().then(r => setForecasts(r.data.data || r.data)).catch(() => { throw new Error(); }),
-      getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error(); }),
-    ]).catch(() => setError(true)).finally(() => setLoading(false));
+    Promise.allSettled([
+      getForecasts(),
+      getProducts(),
+    ]).then(([forecastsRes, prodsRes]) => {
+      let forecastsList = [];
+      let prodsList = [];
+
+      if (forecastsRes.status === 'fulfilled') {
+        const raw = forecastsRes.value?.data;
+        const list = raw?.data || raw;
+        forecastsList = Array.isArray(list) ? list : [];
+      }
+
+      if (prodsRes.status === 'fulfilled') {
+        const raw = prodsRes.value?.data;
+        const list = raw?.data || raw;
+        prodsList = Array.isArray(list) ? list : [];
+      }
+
+      setForecasts(forecastsList);
+      setProducts(prodsList);
+
+      if (forecastsRes.status === 'rejected' && prodsRes.status === 'rejected') {
+        setError(true);
+      }
+    }).catch(() => {
+      setError(true);
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {

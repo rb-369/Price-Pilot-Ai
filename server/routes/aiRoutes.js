@@ -8,9 +8,10 @@ const {
     checkJobStatus
 } = require('../controllers/aiController');
 const { protect } = require('../middleware/auth');
-const { apiLimiter, aiGenerationLimiter } = require('../middleware/rateLimiter');
+const { aiGenerationLimiter } = require('../middleware/rateLimiter');
 
-router.use(apiLimiter);
+// Read queries (dashboard-stats, chart-data, recommendations, forecasts) use standard limits
+// Heavy generative mutations are explicitly throttled with aiGenerationLimiter
 
 router.get('/dashboard-stats', protect, getDashboardStats);
 router.get('/chart-data', protect, getChartData);

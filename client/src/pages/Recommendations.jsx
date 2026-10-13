@@ -80,10 +80,36 @@ export default function Recommendations() {
   const fetchData = () => {
     setLoading(true);
     setError(false);
-    Promise.all([
-      getRecommendations().then(r => setRecommendations(r.data.data || r.data)).catch(() => { throw new Error('Failed recs'); }),
-      getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error('Failed prods'); }),
-    ]).catch(() => setError(true)).finally(() => setLoading(false));
+    Promise.allSettled([
+      getRecommendations(),
+      getProducts(),
+    ]).then(([recsRes, prodsRes]) => {
+      let recsList = [];
+      let prodsList = [];
+
+      if (recsRes.status === 'fulfilled') {
+        const raw = recsRes.value?.data;
+        const list = raw?.data || raw;
+        recsList = Array.isArray(list) ? list : [];
+      }
+
+      if (prodsRes.status === 'fulfilled') {
+        const raw = prodsRes.value?.data;
+        const list = raw?.data || raw;
+        prodsList = Array.isArray(list) ? list : [];
+      }
+
+      setRecommendations(recsList);
+      setProducts(prodsList);
+
+      if (recsRes.status === 'rejected' && prodsRes.status === 'rejected') {
+        setError(true);
+      }
+    }).catch(() => {
+      setError(true);
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {

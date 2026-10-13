@@ -15,8 +15,8 @@ router.post('/upload', protect, apiLimiter, salesController.handleBulkUpload);
 router.post('/map-columns', protect, apiLimiter, salesController.getAILocalColumnMapping);
 
 // Analytics
-router.get('/analytics', protect, apiLimiter, salesController.getAnalyticsSummary);
-router.get('/product/:productId', protect, apiLimiter, salesController.getProductSalesMetrics);
+router.get('/analytics', protect, salesController.getAnalyticsSummary);
+router.get('/product/:productId', protect, salesController.getProductSalesMetrics);
 
 // Simulator
 router.post('/simulate', protect, apiLimiter, salesSimulator.triggerSimulation);

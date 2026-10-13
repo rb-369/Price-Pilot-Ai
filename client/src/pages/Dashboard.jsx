@@ -38,15 +38,30 @@ export default function Dashboard() {
     const fetchData = () => {
         setLoading(true);
         setError(false);
-        Promise.all([
-            getDashboardStats().then(r => setStats(r.data)).catch(() => { throw new Error('Stats failed') }),
-            getRecommendations().then(r => {
-                const data = r.data.data || r.data;
+        Promise.allSettled([
+            getDashboardStats(),
+            getRecommendations(),
+            getAlerts(),
+            getChartData(30),
+        ]).then(([statsRes, recsRes, alertsRes, chartRes]) => {
+            if (statsRes.status === 'fulfilled') {
+                setStats(statsRes.value.data);
+            }
+            if (recsRes.status === 'fulfilled') {
+                const data = recsRes.value.data?.data || recsRes.value.data;
                 setRecommendations(Array.isArray(data) ? data.slice(0, 5) : []);
-            }).catch(() => { }),
-            getAlerts().then(r => setAlerts(r.data.slice(0, 5))).catch(() => { }),
-            getChartData(30).then(r => setChartData(r.data)).catch(() => setChartData([])),
-        ]).catch(() => {
+            }
+            if (alertsRes.status === 'fulfilled') {
+                const data = alertsRes.value.data;
+                setAlerts(Array.isArray(data) ? data.slice(0, 5) : []);
+            }
+            if (chartRes.status === 'fulfilled') {
+                setChartData(Array.isArray(chartRes.value.data) ? chartRes.value.data : []);
+            }
+            if (statsRes.status === 'rejected' && chartRes.status === 'rejected') {
+                setError(true);
+            }
+        }).catch(() => {
             setError(true);
         }).finally(() => {
             setLoading(false);
