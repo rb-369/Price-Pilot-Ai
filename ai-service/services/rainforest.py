@@ -93,15 +93,30 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
         print(f"[Rainforest] Unexpected error for ASIN {asin}: {e}")
         return await _fetch_product_by_asin_serpapi(asin, amazon_domain)
 
+async def _fetch_product_by_asin_openserp(asin: str, amazon_domain: str = "amazon.in") -> Optional[Dict]:
+    """OpenSERP Backup: Fetch specific Amazon ASIN when SerpApi is exhausted or failing"""
+    try:
+        from services.openserp_service import search_amazon_openserp
+        results = await search_amazon_openserp(asin, amazon_domain, max_results=1)
+        if results:
+            res = results[0]
+            res["asin"] = asin
+            res["source"] = "openserp_amazon_product"
+            return res
+    except Exception as e:
+        print(f"[OpenSERP] Product fallback failed for ASIN '{asin}': {e}")
+    return None
+
+
 async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optional[Dict]:
-    """Fallback: Fetch specific ASIN from SerpApi Amazon Product Engine"""
+    """Fallback: Fetch specific ASIN from SerpApi Amazon Product Engine, with OpenSERP backup"""
     import os
     import httpx
     from datetime import datetime
     serpapi_key = os.getenv("SERPAPI_KEY", "") or "adb3789753455238707734d98b0379d116b20966cd07f8cbb1cf476ef8cce2c6"
     if not serpapi_key:
-        print("[SerpApi] No SERPAPI_KEY configured for ASIN fallback.")
-        return None
+        print("[SerpApi] No SERPAPI_KEY configured for ASIN fallback. Trying OpenSERP...")
+        return await _fetch_product_by_asin_openserp(asin, amazon_domain)
 
     print(f"[SerpApi] Attempting Amazon product fallback for ASIN '{asin}'...")
     params = {
@@ -117,9 +132,12 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
             response.raise_for_status()
             data = response.json()
 
+        if "error" in data:
+            raise ValueError(f"SerpApi error: {data['error']}")
+
         product = data.get("product_results") or data.get("product", {})
         if not product:
-            return None
+            return await _fetch_product_by_asin_openserp(asin, amazon_domain)
 
         # Extract buybox / listing price
         buybox = product.get("buybox_winner", {}) or data.get("purchase_options", {}).get("single_offer", {})
@@ -131,7 +149,7 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
         )
 
         if price_value is None:
-            return None
+            return await _fetch_product_by_asin_openserp(asin, amazon_domain)
 
         in_stock = buybox.get("availability", {}).get("type", "in_stock") == "in_stock" or "in stock" in str(buybox.get("stock", "")).lower()
 
@@ -148,8 +166,8 @@ async def _fetch_product_by_asin_serpapi(asin: str, amazon_domain: str) -> Optio
             "source": "serpapi_amazon_product",
         }
     except Exception as e:
-        print(f"[SerpApi] Product fallback error for ASIN '{asin}': {e}")
-        return None
+        print(f"[SerpApi] Product fallback error for ASIN '{asin}': {e}. Falling back to OpenSERP...")
+        return await _fetch_product_by_asin_openserp(asin, amazon_domain)
 
 
 async def fetch_competitor_prices(
@@ -901,8 +919,9 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
     import os
     serpapi_key = os.getenv("SERPAPI_KEY", "") or "adb3789753455238707734d98b0379d116b20966cd07f8cbb1cf476ef8cce2c6"
     if not serpapi_key:
-        print("[SerpApi] No SERPAPI_KEY configured for fallback.")
-        return []
+        print("[SerpApi] No SERPAPI_KEY configured for fallback. Trying OpenSERP...")
+        from services.openserp_service import search_amazon_openserp
+        return await search_amazon_openserp(keyword, amazon_domain, max_results, target_brand=target_brand)
 
     print(f"[SerpApi] Attempting Amazon search fallback for '{keyword}'...")
     params = {
@@ -917,6 +936,9 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
             response = await client.get("https://serpapi.com/search.json", params=params)
             response.raise_for_status()
             data = response.json()
+
+        if "error" in data:
+            raise ValueError(f"SerpApi error: {data['error']}")
 
         search_results = data.get("organic_results", [])
         if not search_results:
@@ -952,9 +974,19 @@ async def _fetch_amazon_search_serpapi(keyword: str, amazon_domain: str, max_res
                 "source": "serpapi_amazon_search",
             })
 
+        if not competitors:
+            print(f"[SerpApi] No results returned. Falling back to OpenSERP for '{keyword}'...")
+            from services.openserp_service import search_amazon_openserp
+            return await search_amazon_openserp(keyword, amazon_domain, max_results, target_brand=target_brand)
+
         return competitors
     except Exception as e:
-        print(f"[SerpApi] Search fallback error for '{keyword}': {e}")
-        return []
+        print(f"[SerpApi] Search fallback error for '{keyword}': {e}. Falling back to OpenSERP...")
+        try:
+            from services.openserp_service import search_amazon_openserp
+            return await search_amazon_openserp(keyword, amazon_domain, max_results, target_brand=target_brand)
+        except Exception as o_err:
+            print(f"[OpenSERP] Search backup error: {o_err}")
+            return []
 
 

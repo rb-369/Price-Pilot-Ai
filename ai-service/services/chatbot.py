@@ -230,9 +230,12 @@ async def _call_openrouter_direct(
             formatted_messages.append({"role": role, "content": str(content_val)})
 
     models_to_try = [
-        "meta-llama/llama-3.3-70b-instruct:free",
+        "poolside/laguna-s-2.1:free",
+        "nvidia/nemotron-3.5-lightning:free",
         "google/gemma-4-31b-it:free",
-        "mistralai/mistral-small-3.2-24b-instruct:free",
+        "liquid/lfm-2.5-2.6b:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "poolside/laguna-xs-2.1:free",
         "openrouter/free"
     ]
 
@@ -262,6 +265,153 @@ async def _call_openrouter_direct(
     return None
 
 
+def _generate_catalog_fallback_reply(latest_query: str, context_data: Optional[Dict]) -> Optional[str]:
+    """
+    Deterministic intelligent responder for catalog, inventory, and store operations
+    when external cloud LLMs (Gemini / OpenRouter) hit temporary rate limits or quota ceilings.
+    """
+    if not latest_query:
+        return None
+
+    raw = latest_query.lower().strip()
+    ctx = context_data if isinstance(context_data, dict) else {}
+    products = ctx.get("products", [])
+    alerts = ctx.get("alerts", [])
+    total_prods = ctx.get("totalProducts", len(products))
+
+    # 1. Product Count / Number of products (e.g. "so how many products do i have?", "total products")
+    is_count_query = (
+        bool(re.search(r'\bhow many (?:products|items|skus|goods)\b', raw)) or
+        bool(re.search(r'\b(?:product|item|sku)\s+count\b', raw)) or
+        bool(re.search(r'\btotal (?:number of )?(?:products|items|skus)\b', raw)) or
+        bool(re.search(r'\bnumber of (?:products|items|skus)\b', raw))
+    )
+    if is_count_query:
+        if total_prods == 0:
+            return (
+                "You currently have **0 products** in your catalog.\n\n"
+                "To get started, navigate to [Products Catalog](/dashboard/products) and click **'+ Add Product'** "
+                "or import your catalog using **'Import CSV'**."
+            )
+        lines = []
+        for p in products[:6]:
+            p_name = p.get("name", "Product")
+            p_price = p.get("currentPrice", f"₹{p.get('priceNumeric', 0)}")
+            p_stock = p.get("stockLevel", 0)
+            p_margin = p.get("marginPercent", "N/A")
+            lines.append(f"• **{p_name}** — Price: {p_price} | Stock: {p_stock} units | Margin: {p_margin}")
+        
+        extra = f"\n*...and {total_prods - len(lines)} more products.*" if total_prods > len(lines) else ""
+        alert_str = f"\n\n🔔 You also have **{len(alerts)} active alerts** requiring your attention in the [Alerts Center](/dashboard/alerts)." if alerts else ""
+        return (
+            f"You currently have **{total_prods} active products** in your catalog.\n\n"
+            f"**Catalog Highlights:**\n"
+            + "\n".join(lines)
+            + extra
+            + alert_str
+            + "\n\nYou can review complete inventory details or adjust pricing in your [Products Catalog](/dashboard/products)."
+        )
+
+    # 2. View / List Catalog & Inventory (e.g. "what products do i have?", "show catalog", "list products")
+    is_catalog_list_query = (
+        bool(re.search(r'\b(?:what|show|list|view|display|check|see)\s+(?:all\s+|my\s+)?(?:products|catalog|inventory|items|skus)\b', raw)) or
+        raw in ["products", "catalog", "inventory", "my products", "/products"]
+    )
+    if is_catalog_list_query:
+        if total_prods == 0:
+            return (
+                "Your catalog is currently empty (0 products).\n\n"
+                "Add your first product in [Products Catalog](/dashboard/products) or upload an inventory spreadsheet via **Import CSV**."
+            )
+        lines = []
+        for p in products[:8]:
+            p_name = p.get("name", "Product")
+            p_price = p.get("currentPrice", f"₹{p.get('priceNumeric', 0)}")
+            p_stock = p.get("stockLevel", 0)
+            p_cost = p.get("baseCost", "N/A")
+            p_margin = p.get("marginPercent", "N/A")
+            lines.append(f"• **{p_name}** — Selling: {p_price} | Cost: {p_cost} | Margin: {p_margin} | Stock: {p_stock}")
+        extra = f"\n*...plus {total_prods - len(lines)} additional products.*" if total_prods > len(lines) else ""
+        return (
+            f"### Store Catalog Overview ({total_prods} products)\n\n"
+            + "\n".join(lines)
+            + extra
+            + "\n\nVisit [Products Catalog](/dashboard/products) to edit SKUs, costs, or sync live marketplace pricing."
+        )
+
+    # 3. Low stock / stockout queries
+    is_stock_query = bool(re.search(r'\b(?:low stock|out of stock|stockout|reorder|restock|depleted|low on stock)\b', raw))
+    if is_stock_query:
+        low_stock_items = [p for p in products if isinstance(p.get("stockLevel"), (int, float)) and p.get("stockLevel") <= 15]
+        if not low_stock_items:
+            return (
+                f"✅ **Healthy Inventory:** None of your {total_prods} products are currently critically low on stock!\n\n"
+                "You can inspect 30-day demand trajectories and forecasted depletion dates under [Inventory Forecasts](/dashboard/forecasts)."
+            )
+        lines = [f"• **{p.get('name')}**: Only **{p.get('stockLevel', 0)} units** remaining (Selling at {p.get('currentPrice')})" for p in low_stock_items[:6]]
+        return (
+            f"⚠️ **Low Stock Alert:** The following {len(low_stock_items)} product(s) are running low:\n\n"
+            + "\n".join(lines)
+            + "\n\nHead over to [Inventory Forecasts](/dashboard/forecasts) to view automated reorder suggestions and projected stockout dates."
+        )
+
+    # 4. Alerts inquiry
+    is_alert_query = bool(re.search(r'\b(?:alerts?|notifications?|warnings?)\b', raw))
+    if is_alert_query:
+        if not alerts:
+            return (
+                "✅ You currently have **0 active alerts**. All pricing floors, competitor spreads, and stock levels are stable!\n\n"
+                "Check the [Alerts Center](/dashboard/alerts) anytime to manage your notification thresholds."
+            )
+        lines = [f"• **[{a.get('type', 'Alert').upper()}] {a.get('title', 'Notice')}**: {a.get('message', '')}" for a in alerts[:5]]
+        return (
+            f"🔔 **Active Alerts ({len(alerts)}):**\n\n"
+            + "\n".join(lines)
+            + "\n\nReview or resolve these under the [Alerts Center](/dashboard/alerts)."
+        )
+
+    # 5. Matching a specific product by name
+    for p in products:
+        p_name = p.get("name", "")
+        if p_name and p_name.lower() in raw:
+            return (
+                f"📦 **Product Details: {p_name}**\n"
+                f"- **Selling Price:** {p.get('currentPrice', 'N/A')}\n"
+                f"- **Cost Price (COGS):** {p.get('baseCost', 'N/A')}\n"
+                f"- **Gross Margin:** {p.get('marginPercent', 'N/A')}\n"
+                f"- **Stock Level:** {p.get('stockLevel', 0)} units\n"
+                f"- **Sales Velocity:** {p.get('salesVelocity', 0)} units/hr\n\n"
+                f"You can simulate a price change using `/what-if @\"{p_name}\" to [new price]` "
+                f"or edit listing details in [Products Catalog](/dashboard/products)."
+            )
+
+    # 6. Onboarding / Offline sales
+    is_adding_or_offline = bool(re.search(r'\b(?:how (?:to|do i|can i) add|add (?:my )?product|offline|physical (?:store|shop|sales)|retail|not (?:selling )?online|upload (?:csv|catalog)|import (?:products|catalog))\b', raw))
+    if is_adding_or_offline:
+        return (
+            "### Managing Products & Offline Sales in PricePilot AI\n\n"
+            "You can use PricePilot AI for both offline retail stores and online channels:\n\n"
+            "1. **Add Items**: Go to [Products Catalog](/dashboard/products) and click **'+ Add Product'** or use **'Import CSV'**.\n"
+            "2. **Marketplace Links**: Amazon and Flipkart URLs are completely optional. Offline stores can leave them blank.\n"
+            "3. **Track & Optimize**: Keep inventory updated to run AI restock predictions in [Inventory Forecasts](/dashboard/forecasts) and test margins in the [What-If Simulator](/dashboard/simulator)."
+        )
+
+    # 7. Fallback when AI rate-limited: provide graceful store summary instead of dead-end 429
+    if products or alerts:
+        lines = [f"• **{p.get('name')}** ({p.get('currentPrice', '₹0')}, Stock: {p.get('stockLevel', 0)})" for p in products[:4]]
+        return (
+            "⚠️ **Live Store Mode (Cloud AI Rate-Limited):**\n\n"
+            f"External AI models have temporarily reached their free-tier quota ceiling. While they refresh, here is your store snapshot:\n\n"
+            f"- **Total Products in Catalog:** {total_prods}\n"
+            f"- **Active Alerts:** {len(alerts)}\n\n"
+            "**Catalog Highlights:**\n"
+            + "\n".join(lines) + "\n\n"
+            "You can ask me questions about your **products**, **stock counts**, **alerts**, or run pricing simulations using `/what-if`."
+        )
+
+    return None
+
+
 async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     """
     Main entry point for Chatbot with RAG & Agentic Tool Invocation.
@@ -271,44 +421,48 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     latest_query = memory.get_latest_query()
 
     context_str = await memory.build_context_string(latest_query)
-    # Combine API keys for fallback safety
-    gemini_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY", "")
+    # Collect all available Gemini keys (prioritizing CHATBOT_API_KEY if active)
+    raw_gemini_keys = [
+        os.getenv("CHATBOT_API_KEY", "").strip(),
+        os.getenv("LLM_API_KEY", "").strip(),
+        os.getenv("GEMINI_API_KEY", "").strip(),
+    ]
+    valid_gemini_keys = [k for k in raw_gemini_keys if k and not k.startswith("sk-or-")]
+    valid_gemini_keys = list(dict.fromkeys(valid_gemini_keys))
+
     openrouter_key = (
         os.getenv("OPENROUTER_API_KEY", "").strip() or 
-        os.getenv("OPEN_ROUTER_API_KEY", "").strip() or 
-        (gemini_key.strip() if gemini_key.strip().startswith("sk-or-") else "")
+        os.getenv("OPEN_ROUTER_API_KEY", "").strip()
     )
     if not openrouter_key:
-        print("[Chatbot] Notice: OPENROUTER_API_KEY is not configured in environment variables.")
+        for k in raw_gemini_keys:
+            if k.startswith("sk-or-"):
+                openrouter_key = k
+                break
 
     try:
-        if gemini_key and not gemini_key.startswith("sk-or-"):
-            primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-flash-latest",
-                google_api_key=gemini_key,
-                max_retries=1,
-            )
-            secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
-                google_api_key=gemini_key,
-                max_retries=1,
-            )
-        else:
-            primary_llm = None
-            secondary_llm = None
-        
-        fallbacks = []
-        if secondary_llm:
-            fallbacks.append(secondary_llm)
-        
+        candidate_llms = []
+        for g_key in valid_gemini_keys:
+            for m_name in ["gemini-flash-latest", "gemini-2.5-flash"]:
+                candidate_llms.append(
+                    ChatGoogleGenerativeAI(
+                        model=m_name,
+                        google_api_key=g_key,
+                        max_retries=1,
+                    )
+                )
+
         if openrouter_key:
             for openrouter_model in [
-                "meta-llama/llama-3.3-70b-instruct:free",
+                "poolside/laguna-s-2.1:free",
+                "nvidia/nemotron-3.5-lightning:free",
                 "google/gemma-4-31b-it:free",
-                "mistralai/mistral-small-3.2-24b-instruct:free",
+                "liquid/lfm-2.5-2.6b:free",
+                "nvidia/nemotron-3-super-120b-a12b:free",
+                "poolside/laguna-xs-2.1:free",
                 "openrouter/free"
             ]:
-                fallbacks.append(
+                candidate_llms.append(
                     ChatOpenAI(
                         model=openrouter_model,
                         base_url="https://openrouter.ai/api/v1",
@@ -316,15 +470,20 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                         max_retries=1,
                     )
                 )
-            
-        if primary_llm and fallbacks:
+
+        if not candidate_llms:
+            # Check deterministic fallback if no keys configured
+            cat_reply = _generate_catalog_fallback_reply(latest_query, context_data)
+            if cat_reply:
+                return cat_reply
+            return "Oops! No AI keys are configured for the chatbot. Please add CHATBOT_API_KEY or OPENROUTER_API_KEY to your environment variables."
+
+        primary_llm = candidate_llms[0]
+        fallbacks = candidate_llms[1:]
+        if fallbacks:
             llm = primary_llm.with_fallbacks(fallbacks)
-        elif primary_llm:
-            llm = primary_llm
-        elif fallbacks:
-            llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
-            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY or OPENROUTER_API_KEY to your environment variables."
+            llm = primary_llm
         
         # 4. Setup Tools
         tools = []
@@ -523,6 +682,12 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return fallback_resp
             except Exception as fb_err:
                 print(f"Fallback what-if calculation error: {fb_err}")
+
+        # Check deterministic intelligent catalog fallback before returning generic rate-limit / quota error
+        catalog_reply = _generate_catalog_fallback_reply(latest_query, context_data)
+        if catalog_reply:
+            memory.save_episodic_interaction(latest_query, catalog_reply)
+            return catalog_reply
 
         if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
             return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."

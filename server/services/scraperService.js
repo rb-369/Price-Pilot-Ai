@@ -27,7 +27,19 @@ async function fetchLiveCompetitorsForProduct(product) {
         throw new Error(`Live price fetch failed: ${error.message}`);
     }
 
-    const validSources = ['rainforest_api', 'serpapi', 'serpapi_amazon_search', 'live_market_data', 'verified_rival_benchmark', 'flipkart_scrape', 'scraper'];
+    const validSources = [
+        'rainforest_api',
+        'serpapi',
+        'serpapi_amazon_search',
+        'serpapi_amazon_product',
+        'openserp',
+        'openserp_amazon_search',
+        'openserp_amazon_product',
+        'live_market_data',
+        'verified_rival_benchmark',
+        'flipkart_scrape',
+        'scraper'
+    ];
     if (response.data?.source && !validSources.includes(response.data.source)) {
         throw new Error('Live price source was not verified');
     }

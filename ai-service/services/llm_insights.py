@@ -61,14 +61,20 @@ async def generate_insight(
 ) -> str:
     """Generate plain-English insight using LLM or fallback template."""
 
-    api_key = os.getenv("LLM_API_KEY", "")
+    raw_keys = [
+        os.getenv("CHATBOT_API_KEY", "").strip(),
+        os.getenv("LLM_API_KEY", "").strip(),
+        os.getenv("GEMINI_API_KEY", "").strip(),
+    ]
+    candidate_keys = [k for k in raw_keys if k and not k.startswith("sk-or-") and k != "your_gemini_or_openai_key_here"]
+    candidate_keys = list(dict.fromkeys(candidate_keys))
 
-    # Try LLM first
-    if api_key and api_key != "your_gemini_or_openai_key_here":
+    # Try LLM first across candidate keys
+    for api_key in candidate_keys:
         try:
             return await _generate_with_gemini(api_key, product, recommendation, competitor_prices, demand_signals)
         except Exception as e:
-            print(f"LLM generation failed, logging exception but using template: {e}")
+            print(f"LLM generation failed with key ({api_key[:8]}...): {e}")
 
     # Fallback to template-based insight
     return _generate_template_insight(product, recommendation, competitor_prices, demand_signals)
@@ -154,9 +160,13 @@ async def _generate_with_gemini(
             }
             # List of reliable free models to try in sequence
             fallback_models = [
+                "poolside/laguna-s-2.1:free",
+                "nvidia/nemotron-3.5-lightning:free",
                 "google/gemma-4-31b-it:free",
-                "openrouter/free",
-                "nvidia/nemotron-3-ultra-550b-a55b:free"
+                "liquid/lfm-2.5-2.6b:free",
+                "nvidia/nemotron-3-super-120b-a12b:free",
+                "poolside/laguna-xs-2.1:free",
+                "openrouter/free"
             ]
             async with httpx.AsyncClient(timeout=30) as http_client:
                 for model_name in fallback_models:

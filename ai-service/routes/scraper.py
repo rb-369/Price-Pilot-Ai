@@ -109,10 +109,43 @@ async def scrape_by_keyword(request: ScrapeByKeywordRequest):
 
 @router.get("/scrape/health")
 async def scrape_health():
-    """Check if Rainforest API key is configured."""
-    api_key = os.getenv("RAINFOREST_API_KEY", "")
+    """Check if scraping services are configured."""
+    rf_key = os.getenv("RAINFOREST_API_KEY", "")
+    serp_key = os.getenv("SERPAPI_KEY", "")
+    open_serp_key = os.getenv("OPEN_SERP_API_KEY") or os.getenv("OPENSERP_API_KEY", "")
     return {
-        "rainforestApiConfigured": bool(api_key),
+        "rainforestApiConfigured": bool(rf_key),
+        "serpApiConfigured": bool(serp_key),
+        "openSerpConfigured": bool(open_serp_key),
         "amazonDomainDefault": "amazon.in",
-        "status": "ready" if api_key else "missing_api_key",
+        "status": "ready",
+    }
+
+
+class OpenSerpSearchRequest(BaseModel):
+    query: str
+    engine: Optional[str] = "google"
+    limit: Optional[int] = 10
+
+
+@router.post("/scrape/openserp")
+async def scrape_via_openserp(request: OpenSerpSearchRequest):
+    """
+    Search via OpenSERP Cloud / self-hosted instance.
+    Acts as a backup when SerpApi limits/credits are exhausted.
+    """
+    if not request.query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty.")
+
+    from services.openserp_service import search_openserp
+    results = await search_openserp(
+        query=request.query,
+        engine=request.engine or "google",
+        limit=request.limit or 10,
+    )
+    return {
+        "results": results,
+        "count": len(results),
+        "engine": request.engine or "google",
+        "source": "openserp",
     }

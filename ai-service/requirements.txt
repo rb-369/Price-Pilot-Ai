@@ -28,3 +28,4 @@ qdrant-client
 langchain-qdrant
 xgboost
 lightgbm
+openserp

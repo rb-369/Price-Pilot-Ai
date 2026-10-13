@@ -512,6 +512,43 @@ exports.extractUrlMetadata = async (req, res) => {
             }
         }
 
+        // Tier 2.5: OpenSERP Backup (When SerpAPI limits/credits are exhausted)
+        if (platform === 'amazon' && amazonAsin && (!metadata.currentPrice || !metadata.fullName)) {
+            try {
+                const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+                const openSerpRes = await fetch(`${aiServiceUrl}/api/scrape/openserp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: `${amazonAsin} amazon.in`, engine: 'google', limit: 3 }),
+                    signal: AbortSignal.timeout(6000)
+                }).catch(() => null);
+
+                if (openSerpRes && openSerpRes.ok) {
+                    const openSerpData = await openSerpRes.json();
+                    const items = openSerpData?.results || [];
+                    if (items.length > 0) {
+                        const top = items[0];
+                        if (!metadata.fullName && top.title) {
+                            metadata.fullName = cleanText(top.title).replace(/\s*:\s*Amazon\.in.*$/i, '').replace(/\s*-\s*Amazon\.in.*$/i, '').trim();
+                            metadata.source = metadata.source || 'openserp';
+                        }
+                        if (!metadata.currentPrice && (top.snippet || top.title)) {
+                            const priceMatch = (top.snippet + ' ' + top.title).match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{1,2})?)/i);
+                            if (priceMatch) {
+                                const parsed = parseFloat(priceMatch[1].replace(/,/g, ''));
+                                if (!isNaN(parsed) && parsed > 0) {
+                                    metadata.currentPrice = parsed;
+                                    metadata.source = metadata.source || 'openserp';
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (openSerpErr) {
+                console.warn('[URL Extraction] OpenSERP backup lookup failed:', openSerpErr.message);
+            }
+        }
+
         // Tier 3: Direct Amazon Search AJAX (Direct live search tile — bypasses bot challenges without API keys)
         if (platform === 'amazon' && amazonAsin && !metadata.currentPrice) {
             try {

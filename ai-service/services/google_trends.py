@@ -35,7 +35,16 @@ async def get_google_trends_score(product_name: str, region: str = "IN") -> dict
         except Exception as e:
             print(f"[GoogleTrends] SerpAPI failed: {e}")
 
-    # ── Strategy 2: pytrends (free, rate-limited) ─────────────────────────
+    # ── Strategy 2: OpenSERP (Free search density & interest score) ──────────
+    try:
+        from services.openserp_service import get_openserp_trends_score
+        openserp_score = await get_openserp_trends_score(product_name, region)
+        if openserp_score is not None:
+            return {"score": openserp_score, "source": "openserp_google_trends", "keyword": product_name}
+    except Exception as e:
+        print(f"[GoogleTrends] OpenSERP failed: {e}")
+
+    # ── Strategy 3: pytrends (free, rate-limited) ─────────────────────────
     try:
         result = await _fetch_via_pytrends(product_name, region)
         if result is not None:
@@ -43,7 +52,7 @@ async def get_google_trends_score(product_name: str, region: str = "IN") -> dict
     except Exception as e:
         print(f"[GoogleTrends] pytrends failed: {e}")
 
-    # ── Strategy 3: Deterministic simulation ──────────────────────────────
+    # ── Strategy 4: Deterministic simulation ──────────────────────────────
     score = _simulate_trend_score(product_name)
     return {"score": score, "source": "simulated", "keyword": product_name}
 

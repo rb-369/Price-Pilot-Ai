@@ -153,13 +153,21 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
         );
     }
 
-    // 2. Explicit request to VIEW, LIST, or SHOW the product catalog
+    // 2. Explicit request to VIEW, LIST, or SHOW the product catalog / counts
+    const isCountQuery =
+        /(?:how many (?:products|items|skus|goods)|(?:product|item|sku)\s+count|total (?:number of )?(?:products|items|skus)|number of (?:products|items|skus))/i.test(raw);
+
     const isExplicitCatalogQuery =
+        isCountQuery ||
         /^(?:products|catalog|inventory|items|skus|\/products)$/i.test(raw) ||
         /(?:(?:show|list|view|what are|display|see|check|give me)\s+(?:all\s+|my\s+)?(?:products|catalog|inventory|items|skus))/i.test(raw);
 
     if (isExplicitCatalogQuery) {
-        const sampleProds = products.slice(0, 3).map(p => `• **${p.name}** (Current: ₹${p.currentPrice}, Stock: ${p.stockLevel || 0})`).join('\n');
+        const sampleProds = products.slice(0, 5).map(p => {
+            const rawPr = p.currentPrice || p.priceNumeric || 0;
+            const formattedPrice = String(rawPr).startsWith('₹') ? rawPr : `₹${rawPr}`;
+            return `• **${p.name}** (Current: ${formattedPrice}, Stock: ${p.stockLevel || 0})`;
+        }).join('\n');
         return (
             `You currently have **${productCount} active products** in your catalog, with **${alertCount} active alerts**.\n\n` +
             `**Catalog Highlights:**\n${sampleProds}\n\n` +
@@ -327,6 +335,15 @@ exports.sendMessage = async (req, res) => {
             }
         }
 
+        // 3. If Python returned a generic rate-limit/quota message, check if smart fallback can answer cleanly
+        if (typeof replyText === 'string' && (replyText.includes('AI Quota Reached') || replyText.includes('rate-limited') || replyText.includes('quota'))) {
+            const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
+            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts);
+            if (smartFallback) {
+                replyText = smartFallback;
+            }
+        }
+
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };
         chat.messages.push(modelMsg);
         await chat.save();
@@ -487,6 +504,15 @@ exports.editMessage = async (req, res) => {
             if (!replyText) {
                 const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
                 replyText = generateSmartFallbackReply(userMsgText, products, alerts);
+            }
+        }
+
+        // 3. If Python returned a generic rate-limit/quota message, check if smart fallback can answer cleanly
+        if (typeof replyText === 'string' && (replyText.includes('AI Quota Reached') || replyText.includes('rate-limited') || replyText.includes('quota'))) {
+            const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
+            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts);
+            if (smartFallback) {
+                replyText = smartFallback;
             }
         }
 
