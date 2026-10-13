@@ -141,13 +141,13 @@ async def _extract_with_openrouter(prompt: str) -> Optional[Dict]:
 async def _extract_with_gemini(prompt: str) -> Optional[Dict]:
     """Fallback to Google Gemini if OpenRouter is unreachable, testing all configured keys."""
     raw_keys = [
-        os.getenv("CHATBOT_API_KEY", "").strip(),
         os.getenv("LLM_API_KEY", "").strip(),
         os.getenv("GEMINI_API_KEY", "").strip(),
+        os.getenv("CHATBOT_API_KEY", "").strip(),
     ]
-    candidate_keys = [k for k in raw_keys if k and not k.startswith("sk-or-")]
-    # Dedup preserving order
+    candidate_keys = [k for k in raw_keys if k and not k.startswith("sk-or-") and not k.startswith("AQ.")]
     candidate_keys = list(dict.fromkeys(candidate_keys))
+    candidate_keys.sort(key=lambda k: 0 if k.startswith("AIzaSy") else 1)
 
     if not candidate_keys:
         return None
@@ -158,7 +158,7 @@ async def _extract_with_gemini(prompt: str) -> Optional[Dict]:
         for api_key in candidate_keys:
             try:
                 client = genai.Client(api_key=api_key)
-                for model in ["gemini-2.5-flash", "gemini-flash-latest"]:
+                for model in ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
                     try:
                         print(f"[CompetitorAgent] Attempting Gemini fallback model '{model}'...")
                         resp = await client.aio.models.generate_content(

@@ -512,7 +512,6 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 "gemini-2.0-flash",
                 "gemini-2.5-flash",
                 "gemini-1.5-flash",
-                "gemini-1.5-flash-8b",
                 "gemini-flash-latest",
             ]:
                 candidate_llms.append(

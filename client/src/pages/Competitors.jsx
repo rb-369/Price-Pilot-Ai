@@ -175,8 +175,38 @@ export default function Competitors() {
             return;
         }
 
-        // Trigger live fetch for selected product (same code as refresh button)
-        handleFetchLive(selectedProduct);
+        let isMounted = true;
+        setFetchingHistory(true);
+        getCompetitorPrices(selectedProduct)
+            .then((res) => {
+                if (!isMounted) return;
+                const sortedPrices = [...(res.data || [])].sort((a, b) => a.competitorPrice - b.competitorPrice);
+                if (sortedPrices.length > 0) {
+                    const grouped = sortedPrices.reduce((result, price) => {
+                        const day = new Date(price.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                        if (!result[day]) result[day] = { day, _counts: {} };
+                        const comp = price.competitorName;
+                        result[day]._counts[comp] = (result[day]._counts[comp] || 0) + 1;
+                        const idx = result[day]._counts[comp];
+                        if (idx <= 3) {
+                            result[day][`${comp} - Offer ${idx}`] = price.competitorPrice;
+                        }
+                        return result;
+                    }, {});
+                    setHistory(Object.values(grouped).reverse().slice(-15));
+                } else {
+                    // No stored prices yet, trigger initial live fetch
+                    handleFetchLive(selectedProduct);
+                }
+            })
+            .catch(() => {
+                if (isMounted) handleFetchLive(selectedProduct);
+            })
+            .finally(() => {
+                if (isMounted) setFetchingHistory(false);
+            });
+
+        return () => { isMounted = false; };
     }, [selectedProduct]);
 
     const productPrices = useMemo(() => {
@@ -444,7 +474,7 @@ export default function Competitors() {
                         </div>
                     ) : history.length ? (
                         <div className="h-[300px] sm:h-[340px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
                                 <LineChart data={history} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--pp-border)" strokeOpacity={0.4} />
                                     <XAxis dataKey="day" tick={{ fill: 'var(--pp-text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
