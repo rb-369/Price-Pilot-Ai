@@ -3,6 +3,8 @@ Conversational AI Chatbot Service
 Uses LangChain RAG with ChromaDB, Gemini as primary LLM, and OpenRouter as fallback.
 """
 import os
+import re
+import json
 import asyncio
 import hashlib
 from typing import List, Dict, Optional, Any
@@ -279,6 +281,68 @@ def _generate_catalog_fallback_reply(latest_query: str, context_data: Optional[D
     alerts = ctx.get("alerts", [])
     total_prods = ctx.get("totalProducts", len(products))
 
+    # 0. Grill-Me Strategy Session & Pricing Strategy Consultations
+    is_grill_me = bool(re.search(r'\b(?:grill[- ]?me|pricing strategy|pricing approach|price strategy|pricing model|what strategy|which strategy|strategy for|best strategy)\b', raw))
+    if is_grill_me:
+        target_product = None
+        product_name = ""
+
+        tagged_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query)
+        if tagged_match:
+            product_name = tagged_match.group(1).strip()
+        else:
+            for_match = re.search(r'(?:for|on|about)\s+([A-Za-z0-9\s&+\-.]+?)(?:\?|$|\n|,\s*which|\s+to|\s+at)', latest_query, re.IGNORECASE)
+            if for_match:
+                product_name = re.sub(r'^(?:the|my|a)\s+', '', for_match.group(1).strip(), flags=re.IGNORECASE)
+
+        if products:
+            if product_name:
+                target_product = next((p for p in products if p.get("name") and product_name.lower() in p.get("name", "").lower()), None)
+            if not target_product and not product_name and len(products) == 1:
+                target_product = products[0]
+                product_name = target_product.get("name", "")
+
+        display_name = (target_product.get("name") if target_product else None) or product_name or "Your Catalog Products"
+        current_pr = target_product.get("currentPrice", f"₹{target_product.get('priceNumeric', 0)}") if target_product else "Market Parity"
+        cost_pr = target_product.get("baseCost", "Estimated COGS") if target_product else "Estimated COGS"
+        margin_str = f"{target_product.get('marginPercent')}%" if target_product and target_product.get("marginPercent") else "40–50%"
+        stock_str = f"{target_product.get('stockLevel')} units" if target_product and target_product.get("stockLevel") is not None else "Active Inventory"
+
+        metrics_line = f"• **Current Metrics:** Price: {current_pr} | Cost: {cost_pr} | Margin: {margin_str} | Stock: {stock_str}\n\n" if target_product else "\n"
+
+        return (
+            f"### 🥊 PricePilot AI Grill-Me Session: Dynamic Pricing Strategy\n\n"
+            f"**Target SKU:** **{display_name}**\n"
+            f"{metrics_line}"
+            f"#### 🏛️ 1. Executive Strategy Verdict: Value-Based Skimming & Margin Defense\n"
+            f"In e-commerce marketplaces (Amazon, Flipkart, D2C), **under-pricing is a fatal trap**. "
+            f"Dropping price to chase volume in competitive categories destroys the 40–50% gross margin required to fund Amazon Sponsored Products (PPC) and absorb marketplace commissions (~15% referral fee + closing fees + FBA pick & pack). "
+            f"Instead, use **Value-Based Margin Defense with Tiered Bundles**.\n\n"
+            f"#### 🎯 2. The 3-Pillar Execution Blueprint\n"
+            f"1. **Protect the Margin Floor:** Never drop below a 35% net margin floor. If raw material or marketplace fees rise, let competitors engage in a margin-killing price war while you capture high-intent brand buyers.\n"
+            f"2. **Virtual Bundling over Direct Discounting:** Rather than cutting single-unit price by 15%, sell a Duo-Pack or cross-sell with a complementary item (e.g., moisturizer + cleanser). This lifts Average Order Value (AOV) and lowers per-unit shipping overhead.\n"
+            f"3. **Elasticity-Gated Surge Pricing:** When direct rivals go out of stock or experience logistics delays, leverage PricePilot to automatically raise price by 3–6% to capture surge profit.\n\n"
+            f"#### ❓ 3 Questions to Grill Your Current Setup\n"
+            f"1. **What is your true Net Landed Margin after Amazon Fees?**\n"
+            f"   *If your gross margin is below 40%, Amazon PPC ad spend (15–25% ACOS) will turn this item into an unprofitable cash drain.*\n"
+            f"2. **What is your Buy Box win rate against category benchmarks?**\n"
+            f"   *Are you losing sales due to price, or due to slower fulfillment (Non-Prime vs Prime) or review count? Price cannot compensate for social proof.*\n"
+            f"3. **Can your inventory sustain a promotional spike?**\n"
+            f"   *If a discount triples sales velocity, do you have enough stock runway in [Inventory Forecasts](/dashboard/forecasts) to avoid stockout ranking penalties?*\n\n"
+            f"#### 🚀 Next Actions in PricePilot AI\n"
+            f"• Run margin simulations in the [What-If Simulator](/dashboard/simulator) before touching live prices.\n"
+            f"• Track competing brand price spreads in [Competitor Analysis](/dashboard/competitors).\n"
+            f"• Review AI-optimized price adjustments in [AI Recommendations](/dashboard/recommendations)."
+        )
+
+    # 0.1 Plain English explanation
+    if bool(re.search(r'\b(?:explain[- ]simply)\b', raw)):
+        return (
+            "### 💡 Plain-English Summary for Sellers\n\n"
+            "1. **Profit Impact:** Pricing optimization isn't about selling for the cheapest price; it's about making the most total profit in INR (₹) after all product costs, shipping, and marketplace fees.\n"
+            "2. **Action to Take:** Check your [AI Recommendations](/dashboard/recommendations) to see which items have high profit potential, and use the [What-If Simulator](/dashboard/simulator) to test new prices before publishing them live."
+        )
+
     # 1. Product Count / Number of products (e.g. "so how many products do i have?", "total products")
     is_count_query = (
         bool(re.search(r'\bhow many (?:products|items|skus|goods)\b', raw)) or
@@ -421,14 +485,15 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     latest_query = memory.get_latest_query()
 
     context_str = await memory.build_context_string(latest_query)
-    # Collect all available Gemini keys (prioritizing CHATBOT_API_KEY if active)
+    # Collect all available Gemini keys (prioritizing standard AIzaSy keys)
     raw_gemini_keys = [
-        os.getenv("CHATBOT_API_KEY", "").strip(),
         os.getenv("LLM_API_KEY", "").strip(),
         os.getenv("GEMINI_API_KEY", "").strip(),
+        os.getenv("CHATBOT_API_KEY", "").strip(),
     ]
-    valid_gemini_keys = [k for k in raw_gemini_keys if k and not k.startswith("sk-or-")]
+    valid_gemini_keys = [k for k in raw_gemini_keys if k and not k.startswith("sk-or-") and not k.startswith("AQ.")]
     valid_gemini_keys = list(dict.fromkeys(valid_gemini_keys))
+    valid_gemini_keys.sort(key=lambda k: 0 if k.startswith("AIzaSy") else 1)
 
     openrouter_key = (
         os.getenv("OPENROUTER_API_KEY", "").strip() or 
@@ -443,7 +508,13 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     try:
         candidate_llms = []
         for g_key in valid_gemini_keys:
-            for m_name in ["gemini-flash-latest", "gemini-2.5-flash"]:
+            for m_name in [
+                "gemini-2.0-flash",
+                "gemini-2.5-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-flash-8b",
+                "gemini-flash-latest",
+            ]:
                 candidate_llms.append(
                     ChatGoogleGenerativeAI(
                         model=m_name,
@@ -500,10 +571,11 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return "Web search is currently disabled."
             tools.append(dummy_search)
 
-        # Special handling for slash commands: /explain-simply and /what-if
+        # Special handling for slash commands: /explain-simply, /what-if, /grill-me
         latest_lower = latest_query.lower().strip()
         is_explain_simply = 'explain-simply' in latest_lower
         is_what_if = 'what-if' in latest_lower or 'whatif' in latest_lower
+        is_grill_me = 'grill-me' in latest_lower or 'grill me' in latest_lower or 'pricing strategy' in latest_lower
 
         command_instructions = ""
         if is_explain_simply:
@@ -513,6 +585,16 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 "1. Focus on what this means for their net profit (in ₹ INR).\n"
                 "2. Focus on what exact practical action the seller should take.\n"
                 "DO NOT use jargon like elasticity, variance, regression, or logit."
+            )
+        elif is_grill_me:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /grill-me & PRICING STRATEGY:\n"
+                "The user is requesting an adversarial, senior e-commerce pricing strategy consultation (Grill-Me session).\n"
+                "1. Executive Verdict: Recommend Value-Based Margin Defense or Tiered Bundling. Strongly warn against reckless price wars that destroy gross margins required for Amazon PPC (Sponsored Products).\n"
+                "2. Strategy Pillars: Define clear margin floor rules (min 35-45% net contribution), bundle recommendations, and elasticity surge triggers.\n"
+                "3. Socratic Grilling: Pose 3 piercing questions about unit economics (COGS, referral fees ~15%, PPC ACOS, inventory runway).\n"
+                "4. Actionable Next Steps: Reference PricePilot's What-If Simulator (/dashboard/simulator) and Competitor Intelligence (/dashboard/competitors).\n"
+                "Tone: Senior e-commerce pricing partner, incisive, practical, profit-focused."
             )
         elif is_what_if:
             command_instructions = (

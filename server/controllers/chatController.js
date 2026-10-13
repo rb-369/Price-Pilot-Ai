@@ -50,14 +50,29 @@ exports.deleteChat = async (req, res) => {
     }
 };
 
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+const GEMINI_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
+    'gemini-flash-latest'
+];
 
 /**
  * Direct Gemini REST fallback when Python microservice is cold-starting or unreachable.
  */
 async function tryDirectGemini(aiMessages, contextContent) {
-    const apiKey = (process.env.CHATBOT_API_KEY || process.env.LLM_API_KEY || process.env.GEMINI_API_KEY || '').trim();
-    if (!apiKey || apiKey.startsWith('sk-or-')) return null;
+    const rawKeys = [
+        process.env.LLM_API_KEY,
+        process.env.GEMINI_API_KEY,
+        process.env.CHATBOT_API_KEY,
+    ].filter(Boolean).map(k => k.trim());
+
+    // Prefer keys that start with the standard Google AI key prefix (AIzaSy)
+    const apiKey = rawKeys.find(k => k.startsWith('AIzaSy')) ||
+                   rawKeys.find(k => !k.startsWith('sk-or-') && !k.startsWith('AQ.'));
+
+    if (!apiKey) return null;
 
     const systemPrompt = `You are PricePilot AI Copilot, an intelligent assistant for e-commerce and retail merchants.
 Key platform capabilities and knowledge:
@@ -112,9 +127,8 @@ Respond clearly, concisely, and supportively. Format key steps with numbered lis
             }
         } catch (err) {
             console.warn(`[chatController] Direct Gemini (${model}) failed:`, err.response?.data?.error?.message || err.message);
-            if (err.response?.status === 429) {
-                break;
-            }
+            // Google Gemini tracks free quota per-model; continue to try alternative models
+            continue;
         }
     }
     return null;
@@ -127,6 +141,75 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
     const raw = (userMsgText || '').toLowerCase().trim();
     const productCount = products.length;
     const alertCount = alerts.length;
+
+    // 0. Grill-Me Strategy Session & Pricing Strategy Consultations
+    const isGrillMe =
+        /(?:grill[- ]?me|pricing strategy|pricing approach|price strategy|pricing model|what strategy|which strategy|strategy for|best strategy)/i.test(raw);
+
+    if (isGrillMe) {
+        let targetProduct = null;
+        let productName = '';
+
+        const taggedMatch = (userMsgText || '').match(/@"?([^"\n\r?]+)"?/);
+        if (taggedMatch) {
+            productName = taggedMatch[1].trim();
+        } else {
+            const forMatch = (userMsgText || '').match(/(?:for|on|about)\s+([A-Za-z0-9\s&+\-.]+?)(?:\?|$|\n|,\s*which|\s+to|\s+at)/i);
+            if (forMatch) {
+                productName = forMatch[1].replace(/^(?:the|my|a)\s+/i, '').trim();
+            }
+        }
+
+        if (products && products.length > 0) {
+            if (productName) {
+                targetProduct = products.find(p => p.name && p.name.toLowerCase().includes(productName.toLowerCase())) || null;
+            }
+            if (!targetProduct && !productName && products.length === 1) {
+                targetProduct = products[0];
+                productName = targetProduct.name;
+            }
+        }
+
+        const displayName = targetProduct?.name || productName || 'Your Catalog Products';
+        const currentPr = targetProduct?.currentPrice || targetProduct?.priceNumeric ? `₹${targetProduct.currentPrice || targetProduct.priceNumeric}` : 'Market Parity';
+        const costPr = targetProduct?.baseCost ? `₹${targetProduct.baseCost}` : 'Estimated COGS';
+        const marginStr = targetProduct?.marginPercent ? `${targetProduct.marginPercent}%` : '40–50%';
+        const stockStr = targetProduct?.stockLevel != null ? `${targetProduct.stockLevel} units` : 'Active Inventory';
+
+        return (
+            `### 🥊 PricePilot AI Grill-Me Session: Dynamic Pricing Strategy\n\n` +
+            `**Target SKU:** **${displayName}**\n` +
+            (targetProduct ? `• **Current Metrics:** Price: ${currentPr} | Cost: ${costPr} | Margin: ${marginStr} | Stock: ${stockStr}\n\n` : `\n`) +
+            `#### 🏛️ 1. Executive Strategy Verdict: Value-Based Skimming & Margin Defense\n` +
+            `In e-commerce marketplaces (Amazon, Flipkart, D2C), **under-pricing is a fatal trap**. ` +
+            `Dropping price to chase volume in competitive categories destroys the 40–50% gross margin required to fund Amazon Sponsored Products (PPC) and absorb marketplace commissions (~15% referral fee + closing fees + FBA pick & pack). ` +
+            `Instead, use **Value-Based Margin Defense with Tiered Bundles**.\n\n` +
+            `#### 🎯 2. The 3-Pillar Execution Blueprint\n` +
+            `1. **Protect the Margin Floor:** Never drop below a 35% net margin floor. If raw material or marketplace fees rise, let competitors engage in a margin-killing price war while you capture high-intent brand buyers.\n` +
+            `2. **Virtual Bundling over Direct Discounting:** Rather than cutting single-unit price by 15%, sell a Duo-Pack or cross-sell with a complementary item (e.g., moisturizer + cleanser). This lifts Average Order Value (AOV) and lowers per-unit shipping overhead.\n` +
+            `3. **Elasticity-Gated Surge Pricing:** When direct rivals go out of stock or experience logistics delays, leverage PricePilot to automatically raise price by 3–6% to capture surge profit.\n\n` +
+            `#### ❓ 3 Questions to Grill Your Current Setup\n` +
+            `1. **What is your true Net Landed Margin after Amazon Fees?**\n` +
+            `   *If your gross margin is below 40%, Amazon PPC ad spend (15–25% ACOS) will turn this item into an unprofitable cash drain.*\n` +
+            `2. **What is your Buy Box win rate against category benchmarks?**\n` +
+            `   *Are you losing sales due to price, or due to slower fulfillment (Non-Prime vs Prime) or review count? Price cannot compensate for social proof.*\n` +
+            `3. **Can your inventory sustain a promotional spike?**\n` +
+            `   *If a discount triples sales velocity, do you have enough stock runway in [Inventory Forecasts](/dashboard/forecasts) to avoid stockout ranking penalties?*\n\n` +
+            `#### 🚀 Next Actions in PricePilot AI\n` +
+            `• Run margin simulations in the [What-If Simulator](/dashboard/simulator) before touching live prices.\n` +
+            `• Track competing brand price spreads in [Competitor Analysis](/dashboard/competitors).\n` +
+            `• Review AI-optimized price adjustments in [AI Recommendations](/dashboard/recommendations).`
+        );
+    }
+
+    // 0.1 Plain English explanation
+    if (/explain[- ]simply/i.test(raw)) {
+        return (
+            `### 💡 Plain-English Summary for Sellers\n\n` +
+            `1. **Profit Impact:** Pricing optimization isn't about selling for the cheapest price; it's about making the most total profit in INR (₹) after all product costs, shipping, and marketplace fees.\n` +
+            `2. **Action to Take:** Check your [AI Recommendations](/dashboard/recommendations) to see which items have high profit potential, and use the [What-If Simulator](/dashboard/simulator) to test new prices before publishing them live.`
+        );
+    }
 
     // 1. Onboarding, adding products, offline/physical retail sales
     const isAddingOrOffline =
@@ -220,6 +303,27 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
             `- **Multi-Channel Sync:** Seamless catalog & inventory mapping for Shopify, Amazon SP-API, and Flipkart.\n\n` +
             `Explore your store's live data in [AI Recommendations](/dashboard/recommendations) or [Products Catalog](/dashboard/products).`
         );
+    }
+
+    // 6.5 Specific product inquiry by name
+    if (products && products.length > 0) {
+        for (const p of products) {
+            if (p.name && raw.includes(p.name.toLowerCase())) {
+                const pr = p.currentPrice || p.priceNumeric || 0;
+                const formattedPrice = String(pr).startsWith('₹') ? pr : `₹${pr}`;
+                const cost = p.baseCost != null ? `₹${p.baseCost}` : 'N/A';
+                const margin = p.marginPercent != null ? `${p.marginPercent}%` : 'N/A';
+                return (
+                    `### 📦 Product Details: ${p.name}\n\n` +
+                    `• **Selling Price:** ${formattedPrice}\n` +
+                    `• **Base Cost (COGS):** ${cost}\n` +
+                    `• **Gross Margin:** ${margin}\n` +
+                    `• **Stock Level:** ${p.stockLevel || 0} units\n` +
+                    `• **Sales Velocity:** ${p.salesVelocity?.currentHourlySalesRate || p.salesVelocity || 0} units/hr\n\n` +
+                    `To simulate price adjustments, ask \`/what-if @"${p.name}" to [new price]\` or edit SKU parameters in your [Products Catalog](/dashboard/products).`
+                );
+            }
+        }
     }
 
     // 7. General fallback
