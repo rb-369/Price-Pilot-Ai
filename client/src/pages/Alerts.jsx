@@ -40,11 +40,16 @@ export default function Alerts() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
 
-    useEffect(() => {
+    const fetchAlerts = () => {
+        setLoading(true);
         Promise.all([
             getAlerts().then(r => setAlerts(r.data)),
             getProducts().then(r => setProducts(r.data.data || r.data))
         ]).catch(() => { }).finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchAlerts();
     }, []);
 
     const handleMarkRead = async (id) => {

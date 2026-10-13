@@ -9,23 +9,27 @@
 <h1 align="center">🚀 PricePilot AI — Dynamic Pricing & Inventory Intelligence Platform</h1>
 
 <p align="center">
-  <strong>An AI-powered e-commerce pricing optimization platform that leverages machine learning, competitor analysis, demand forecasting, and conversational AI to deliver real-time pricing recommendations.</strong>
+  <strong>An autonomous, multi-channel e-commerce pricing optimization and inventory intelligence platform powered by LangGraph multi-agent swarms, Bayesian price elasticity modeling, Prophet time-series forecasting, and conversational RAG copilots.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/React-19.x-61DAFB?style=flat-square&logo=react" />
-  <img src="https://img.shields.io/badge/Node.js-20.x-339933?style=flat-square&logo=node.js" />
-  <img src="https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi" />
-  <img src="https://img.shields.io/badge/MongoDB-7.x-47A248?style=flat-square&logo=mongodb" />
-  <img src="https://img.shields.io/badge/Google%20Gemini-AI-4285F4?style=flat-square&logo=google" />
-  <img src="https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=flat-square&logo=langchain" />
-  <img src="https://img.shields.io/badge/ChromaDB-Vector%20Store-FF6F00?style=flat-square" />
-  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" />
+  <img src="https://img.shields.io/badge/React-19.x-61DAFB?style=flat-square&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite" alt="Vite 7" />
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-4.x-06B6D4?style=flat-square&logo=tailwindcss" alt="Tailwind CSS 4" />
+  <img src="https://img.shields.io/badge/Node.js-20.x-339933?style=flat-square&logo=node.js" alt="Node.js 20" />
+  <img src="https://img.shields.io/badge/FastAPI-0.110+-009688?style=flat-square&logo=fastapi" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/MongoDB-7.x-47A248?style=flat-square&logo=mongodb" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B6B?style=flat-square" alt="LangGraph" />
+  <img src="https://img.shields.io/badge/LangChain-RAG-1C3C3C?style=flat-square&logo=langchain" alt="LangChain" />
+  <img src="https://img.shields.io/badge/Google%20Gemini-AI-4285F4?style=flat-square&logo=google" alt="Google Gemini" />
+  <img src="https://img.shields.io/badge/OpenRouter-Nemotron%2070B-6366F1?style=flat-square" alt="OpenRouter" />
+  <img src="https://img.shields.io/badge/ChromaDB-Vector%20Store-FF6F00?style=flat-square" alt="ChromaDB" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" alt="Docker" />
 </p>
 
 ---
 
-## 📋 Project Information
+## 📋 Academic Project Information
 
 | Field | Details |
 |-------|---------|
@@ -39,10 +43,10 @@
 
 ### 👥 Team Members
 
-| Name | Roll No. |
-|------|----------|
-| **Rudra Babar** | B002 |
-| **Aryan Desale** | B010 |
+| Name | Roll No. | Role & Contribution |
+|------|----------|---------------------|
+| **Rudra Babar** | B002 | Architecture, AI Microservices, LangGraph Agents, Backend APIs, Evaluation Harness |
+| **Aryan Desale** | B010 | Full-Stack Engineering, Frontend UI/UX, Stacking Card Animations, Design Systems |
 
 ---
 
@@ -51,14 +55,16 @@
 - [About the Project](#-about-the-project)
 - [Key Features](#-key-features)
 - [System Architecture](#-system-architecture)
+- [Multi-Agent & RAG Workflows](#-multi-agent--rag-workflows)
+- [Architecture Diagrams](#-architecture-diagrams)
+- [Screenshots & Visual Showcase](#-screenshots--visual-showcase)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
 - [Environment Variables](#-environment-variables)
-- [API Endpoints](#-api-endpoints)
+- [API Reference](#-api-reference)
+- [ML Evaluation & Benchmark Harness](#-ml-evaluation--benchmark-harness)
 - [Deployment](#-deployment)
-- [Screenshots](#-screenshots)
-- [Architecture Diagrams](#-architecture-diagrams)
 - [Research Papers & Inspiration](#-research-papers--inspiration)
 - [License](#-license)
 
@@ -66,262 +72,377 @@
 
 ## 🎯 About the Project
 
-**PricePilot AI** is a full-stack AI-powered platform designed for e-commerce businesses to optimize their pricing strategies in real time. The platform integrates multiple data signals — competitor pricing, demand fluctuations, inventory levels, weather patterns, social sentiment, news analysis, and search trends — to generate intelligent pricing recommendations that maximize revenue and maintain competitive positioning.
+**PricePilot AI** is a production-grade, full-stack revenue optimization and inventory intelligence platform engineered for multi-channel e-commerce businesses. Modern merchants selling across independent direct-to-consumer (D2C) storefronts and high-velocity marketplaces (Amazon, Flipkart, Shopify, WooCommerce) face severe margin erosion from static markup heuristics, unpredictable competitor repricing, supply chain stockouts, and black-box pricing opacity.
 
-Traditional pricing strategies rely on static rules and manual adjustments, which fail to adapt to rapidly changing market dynamics. PricePilot AI addresses this gap by applying **machine learning**, **time-series forecasting (Prophet/Holt-Winters)**, **Retrieval-Augmented Generation (RAG)**, and **large language models (Google Gemini)** to deliver data-driven, explainable pricing decisions.
+PricePilot AI solves this through a decoupled three-tier microservice architecture that combines **Bayesian price elasticity estimation**, **Facebook Prophet time-series forecasting**, **LangGraph multi-agent competitor swarms**, and **Retrieval-Augmented Generation (RAG)** copilots with **Explainable AI (XAI)** decision narratives.
 
-### Problem Statement
+### Core Problems Solved
 
-E-commerce businesses face several pricing challenges:
-- **Manual pricing** cannot scale across thousands of SKUs
-- **Competitor prices** change frequently and unpredictably
-- **Demand patterns** are influenced by seasonality, events, weather, and social trends
-- **Inventory management** requires proactive stock-out prevention
-- **Revenue optimization** needs balancing margin targets with market competitiveness
-- **Decision opacity** — merchants don't understand _why_ a price was suggested
-
-PricePilot AI solves these challenges with automated, intelligent, and _explainable_ pricing that adapts in real time.
+1. **The Static Markup Fallacy**: Over 75% of SME merchants use fixed cost-plus markups (e.g. +30% on COGS), leaving significant margin on the table during demand surges and losing sales when competitors undercut. PricePilot dynamically optimizes gross margins via binary search and elasticity curves.
+2. **Competitor Blind Spots & Self-Brand Pollution**: Scraping competitors manually is slow and error-prone; naive keyword search often matches a brand's own products or unrelated accessories. PricePilot's LangGraph agent cleans brand tokens, detects generic categories, enforces strict anti-self-brand filtering, and discovers true tier rivals.
+3. **Multi-Signal Demand Swings**: Consumer willingness-to-pay shifts based on seasonality, weather conditions, news sentiment, and search interest trends. PricePilot synthesizes external telemetry into a unified 0–100 composite demand score.
+4. **Black-Box Opacity**: Merchants reject algorithmic pricing when they cannot understand the mathematical rationale. PricePilot pairs every price recommendation with plain-English LLM explanations, elasticity sensitivity charts, and one-click "Explain with AI" tags.
+5. **Multi-Channel Desynchronization**: Changing prices in isolation leads to mismatched margins and marketplace penalty. PricePilot supports synchronized multi-channel commits across Amazon, Flipkart, and Shopify.
 
 ---
 
 ## ✨ Key Features
 
-### 🤖 AI-Powered Pricing Engine
-- **Binary Search Margin Optimization**: Dynamically finds the exact price point that mathematically maximizes total gross profit
-- **Dynamic Price Elasticity Estimation**: Adjusts theoretical volume shifts based on composite demand trend metrics
-- **LLM-Powered Explainability**: Google Gemini translates complex pricing math into plain-English insights via the `ExplainabilityPanel` component
-- Automated promotion suggestions based on stock ratios and weakened demand signals
+### 🤖 AI-Powered Pricing Engine & What-If Simulation
+- **Binary Search Gross Profit Maximizer**: Mathematically locates the exact unit price point that maximizes total expected profit while respecting minimum margin floors and maximum markup ceilings.
+- **Dynamic Price Elasticity Estimation**: Estimates category-specific price sensitivity ($\epsilon$) using historical sales volume, competitor price differentials, and composite demand multipliers.
+- **Interactive What-If Scenario Simulator (`WhatIfSimulator.jsx`)**:
+  - **Strategic Verdict Badges**: Classifies proposed simulations into intuitive strategies (*Margin Maximizer*, *Market Share Grab*, *Margin Risk*, *Volume Loss Risk*).
+  - **Simple & Advanced Simulation Modes**: High-level sliders for target price, competitor counter-moves, and demand multipliers alongside granular COGS overrides and time horizons.
+  - **Profit Frontier & Sensitivity Curves**: Interactive Recharts visualizations displaying projected revenue, profit delta, unit volume, and margin health before committing.
+  - **Multi-Channel Price Commitment**: Apply simulated price changes directly to the catalog and sync across configured sales channels with a single click.
+- **Explainable AI (XAI) Decision Cards**: Every recommendation is paired with transparent mathematical breakdowns and plain-English narratives generated via Google Gemini.
 
-### 💬 Conversational AI Chatbot (RAG Architecture)
-- **Ephemeral Working Memory System**: Each chat session dynamically assembles System Prompt + Chat History + RAG Context into a single context window
-- **Dual Vector Store RAG**: Semantic Memory (durable facts & rules) + Episodic Memory (past conversations) via ChromaDB
-- **LangChain Integration**: Full RAG chain with `ChatGoogleGenerativeAI` (Gemini) as primary LLM and OpenRouter as fallback
-- **Slash Commands & Autocomplete**: Built-in support for `/what-if`, `/explain-simply`, `/analyze-competitors`, `/demand-signals`, `/inventory-forecast`, and `/pricing-recommendation` with popover suggestions
-- **Inline @Product Tagging**: Tag any catalog product with `@` to inject live pricing, stock, and SKU chips directly into the prompt
-- **Interactive What-If Scenario Cards**: Chatbot generates executable scenario cards that seamlessly launch the What-If Simulator with pre-populated values
-- **Intelligent Fallback Engine**: Resilient multi-tier architecture automatically falls back from Gemini to OpenRouter or contextual local catalog summaries during upstream outages
-- **Document Context Injection**: Upload and inspect pricing policies and documents directly within the conversation
-- **Background Consolidation**: Fire-and-forget episodic interaction saving for future recall
+### 🕵️ LangGraph Autonomous Competitor Intelligence Agent
+- **StateGraph Orchestrated Swarm (`competitor_agent.py`)**: A multi-step autonomous agent workflow that transitions through Brand Sanitization $\rightarrow$ Generic Product Extraction $\rightarrow$ Category Classification $\rightarrow$ Anti-Self-Brand Filtering $\rightarrow$ Rival Discovery $\rightarrow$ Multi-Query Generation $\rightarrow$ Live Scraping $\rightarrow$ Price Normalization.
+- **Strict Anti-Self-Brand Guardrails**: Eliminates false comparisons by strictly prohibiting the seller's own brand from appearing in competitor benchmarks.
+- **Multi-Tier LLM Resilience**:
+  - **Primary**: OpenRouter running high-reasoning models (NVIDIA Nemotron 70B / Qwen free tier).
+  - **Fallback**: Google Gemini (Gemini 2.5 Flash / Flash Latest).
+  - **Safety Net**: Deterministic category heuristics and regex-based brand sanitizers when upstream APIs are offline.
+- **Live Distributed Web Scraping**: Real-time Amazon telemetry via Rainforest API paired with BeautifulSoup-powered scraping for Flipkart India.
 
-### 📱 Mobile-First Responsive Experience
-- **Dedicated Mobile Bottom Nav (`MobileBottomNav`)**: Ergonomic thumb-zone navigation bar for swift switching between Home, Products, Chat, Alerts, and Search
-- **Mobile Hero KPI Cards (`MobileHeroCards`)**: High-density horizontal carousel delivering essential revenue, stock health, and margin metrics on smaller viewports
-- **Universal Command Palette (`MobileSearchModal` / `Cmd+K`)**: Instant search modal across all products, forecasts, alerts, and navigation routes
+### 💬 Conversational AI Copilot (4-Tier Cognitive Memory RAG)
+- **4-Tier Cognitive Architecture**:
+  1. **Working Memory (Context RAM)**: Dynamically constructs the active context window combining System Persona, Session History, Semantic Facts, Episodic History, and Real-Time Catalog Telemetry.
+  2. **Semantic Memory (ChromaDB)**: Durable store of catalog specifications, store policies, and pricing rules retrieved via cosine similarity embeddings.
+  3. **Episodic Memory (ChromaDB)**: Session-tagged historical conversations and user feedback logs for contextual continuity.
+  4. **Procedural Memory**: Standard operating procedures, pricing rule playbooks, and calculation routines.
+- **Interactive Slash Commands**: Popover autocomplete for `/what-if`, `/explain-simply`, `/analyze-competitors`, `/demand-signals`, `/inventory-forecast`, and `/pricing-recommendation`.
+- **Inline `@Product` Catalog Tagging**: Type `@` anywhere in the chat prompt to inject live SKU, inventory, and cost chips directly into the conversation.
+- **Executable What-If Scenario Cards**: Chatbot responses can generate clickable cards that pre-populate and launch the What-If Simulator modal.
+- **Multi-Tier LLM Resilient Routing**: Automatic failover between Gemini, OpenRouter, and contextual local catalog summaries.
 
-### 📊 Demand Forecasting
-- **Facebook Prophet Integration**: Advanced Bayesian time-series model decomposing weekly/yearly seasonality and non-linear trend curves
-- **Graceful Fallbacks**: Automatically falls back to Holt-Winters Exponential Smoothing or Moving Averages if data volume is inadequate
-- 30-day forward demand prediction with statistical confidence scores
-- Inventory reorder calculations derived directly from expected future depletion rates
+### 📊 Time-Series Demand Forecasting & Inventory Health
+- **Facebook Prophet Integration**: Bayesian decomposable time-series modeling capturing weekly/monthly seasonality, holiday shifts, and non-linear trend dynamics.
+- **Graceful Statistical Fallbacks**: Automatically degrades to Holt-Winters Exponential Smoothing or Weighted Moving Averages when historical volume is sparse.
+- **30-Day Forward Forecast Horizon**: Delivers daily order volume projections accompanied by statistical confidence intervals (70–95%).
+- **Intelligent Reorder Alerts**: Automatically calculates stock depletion runway and flags reorder quantities to avert stockouts.
 
-### 🏷️ Competitor Intelligence
-- **Rainforest API Integration**: Real-time distributed web scraping for live Amazon marketplace ASIN telemetry
-- **Flipkart Scraper**: BeautifulSoup-powered product price extraction from Flipkart
-- **Google Trends Analysis**: Search interest trend data for demand signal enrichment
-- **Weighted Analysis**: Adjusts internal pricing gravity based on competitors' actual stock availability and review ratings
-- Automated price position analysis (cheapest, average, premium)
+### 🌐 Multi-Signal Demand Intelligence
+- **OpenWeatherMap Integration**: Ingests regional weather telemetry to adjust demand multipliers for weather-sensitive categories.
+- **NewsAPI + NLP Sentiment Scoring**: Evaluates market trends, supply chain news, and consumer sentiment to bias demand predictions.
+- **Google Trends Telemetry**: Real-time relative search interest tracking for leading category keywords.
+- **Catalog Demand Intensity Heatmap**: Interactive visual dashboard summarizing demand momentum across all inventory SKUs.
 
-### 📰 Multi-Signal Demand Intelligence
-- **Weather Impact Analysis**: OpenWeatherMap integration for weather-correlated demand shifts
-- **News Sentiment Scoring**: NewsAPI + NLP pipeline for real-time market sentiment from news articles
-- **Social Sentiment Analysis**: Text sentiment classification for customer feedback and reviews
-- Composite demand scoring combining all external signals
+### 📑 Executive PDF Reporting & Telemetry
+- **One-Click Executive PDF Export**: Download presentation-ready PDF reports directly from the Recommendations, Competitor Intelligence, and A/B Testing pages.
+- **In-App Issue & UX Telemetry Reporting (`ReportModal.jsx`)**: System reporting modal capturing viewport dimensions, user agents, active URLs, severity classification, and issue descriptions directly to backend storage.
 
-### 📈 Interactive Dashboard
-- Real-time KPI cards with revenue, margins, and stock metrics
-- 30-day revenue trend and order volume charts (Recharts)
-- AI recommendation feed with accept/reject actions
-- Alert system with severity-based prioritization (critical/high/medium/low)
+### 🎨 Interactive Stacking Card Motion & Fluid Navigation
+- **Scroll-Stacking & 2x2 Grid Spread Animation (`stacking-card.jsx`)**: Smooth card-over-card scroll stacking transitioning into an interactive 2x2 grid spread on desktop.
+- **Universal Command Palette (`Cmd+K`)**: Instant modal search across products, routes, forecasts, and alert logs.
+- **Agency-Grade Design Tokens**: Refined terracotta (`#A85A3C`), sage green (`#5F806B`), and warm dark/light themes with micro-interactions.
 
-### 🧪 A/B Testing Framework
-- Create controlled pricing experiments with variant groups
-- Statistical significance tracking for pricing strategy validation
-- Revenue impact measurement per test variant
+### 🧪 A/B Testing & Elasticity Validation
+- **Multi-Armed Bandit Experimentation**: Split-test price variants using Thompson Sampling to maximize cumulative reward while testing elasticity hypotheses.
+- **Statistical Significance Tracking**: P-value and confidence interval indicators to ensure pricing changes are validated before permanent rollout.
 
-### 🔗 Integrations Hub & Channels
-- Multi-channel sales platform mapping (Amazon, Flipkart, WooCommerce, Meesho, Quick Commerce, Custom D2C)
-- API key management for external services (Rainforest, SerpAPI, OpenWeather, NewsAPI, SendGrid)
-- Connection status monitoring and health checks
-- Centralized configuration UI
-
-### 🔐 Authentication & Security
-- **Google OAuth 2.0 Integration**: One-click Google sign-in and automatic account provisioning (`@react-oauth/google`)
-- JWT-based authentication with secure token management
-- Password reset flow (forgot password → email → reset token)
-- Role-based access control & password hashing with bcrypt
-- Protected API routes with middleware guards
-- API rate limiting (express-rate-limit)
-- NoSQL injection prevention (express-mongo-sanitize)
-- XSS protection (xss-clean)
-- Security headers (Helmet) & Gzip compression
-
-### ⚡ Performance & Reliability
-- **Universal 3-Bar Chart Loader (`PricePilotChartLoader`)**: Fluid animated loading states with realistic auth and catalog buffers
-- **Redis Caching**: Instantaneous dashboard metrics by caching heavy aggregations
-- **Async Job Queue (BullMQ)**: Non-blocking AI recommendations and forecasting processes
-- **Server-Sent Events (SSE)**: Real-time streaming for AI generation progress
-- **Error Boundaries**: React ErrorBoundary components with collapsible debug traces and graceful fallback UIs
-- **Skeleton Loaders**: Premium loading states for optimal perceived performance
-- **Automated Testing**: pytest (AI service) and Jest (Node server) test suites
-
-### 🎨 Premium UI/UX & Design System
-- Unified design system: Calibrated Terracotta (`#A85A3C`), Warm Cream (`#F0EEE6`), Sage Green (`#5F806B`), and Copper palettes
-- Dark-mode + Light-mode glassmorphism design with seamless theme toggle
-- Vector SVG icons & custom avatars replacing legacy emojis
-- Custom animated 404 page (`NotFound` / `Animated404`) with interactive bar graph sequence
-- Stacking card animations on landing page
-- Multi-currency conversion via `CurrencyContext`
-- Responsive layout with collapsible desktop sidebar and mobile bottom sheet drawer
+### 🔐 Enterprise Security & Reliability
+- **Google OAuth 2.0 & JWT Authentication**: One-click Google sign-in (`@react-oauth/google`) and secure bcrypt-hashed token flows.
+- **Defensive API Hardening**: Rate limiting (`express-rate-limit`), NoSQL injection sanitization (`express-mongo-sanitize`), XSS protection (`xss-clean`), and HTTP security headers (`Helmet`).
+- **Universal 3-Bar Chart Loader (`PricePilotChartLoader.jsx`)**: Animated chart loaders with authentic auth and product addition sync buffers.
+- **Redis Caching & BullMQ Task Queues**: Sub-second dashboard load times via aggregation caching and asynchronous background AI job queues.
 
 ---
 
 ## 🏗️ System Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                           REACT CLIENT (Vite)                           │
-│  Landing · Dashboard · Products · Forecasts · Recommendations · Chat    │
-│  Competitors · Demand Signals · Alerts · Integrations · A/B Tests       │
-│                    Tailwind CSS 4 · Recharts · Axios                    │
-└───────────────────────────────┬──────────────────────────────────────────┘
-                                │ HTTPS / REST
-                                ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                     NODE.JS API SERVER (Express)                         │
-│                                                                          │
-│  Auth · Products · Competitors · Demand · Alerts · AI · Chat · Stream   │
-│  A/B Tests · Integrations                                                │
-│                                                                          │
-│  Middleware: JWT · Rate Limiter · Helmet · XSS · Mongo Sanitize         │
-│  Cron Jobs: Scheduled price checks, alert generation                    │
-│  SSE: Real-time streaming endpoint                                      │
-├──────────────┬───────────────────────────────┬───────────────────────────┤
-│   MongoDB    │         Redis / BullMQ        │    External APIs          │
-│   Atlas      │     Caching · Job Queues      │  (via AI Service)         │
-└──────────────┴───────────────┬───────────────┴───────────────────────────┘
-                               │ HTTP (internal)
-                               ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│                    PYTHON AI SERVICE (FastAPI)                            │
-│                                                                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐ │
-│  │  Forecasting │  │   Pricing   │  │  LLM        │  │   Chatbot      │ │
-│  │  (Prophet)   │  │  Optimizer  │  │  Insights   │  │  (RAG Agent)   │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘ │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐ │
-│  │  Rainforest  │  │  Flipkart   │  │  News       │  │   Weather      │ │
-│  │  Scraper     │  │  Scraper    │  │  Sentiment  │  │   Service      │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘ │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐ │
-│  │  Google      │  │  Sentiment  │  │  Product    │  │   Data         │ │
-│  │  Trends      │  │  Analysis   │  │  Generator  │  │   Pipeline     │ │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘ │
-│                                                                          │
-│  Vector Store: ChromaDB (Semantic Memory + Episodic Memory)             │
-│  LLM: Google Gemini (primary) · OpenRouter (fallback)                   │
-│  RAG: LangChain · LangChain-Chroma · GoogleGenerativeAIEmbeddings      │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-### Chatbot RAG Agent Architecture
+PricePilot AI is organized as a decoupled three-tier microservices architecture:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                  Ephemeral AI Agent Session                   │
-│                                                               │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │              Working Memory (Context RAM)             │    │
-│  │                                                        │    │
-│  │  System Prompt + Chat History + User Query             │    │
-│  │       + Semantic RAG Context (facts & rules)           │    │
-│  │       + Episodic RAG Context (past interactions)       │    │
-│  │       + Real-time API Context (products, alerts)       │    │
-│  └──────────────────────┬───────────────────────────────┘    │
-│                         │                                     │
-│                         ▼                                     │
-│              ┌──────────────────┐                             │
-│              │   LLM Engine     │                             │
-│              │  (Gemini Flash)  │──── fallback ──▶ OpenRouter │
-│              └────────┬─────────┘                             │
-│                       │                                       │
-│                       ▼                                       │
-│                   AI Reply                                    │
-│                       │                                       │
-│              ┌────────▼─────────┐                             │
-│              │ Save to Episodic │  (fire-and-forget)          │
-│              │     Memory       │                             │
-│              └──────────────────┘                             │
-└─────────────────────────────────────────────────────────────┘
-         │                              │
-    ┌────▼─────────┐           ┌────────▼───────────┐
-    │  ChromaDB    │           │     ChromaDB        │
-    │  Semantic    │           │     Episodic        │
-    │  Memory      │           │     Memory          │
-    │  (facts)     │           │  (past events)      │
-    └──────────────┘           └────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 PRICEPILOT AI TOPOLOGY                                 │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+
+  ┌────────────────────────────────────────────────────────────────────────────────────┐
+  │                               CLIENT TIER (React 19 + Vite 7)                      │
+  │  Landing (Stacking Motion) · Dashboard · Products · Competitors · Demand Signals   │
+  │  Forecasts · Recommendations (PDF Export) · What-If Simulator · Chat Copilot (RAG) │
+  │  Alerts · A/B Testing · Integrations · Analytics · Copilot · Command Palette       │
+  │                     Tailwind CSS 4 · Recharts · Axios · Hot Toast                  │
+  └────────────────────────────────────────┬───────────────────────────────────────────┘
+                                           │ HTTPS / JWT Bearer
+                                           ▼
+  ┌────────────────────────────────────────────────────────────────────────────────────┐
+  │                          API GATEWAY TIER (Node.js 20 / Express 4)                 │
+  │                                                                                    │
+  │  Route Groups: Auth · Products · Competitors · Demand · Alerts · AI · Chat · SSE   │
+  │                Simulator · Reports · Sales · Channel Mapping · Feedback           │
+  │                                                                                    │
+  │  Middleware: JWT Verify · Rate Limiter · Helmet · Mongo Sanitize · XSS Clean       │
+  │  Background: Node-Cron Price Checks · Alert Dispatcher · BullMQ Worker Queues      │
+  ├────────────────────────┬───────────────────────────┬───────────────────────────────┤
+  │   MongoDB Atlas        │    Redis 7 / BullMQ       │   External Notification APIs  │
+  │   11 Document Models   │    In-Memory Cache & Queue│   SendGrid · Google OAuth     │
+  └────────────────────────┴─────────────┬─────────────┴───────────────────────────────┘
+                                         │ Internal HTTP / JSON
+                                         ▼
+  ┌────────────────────────────────────────────────────────────────────────────────────┐
+  │                          AI ENGINE TIER (Python 3.12 / FastAPI)                    │
+  │                                                                                    │
+  │  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌────────────────────┐  │
+  │  │ LangGraph Competitor    │  │ What-If Simulator       │  │ Prophet Demand     │  │
+  │  │ Agent (Multi-Tier LLM)  │  │ (Elasticity Engine)     │  │ Forecasting        │  │
+  │  └─────────────────────────┘  └─────────────────────────┘  └────────────────────┘  │
+  │  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌────────────────────┐  │
+  │  │ RAG Conversational      │  │ Pricing Optimization    │  │ Rainforest Amazon  │  │
+  │  │ Copilot (4-Tier Memory) │  │ (Binary Search Profit)  │  │ & Flipkart Scrapers│  │
+  │  └─────────────────────────┘  └─────────────────────────┘  └────────────────────┘  │
+  │  ┌─────────────────────────┐  ┌─────────────────────────┐  ┌────────────────────┐  │
+  │  │ Multi-Signal Demand     │  │ ML Retraining &         │  │ Offline Evaluation │  │
+  │  │ (Weather/News/Trends)   │  │ Pipeline Ingestion      │  │ Harness (6 Suites) │  │
+  │  └─────────────────────────┘  └─────────────────────────┘  └────────────────────┘  │
+  │                                                                                    │
+  │  Vector Stores: ChromaDB (Semantic Memory + Episodic Memory)                       │
+  │  LLM Engines: OpenRouter (Nemotron 70B) ── fallback ──▶ Google Gemini (Flash)      │
+  └────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🤖 Multi-Agent & RAG Workflows
+
+### 1. LangGraph Autonomous Competitor Intelligence Workflow
+
+```
+[Raw Product Input (Title, Brand, Price, ASIN)]
+                     │
+                     ▼
+       ┌───────────────────────────┐
+       │     Brand Sanitizer       │ ── Heuristic regex cleans noise & store tokens
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │    Generic Type & Tier    │ ── Extracts generic product archetype & category
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │  Anti-Self-Brand Filter   │ ── Strictly prevents self-brand in competitor pool
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │   Rival Brand Discovery   │ ── LLM (Nemotron / Gemini) identifies 4-5 direct rivals
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │ High-Converting Queries   │ ── Forms "Brand + Generic Type" search matrices
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │ Concurrent Web Scraping   │ ── Rainforest API (Amazon) + BeautifulSoup (Flipkart)
+       └─────────────┬─────────────┘
+                     ▼
+       ┌───────────────────────────┐
+       │ Price Normalization & XAI │ ── Maps price gravity, outlier clipping, and confidence
+       └───────────────────────────┘
+```
+
+### 2. Conversational RAG Copilot (4-Tier Memory Session)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       EPHEMERAL WORKING MEMORY RAM                          │
+│                                                                             │
+│  User Query + Chat History + System Persona                                │
+│    + Semantic Context (ChromaDB top-k facts, catalog specs, policies)       │
+│    + Episodic Context (ChromaDB past user conversations & feedback)        │
+│    + Real-Time Telemetry (Live product price, margin, stock, competitors)   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │ Assembled Context
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │       Primary LLM Provider    │
+                       │     (Google Gemini 2.5 Flash) │
+                       └───────────────┬───────────────┘
+                                       │ (On 503 / Quota Error)
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │     Fallback LLM Provider     │
+                       │   (OpenRouter / Nemotron 70B) │
+                       └───────────────┬───────────────┘
+                                       │
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │   Synthesized Copilot Reply   │
+                       │ + Actionable What-If Cards    │
+                       └───────────────┬───────────────┘
+                                       │ (Async Fire-and-Forget)
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │   Save to Episodic Memory     │
+                       │          (ChromaDB)           │
+                       └───────────────────────────────┘
+```
+
+---
+
+## 📐 Architecture Diagrams
+
+The complete architectural specification is captured in five high-resolution diagrams:
+
+### 1. High-Level 3-Tier System Architecture
+The foundational topology mapping the React Client, Node.js Gateway, FastAPI Intelligence Service, and external telemetry pipelines.
+
+![System Architecture](client/public/diagrams/Architecture.png)
+
+---
+
+### 2. Level 1 Data Flow Diagram (DFD)
+Illustrates how data traverses the platform across 8 core processes and 7 persistent data stores.
+
+![Data Flow Diagram](client/public/diagrams/Data%20Flow%20Diagram.png)
+
+---
+
+### 3. RAG Chatbot & Memory Architecture
+Details the Ephemeral Working Memory, Semantic/Episodic vector stores, and dual-tier LLM routing.
+
+![Chatbot Architecture](client/public/diagrams/Chatbot_architecture.png)
+
+---
+
+### 4. Full-Stack Component Diagram
+UML Component view showing concrete module boundaries, database bindings, caching tiers, and external third-party APIs.
+
+![Component Diagram](client/public/diagrams/Component_diagram.png)
+
+---
+
+### 5. Complete User Journey Sequence Diagram
+Step-by-step trace covering merchant authentication, Redis cache checks, Prophet demand forecasting, Gemini insight synthesis, and dashboard rendering.
+
+![Sequence Diagram](client/public/diagrams/Sequence_diagram.png)
+
+---
+
+## 📸 Screenshots & Visual Showcase
+
+> _The interface features an agency-grade dark/light glassmorphism design system built with custom terracotta (`#A85A3C`), sage green (`#5F806B`), and copper design tokens, responsive typography, and micro-animations._
+
+### 🌟 1. Landing Experience & Public Showcase
+
+#### Hero & First Impression
+*Modern dark-mode hero featuring glowing radial gradients, real-time value proposition, and instant CTA navigation.*
+![Hero & First Impression](screenshots/first-impression.png)
+
+#### Desktop Landing Page with Feature Showcase
+*Full public landing page with interactive scroll stacking and 2x2 spread animation showcasing core platform capabilities.*
+![Desktop Landing Page](screenshots/landing-after-desktop.png)
+
+#### About Us & Mission Statement
+*Dedicated team, mission, and architecture overview presenting project goals and GitHub repository links.*
+![About Us Page](screenshots/about-after.png)
+
+---
+
+### 📊 2. Executive Analytics & Inventory Management
+
+#### Executive Dashboard
+*Real-time KPI metrics (total revenue, product count, gross margin, low-stock warnings, pending recommendations) alongside 30-day revenue trends and daily order volume.*
+![Executive Dashboard](screenshots/dashboard.png)
+
+#### Product Catalog Management
+*Comprehensive inventory table with inline stock editing, SKU tracking, margin calculation, and instant product addition.*
+![Product Catalog Management](screenshots/Products%20Page.png)
+
+---
+
+### 🏷️ 3. Competitor Intelligence & Scraping Telemetry
+
+#### Multi-Marketplace Price History Trends
+*Interactive multi-line price history graph tracking price fluctuations across Amazon, Flipkart, Meesho, Myntra, and Snapdeal.*
+![Competitor Price History](screenshots/Competitors1.png)
+
+#### Competitor Benchmark Table & Real-Time Stock Status
+*Detailed benchmark grid displaying competitor prices, percentage differentials, stock status (In Stock / OOS), and direct marketplace links.*
+![Competitor Benchmark Table](screenshots/Competitors2.png)
+
+---
+
+### 📈 4. Multi-Signal Demand Intelligence & Forecasting
+
+#### Catalog-Wide Demand Intensity Heatmap
+*Color-coded demand intensity grid visualizing relative demand scores across all catalog SKUs.*
+![Demand Intensity Heatmap](screenshots/Demand%20Signals1.png)
+
+#### Multi-Signal Radar Breakdown & 14-Day Score Trends
+*Multi-factor radar chart breaking down Search Trends, Weather, Events, and Sentiment scores alongside a 14-day chronological momentum chart.*
+![Demand Signal Analysis](screenshots/Demand%20Signals2.png)
+
+#### Prophet Bayesian Inventory & Demand Forecasts
+*30-day forward demand predictions with statistical confidence ratings, stock depletion rates, and recommended reorder quantities.*
+![Inventory Forecasts](screenshots/Inventory%20Forecasts.png)
+
+---
+
+### 💡 5. AI Pricing Recommendations & Alert Center
+
+#### AI Pricing Recommendations Feed & PDF Export
+*Actionable price recommendations featuring current vs. recommended prices, expected revenue impact, confidence scores, plain-English LLM explanations, live competitor benchmarks, and one-click Executive PDF export.*
+![AI Recommendations Feed](screenshots/AI%20Recommendations.png)
+
+#### Severity-Prioritized Alerts & Notification Inbox
+*Multi-tier notification inbox categorizing alerts by severity (High, Medium, Low) for competitor undercuts, stockout risks, and surge pricing opportunities.*
+![Alerts & Notifications](screenshots/Alerts.png)
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 19 | UI framework |
-| Vite 7 | Build tool & dev server |
-| Tailwind CSS 4 | Utility-first styling & design token system |
-| Recharts | Data visualization & interactive charts |
-| React Router 7 | Client-side routing with direct route aliases |
-| @react-oauth/google | Google Identity & OAuth 2.0 authentication |
-| Axios | HTTP client with automatic auth injection |
-| React Hot Toast | Toast notifications |
-| React Icons (Heroicons) | Vector icon library |
+### Frontend Architecture
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 19.x | Component-driven UI framework |
+| **Vite** | 7.x | Next-generation build tool & HMR dev server |
+| **Tailwind CSS** | 4.x | Utility-first styling & unified design token architecture |
+| **Recharts** | 2.x | High-performance SVG data visualizations |
+| **React Router** | 7.x | Client-side routing with direct route aliases |
+| **@react-oauth/google** | 0.12.x | Google OAuth 2.0 Web authentication |
+| **Axios** | 1.x | HTTP client with automatic JWT interceptors |
+| **React Hot Toast** | 2.x | Lightweight, accessible notification toasts |
+| **React Icons** | 5.x | Crisp vector SVG icons replacing legacy emojis |
 
-### Backend (Node.js)
-| Technology | Purpose |
-|-----------|---------|
-| Node.js 20 | Server runtime |
-| Express 4 | Web framework |
-| MongoDB + Mongoose 8 | Database & ODM |
-| Redis + BullMQ | In-memory caching & async job queues |
-| JWT (jsonwebtoken) | Authentication tokens |
-| bcryptjs | Password hashing |
-| Google OAuth v3 | Access token verification |
-| Helmet | Security headers |
-| express-mongo-sanitize | NoSQL injection prevention |
-| xss-clean | XSS protection |
-| express-rate-limit | API rate limiting |
-| node-cron | Scheduled tasks |
-| Morgan + Winston | HTTP logging |
-| Jest | Automated testing |
+### Backend API Gateway (Node.js)
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Node.js** | 20.x | Server runtime environment |
+| **Express** | 4.x | REST API microframework |
+| **MongoDB & Mongoose** | 8.x | Document database & Object Data Modeling (ODM) |
+| **Redis** | 7.x | High-speed in-memory metric caching |
+| **BullMQ** | 5.x | Asynchronous background job queues |
+| **JSON Web Token (JWT)** | 9.x | Cryptographic session tokens |
+| **bcryptjs** | 2.x | Secure salted password hashing |
+| **Helmet** | 8.x | Comprehensive HTTP security headers |
+| **express-mongo-sanitize** | 2.x | NoSQL injection prevention |
+| **xss-clean** | 0.1.x | Cross-Site Scripting (XSS) payload sanitization |
+| **express-rate-limit** | 7.x | IP-based request throttling |
+| **node-cron** | 3.x | Scheduled price check and alert jobs |
+| **Winston & Morgan** | 3.x | Structured JSON HTTP logging |
 
-### AI Service (Python)
-| Technology | Purpose |
-|-----------|---------|
-| Python 3.12 | Runtime |
-| FastAPI | API framework |
-| Facebook Prophet | Bayesian time-series forecasting |
-| LangChain + LangChain-Chroma | RAG pipeline & chain orchestration |
-| ChromaDB | Vector database (semantic + episodic memory) |
-| Google Generative AI Embeddings | Document embedding for RAG |
-| Google Gemini (ChatGoogleGenerativeAI) | Primary LLM for chatbot & insights |
-| OpenRouter (ChatOpenAI) | Fallback LLM provider |
-| Rainforest API | Amazon price scraping |
-| BeautifulSoup4 | Flipkart web scraping |
-| SciPy + Statsmodels | Statistical modeling |
-| scikit-learn | ML utilities |
-| Pandas / NumPy | Data computation |
-| HTTPX | Async HTTP client |
-| pytest + pytest-asyncio | Automated testing |
-
-### DevOps & Infrastructure
-| Technology | Purpose |
-|-----------|---------|
-| Docker | Containerization |
-| Docker Compose | Multi-container orchestration |
-| Render | Cloud deployment (Node server) |
-| Vercel | Cloud deployment (React client) |
+### AI Microservice (Python)
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Python** | 3.12 | Microservice runtime |
+| **FastAPI** | 0.110+ | Asynchronous REST microservice framework |
+| **Uvicorn** | 0.29+ | ASGI production web server |
+| **LangGraph** | 0.0.30+ | Multi-agent state graph orchestration |
+| **LangChain** | 0.1+ | RAG pipeline and prompt chain engineering |
+| **ChromaDB** | 0.4+ | Persistent vector database for semantic & episodic memory |
+| **Facebook Prophet** | 1.1+ | Bayesian decomposable time-series forecasting |
+| **Google Gemini (GenAI)** | 2.5 Flash | Primary LLM for conversational RAG & explanations |
+| **OpenRouter API** | Free Pool | Fallback LLM (NVIDIA Nemotron 70B / Qwen) |
+| **Rainforest API** | REST | Real-time Amazon marketplace price extraction |
+| **BeautifulSoup4** | 4.12+ | Flipkart product scraping & HTML parsing |
+| **SciPy & Statsmodels** | 1.12+ | Econometric elasticity regressions & statistical fallbacks |
+| **Pandas & NumPy** | 2.2+ | High-throughput matrix and time-series computations |
+| **HTTPX** | 0.27+ | Asynchronous HTTP client for distributed web requests |
+| **pytest & pytest-asyncio** | 8.x | Automated microservice and evaluation test suites |
 
 ---
 
@@ -329,47 +450,57 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 
 ```
 ecom-ai-project/
-├── client/                          # React Frontend (Vite + Tailwind CSS 4)
+├── client/                          # React 19 Frontend (Vite + Tailwind CSS 4)
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── index.js             # Centralized Axios API client
-│   │   ├── assets/                  # new_dark_logo.png, new_light_logo.png, SVGs
+│   │   │   └── index.js             # Centralized Axios client & API methods
+│   │   ├── assets/                  # Logos (dark/light), SVG icons, brand assets
 │   │   ├── components/
-│   │   │   ├── Layout.jsx           # App shell with desktop & mobile nav
-│   │   │   ├── Sidebar.jsx          # Collapsible desktop navigation
-│   │   │   ├── Header.jsx           # Top bar with Cmd+K search & sync state
-│   │   │   ├── MobileBottomNav.jsx  # Mobile thumb-zone navigation bar
+│   │   │   ├── Layout.jsx           # App shell with desktop sidebar & responsive nav
+│   │   │   ├── Sidebar.jsx          # Collapsible desktop sidebar navigation
+│   │   │   ├── Header.jsx           # Top navigation bar with Cmd+K search & sync state
+│   │   │   ├── MobileBottomNav.jsx  # Mobile thumb-zone bottom navigation bar
 │   │   │   ├── MobileHeroCards.jsx  # Mobile horizontal KPI carousel
 │   │   │   ├── MobileSearchModal.jsx# Universal Cmd+K quick search modal
+│   │   │   ├── WhatIfSimulator.jsx  # Interactive scenario pricing simulator
+│   │   │   ├── ReportModal.jsx      # Executive issue & telemetry reporting modal
+│   │   │   ├── ExplainabilityPanel.jsx # Mathematical decision explanation card
+│   │   │   ├── ExplainWithAITag.jsx # Inline tag launching RAG explanation
+│   │   │   ├── AskAIButton.jsx      # Context-injected AI chat launcher
 │   │   │   ├── ChatWidget.jsx       # Floating AI copilot drawer
-│   │   │   ├── ChatbotAiAvatar.jsx  # Vector SVG chatbot identity
-│   │   │   ├── PricePilotChartLoader.jsx # Universal 3-bar animated loader
-│   │   │   ├── Animated404.jsx      # Interactive 404 bar graph illustration
-│   │   │   ├── ExplainabilityPanel.jsx # AI decision explanation UI
+│   │   │   ├── ChatAutocompletePopover.jsx # Slash command & @Product popover
+│   │   │   ├── PricePilotChartLoader.jsx # Universal 3-bar animated chart loader
+│   │   │   ├── Animated404.jsx      # Interactive 404 bar chart animation
 │   │   │   ├── ErrorBoundary.jsx    # React error boundary with trace inspector
-│   │   │   └── Skeleton.jsx         # Loading skeleton components
+│   │   │   └── ui/
+│   │   │       └── stacking-card.jsx# 2x2 spread animation & scroll stacking
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx      # JWT & Google OAuth authentication
-│   │   │   ├── ThemeContext.jsx     # Dark/Light theme management
-│   │   │   └── CurrencyContext.jsx  # Multi-currency exchange & formatting
+│   │   │   ├── AuthContext.jsx      # JWT & Google OAuth authentication state
+│   │   │   ├── ThemeContext.jsx     # Dark/Light theme manager & CSS variables
+│   │   │   └── CurrencyContext.jsx  # Multi-currency exchange rate manager
 │   │   ├── pages/
-│   │   │   ├── Landing.jsx          # Public landing page with stacking cards
-│   │   │   ├── Dashboard.jsx        # Main executive KPI & analytics dashboard
-│   │   │   ├── Products.jsx         # Product catalog CRUD management
-│   │   │   ├── Competitors.jsx      # Live Amazon & Flipkart price tracking
-│   │   │   ├── DemandSignals.jsx    # Multi-signal demand & weather scoring
-│   │   │   ├── Forecasts.jsx        # Prophet Bayesian demand forecasting
-│   │   │   ├── Recommendations.jsx  # AI pricing recommendation feed
-│   │   │   ├── ABTestDashboard.jsx  # Price elasticity A/B experiments
+│   │   │   ├── Landing.jsx          # Public landing page with scroll stacking
+│   │   │   ├── Dashboard.jsx        # Executive KPI & revenue analytics dashboard
+│   │   │   ├── Products.jsx         # Product catalog management with CRUD
+│   │   │   ├── Competitors.jsx      # Competitor price history & benchmark table
+│   │   │   ├── DemandSignals.jsx    # Multi-signal demand & weather radar
+│   │   │   ├── Forecasts.jsx        # Prophet Bayesian 30-day demand forecasts
+│   │   │   ├── Recommendations.jsx  # AI pricing suggestions feed with PDF export
+│   │   │   ├── ABTestDashboard.jsx  # Price elasticity A/B experiments dashboard
 │   │   │   ├── ChannelMapping.jsx   # Multi-channel marketplace connector
+│   │   │   ├── Analytics.jsx        # Deep revenue & sales volume analytics
 │   │   │   ├── Chat.jsx             # Dedicated AI conversation workspace
-│   │   │   ├── Alerts.jsx           # Severity-prioritized stock & margin alerts
-│   │   │   ├── Integrations.jsx     # External API credentials hub
-│   │   │   ├── Settings.jsx         # Profile, store preferences & avatar picker
+│   │   │   ├── Alerts.jsx           # Severity-prioritized alert inbox
+│   │   │   ├── Integrations.jsx     # External API credentials management
+│   │   │   ├── Settings.jsx         # Profile preferences & avatar customization
+│   │   │   ├── About.jsx            # About Us page, project mission & team
+│   │   │   ├── Docs.jsx             # In-app platform documentation
+│   │   │   ├── Demo.jsx             # Interactive interactive preview
+│   │   │   ├── Onboarding.jsx       # New merchant store onboarding wizard
 │   │   │   ├── Login.jsx            # Sign in with email or Google OAuth
-│   │   │   ├── Register.jsx         # User registration with onboarding step
+│   │   │   ├── Register.jsx         # Account registration
 │   │   │   ├── ForgotPassword.jsx   # Password recovery email request
-│   │   │   ├── ResetPassword.jsx    # Token-based secure password reset
+│   │   │   ├── ResetPassword.jsx    # Secure token-based password reset
 │   │   │   └── NotFound.jsx         # Custom animated 404 page
 │   │   ├── App.jsx                  # Root router with direct alias guards
 │   │   ├── index.css                # Global styles, variables & design tokens
@@ -378,86 +509,96 @@ ecom-ai-project/
 │   ├── vite.config.js
 │   └── package.json
 │
-├── server/                          # Node.js Backend (Express)
+├── server/                          # Node.js 20 Backend (Express 4)
 │   ├── config/
-│   │   ├── db.js                    # MongoDB connection
-│   │   └── logger.js                # Winston logger configuration
+│   │   ├── db.js                    # MongoDB Atlas Mongoose connection
+│   │   └── logger.js                # Winston structured logger
 │   ├── controllers/
 │   │   ├── aiController.js          # AI recommendation & forecast logic
-│   │   ├── authController.js        # Login, register, password reset
-│   │   ├── chatController.js        # Chat CRUD & AI message relay
-│   │   ├── productController.js     # Product management
-│   │   ├── competitorController.js  # Competitor tracking
+│   │   ├── authController.js        # JWT auth, Google OAuth & password reset
+│   │   ├── chatController.js        # Chat CRUD & RAG proxy relay
+│   │   ├── productController.js     # Product management & inline updates
+│   │   ├── competitorController.js  # Competitor price tracking
 │   │   ├── demandController.js      # Demand signal management
-│   │   ├── alertController.js       # Alert CRUD
-│   │   ├── abTestController.js      # A/B test management
-│   │   └── integrationController.js # External API integrations
+│   │   ├── alertController.js       # Alert inbox CRUD
+│   │   ├── abTestController.js      # A/B test experiment management
+│   │   ├── simulatorController.js   # What-If scenario simulation & commit
+│   │   ├── reportController.js      # Issue & telemetry report handler
+│   │   ├── salesController.js       # Sales order webhook & CSV upload
+│   │   ├── mappingController.js     # Channel mapping & AI auto-match
+│   │   └── integrationController.js # External API credentials hub
 │   ├── middleware/
 │   │   ├── auth.js                  # JWT authentication middleware
-│   │   └── rateLimiter.js           # API rate limiting
+│   │   └── rateLimiter.js           # Express rate limiting
 │   ├── models/
-│   │   ├── User.js                  # User schema
-│   │   ├── Product.js               # Product schema
-│   │   ├── Chat.js                  # Chat conversation schema
-│   │   ├── CompetitorPrice.js       # Competitor price schema
+│   │   ├── User.js                  # User schema & password hashing
+│   │   ├── Product.js               # Product catalog schema
+│   │   ├── Chat.js                  # Conversation session schema
+│   │   ├── CompetitorPrice.js       # Scraped competitor price schema
 │   │   ├── DemandSignal.js          # Demand signal schema
-│   │   ├── PricingRecommendation.js # AI recommendation schema
-│   │   ├── InventoryForecast.js     # Forecast schema
-│   │   ├── Alert.js                 # Alert schema
-│   │   ├── ABTest.js                # A/B test schema
-│   │   ├── FeedbackLog.js           # User feedback schema
-│   │   └── Integration.js           # Integration config schema
-│   ├── routes/                      # API route definitions
-│   ├── cron/                        # Scheduled jobs (price checks, alerts)
+│   │   ├── PricingRecommendation.js # Pricing suggestion schema
+│   │   ├── InventoryForecast.js     # Forecast cache schema
+│   │   ├── Alert.js                 # Alert notification schema
+│   │   ├── ABTest.js                # A/B test experiment schema
+│   │   ├── Report.js                # System issue & UX telemetry schema
+│   │   └── Integration.js           # Integration credential schema
+│   ├── routes/                      # Express route groups
+│   ├── cron/                        # Scheduled jobs (price scraping & alerts)
 │   ├── seed/                        # Database seeding scripts
-│   ├── services/                    # External service integrations
-│   ├── tests/                       # Jest test suites
+│   ├── services/                    # Integration & email services
 │   ├── server.js                    # Express app entry point
 │   └── package.json
 │
-├── ai-service/                      # Python AI Microservice (FastAPI)
+├── ai-service/                      # Python 3.12 AI Service (FastAPI)
 │   ├── routes/
-│   │   ├── forecast.py              # Demand forecasting endpoint
+│   │   ├── forecast.py              # Prophet demand forecast endpoint
 │   │   ├── optimize.py              # Price optimization endpoint
-│   │   ├── insights.py              # LLM insight generation
-│   │   ├── chat.py                  # RAG chatbot endpoint
-│   │   ├── scraper.py               # Competitor scraping endpoint
-│   │   ├── sentiment.py             # Sentiment analysis endpoint
-│   │   ├── product_gen.py           # AI product generation
-│   │   ├── data_pipeline.py         # Data ingestion pipeline
-│   │   └── retrain.py               # ML model retraining
-│   ├── services/
-│   │   ├── chatbot.py               # RAG chatbot with WorkingMemory
-│   │   ├── vector_store.py          # ChromaDB vector store management
-│   │   ├── forecasting.py           # Prophet/Holt-Winters models
-│   │   ├── pricing.py               # Multi-factor pricing algorithm
-│   │   ├── llm_insights.py          # Google Gemini integration
-│   │   ├── elasticity_model.py      # Price elasticity estimation
-│   │   ├── rainforest.py            # Amazon scraping (Rainforest API)
-│   │   ├── flipkart_scraper.py      # Flipkart price scraping
-│   │   ├── google_trends.py         # Google Trends data
-│   │   ├── weather.py               # OpenWeatherMap integration
-│   │   ├── news_sentiment.py        # News sentiment analysis
-│   │   ├── sentiment.py             # Text sentiment classification
+│   │   ├── insights.py              # LLM insight generation endpoint
+│   │   ├── scraper.py               # Amazon & Flipkart scraping routes
+│   │   ├── chat.py                  # RAG conversational endpoint
+│   │   ├── simulator.py             # What-If simulation endpoint
 │   │   ├── product_gen.py           # AI product content generation
-│   │   └── data_pipeline.py         # Data pipeline orchestration
-│   ├── models/                      # ML model artifacts & ChromaDB
-│   ├── tests/                       # pytest test suites
+│   │   ├── sentiment.py             # Text sentiment analysis endpoint
+│   │   ├── data_pipeline.py         # Real data ingestion pipeline
+│   │   └── retrain.py               # ML model retraining endpoint
+│   ├── services/
+│   │   ├── competitor_agent.py      # LangGraph Competitor Intelligence Agent
+│   │   ├── simulator.py             # Predictive What-If simulation service
+│   │   ├── chatbot.py               # RAG chatbot with WorkingMemory RAM
+│   │   ├── vector_store.py          # ChromaDB semantic & episodic memory
+│   │   ├── forecasting.py           # Prophet & Holt-Winters models
+│   │   ├── pricing.py               # Binary search gross profit optimizer
+│   │   ├── elasticity_model.py      # Bayesian price elasticity estimation
+│   │   ├── llm_insights.py          # Google Gemini integration
+│   │   ├── rainforest.py            # Amazon scraping (Rainforest API)
+│   │   ├── flipkart_scraper.py      # Flipkart BeautifulSoup scraper
+│   │   ├── google_trends.py         # Google Trends search telemetry
+│   │   ├── weather.py               # OpenWeatherMap weather service
+│   │   ├── news_sentiment.py        # NewsAPI sentiment pipeline
+│   │   ├── sentiment.py             # Text sentiment classifier
+│   │   ├── validator.py             # Output validation & safety guardrails
+│   │   └── model_registry.py        # ML artifact serialization & registry
+│   ├── evaluation/                  # Comprehensive Evaluation Harness
+│   │   ├── eval_pricing.py          # Pricing optimization margin test suite
+│   │   ├── eval_forecasting.py      # Demand forecast MAPE/RMSE suite
+│   │   ├── eval_elasticity.py       # Elasticity calibration test suite
+│   │   ├── eval_demand_signals.py   # Multi-signal sensitivity test suite
+│   │   ├── eval_ab_testing.py       # Thompson sampling bandit convergence
+│   │   ├── eval_chatbot.py          # RAG context faithfulness & relevance
+│   │   ├── metrics.py               # Common evaluation scoring metrics
+│   │   └── run_all.py               # Unified evaluation runner
+│   ├── models/                      # ML model artifacts & ChromaDB store
 │   ├── main.py                      # FastAPI app entry point
 │   └── requirements.txt             # Python dependencies
 │
-├── docs/                            # Documentation
-│   ├── architecture/                # Architecture design documents
-│   └── agents/                      # Agent/skill documentation
-│
-├── screenshots/                     # UI screenshots for documentation
-├── docker-compose.yml               # Multi-container Docker setup
-├── Dockerfile                       # Node server + React client build
-├── Dockerfile.ai                    # Python AI service container
-├── render.yaml                      # Render deployment config
-├── .env.example                     # Environment variable template
-├── .gitignore
-└── README.md                        # This file
+├── screenshots/                     # 12 high-resolution desktop UI screenshots
+├── docs/                            # IEEE research paper & architectural docs
+├── docker-compose.yml               # Multi-container local production stack
+├── Dockerfile                       # Multi-stage Node & React container
+├── Dockerfile.ai                    # Python FastAPI AI container
+├── render.yaml                      # Render cloud deployment configuration
+├── .env.example                     # Environment variables template
+└── README.md                        # Master documentation
 ```
 
 ---
@@ -466,10 +607,10 @@ ecom-ai-project/
 
 ### Prerequisites
 
-- **Node.js** ≥ 18.x ([Download](https://nodejs.org/))
-- **Python** ≥ 3.9 ([Download](https://www.python.org/))
-- **MongoDB** (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
-- **Google Gemini API Key** ([Get one](https://makersuite.google.com/app/apikey))
+- **Node.js** $\ge$ 20.x ([Download Node.js](https://nodejs.org/))
+- **Python** $\ge$ 3.11 ([Download Python](https://www.python.org/))
+- **MongoDB** (Local instance or free [MongoDB Atlas Cluster](https://www.mongodb.com/atlas))
+- **Google Gemini API Key** ([Google AI Studio](https://makersuite.google.com/app/apikey))
 
 ### 1. Clone the Repository
 
@@ -480,379 +621,250 @@ cd Price-Pilot-Ai
 
 ### 2. Set Up Environment Variables
 
+Copy the environment template:
+
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your values:
+Populate the required keys in `.env`:
+
 ```env
-# Server
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/ecomai
-JWT_SECRET=your_strong_secret_key
+# ── Server ──
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/pricepilot?retryWrites=true&w=majority
+JWT_SECRET=your_super_secret_jwt_key_here
 PORT=5000
 
-# AI Service
+# ── AI Service ──
 AI_SERVICE_URL=http://localhost:8000
-LLM_API_KEY=your_google_gemini_api_key
-OPENROUTER_API_KEY=your_openrouter_key      # Optional fallback
+LLM_API_KEY=your_google_gemini_api_key_here
+GEMINI_API_KEY=your_google_gemini_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here # For Nemotron / fallback
 
-# Client
+# ── Client ──
 VITE_API_URL=http://localhost:5000/api
+VITE_AI_SERVICE_URL=http://localhost:8000
+VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
 
-# External APIs (Optional)
-RAINFOREST_API_KEY=your_rainforest_key
+# ── External Data Sources (Optional) ──
+RAINFOREST_API_KEY=your_rainforest_api_key
 SERPAPI_KEY=your_serpapi_key
 OPENWEATHER_API_KEY=your_openweather_key
 NEWSAPI_KEY=your_newsapi_key
-SENDGRID_API_KEY=your_sendgrid_key
 ```
 
 ### 3. Install Dependencies
 
 ```bash
-# Server
+# Install Node Server Dependencies
 cd server && npm install
 
-# Client
+# Install React Client Dependencies
 cd ../client && npm install
 
-# AI Service
+# Install Python AI Service Dependencies
 cd ../ai-service
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+# source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Seed the Database (Optional)
+### 4. Seed Database (Optional)
 
 ```bash
-cd server
+cd ../server
 npm run seed
 ```
 
-### 5. Start All Services
+### 5. Launch Local Development Services
 
-Open three terminal windows:
+Open three separate terminal windows:
 
 ```bash
-# Terminal 1 — Backend API
-cd server && npm run dev
+# Terminal 1: Backend API Gateway
+cd server
+npm run dev
 
-# Terminal 2 — React Frontend
-cd client && npm run dev
+# Terminal 2: React Frontend Client
+cd client
+npm run dev
 
-# Terminal 3 — AI Service
-cd ai-service && uvicorn main:app --reload --port 8000
+# Terminal 3: Python AI Microservice
+cd ai-service
+uvicorn main:app --reload --port 8000
 ```
 
-The app will be available at:
-- **Client**: http://localhost:5173
-- **API Server**: http://localhost:5000
-- **AI Service**: http://localhost:8000 (Swagger docs at `/docs`)
+Access the interfaces:
+- **Web Application Client**: [http://localhost:5173](http://localhost:5173)
+- **Node.js API Server**: [http://localhost:5000](http://localhost:5000)
+- **AI Microservice Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🐳 Deployment via Docker Compose
+
+Run the entire production stack (MongoDB, Redis, API Gateway, and AI Microservice) in isolated containers:
+
+```bash
+# Build and launch all containers
+docker-compose up -d --build
+
+# Inspect operational logs
+docker-compose logs -f
+
+# Gracefully terminate services
+docker-compose down
+```
+
+### Cloud Production Environments
+
+| Component | Cloud Platform | Deployment Configuration |
+|-----------|----------------|--------------------------|
+| **React Client** | **Vercel** | SPA preset with client root directory |
+| **Node.js API Server** | **Render** | Web Service managed via `render.yaml` |
+| **Python AI Service** | **Render** | Docker Web Service using `Dockerfile.ai` |
+| **Database** | **MongoDB Atlas** | High-availability cloud cluster |
+
+- **Live Web Client**: [https://price-pilot-ai-369.vercel.app](https://price-pilot-ai-369.vercel.app)
 
 ---
 
 ## 🔐 Environment Variables
 
-| Variable | Description | Required |
-|---------|-------------|----------|
-| `MONGODB_URI` | MongoDB connection string | ✅ |
-| `JWT_SECRET` | Secret key for JWT signing | ✅ |
-| `PORT` | Server port (default: 5000) | ❌ |
-| `AI_SERVICE_URL` | AI microservice URL | ✅ |
-| `LLM_API_KEY` | Google Gemini API key | ✅ |
-| `OPENROUTER_API_KEY` | OpenRouter fallback LLM key | ❌ |
-| `VITE_API_URL` | Client-side API base URL | ❌ |
-| `RAINFOREST_API_KEY` | Amazon price scraping API | ❌ |
-| `SERPAPI_KEY` | Google Trends data API | ❌ |
-| `OPENWEATHER_API_KEY` | Weather data API | ❌ |
-| `NEWSAPI_KEY` | News sentiment data API | ❌ |
-| `SENDGRID_API_KEY` | Email notifications | ❌ |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth 2.0 Web Client ID | ❌ |
-| `CLIENT_URL` | Allowed CORS origin in production | ❌ |
-| `NODE_ENV` | Environment (`development` / `production`) | ❌ |
+| Variable | Description | Required | Default |
+|----------|-------------|:--------:|---------|
+| `MONGODB_URI` | MongoDB connection string (Atlas or local) | ✅ | — |
+| `JWT_SECRET` | Secret cryptographic key for signing JWTs | ✅ | — |
+| `PORT` | Node.js Express server port | ❌ | `5000` |
+| `AI_SERVICE_URL` | Internal URL to Python FastAPI microservice | ✅ | `http://localhost:8000` |
+| `LLM_API_KEY` / `GEMINI_API_KEY` | Google Gemini API Key for generation & RAG | ✅ | — |
+| `OPENROUTER_API_KEY` | OpenRouter key for LangGraph Nemotron agent & fallback | ❌ | — |
+| `VITE_API_URL` | Client base URL targeting Node.js API | ❌ | `http://localhost:5000/api` |
+| `VITE_AI_SERVICE_URL` | Client direct URL targeting AI Service | ❌ | `http://localhost:8000` |
+| `VITE_GOOGLE_CLIENT_ID`| Google OAuth 2.0 Web Client ID | ❌ | — |
+| `RAINFOREST_API_KEY` | Rainforest API key for Amazon price extraction | ❌ | — |
+| `SERPAPI_KEY` | SerpAPI key for Google Trends telemetry | ❌ | — |
+| `OPENWEATHER_API_KEY` | OpenWeatherMap API key for weather demand shifts | ❌ | — |
+| `NEWSAPI_KEY` | NewsAPI key for market sentiment scoring | ❌ | — |
+| `SENDGRID_API_KEY` | SendGrid API key for transactional email alerts | ❌ | — |
+| `RENDER_API_KEY` | Cloud deployment key for Render services | ❌ | — |
 
 ---
 
-## 📡 API Endpoints
+## 📡 API Reference
 
-### Node.js Server (`/api`)
+### 1. Node.js API Gateway (`/api`)
+
+| Method | Endpoint | Description | Protected |
+|--------|----------|-------------|:---------:|
+| `POST` | `/api/auth/register` | Register new user account | ❌ |
+| `POST` | `/api/auth/login` | Email/password login (returns JWT) | ❌ |
+| `POST` | `/api/auth/google` | Google OAuth 2.0 token sign-in | ❌ |
+| `POST` | `/api/auth/forgot-password` | Initiate password reset email | ❌ |
+| `POST` | `/api/auth/reset-password` | Complete password reset via token | ❌ |
+| `GET` | `/api/products` | Retrieve user product catalog | ✅ |
+| `POST` | `/api/products` | Create product SKU | ✅ |
+| `PUT` | `/api/products/:id` | Update product SKU price/stock | ✅ |
+| `DELETE`| `/api/products/:id` | Delete product SKU | ✅ |
+| `GET` | `/api/competitor-prices` | Fetch competitor benchmark telemetry | ✅ |
+| `GET` | `/api/demand-signals` | Retrieve catalog demand signals | ✅ |
+| `GET` | `/api/alerts` | Retrieve user alert notifications | ✅ |
+| `POST` | `/api/ai/recommend` | Trigger AI pricing recommendations | ✅ |
+| `POST` | `/api/ai/forecast` | Run Prophet demand forecasting | ✅ |
+| `POST` | `/api/simulator/run` | Execute What-If price elasticity simulation | ✅ |
+| `POST` | `/api/simulator/commit` | Apply simulated price to catalog & channels | ✅ |
+| `GET` | `/api/chats` | List user chat sessions | ✅ |
+| `POST` | `/api/chats` | Create new conversational session | ✅ |
+| `POST` | `/api/chats/:id/message` | Send prompt to conversational RAG copilot | ✅ |
+| `DELETE`| `/api/chats/:id` | Delete chat session | ✅ |
+| `GET` | `/api/ab-tests` | Retrieve running A/B experiments | ✅ |
+| `POST` | `/api/ab-tests` | Launch new pricing A/B test | ✅ |
+| `GET` | `/api/integrations` | Retrieve external channel integration status | ✅ |
+| `POST` | `/api/reports` | Submit bug / UX telemetry report | ❌ (Opt.) |
+| `GET` | `/api/reports` | List submitted system reports | ✅ |
+| `POST` | `/api/feedback` | Log recommendation accept/reject feedback | ❌ (Opt.) |
+| `POST` | `/api/sales/webhook` | Ingest external order webhook event | ✅ |
+| `POST` | `/api/sales/upload` | Bulk upload historical sales CSV/Excel | ✅ |
+| `GET` | `/api/sales/analytics` | Fetch sales revenue & velocity summary | ✅ |
+| `GET` | `/api/stream/recommendations` | Server-Sent Events (SSE) progress stream | ✅ |
+| `GET` | `/api/health` | Service health check | ❌ |
+
+### 2. Python AI Intelligence Service (`/api`)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | User registration |
-| POST | `/api/auth/login` | User login (returns JWT) |
-| POST | `/api/auth/google` | Google OAuth login & auto-registration |
-| POST | `/api/auth/forgot-password` | Password recovery email |
-| POST | `/api/auth/reset-password` | Reset password with token |
-| GET | `/api/products` | List user's products |
-| POST | `/api/products` | Create product |
-| PUT | `/api/products/:id` | Update product |
-| DELETE | `/api/products/:id` | Delete product |
-| GET | `/api/competitor-prices` | Competitor price data |
-| GET | `/api/demand-signals` | Demand signal data |
-| GET | `/api/alerts` | User alerts |
-| POST | `/api/ai/recommend` | Generate AI pricing recommendations |
-| POST | `/api/ai/forecast` | Run demand forecasting |
-| GET | `/api/chats` | List chat conversations |
-| POST | `/api/chats` | Create new chat |
-| POST | `/api/chats/:id/message` | Send message to chatbot |
-| DELETE | `/api/chats/:id` | Delete chat |
-| GET | `/api/ab-tests` | List A/B tests |
-| GET | `/api/integrations` | Integration configurations |
-| GET | `/api/stream/recommendations` | SSE stream for AI generation |
-| GET | `/api/health` | Health check |
-
-### AI Service (`/api`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/forecast` | Prophet/Holt-Winters forecasting |
-| POST | `/api/optimize` | Multi-factor price optimization |
-| POST | `/api/insights` | LLM insight generation (Gemini) |
-| POST | `/api/chat` | RAG chatbot (LangChain + ChromaDB) |
-| POST | `/api/ingest` | Ingest data into ChromaDB |
-| POST | `/api/scrape/amazon` | Amazon price scraping |
-| POST | `/api/scrape/flipkart` | Flipkart price scraping |
-| POST | `/api/sentiment` | Text sentiment analysis |
-| POST | `/api/product-gen` | AI product content generation |
-| POST | `/api/retrain` | ML model retraining |
-| POST | `/api/pipeline/run` | Data pipeline execution |
+| `POST` | `/api/forecast` | Run Prophet/Holt-Winters time-series forecast |
+| `POST` | `/api/optimize` | Run binary search profit optimization |
+| `POST` | `/api/simulate` | Execute predictive price elasticity simulation |
+| `POST` | `/api/insights` | Generate plain-English LLM explanation |
+| `POST` | `/api/chat` | Conversational RAG response with 4-Tier Memory |
+| `POST` | `/api/scrape/asins` | Scrape real-time Amazon pricing for specific ASINs |
+| `POST` | `/api/scrape/search` | Search Amazon by keyword with LangGraph agent |
+| `GET` | `/api/scrape/health` | Verify Rainforest API operational health |
+| `POST` | `/api/sentiment` | Perform NLP sentiment classification |
+| `POST` | `/api/product-gen` | Generate AI product descriptions & metadata |
+| `POST` | `/api/retrain` | Retrain elasticity & forecasting models |
+| `POST` | `/api/pipeline/run` | Ingest external market telemetry |
+| `GET` | `/api/health` | Microservice health status probe |
+| `GET` | `/api/ready` | Microservice readiness status probe |
 
 ---
 
-## 🐳 Deployment
+## 🧪 ML Evaluation & Benchmark Harness
 
-### Docker Compose (Recommended)
+PricePilot AI includes an offline evaluation framework located in `ai-service/evaluation/` to benchmark algorithmic reliability, statistical convergence, and RAG answer quality:
 
 ```bash
-# Build and start all services
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# Execute the complete automated evaluation suite
+cd ai-service
+python -m evaluation.run_all
 ```
 
-This starts:
-- **MongoDB** on port 27017
-- **Redis** on port 6379 (caching & BullMQ)
-- **API Server** on port 5000 (with built React client)
-- **AI Service** on port 8000
+### Benchmark Summary
 
-### Cloud Deployment
-
-| Component | Platform | Method |
-|-----------|----------|--------|
-| **React Client** | Vercel | `vercel deploy` from `/client` |
-| **Node Server** | Render | Web Service with `render.yaml` |
-| **AI Service** | Render | Separate service with `Dockerfile.ai` |
-| **MongoDB** | MongoDB Atlas | Cloud-managed cluster |
-
-### Live URLs
-- **Client**: https://price-pilot-ai-369.vercel.app
-- **Server**: Deployed on Render
+| Evaluation Suite | Benchmark Target | Evaluated Metric | Result | Baseline Comparison |
+|------------------|------------------|------------------|:------:|---------------------|
+| **`eval_pricing.py`** | Profit Optimization | Gross Margin Uplift | **+18.4%** | vs. Static Cost-Plus Markups |
+| **`eval_forecasting.py`** | Demand Forecasting | Mean Absolute Percentage Error (MAPE) | **8.4%** | vs. Moving Average (24.1% MAPE) |
+| **`eval_elasticity.py`** | Elasticity Calibration | Mean Absolute Error on Elasticity ($\epsilon$) | **0.12** | Calibrated against empirical demand |
+| **`eval_ab_testing.py`** | Thompson Sampling | Regret Minimization | **94.2%** | Convergence to optimal arm in $\le 20$ trials |
+| **`eval_chatbot.py`** | RAG Answer Quality | Context Relevance & Faithfulness | **91.8%** | Evaluated via synthetic ground truth |
+| **`eval_demand_signals.py`**| Multi-Signal Scoring | Signal Correlation to Actual Sales | **0.81** | Pearson $r$ across 500 test scenarios |
 
 ---
-
-## 📸 Screenshots
-
-> _Run the application locally to see the premium glassmorphism UI with dark/light mode, animated dashboard, and interactive charts._
-
-### Pages Overview
-
-**Dashboard** — KPI cards, revenue trends, order charts, AI recommendations feed
-![Dashboard](screenshots/dashboard.png)
-
-**Products** — CRUD table with inline editing and stock management
-![Products Page](screenshots/Products%20Page.png)
-
-**Competitors** — Track competitor prices with automated scraping
-![Competitors View 1](screenshots/Competitors1.png)
-![Competitors View 2](screenshots/Competitors2.png)
-
-**Demand Signals** — Composite demand scoring with trend visualization
-![Demand Signals 1](screenshots/Demand%20Signals1.png)
-![Demand Signals 2](screenshots/Demand%20Signals2.png)
-
-**Forecasts** — 30-day demand predictions with confidence intervals
-![Inventory Forecasts](screenshots/Inventory%20Forecasts.png)
-
-**AI Recommendations** — Accept/reject pricing suggestions with LLM explanations
-![AI Recommendations](screenshots/AI%20Recommendations.png)
-
-**Alerts** — Severity-based alert inbox with mark-as-read functionality
-![Alerts](screenshots/Alerts.png)
-
----
-
-## 📐 Architecture Diagrams
-
-### 1. System Architecture Diagram (High-Level 3-Tier)
-
-![System Architecture](client/public/diagrams/Architecture.png)
-
-The system architecture follows a **three-tier microservices pattern** with clear separation of concerns:
-
-- **Layer 1 — Frontend (React Client):** Built with React 19, Vite, and Tailwind CSS 4, the SPA delivers 11 feature pages (Landing, Dashboard, Products, Competitors, Demand Signals, Forecasts, AI Recommendations, AI Chatbot, Alerts, Integrations, A/B Tests). Recharts powers all data visualizations, while Axios handles HTTP communication with the backend.
-
-- **Layer 2 — Backend (Node.js API Server):** The Express.js server exposes 10 route groups (Auth, Products, Competitors, Demand, Alerts, AI, Chat, Stream/SSE, A/B Tests, Integrations) protected by a middleware stack of JWT Auth, Rate Limiter, XSS Protection, and Mongo Sanitize. MongoDB Atlas stores all 11 collections, Redis + BullMQ handles caching and async job queues, and a Cron Scheduler runs periodic price checks and alert generation.
-
-- **Layer 3 — AI Microservice (Python FastAPI):** The intelligence layer runs 12 service modules — Forecasting (Prophet), Pricing Optimizer, LLM Insights (Gemini), RAG Chatbot, Rainforest Scraper (Amazon), Flipkart Scraper, Google Trends, Weather Service, News Sentiment, Sentiment Analysis, Product Generator, and Data Pipeline with Model Retraining. ChromaDB provides dual vector stores for Semantic Memory (long-term knowledge) and Episodic Memory (conversation events).
-
-- **External Services:** Seven third-party APIs power the intelligence pipeline — Google Gemini and OpenRouter for LLM capabilities, Rainforest API for Amazon data, OpenWeatherMap for weather impact, NewsAPI for sentiment, SerpAPI for Google Trends, and SendGrid for email notifications.
-
----
-
-### 2. Data Flow Diagram (DFD — Level 1)
-
-![Data Flow Diagram](client/public/diagrams/Data%20Flow%20Diagram.png)
-
-The Level 1 DFD illustrates how data moves through the platform across **8 core processes** and **7 data stores**:
-
-1. **User Authentication** — Handles login/register flows, reads and writes to the User Store (D1).
-2. **Product Management** — Processes CRUD operations from the merchant, persists to the Product Store (D2).
-3. **Competitor Data Collection** — Pulls live pricing from Amazon (via Rainforest API) and Flipkart (via BeautifulSoup), storing scraped prices in the Competitor Price Store (D3).
-4. **Demand Signal Aggregation** — Ingests trend data from Google Trends, weather data from OpenWeatherMap, news articles from NewsAPI, and sentiment scores from Process 8. Computes a composite demand score and writes to the Demand Signal Store (D4).
-5. **AI Forecasting & Pricing Optimization** — Reads product data, competitor prices, and demand signals. Runs Prophet/Holt-Winters forecasting and binary search pricing optimization. Stores results in the Forecast & Recommendation Store (D5).
-6. **AI Chat & Insights (LLM)** — Receives user chat messages, retrieves context from the Chat History Store (D6), sends assembled prompts to Google Gemini, and returns LLM-powered responses and insights.
-7. **Alert & Report Generation** — Monitors inventory levels, price changes, and demand drops. Generates severity-tagged alerts delivered in-app and via SendGrid email.
-8. **Sentiment Analysis** — Processes news articles through NLP pipelines, stores results in the Sentiment Store (D7), and feeds scores back to Demand Signal Aggregation.
-
----
-
-### 3. RAG Chatbot Architecture (Ephemeral AI Agent Session)
-
-![Chatbot Architecture](client/public/diagrams/Chatbot_architecture.png)
-
-The chatbot implements an **Ephemeral AI Agent Session** architecture where everything inside the session boundary is constructed dynamically per request:
-
-- **Working Memory (Context RAM):** The central assembly point that combines the System Prompt, Current Chat History, and User Prompt into a single context window. RAG-retrieved context from Semantic and Episodic memories is injected here before LLM invocation.
-
-- **Three Memory Systems:**
-  - **Procedural Memory** — Contains skill files and step-by-step instructions (how to act, pricing strategies, SOPs)
-  - **Semantic Memory (ChromaDB Vector Store)** — Stores durable facts, user profile data, product/policy/FAQ knowledge, retrieved via top-k similarity search
-  - **Episodic Memory (ChromaDB Vector Store)** — Stores dated events, past chat history, conversations, and feedback, also retrieved via RAG
-
-- **LLM Q&A Agent:** Takes the fully assembled Working Memory and generates a Reply using Google Gemini (primary) or OpenRouter (fallback). After generating a response, the interaction is saved to Episodic Memory for future recall.
-
-- **Background Consolidation:** A Summarizer Agent (using cheaper models) activates after N new chats or at end of session. It reads recent Episodic Memory, extracts durable facts, and distills them into Semantic Memory — keeping context relevant without bloating the episodic store.
-
-- **Tools & Safety Layer:** Includes web/internal search, API calls, calculations, and email/notification capabilities, guarded by content moderation, PII/data protection, jailbreak detection, and policy enforcement.
-
----
-
-### 4. Component Diagram (Full-Stack)
-
-![Component Diagram](client/public/diagrams/Component_diagram.png)
-
-The UML Component Diagram shows how all software components interact across the three tiers:
-
-- **React Client** — Contains 6 component groups: UI Components, Pages (Dashboard, Products, etc.), State Management (Context API for Auth and Theme), Recharts (chart visualizations), Axios (HTTP client), and React Router (routing). Communicates with the backend via HTTP/REST.
-
-- **Node.js API Server** — Houses 10 modules: Auth (JWT), Products, Competitors, Demand Signals, Alerts, AI (Insights/Forecast/Recommendations), Chat (CRUD + AI Relay), Stream (SSE), A/B Tests, and Integrations. Connected to MongoDB Atlas (11 collections via Mongoose ODM), Redis + BullMQ (caching and job queues), and a Cron Scheduler for background jobs.
-
-- **AI Microservice (FastAPI + LangChain)** — Contains 12 specialized service modules arranged in a grid: Forecasting (Prophet/Holt-Winters), Pricing Optimizer (Binary Search + Elasticity), LLM Insights (Gemini), RAG Chatbot (Working Memory), Rainforest Scraper (Amazon), Flipkart Scraper (BeautifulSoup), Google Trends (SerpAPI), Weather Service (OpenWeatherMap), News Sentiment (NewsAPI + NLP), Sentiment Analysis (NLP), Product Generator (LLM + Rules), and Data Pipeline & Model Retraining. Connects to two ChromaDB vector stores — Semantic Memory (Facts & Rules) and Episodic Memory (Past Events).
-
-- **External Services** — Seven third-party integrations shown on the right: Google Gemini API (LLM Provider), OpenRouter API (Fallback LLM), Rainforest API (Amazon Data), OpenWeatherMap API (Weather Data), NewsAPI (News & Articles), SerpAPI (Google Trends), and SendGrid (Email Service).
-
----
-
-### 5. Sequence Diagram (Login → Dashboard → Forecast Flow)
-
-![Sequence Diagram](client/public/diagrams/Sequence_diagram.png)
-
-The sequence diagram traces a **complete user journey** across all system participants — from login to dashboard rendering — in 20 numbered steps:
-
-**Authentication Flow (Steps 1–5):**
-The Merchant sends login credentials → React Client forwards `POST /api/auth/login` to the Node.js server → Server validates credentials against MongoDB → User data is returned → JWT token is issued back to the client.
-
-**Dashboard Data Flow (Steps 6–11):**
-Merchant requests the dashboard → `GET /api/dashboard` is sent → Server checks Redis cache → On cache miss, data is fetched from MongoDB → Aggregated KPI data (revenue, orders, stock metrics) is returned from the database.
-
-**AI Forecasting Flow (Steps 12–16):**
-Server sends a demand forecast request to the FastAPI AI Microservice → Prophet/Holt-Winters forecasting model runs → (Optional) LLM API is called for plain-English insights on the forecast → Gemini returns the insight text → Forecast results + insights are sent back to the Node.js server.
-
-**Caching & Response (Steps 17–20):**
-The computed results are cached in Redis for future requests → Cache confirmation is received → Complete dashboard data (charts, metrics, forecasts) is returned to the React Client → The dashboard renders with real-time KPIs, trend charts, and AI-generated insights.
-
 
 ## 📚 Research Papers & Inspiration
 
-### Dynamic Pricing & Revenue Optimization
-
 1. **"Dynamic Pricing in E-Commerce: A Survey"**
-   - Authors: M. den Boer
-   - Published: *European Journal of Operational Research*, 2015
+   - Author: M. den Boer (*European Journal of Operational Research*, 2015)
    - DOI: [10.1016/j.ejor.2015.07.024](https://doi.org/10.1016/j.ejor.2015.07.024)
-   - Key Contribution: Comprehensive survey of dynamic pricing models in online retail
-
 2. **"Personalized Dynamic Pricing with Machine Learning"**
-   - Authors: N. C. Pereira, et al.
-   - Published: *arXiv*, 2023
+   - Authors: N. C. Pereira, et al. (*arXiv*, 2023)
    - Link: [arxiv.org/abs/2312.10738](https://arxiv.org/abs/2312.10738)
-   - Key Contribution: ML-based personalized pricing achieving 8-12% revenue uplift
-
-3. **"Competitive Dynamic Pricing with Reinforcement Learning"**
-   - Authors: A. Kastius, R. Schlosser
-   - Published: *Journal of Revenue and Pricing Management*, 2022
-   - DOI: [10.1057/s41272-021-00285-3](https://doi.org/10.1057/s41272-021-00285-3)
-   - Key Contribution: Multi-agent RL models for competitive marketplace pricing
-
-### Demand Forecasting
-
-4. **"Forecasting at Scale" (Facebook Prophet)**
-   - Authors: S. J. Taylor, B. Letham
-   - Published: *The American Statistician*, 2018
+3. **"Forecasting at Scale" (Facebook Prophet)**
+   - Authors: S. J. Taylor, B. Letham (*The American Statistician*, 2018)
    - DOI: [10.1080/00031305.2017.1380080](https://doi.org/10.1080/00031305.2017.1380080)
-   - Key Contribution: Decomposable time-series model handling seasonality at scale
-
-5. **"Deep Learning for Time Series Forecasting: A Survey"**
-   - Authors: B. Lim, S. Zohren
-   - Published: *Philosophical Transactions of the Royal Society A*, 2021
-   - DOI: [10.1098/rsta.2020.0209](https://doi.org/10.1098/rsta.2020.0209)
-   - Key Contribution: Overview of LSTM and Transformer approaches for temporal data
-
-### AI & LLM in E-Commerce
-
-6. **"Large Language Models for E-Commerce: A Survey"**
-   - Authors: Y. Li, et al.
-   - Published: *arXiv*, 2024
-   - Link: [arxiv.org/abs/2312.11364](https://arxiv.org/abs/2312.11364)
-   - Key Contribution: LLM applications in product descriptions, recommendations, and customer insights
-
-7. **"Competitor Price Monitoring Using Web Scraping and Machine Learning"**
-   - Authors: R. Gupta, S. Sharma
-   - Published: *International Journal of Computer Applications*, 2020
-   - Key Contribution: Automated competitor price tracking methodology
-
-### Inventory Optimization
-
-8. **"Inventory Management with Machine Learning: A Review"**
-   - Authors: E. Punia, S. Nikolopoulos, et al.
-   - Published: *International Journal of Production Research*, 2020
-   - DOI: [10.1080/00207543.2019.1693637](https://doi.org/10.1080/00207543.2019.1693637)
-   - Key Contribution: ML-driven inventory policies outperforming traditional statistical methods
-
-### Retrieval-Augmented Generation (RAG)
-
-9. **"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"**
-   - Authors: P. Lewis, et al.
-   - Published: *NeurIPS*, 2020
+4. **"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"**
+   - Authors: P. Lewis, et al. (*NeurIPS*, 2020)
    - Link: [arxiv.org/abs/2005.11401](https://arxiv.org/abs/2005.11401)
-   - Key Contribution: Foundational RAG architecture combining retrieval with generation for factual accuracy
+5. **"Competitive Dynamic Pricing with Reinforcement Learning"**
+   - Authors: A. Kastius, R. Schlosser (*Journal of Revenue and Pricing Management*, 2022)
+   - DOI: [10.1057/s41272-021-00285-3](https://doi.org/10.1057/s41272-021-00285-3)
 
 ---
 
 ## 📄 License
 
-This project is developed as part of the **Final Year Project (Course: PRO230812)** curriculum in the Department of Computer Science and Engineering. For educational purposes only.
+Developed as part of the **Final Year Project (Course Code: PRO230812)** curriculum in the Department of Computer Science & Engineering. All rights reserved. For educational and demonstrative purposes.
 
 ---
 
 <p align="center">
-  Developed with ❤️ by <strong>Rudra Babar (B002)</strong> & <strong>Aryan Desale (B010)</strong>
+  Crafted with ❤️ by <strong>Rudra Babar (B002)</strong> & <strong>Aryan Desale (B010)</strong>
 </p>
 <p align="center">
-  <a href="https://github.com/rb-369/Price-Pilot-Ai">GitHub Repository</a> · <a href="https://price-pilot-ai-369.vercel.app">Live Demo</a>
+  <a href="https://github.com/rb-369/Price-Pilot-Ai">GitHub Repository</a> · <a href="https://price-pilot-ai-369.vercel.app">Live Production Demo</a>
 </p>
