@@ -125,6 +125,7 @@ CRITICAL OPERATING INSTRUCTIONS FOR THE CHATBOT:
 5. PRODUCT MATCHING: When a user mentions a product (e.g., @"Product Name"), locate it in the context by name to pull its exact currentPrice, baseCost, marginPercent, stockLevel, and salesVelocity.
 6. WHAT-IF SCENARIOS: When a user asks a What-If question, calculate the margin change and sales volume impact using economic elasticity, and follow the special What-If format with the redirect payload.
 7. TONE: Professional, analytical, proactive, and concise. Format responses with clean Markdown, bold headers, and bullet points.
+8. USER CONTEXT & EMPTY CATALOG: Each merchant has their own private store and catalog. All store data provided below belongs strictly to this user. If the merchant has 0 products in their catalog, you MUST accurately inform them that their catalog currently has 0 products. NEVER invent, hallucinate, or assume any products, prices, margins, or SKUs. Guide them to add their first product in [Products Catalog](/dashboard/products).
 
 --- 
 Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
@@ -140,12 +141,13 @@ class WorkingMemory:
         self.messages = messages
         self.context_data = context_data
 
-        user_id = self.context_data.get('userId', 'global') if self.context_data else 'global'
-        self.user_id = user_id
+        raw_uid = str(self.context_data.get('userId') or 'global') if self.context_data else 'global'
+        clean_uid = re.sub(r'[^a-zA-Z0-9_]', '_', raw_uid)[:45]
+        self.user_id = clean_uid
 
-        # We initialized these explicitly in each method where they are needed rather than keeping them open all the time
-        self._collection_name_semantic = f"semantic_memory_{user_id}"
-        self._collection_name_episodic = f"episodic_memory_{user_id}"
+        # Isolate semantic and episodic vector memory per authenticated user
+        self._collection_name_semantic = f"sem_mem_{clean_uid}"
+        self._collection_name_episodic = f"epi_mem_{clean_uid}"
 
     async def build_context_string(self, latest_query: str) -> str:
         context_parts = []
@@ -154,6 +156,21 @@ class WorkingMemory:
         if self.context_data:
             import json
             context_parts.append("### Real-time Request Context:\n" + json.dumps(self.context_data, indent=2))
+            
+            total_prods = self.context_data.get('totalProducts')
+            if total_prods is None:
+                total_prods = len(self.context_data.get('products', []))
+            
+            if total_prods == 0:
+                context_parts.append(
+                    "### Merchant Store Context:\n"
+                    "- Catalog Status: Empty (0 products in store).\n"
+                    "- Active Alerts: 0.\n"
+                    "- IMPORTANT: This merchant currently has 0 products in their store. "
+                    "If they ask how many products they have, what products they have, or ask about their inventory, "
+                    "you MUST accurately inform them that their catalog currently has 0 products, and guide them to add their first product in [Products Catalog](/dashboard/products). "
+                    "DO NOT invent, hallucinate, or mention any demo products."
+                )
 
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
@@ -279,11 +296,20 @@ def _generate_catalog_fallback_reply(latest_query: str, context_data: Optional[D
     ctx = context_data if isinstance(context_data, dict) else {}
     products = ctx.get("products", [])
     alerts = ctx.get("alerts", [])
-    total_prods = ctx.get("totalProducts", len(products))
+    total_prods = ctx.get("totalProducts")
+    if total_prods is None:
+        total_prods = len(products)
 
     # 0. Grill-Me Strategy Session & Pricing Strategy Consultations
     is_grill_me = bool(re.search(r'\b(?:grill[- ]?me|pricing strategy|pricing approach|price strategy|pricing model|what strategy|which strategy|strategy for|best strategy)\b', raw))
     if is_grill_me:
+        if total_prods == 0 and not re.search(r'@"?([^"\n\r?]+)"?', latest_query):
+            return (
+                "### 🥊 PricePilot AI Strategy Session\n\n"
+                "Your store catalog is currently empty (**0 products**).\n\n"
+                "To run a dynamic pricing strategy session, first add your products in [Products Catalog](/dashboard/products) or specify a SKU (e.g. `@\"Smart Watch\"`)."
+            )
+
         target_product = None
         product_name = ""
 
@@ -406,6 +432,11 @@ def _generate_catalog_fallback_reply(latest_query: str, context_data: Optional[D
     # 3. Low stock / stockout queries
     is_stock_query = bool(re.search(r'\b(?:low stock|out of stock|stockout|reorder|restock|depleted|low on stock)\b', raw))
     if is_stock_query:
+        if total_prods == 0:
+            return (
+                "Your store catalog is currently empty (0 products).\n\n"
+                "Once you add products in [Products Catalog](/dashboard/products), PricePilot AI will forecast demand and alert you when stock levels run low."
+            )
         low_stock_items = [p for p in products if isinstance(p.get("stockLevel"), (int, float)) and p.get("stockLevel") <= 15]
         if not low_stock_items:
             return (

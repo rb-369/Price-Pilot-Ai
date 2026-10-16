@@ -4,6 +4,7 @@ const CompetitorPrice = require('../models/CompetitorPrice');
 const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
+const Alert = require('../models/Alert');
 const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const FeedbackLog = require('../models/FeedbackLog');
 const redisClient = require('../config/redis');
@@ -456,6 +457,7 @@ exports.chat = async (req, res) => {
         const { messages } = req.body;
         
         // Gather context for the chatbot (RAG)
+        const totalUserProducts = await Product.countDocuments({ userId: req.user._id });
         const products = await Product.find({ userId: req.user._id }).limit(20);
         // Only active/critical alerts
         const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
@@ -463,6 +465,8 @@ exports.chat = async (req, res) => {
         const payload = {
             messages,
             context: {
+                userId: String(req.user._id),
+                totalProducts: totalUserProducts,
                 products: products.map(p => ({ name: p.name, currentPrice: p.currentPrice, stockLevel: p.stockLevel })),
                 alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
             }

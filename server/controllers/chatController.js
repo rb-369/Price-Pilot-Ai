@@ -89,11 +89,16 @@ Key platform capabilities and knowledge:
    - [Integrations](/dashboard/integrations)
 
 Store Context:
-- Catalog Products: ${contextContent?.products?.length || 0}
+- Catalog Products: ${contextContent?.totalProducts ?? (contextContent?.products?.length || 0)}
 - Active Alerts: ${contextContent?.alerts?.length || 0}
 - Currency: ${contextContent?.storeCurrency || 'INR (₹)'}
-${(contextContent?.products || []).slice(0, 5).map(p => `- ${p.name}: ₹${p.priceNumeric} (Cost: ₹${p.baseCost}, Stock: ${p.stockLevel})`).join('\n')}
+${(contextContent?.products && contextContent.products.length > 0)
+    ? contextContent.products.slice(0, 5).map(p => `- ${p.name}: ₹${p.priceNumeric} (Cost: ₹${p.baseCost}, Stock: ${p.stockLevel})`).join('\n')
+    : '- This merchant currently has 0 products in their catalog (their store is empty). If asked about catalog size, inventory, or products, clearly tell them they have 0 products and suggest adding products via [+ Add Product](/dashboard/products) or CSV import. NEVER invent or hallucinate products.'}
 
+CRITICAL USER PRIVACY & ACCURACY REQUIREMENT:
+You are assisting this specific authenticated merchant. All store data provided above is private to this merchant.
+If their store catalog currently has 0 products, you MUST accurately report that they have 0 products. NEVER mention demo products or invent items.
 Respond clearly, concisely, and supportively. Format key steps with numbered lists or bullet points.`;
 
     const contents = [];
@@ -136,9 +141,9 @@ Respond clearly, concisely, and supportively. Format key steps with numbered lis
 /**
  * Intelligent deterministic fallback when both Python microservice and direct LLM calls are unavailable.
  */
-function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
+function generateSmartFallbackReply(userMsgText, products = [], alerts = [], totalProducts = null) {
     const raw = (userMsgText || '').toLowerCase().trim();
-    const productCount = products.length;
+    const productCount = typeof totalProducts === 'number' ? totalProducts : products.length;
     const alertCount = alerts.length;
 
     // 0. Grill-Me Strategy Session & Pricing Strategy Consultations
@@ -146,6 +151,18 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
         /(?:grill[- ]?me|pricing strategy|pricing approach|price strategy|pricing model|what strategy|which strategy|strategy for|best strategy)/i.test(raw);
 
     if (isGrillMe) {
+        if (productCount === 0) {
+            return (
+                `### 🥊 PricePilot AI Grill-Me Session: Dynamic Pricing Strategy\n\n` +
+                `Your store catalog is currently empty (**0 products**).\n\n` +
+                `To run a deep pricing strategy session, first add your product to the [Products Catalog](/dashboard/products) with its cost and selling price, or specify a hypothetical SKU (e.g. \`@\"Smart Watch\"\`).\n\n` +
+                `#### 💡 Core E-Commerce Strategy Principles:\n` +
+                `1. **Protect Margin Floor:** Maintain at least a 35% margin floor after marketplace referral and fulfillment fees.\n` +
+                `2. **Bundle Over Heavy Discounts:** Pair complementary items to increase Average Order Value (AOV) instead of engaging in single-unit price wars.\n` +
+                `3. **Elasticity-Gated Surge Pricing:** Automatically raise prices when direct rivals run out of stock.`
+            );
+        }
+
         let targetProduct = null;
         let productName = '';
 
@@ -245,6 +262,13 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
         /(?:(?:show|list|view|what are|display|see|check|give me)\s+(?:all\s+|my\s+)?(?:products|catalog|inventory|items|skus))/i.test(raw);
 
     if (isExplicitCatalogQuery) {
+        if (productCount === 0) {
+            return (
+                `You currently have **0 products** in your catalog.\n\n` +
+                `Your dashboard is currently empty. Get started by adding your first product using the **[+ Add Product](/dashboard/products)** button or upload your catalog using **Import CSV** in the [Products Catalog](/dashboard/products).\n\n` +
+                `Once you add products, PricePilot AI will automatically track competitor prices, analyze margins, and provide pricing optimization recommendations.`
+            );
+        }
         const sampleProds = products.slice(0, 5).map(p => {
             const rawPr = p.currentPrice || p.priceNumeric || 0;
             const formattedPrice = String(rawPr).startsWith('₹') ? rawPr : `₹${rawPr}`;
@@ -281,6 +305,13 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
 
     // 5. Demand & Stockout Forecasting
     if (/(?:forecast|demand|stockout|restock|reorder|run out|inventory health)/i.test(raw)) {
+        if (productCount === 0) {
+            return (
+                `### AI Demand & Stockout Forecasting\n\n` +
+                `Your catalog is currently empty (**0 products**).\n\n` +
+                `Once you add products in the [Products Catalog](/dashboard/products), PricePilot AI's Prophet and Holt-Winters forecasting algorithms will predict 30-day demand trajectories and stockout timelines.`
+            );
+        }
         return (
             `### AI Demand & Stockout Forecasting\n\n` +
             `Our forecasting engine uses Prophet and Holt-Winters time-series algorithms to predict 30-day demand trajectories and stockout dates.\n\n` +
@@ -326,6 +357,17 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = []) {
     }
 
     // 7. General fallback
+    if (productCount === 0) {
+        return (
+            `PricePilot AI Copilot is active. Your store catalog is currently empty (**0 products**).\n\n` +
+            `Here are some quick things you can do to get started:\n` +
+            `• **Add your first product:** Visit [Products Catalog](/dashboard/products) and click "+ Add Product".\n` +
+            `• **Upload spreadsheet:** Import your existing inventory with "Import CSV".\n` +
+            `• **Simulate pricing:** Test pricing scenarios in the [What-If Simulator](/dashboard/simulator).\n` +
+            `• **Ask Copilot:** Ask questions about dynamic pricing, profit margins, or competitor tracking.`
+        );
+    }
+
     return (
         `PricePilot AI Copilot is active for your store (**${productCount} catalog products**, **${alertCount} active alerts**).\n\n` +
         `Here are some quick things you can do:\n` +
@@ -351,19 +393,16 @@ exports.sendMessage = async (req, res) => {
         const userMsg = { role: 'user', content: message || '' };
         chat.messages.push(userMsg);
 
-        // Gather real context for the chatbot (RAG)
+        // Gather real context for the chatbot (RAG) - strictly scoped to authenticated user
+        const totalUserProducts = await Product.countDocuments({ userId: req.user._id });
         let products = await Product.find({ userId: req.user._id }).limit(20);
-        
-        // Fallback: If user has no custom products associated, fetch general products
-        if (!products || products.length === 0) {
-            products = await Product.find({}).limit(20);
-        }
 
-        // If message contains a tagged product like @"Product Name" or @ProductName, explicitly search & append it
+        // If message contains a tagged product like @"Product Name" or @ProductName, explicitly search only user's products
         const tagMatch = (message || '').match(/@"?([^"\n\r?]+)"?/);
         if (tagMatch && tagMatch[1]) {
             const taggedName = tagMatch[1].trim();
             const specificProduct = await Product.findOne({
+                userId: req.user._id,
                 name: { $regex: taggedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
             });
             if (specificProduct && !products.some(p => String(p._id) === String(specificProduct._id))) {
@@ -375,9 +414,10 @@ exports.sendMessage = async (req, res) => {
         
         // Prepare context
         let contextContent = {
-            userId: req.user._id,
+            userId: String(req.user._id),
             storeCurrency: "INR (₹)",
             currencySymbol: "₹",
+            totalProducts: totalUserProducts,
             products: products.map(p => {
                 const currentPrice = Number(p.currentPrice) || 100;
                 const baseCost = (typeof p.baseCost === 'number' && !isNaN(p.baseCost) && p.baseCost > 0)
@@ -434,14 +474,14 @@ exports.sendMessage = async (req, res) => {
             // 2. If direct Gemini did not return a response, use deterministic intelligent fallback
             if (!replyText) {
                 const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
-                replyText = generateSmartFallbackReply(userMsgText, products, alerts);
+                replyText = generateSmartFallbackReply(userMsgText, products, alerts, totalUserProducts);
             }
         }
 
         // 3. If Python returned a generic rate-limit/quota message, check if smart fallback can answer cleanly
         if (typeof replyText === 'string' && (replyText.includes('AI Quota Reached') || replyText.includes('rate-limited') || replyText.includes('quota'))) {
             const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
-            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts);
+            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts, totalUserProducts);
             if (smartFallback) {
                 replyText = smartFallback;
             }
@@ -566,14 +606,16 @@ exports.editMessage = async (req, res) => {
         chat.messages = chat.messages.slice(0, index);
         chat.messages.push({ role: 'user', content: message || '' });
 
-        // Gather RAG context
+        // Gather RAG context - strictly scoped to authenticated user
+        const totalUserProducts = await Product.countDocuments({ userId: req.user._id });
         const products = await Product.find({ userId: req.user._id }).limit(20);
         const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
         
         let contextContent = {
-            userId: req.user._id,
+            userId: String(req.user._id),
             storeCurrency: "INR (₹)",
             currencySymbol: "₹",
+            totalProducts: totalUserProducts,
             products: products.map(p => ({ 
                 name: p.name, 
                 currentPrice: `₹${p.currentPrice}`, 
@@ -606,14 +648,14 @@ exports.editMessage = async (req, res) => {
 
             if (!replyText) {
                 const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
-                replyText = generateSmartFallbackReply(userMsgText, products, alerts);
+                replyText = generateSmartFallbackReply(userMsgText, products, alerts, totalUserProducts);
             }
         }
 
         // 3. If Python returned a generic rate-limit/quota message, check if smart fallback can answer cleanly
         if (typeof replyText === 'string' && (replyText.includes('AI Quota Reached') || replyText.includes('rate-limited') || replyText.includes('quota'))) {
             const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
-            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts);
+            const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts, totalUserProducts);
             if (smartFallback) {
                 replyText = smartFallback;
             }

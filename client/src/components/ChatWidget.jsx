@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
     getChats, getChat, createChat, deleteChat, sendChatMessage, uploadChatContext, submitChatFeedback, editChatMessage 
 } from '../api';
@@ -9,6 +10,7 @@ import AILoadingState from './AILoadingState';
 import ChatbotAiAvatar from './ChatbotAiAvatar';
 
 const ChatWidget = () => {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded] = useState(false);
     const location = useLocation();
@@ -179,20 +181,37 @@ const ChatWidget = () => {
         };
     }, []);
 
+    // Reset state and re-sync whenever user account changes to guarantee separated memory & context
     useEffect(() => {
-        if (isOpen) {
+        setActiveChatId(null);
+        setChats([]);
+        setMessages([]);
+        setAttachedFile(null);
+        setExtractedText(null);
+        setInput('');
+        if (isOpen && user?._id) {
+            loadChats();
+        }
+    }, [user?._id]);
+
+    useEffect(() => {
+        if (isOpen && user?._id) {
             loadChats();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const loadChats = async () => {
+        if (!user?._id) return;
         try {
             const { data } = await getChats();
-            setChats(data);
-            if (data.length > 0 && !activeChatId) {
-                loadSingleChat(data[0]._id);
-            } else if (data.length === 0) {
+            setChats(data || []);
+            if (data && data.length > 0) {
+                const currentChatExists = data.some(c => c._id === activeChatId);
+                if (!currentChatExists) {
+                    loadSingleChat(data[0]._id);
+                }
+            } else {
                 handleNewChat();
             }
         } catch (error) {
@@ -213,7 +232,7 @@ const ChatWidget = () => {
     const handleNewChat = async () => {
         try {
             const { data } = await createChat({ title: 'New Chat', messages: [] });
-            setChats([data, ...chats]);
+            setChats(prev => [data, ...prev.filter(c => c._id !== data._id)]);
             setActiveChatId(data._id);
             setMessages([{ role: 'model', content: "Hi! I'm PricePilot AI. How can I help you optimize your pricing and inventory today?" }]);
             setAttachedFile(null);

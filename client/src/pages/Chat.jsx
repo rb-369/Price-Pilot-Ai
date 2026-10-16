@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
     createChat, deleteChat, getChat, getChats, sendChatMessage, uploadChatContext, submitChatFeedback, editChatMessage
 } from '../api';
@@ -58,6 +59,7 @@ const suggestions = [
 ];
 
 const Chat = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const { sidebarOpen } = useOutletContext() || {};
 
@@ -201,18 +203,37 @@ const Chat = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    // Reset state and re-sync whenever user account changes to guarantee separated memory & context
     useEffect(() => {
-        loadChats();
+        setActiveChatId(null);
+        setChats([]);
+        setMessages([]);
+        setAttachedFile(null);
+        setExtractedText(null);
+        setInput('');
+        if (user?._id) {
+            loadChats();
+        }
+    }, [user?._id]);
+
+    useEffect(() => {
+        if (user?._id) {
+            loadChats();
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadChats = async () => {
+        if (!user?._id) return;
         try {
             const { data } = await getChats();
-            setChats(data);
-            if (data.length > 0 && !activeChatId) {
-                loadSingleChat(data[0]._id);
-            } else if (data.length === 0) {
+            setChats(data || []);
+            if (data && data.length > 0) {
+                const currentChatExists = data.some((chat) => chat._id === activeChatId);
+                if (!currentChatExists) {
+                    loadSingleChat(data[0]._id);
+                }
+            } else {
                 handleNewChat();
             }
         } catch (error) {
@@ -236,7 +257,7 @@ const Chat = () => {
     const handleNewChat = async () => {
         try {
             const { data } = await createChat({ title: 'New Chat', messages: [] });
-            setChats((previous) => [data, ...previous]);
+            setChats((previous) => [data, ...previous.filter((c) => c._id !== data._id)]);
             setActiveChatId(data._id);
             setMessages([]);
             setAttachedFile(null);

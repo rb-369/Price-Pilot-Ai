@@ -71,7 +71,7 @@ function AppRoutes() {
       <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
       <Route path="/reset-password/:token" element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} />
       
-      <Route path="/dashboard" element={<ProtectedRoute><><Layout /><ChatWidget /></></ProtectedRoute>}>
+      <Route path="/dashboard" element={<ProtectedRoute><><Layout /><ChatWidget key={user?._id || 'anon'} /></></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="products" element={<Products />} />

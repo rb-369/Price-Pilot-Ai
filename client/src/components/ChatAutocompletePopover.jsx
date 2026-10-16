@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { getProducts } from '../api';
 import { useCurrency } from '../context/CurrencyContext';
 import {
@@ -92,20 +93,25 @@ export default function ChatAutocompletePopover({
     query,
     setQuery,
 }) {
+    const { user } = useAuth();
     const { formatCurrency } = useCurrency();
     const [products, setProducts] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selectedItemRef = useRef(null);
 
-    // Fetch products once for @ tagging
+    // Fetch products scoped to active user for @ tagging
     useEffect(() => {
+        if (!user?._id) {
+            setProducts([]);
+            return;
+        }
         getProducts(1, 100)
             .then(res => {
                 const prods = res.data?.data || res.data?.products || (Array.isArray(res.data) ? res.data : []);
                 setProducts(Array.isArray(prods) ? prods : []);
             })
-            .catch(() => {});
-    }, []);
+            .catch(() => setProducts([]));
+    }, [user?._id]);
 
     // Filter items based on trigger type and query
     let items = [];
