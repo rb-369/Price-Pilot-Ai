@@ -25,6 +25,8 @@ jest.mock('bullmq', () => {
     };
 });
 
+jest.mock('pdf-parse', () => jest.fn().mockResolvedValue({ text: 'mock parsed pdf text' }));
+
 const request = require('supertest');
 const express = require('express');
 const mongoose = require('mongoose');
