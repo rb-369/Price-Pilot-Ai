@@ -590,8 +590,15 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
         tools = []
         tavily_key = os.getenv("TAVILY_API_KEY")
         if tavily_key:
-            from langchain_community.tools.tavily_search import TavilySearchResults
-            tools.append(TavilySearchResults(max_results=3))
+            try:
+                from langchain_tavily import TavilySearch
+                tools.append(TavilySearch(max_results=3))
+            except ImportError:
+                from langchain_community.tools.tavily_search import TavilySearchResults
+                tools.append(TavilySearchResults(max_results=3))
+    
+
+
         
         if not tools:
             from langchain_core.tools import tool

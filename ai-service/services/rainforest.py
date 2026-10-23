@@ -12,7 +12,22 @@ from datetime import datetime, timezone
 
 RAINFOREST_API_KEY = os.getenv("RAINFOREST_API_KEY", "") or os.getenv("RAINFOREST_KEY", "") or "8832C01356BF4E448F730E8F9373214A"
 RAINFOREST_BASE_URL = "https://api.rainforestapi.com/request"
-REQUEST_TIMEOUT = 30.0
+REQUEST_TIMEOUT = 12.0
+
+import time
+_rainforest_exhausted_until = 0.0
+
+def get_rainforest_key() -> str:
+    return os.getenv("RAINFOREST_API_KEY", "").strip() or os.getenv("RAINFOREST_KEY", "").strip() or RAINFOREST_API_KEY
+
+def _is_rainforest_available() -> bool:
+    global _rainforest_exhausted_until
+    return time.time() > _rainforest_exhausted_until
+
+def _mark_rainforest_exhausted(duration_seconds: int = 1800):
+    global _rainforest_exhausted_until
+    _rainforest_exhausted_until = time.time() + duration_seconds
+    print(f"[Rainforest] 402/Quota limit reached. Auto-switching to SerpApi/Flipkart for {duration_seconds // 60}m.")
 
 def _extract_price_value(price_raw) -> Optional[float]:
     """Helper to safely extract float price from dict, float, int, or string."""
@@ -39,11 +54,11 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
     Fetch a single product's price and availability by ASIN.
     Returns a CompetitorPriceData-compatible dict or None on failure.
     """
-    if not RAINFOREST_API_KEY:
-        raise ValueError("RAINFOREST_API_KEY is not set in environment variables.")
+    if not get_rainforest_key() or not _is_rainforest_available():
+        return await _fetch_product_by_asin_serpapi(asin, amazon_domain)
 
     params = {
-        "api_key": RAINFOREST_API_KEY,
+        "api_key": get_rainforest_key(),
         "type": "product",
         "asin": asin,
         "amazon_domain": amazon_domain,
@@ -85,6 +100,7 @@ async def fetch_product_by_asin(asin: str, amazon_domain: str = "amazon.in") -> 
 
     except httpx.HTTPStatusError as e:
         print(f"[Rainforest] HTTP error for ASIN {asin}: {e.response.status_code}")
+        if e.response.status_code in (401, 402): _mark_rainforest_exhausted()
         return await _fetch_product_by_asin_serpapi(asin, amazon_domain)
     except httpx.RequestError as e:
         print(f"[Rainforest] Request error for ASIN {asin}: {e}")
@@ -858,7 +874,7 @@ async def _scrape_flipkart_with_fallback(q_text: str, target_brand: str, amazon_
 async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: int, target_brand: Optional[str] = None) -> List[Dict]:
     """Helper to fetch from Rainforest API with fallback to SerpApi"""
     params = {
-        "api_key": RAINFOREST_API_KEY,
+        "api_key": get_rainforest_key(),
         "type": "search",
         "search_term": keyword,
         "amazon_domain": amazon_domain,
@@ -867,7 +883,7 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
     }
     
     try:
-        if not RAINFOREST_API_KEY:
+        if not get_rainforest_key() or not _is_rainforest_available():
             return await _fetch_amazon_search_serpapi(keyword, amazon_domain, max_results, target_brand=target_brand)
 
         async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
@@ -907,6 +923,7 @@ async def _fetch_amazon_search(keyword: str, amazon_domain: str, max_results: in
 
     except httpx.HTTPStatusError as e:
         print(f"[Rainforest] Search HTTP error for '{keyword}': {e.response.status_code}")
+        if e.response.status_code in (401, 402): _mark_rainforest_exhausted()
         return await _fetch_amazon_search_serpapi(keyword, amazon_domain, max_results, target_brand=target_brand)
     except Exception as e:
         import traceback
