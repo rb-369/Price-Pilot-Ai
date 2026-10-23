@@ -73,6 +73,63 @@ async function tryDirectGemini(aiMessages, contextContent) {
 
     if (!apiKey) return null;
 
+    const latestUserMsg = [...aiMessages].reverse().find(m => m.role === 'user')?.content || '';
+    const latestLower = latestUserMsg.toLowerCase().trim();
+    const isWhatIf = latestLower.includes('what-if') || latestLower.includes('whatif');
+    const isExplainSimply = latestLower.includes('explain-simply');
+    const isGrillMe = /(?:grill[- ]?me|pricing strategy)/i.test(latestLower);
+
+    let commandInstructions = '';
+    if (isExplainSimply) {
+        commandInstructions = `\n\nSPECIAL INSTRUCTION FOR /explain-simply:
+Explain the user's query in 2 plain-English bullet points for a normal seller with zero technical background.
+1. Focus on what this means for their net profit (in ₹ INR).
+2. Focus on what exact practical action the seller should take.
+DO NOT use jargon like elasticity, variance, regression, or logit.`;
+    } else if (isGrillMe) {
+        commandInstructions = `\n\nSPECIAL INSTRUCTION FOR /grill-me & PRICING STRATEGY:
+The user is requesting an adversarial, senior e-commerce pricing strategy consultation (Grill-Me session).
+1. Executive Verdict: Recommend Value-Based Margin Defense or Tiered Bundling. Strongly warn against reckless price wars that destroy gross margins required for Amazon PPC.
+2. Strategy Pillars: Define clear margin floor rules (min 35-45% net contribution), bundle recommendations, and elasticity surge triggers.
+3. Socratic Grilling: Pose 3 piercing questions about unit economics (COGS, referral fees ~15%, PPC ACOS, inventory runway).
+4. Actionable Next Steps: Reference PricePilot's What-If Simulator (/dashboard/simulator) and Competitor Intelligence (/dashboard/competitors).
+Tone: Senior e-commerce pricing partner, incisive, practical, profit-focused.`;
+    } else if (isWhatIf) {
+        commandInstructions = `\n\nSPECIAL INSTRUCTION FOR /what-if:
+The user is asking a What-If pricing scenario (e.g. '/what-if i changed @Product price to 790rs' or '/what-if i increase the price of Nestasia 1.2L Water Bottle to 1999rs').
+STEP 1: Match the product in the context data by name. Extract its currentPrice, baseCost, marginPercent, and salesVelocity.
+NOTE: If the product is not found in context, assume baseline values: currentPrice = ₹900, baseCost = ₹540, marginPercent = 40%, salesVelocity = 0.5/hr.
+STEP 2: Calculate the new margin: newMargin = ((newPrice - baseCost) / newPrice) * 100.
+STEP 3: Calculate percentage price change: pctPriceChange = ((newPrice - currentPrice) / currentPrice) * 100.
+STEP 4: Estimate realistic sales volume impact and determine Verdict based on economic demand elasticity:
+  - If newPrice <= baseCost: Selling at or below cost! Estimated Sales Impact: +20% to +50%, but Verdict MUST be '🔴 RISKY DECISION' (loss-making per unit, destructive to business).
+  - If pctPriceChange > 100% (e.g. 2x, 10x price surge): Catastrophic demand collapse! Estimated Sales Impact: -90% to -99%. Verdict MUST be '🔴 RISKY DECISION' (customers refuse to buy, listing loses Buy Box and conversion drops to zero).
+  - If pctPriceChange between +30% and +100%: Severe drop in sales! Estimated Sales Impact: -40% to -80%. Verdict MUST be '🔴 RISKY DECISION' (competitors will undercut you and volume drop outweighs per-unit gain).
+  - If pctPriceChange between +10% and +30%: Moderate price rise. Estimated Sales Impact: -15% to -35%. Compare net profit: if new unit margin covers volume loss, Verdict is '🟡 NEUTRAL' or '🟢 GOOD DECISION'. If volume drop hurts total profit, Verdict is '🔴 RISKY DECISION'.
+  - If pctPriceChange between 0% and +10%: Mild price optimization. Estimated Sales Impact: -3% to -10%. Per-unit margin usually offsets volume dip. Verdict: '🟢 GOOD DECISION'.
+  - If pctPriceChange between -1% and -20%: Strategic discount. Estimated Sales Impact: +10% to +35%. If profit margin remains healthy (>20%), Verdict: '🟢 GOOD DECISION'. If margin is destroyed, Verdict: '🔴 RISKY DECISION'.
+  - If pctPriceChange < -30%: Deep discount. Estimated Sales Impact: +30% to +60%. If margin becomes razor-thin (<10%), Verdict is '🔴 RISKY DECISION' or '🟡 NEUTRAL'.
+STEP 5: Provide the analysis in this exact format:
+
+📊 **What-If Analysis: [Product Name]**
+- **Current Price:** ₹[current] → **New Price:** ₹[new] ([+/- X%])
+- **Cost (COGS):** ₹[baseCost]
+- **Current Margin:** [old]% → **New Margin:** [new]%
+- **Estimated Sales Impact:** [+/- X%]
+- **Overall Verdict:** [🟢 GOOD DECISION / 🟡 NEUTRAL / 🔴 RISKY DECISION]
+
+[2-sentence plain-English summary for the seller explaining realistic profit, customer conversion, and volume impact. Explicitly warn if an extreme price hike will destroy sales volume and cause customer churn]
+
+STEP 6: At the VERY END of your response, append exact line:
+---ACTION_REDIRECT_WHAT_IF---
+followed on a new line by a single valid JSON object with keys: {"action": "redirect_what_if", "productQuery": "<extracted product name>", "priceChange": "<extracted target price value>"}
+Example:
+---ACTION_REDIRECT_WHAT_IF---
+{"action": "redirect_what_if", "productQuery": "Premium Steel Hot and Cold Bottle 750ml", "priceChange": "790"}
+
+CRITICAL MANDATE: NEVER say 'I don't have that information' or redirect the user to use the simulator elsewhere without answering. You MUST output the What-If analysis and the ---ACTION_REDIRECT_WHAT_IF--- payload!`;
+    }
+
     const systemPrompt = `You are PricePilot AI Copilot, an intelligent assistant for e-commerce and retail merchants.
 Key platform capabilities and knowledge:
 1. Dynamic Pricing: Optimizing selling prices in INR (₹) while protecting gross margin floor.
@@ -93,13 +150,13 @@ Store Context:
 - Active Alerts: ${contextContent?.alerts?.length || 0}
 - Currency: ${contextContent?.storeCurrency || 'INR (₹)'}
 ${(contextContent?.products && contextContent.products.length > 0)
-    ? contextContent.products.slice(0, 5).map(p => `- ${p.name}: ₹${p.priceNumeric} (Cost: ₹${p.baseCost}, Stock: ${p.stockLevel})`).join('\n')
+    ? contextContent.products.slice(0, 10).map(p => `- ${p.name}: ₹${p.priceNumeric} (Cost: ₹${p.baseCost}, Stock: ${p.stockLevel}, Velocity: ${p.salesVelocity || 0}/hr)`).join('\n')
     : '- This merchant currently has 0 products in their catalog (their store is empty). If asked about catalog size, inventory, or products, clearly tell them they have 0 products and suggest adding products via [+ Add Product](/dashboard/products) or CSV import. NEVER invent or hallucinate products.'}
 
 CRITICAL USER PRIVACY & ACCURACY REQUIREMENT:
 You are assisting this specific authenticated merchant. All store data provided above is private to this merchant.
 If their store catalog currently has 0 products, you MUST accurately report that they have 0 products. NEVER mention demo products or invent items.
-Respond clearly, concisely, and supportively. Format key steps with numbered lists or bullet points.`;
+Respond clearly, concisely, and supportively. Format key steps with numbered lists or bullet points.${commandInstructions}`;
 
     const contents = [];
     for (const msg of aiMessages) {
@@ -127,7 +184,30 @@ Respond clearly, concisely, and supportively. Format key steps with numbered lis
 
             const text = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text && text.trim()) {
-                return text.trim();
+                let finalText = text.trim();
+                if (isWhatIf && !finalText.includes('---ACTION_REDIRECT_WHAT_IF---')) {
+                    let pMatch = latestUserMsg.match(/@"?([^"\n\r?]+)"?/) ||
+                                 latestUserMsg.match(/(?:of|for)\s+([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by)/i) ||
+                                 latestUserMsg.match(/\/what-if\s+(?:i\s+(?:increase|raise|change|drop|cut)\s+(?:the\s+)?(?:price\s+of\s+)?)?([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by|\d)/i);
+                    let prMatch = latestUserMsg.match(/(?:to|at)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)/i) ||
+                                  latestUserMsg.match(/(\d+(?:\.\d+)?)\s*(?:rs|inr|₹)/i);
+
+                    let extractedProd = pMatch ? pMatch[1].trim() : '';
+                    if (!extractedProd && contextContent?.products?.length > 0) {
+                        const found = contextContent.products.find(p => p.name && latestLower.includes(p.name.toLowerCase()));
+                        if (found) extractedProd = found.name;
+                    }
+                    extractedProd = extractedProd || 'Product';
+                    const extractedPrice = prMatch ? prMatch[1].trim() : '';
+
+                    const payloadJson = JSON.stringify({
+                        action: 'redirect_what_if',
+                        productQuery: extractedProd,
+                        priceChange: extractedPrice
+                    });
+                    finalText += `\n\n---ACTION_REDIRECT_WHAT_IF---\n${payloadJson}`;
+                }
+                return finalText;
             }
         } catch (err) {
             console.warn(`[chatController] Direct Gemini (${model}) failed:`, err.response?.data?.error?.message || err.message);
@@ -282,13 +362,138 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = [], tot
     }
 
     // 3. What-If scenario / price simulation
-    if (/(?:what[- ]?if|simulate|simulation|elasticity|test price|change price)/i.test(raw)) {
+    const isWhatIf = /(?:what[- ]?if|whatif|simulate|simulation|elasticity|test price|change price)/i.test(raw);
+    if (isWhatIf) {
+        // Try to identify target product and proposed price
+        let targetProduct = null;
+        let productName = '';
+
+        const taggedMatch = (userMsgText || '').match(/@"?([^"\n\r?]+)"?/);
+        if (taggedMatch) {
+            productName = taggedMatch[1].trim();
+        } else {
+            const forMatch = (userMsgText || '').match(/(?:of|for|on)\s+([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by|at)/i);
+            if (forMatch) {
+                productName = forMatch[1].replace(/^(?:the|my|a)\s+/i, '').trim();
+            } else {
+                const slashMatch = (userMsgText || '').match(/\/what-if\s+(?:i\s+(?:increase|raise|change|drop|cut)\s+(?:the\s+)?(?:price\s+of\s+)?)?([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by|\d)/i);
+                if (slashMatch) {
+                    productName = slashMatch[1].trim();
+                }
+            }
+        }
+
+        if (products && products.length > 0) {
+            if (productName) {
+                targetProduct = products.find(p => p.name && p.name.toLowerCase().includes(productName.toLowerCase())) || null;
+            }
+            if (!targetProduct) {
+                targetProduct = products.find(p => p.name && raw.includes(p.name.toLowerCase())) || null;
+                if (targetProduct) productName = targetProduct.name;
+            }
+            if (!targetProduct && !productName && products.length === 1) {
+                targetProduct = products[0];
+                productName = targetProduct.name;
+            }
+        }
+
+        // Extract target price or percentage change
+        let targetPrice = null;
+        let pctChangeSpecified = null;
+
+        const pctMatch = (userMsgText || '').match(/(?:by|increase\s+by|raise\s+by|decrease\s+by|drop\s+by)\s*([+-]?\d+(?:\.\d+)?)\s*%/i);
+        const priceMatch = (userMsgText || '').match(/(?:to|at)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)/i) ||
+                           (userMsgText || '').match(/(\d+(?:\.\d+)?)\s*(?:rs|inr|₹)/i);
+
+        if (pctMatch) {
+            pctChangeSpecified = parseFloat(pctMatch[1]);
+        } else if (priceMatch) {
+            targetPrice = parseFloat(priceMatch[1]);
+        }
+
+        // If we have either a target product or a target price or a product was tagged/found
+        if (targetProduct || targetPrice || productName) {
+            const displayName = targetProduct?.name || productName || 'Selected Product';
+            const rawCurrentPrice = targetProduct?.priceNumeric || targetProduct?.currentPrice || 900;
+            const currentPrice = typeof rawCurrentPrice === 'number'
+                ? rawCurrentPrice
+                : parseFloat(String(rawCurrentPrice).replace(/[^\d.]/g, '')) || 900;
+            const baseCost = (typeof targetProduct?.baseCost === 'number' && targetProduct.baseCost > 0)
+                ? targetProduct.baseCost
+                : Math.round(currentPrice * 0.6);
+
+            let newPrice = targetPrice;
+            if (newPrice == null && pctChangeSpecified != null) {
+                newPrice = Math.round(currentPrice * (1 + pctChangeSpecified / 100));
+            }
+            if (newPrice == null) {
+                newPrice = Math.round(currentPrice * 1.15); // Default +15% simulation if not parsed
+            }
+
+            const currentMarginPct = currentPrice > 0 ? (((currentPrice - baseCost) / currentPrice) * 100).toFixed(1) : '40.0';
+            const newMarginPct = newPrice > 0 ? (((newPrice - baseCost) / newPrice) * 100).toFixed(1) : '0.0';
+            const pctPriceChange = currentPrice > 0 ? (((newPrice - currentPrice) / currentPrice) * 100).toFixed(1) : '0.0';
+            const numPctChange = parseFloat(pctPriceChange);
+
+            let verdict = '🟡 NEUTRAL';
+            let salesImpact = '-10% to -20%';
+            let summary = '';
+
+            if (newPrice <= baseCost) {
+                verdict = '🔴 RISKY DECISION';
+                salesImpact = '+20% to +50%';
+                summary = `Selling at or below your unit cost of ₹${baseCost} causes a cash loss on every unit sold. Even with higher volume, total gross profit becomes negative.`;
+            } else if (numPctChange > 100) {
+                verdict = '🔴 RISKY DECISION';
+                salesImpact = '-90% to -99%';
+                summary = `A massive ${pctPriceChange}% price hike causes severe demand collapse and loss of the Buy Box. Customers will quickly switch to rivals, reducing total revenue despite the higher margin.`;
+            } else if (numPctChange >= 30) {
+                verdict = '🔴 RISKY DECISION';
+                salesImpact = '-40% to -75%';
+                summary = `Raising price by ${pctPriceChange}% significantly increases unit margin to ${newMarginPct}%, but volume drop will likely outweigh the margin gain as competitors undercut your listing.`;
+            } else if (numPctChange >= 10) {
+                verdict = numPctChange <= 20 ? '🟢 GOOD DECISION' : '🟡 NEUTRAL';
+                salesImpact = '-10% to -25%';
+                summary = `A moderate price adjustment of ${pctPriceChange}% boosts gross margin from ${currentMarginPct}% to ${newMarginPct}%. Unit profit increases should offset the slight dip in conversion.`;
+            } else if (numPctChange >= 0) {
+                verdict = '🟢 GOOD DECISION';
+                salesImpact = '-2% to -8%';
+                summary = `A mild ${pctPriceChange}% price optimization protects margins with negligible friction on conversion rate.`;
+            } else if (numPctChange >= -20) {
+                verdict = parseFloat(newMarginPct) >= 20 ? '🟢 GOOD DECISION' : '🟡 NEUTRAL';
+                salesImpact = '+10% to +30%';
+                summary = `A strategic price drop of ${Math.abs(numPctChange)}% stimulates sales velocity. Your gross margin remains viable at ${newMarginPct}%.`;
+            } else {
+                verdict = parseFloat(newMarginPct) < 15 ? '🔴 RISKY DECISION' : '🟡 NEUTRAL';
+                salesImpact = '+30% to +60%';
+                summary = `A steep discount drives substantial volume, but erodes gross margin down to ${newMarginPct}%, leaving little buffer for fulfillment and advertising costs.`;
+            }
+
+            const payloadJson = JSON.stringify({
+                action: 'redirect_what_if',
+                productQuery: displayName,
+                priceChange: String(newPrice)
+            });
+
+            return (
+                `📊 **What-If Analysis: ${displayName}**\n` +
+                `- **Current Price:** ₹${currentPrice} → **New Price:** ₹${newPrice} (${numPctChange >= 0 ? '+' : ''}${pctPriceChange}%)\n` +
+                `- **Cost (COGS):** ₹${baseCost}\n` +
+                `- **Current Margin:** ${currentMarginPct}% → **New Margin:** ${newMarginPct}%\n` +
+                `- **Estimated Sales Impact:** ${salesImpact}\n` +
+                `- **Overall Verdict:** ${verdict}\n\n` +
+                `${summary}\n\n` +
+                `---ACTION_REDIRECT_WHAT_IF---\n` +
+                `${payloadJson}`
+            );
+        }
+
         return (
             `### PricePilot AI What-If Scenario Simulator\n\n` +
             `You can simulate how price adjustments affect your sales volume and profit margins before making changes live.\n\n` +
             `• **How to run a simulation:** Open the [What-If Simulator](/dashboard/simulator) and select any product.\n` +
             `• **Tip:** You can also ask me directly in chat using \`/what-if\`, for example:\n` +
-            `  \`/what-if I increase the price of DELL Laptop by 10%\`\n\n` +
+            `  \`/what-if @"Nestasia 1.2L Water Bottle" to 1999rs\`\n\n` +
             `The AI calculates estimated elasticity, margin percentage changes, and provides a clear risk verdict.`
         );
     }
@@ -479,12 +684,37 @@ exports.sendMessage = async (req, res) => {
         }
 
         // 3. If Python returned a generic rate-limit/quota message, check if smart fallback can answer cleanly
+        const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
         if (typeof replyText === 'string' && (replyText.includes('AI Quota Reached') || replyText.includes('rate-limited') || replyText.includes('quota'))) {
-            const userMsgText = aiMessages[aiMessages.length - 1]?.content || '';
             const smartFallback = generateSmartFallbackReply(userMsgText, products, alerts, totalUserProducts);
             if (smartFallback) {
                 replyText = smartFallback;
             }
+        }
+
+        // 4. Guarantee ---ACTION_REDIRECT_WHAT_IF--- payload for /what-if queries if omitted by model
+        const isWhatIfQuery = /(?:what[- ]?if|whatif)/i.test(userMsgText);
+        if (isWhatIfQuery && typeof replyText === 'string' && !replyText.includes('---ACTION_REDIRECT_WHAT_IF---')) {
+            const pMatch = userMsgText.match(/@"?([^"\n\r?]+)"?/) ||
+                          userMsgText.match(/(?:of|for)\s+([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by)/i) ||
+                          userMsgText.match(/\/what-if\s+(?:i\s+(?:increase|raise|change|drop|cut)\s+(?:the\s+)?(?:price\s+of\s+)?)?([A-Za-z0-9\s&+\-.]+?)\s+(?:to|by|\d)/i);
+            const prMatch = userMsgText.match(/(?:to|at)\s*(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)/i) ||
+                            userMsgText.match(/(\d+(?:\.\d+)?)\s*(?:rs|inr|₹)/i);
+
+            let extractedProd = pMatch ? pMatch[1].trim() : '';
+            if (!extractedProd && contextContent?.products?.length > 0) {
+                const found = contextContent.products.find(p => p.name && userMsgText.toLowerCase().includes(p.name.toLowerCase()));
+                if (found) extractedProd = found.name;
+            }
+            extractedProd = extractedProd || 'Product';
+            const extractedPrice = prMatch ? prMatch[1].trim() : '';
+
+            const payloadJson = JSON.stringify({
+                action: 'redirect_what_if',
+                productQuery: extractedProd,
+                priceChange: extractedPrice
+            });
+            replyText += `\n\n---ACTION_REDIRECT_WHAT_IF---\n${payloadJson}`;
         }
 
         const modelMsg = { role: 'model', content: typeof replyText === 'string' ? replyText : JSON.stringify(replyText) };

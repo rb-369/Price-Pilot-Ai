@@ -139,4 +139,25 @@ describe('Chat Memory and Catalog Isolation', () => {
         const reply = msgRes.body.reply.content;
         expect(reply).toContain('20 active products');
     });
+
+    it('should calculate direct What-If analysis with action payload when /what-if query is sent', async () => {
+        mockUser = { _id: userAId };
+        const createRes = await request(app)
+            .post('/api/chats')
+            .send({ title: 'What-If Test' });
+        const chatId = createRes.body._id;
+
+        const msgRes = await request(app)
+            .post(`/api/chats/${chatId}/message`)
+            .send({ message: '/what-if @"User A Product 1" to 250rs' });
+
+        expect(msgRes.statusCode).toEqual(200);
+        const reply = msgRes.body.reply.content;
+        expect(reply).toContain('What-If Analysis: User A Product 1');
+        expect(reply).toContain('Current Price:');
+        expect(reply).toContain('New Price:');
+        expect(reply).toContain('Overall Verdict:');
+        expect(reply).toContain('---ACTION_REDIRECT_WHAT_IF---');
+        expect(reply).toMatch(/"action"\s*:\s*"redirect_what_if"/);
+    });
 });
