@@ -7,7 +7,7 @@ import {
     HiOutlineLightBulb, HiOutlineTrendingUp, HiOutlineBell,
     HiOutlineLogout, HiOutlineMoon, HiOutlineSun, HiOutlineChatAlt2,
     HiOutlineLink, HiOutlineBeaker, HiOutlineSwitchHorizontal,
-    HiOutlineCog, HiOutlineChevronLeft
+    HiOutlineCog, HiOutlineChevronLeft, HiOutlineAdjustments
 } from 'react-icons/hi';
 import { FiX } from 'react-icons/fi';
 import newLightLogo from '../assets/new_light_logo.png';
@@ -22,6 +22,7 @@ const links = [
     { to: '/dashboard/demand', icon: HiOutlineTrendingUp, label: 'Demand Signals' },
     { to: '/dashboard/forecasts', icon: HiOutlineTrendingUp, label: 'Forecasts' },
     { to: '/dashboard/recommendations', icon: HiOutlineLightBulb, label: 'AI Recommendations' },
+    { to: '/dashboard/simulator', icon: HiOutlineAdjustments, label: 'What-If Simulator' },
     { to: '/dashboard/ab-tests', icon: HiOutlineBeaker, label: 'A/B Test Experiments' },
     { to: '/dashboard/chat', icon: HiOutlineChatAlt2, label: 'PricePilot AI' },
     { to: '/dashboard/integrations', icon: HiOutlineLink, label: 'Integrations' },

@@ -64,11 +64,16 @@ const Chat = () => {
     const { sidebarOpen } = useOutletContext() || {};
 
     const handleOpenSimulator = (payload) => {
-        navigate('/dashboard');
+        try {
+            sessionStorage.setItem('pending_what_if_payload', JSON.stringify(payload));
+        } catch (e) {
+            console.warn('Could not store what-if payload in sessionStorage', e);
+        }
+        navigate('/dashboard/simulator');
         setTimeout(() => {
             const event = new CustomEvent('launch_what_if_simulator', { detail: payload });
             window.dispatchEvent(event);
-        }, 200);
+        }, 150);
     };
 
     const [chats, setChats] = useState([]);

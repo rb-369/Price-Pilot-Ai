@@ -3,16 +3,21 @@ from typing import Optional
 from langchain_core.documents import Document
 
 _embeddings_cache = None
+_embeddings_failed = False
+_warned_no_embeddings = False
 
 def _get_embeddings():
-    global _embeddings_cache
+    global _embeddings_cache, _embeddings_failed, _warned_no_embeddings
     if _embeddings_cache is not None:
         return _embeddings_cache
+    if _embeddings_failed:
+        return None
 
     # 1. Primary: Cloud-based Google Generative AI Embeddings (Zero RAM overhead on Render)
     api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY")
-    if api_key:
-        for model_name in ["text-embedding-004", "models/text-embedding-004", "embedding-001", "models/embedding-001"]:
+    if api_key and not api_key.startswith("sk-"):
+        # Google Generative AI embeddings
+        for model_name in ["models/text-embedding-004", "text-embedding-004", "models/embedding-001", "embedding-001"]:
             try:
                 from langchain_google_genai import GoogleGenerativeAIEmbeddings
                 embeddings = GoogleGenerativeAIEmbeddings(model=model_name, google_api_key=api_key)
@@ -20,7 +25,7 @@ def _get_embeddings():
                 _embeddings_cache = embeddings
                 return _embeddings_cache
             except Exception as ex:
-                print(f"Gemini embedding model {model_name} failed: {ex}")
+                pass
 
     # 2. Local Fallback: FastEmbed only when explicitly enabled (disabled by default on 512MB RAM cloud instances)
     if os.getenv("ENABLE_FASTEMBED", "false").lower() == "true":
@@ -32,7 +37,10 @@ def _get_embeddings():
         except Exception as e:
             print(f"FastEmbed initialization warning: {e}")
 
-    print("Warning: No working embedding model found.")
+    _embeddings_failed = True
+    if not _warned_no_embeddings:
+        print("Warning: No working embedding model found. Vectorstore disabled for this session.")
+        _warned_no_embeddings = True
     return None
 
 def get_vectorstore(collection_name="ecommerce_data"):
@@ -42,7 +50,6 @@ def get_vectorstore(collection_name="ecommerce_data"):
 
     embeddings = _get_embeddings()
     if not embeddings:
-        print("Warning: No embedding provider available. Vectorstore disabled.")
         return None
 
     # Primary: Qdrant Cloud VectorStore

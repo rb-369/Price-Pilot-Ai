@@ -470,13 +470,18 @@ const ChatWidget = () => {
                                         ) : (
                                             <div className="text-[13px] leading-relaxed font-normal">
                                                 {renderFormattedChatMessage(msg.content, false, (payload) => {
-                                                    if (location.pathname !== '/dashboard') {
-                                                        navigate('/dashboard');
+                                                    try {
+                                                        sessionStorage.setItem('pending_what_if_payload', JSON.stringify(payload));
+                                                    } catch (e) {
+                                                        console.warn('Could not store what-if payload in sessionStorage', e);
+                                                    }
+                                                    if (location.pathname !== '/dashboard/simulator') {
+                                                        navigate('/dashboard/simulator');
                                                     }
                                                     setTimeout(() => {
                                                         const event = new CustomEvent('launch_what_if_simulator', { detail: payload });
                                                         window.dispatchEvent(event);
-                                                    }, 200);
+                                                    }, 150);
                                                 })}
                                             </div>
                                         )}

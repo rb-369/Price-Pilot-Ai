@@ -26,6 +26,7 @@ import ChannelMapping from './pages/ChannelMapping';
 import Settings from './pages/Settings';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Simulator from './pages/Simulator';
 
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -79,6 +80,7 @@ function AppRoutes() {
         <Route path="demand" element={<DemandSignals />} />
         <Route path="forecasts" element={<Forecasts />} />
         <Route path="recommendations" element={<Recommendations />} />
+        <Route path="simulator" element={<Simulator />} />
         <Route path="ab-tests" element={<ABTestDashboard />} />
         <Route path="chat" element={<Chat />} />
         <Route path="alerts" element={<Alerts />} />
@@ -87,6 +89,7 @@ function AppRoutes() {
         <Route path="settings" element={<Settings />} />
       </Route>
       {/* Shorthand / Direct Route Aliases */}
+      <Route path="/simulator" element={<Navigate to="/dashboard/simulator" replace />} />
       <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
       <Route path="/competitors" element={<Navigate to="/dashboard/competitors" replace />} />
       <Route path="/recommendations" element={<Navigate to="/dashboard/recommendations" replace />} />

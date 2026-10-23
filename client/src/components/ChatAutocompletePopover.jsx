@@ -580,6 +580,9 @@ export function renderFormattedChatMessage(text, isUser = false, onOpenSimulator
                                 if (onOpenSimulator) {
                                     onOpenSimulator(actionPayload);
                                 } else {
+                                    try {
+                                        sessionStorage.setItem('pending_what_if_payload', JSON.stringify(actionPayload));
+                                    } catch (err) {}
                                     const event = new CustomEvent('launch_what_if_simulator', { detail: actionPayload });
                                     window.dispatchEvent(event);
                                 }
