@@ -59,6 +59,8 @@ docs/agents/domain.md
 docs/agents/issue-tracker.md
 docs/agents/triage-labels.md
 docs/*
+!docs/diagrams/
+!docs/diagrams/**
 Procfile
 
 skills-lock.json

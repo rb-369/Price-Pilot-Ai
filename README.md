@@ -294,7 +294,7 @@ PricePilot AI is organized as a decoupled three-tier microservices architecture:
 
 ## 📐 Architecture & System Design Diagrams (10 Complete Diagrams)
 
-The complete engineering, algorithmic, and data architecture of PricePilot AI is documented below across **10 formal system design diagrams**. Each diagram provides both native interactive GitHub Mermaid visual models and accompanying technical descriptions.
+The complete engineering, algorithmic, and data architecture of PricePilot AI is documented below across **10 formal system design diagrams**. Each diagram is rendered in an authentic hand-drawn whiteboard architectural blueprint (Excalidraw format) accompanied by exhaustive technical descriptions, schema models, and data flow specifications.
 
 | No. | Recommended Diagram | Diagram Category | Core Scope & Purpose |
 |:---:|:--------------------|:-----------------|:---------------------|
@@ -315,79 +315,9 @@ The complete engineering, algorithmic, and data architecture of PricePilot AI is
 
 This diagram maps the decoupled three-tier microservice topology of PricePilot AI: the React 19 Single Page Application (SPA), the Node.js 20 Express API Gateway, the Python 3.12 FastAPI Machine Learning Service, persistent storage tiers (MongoDB Atlas, Redis 7, ChromaDB), and external third-party integrations.
 
-```mermaid
-flowchart TB
-    subgraph ClientLayer ["1. Client Tier (React 19 + Vite 7 SPA)"]
-        Landing["Landing Page (Stacking Card Motion)"]
-        Dashboard["Executive Analytics Dashboard"]
-        Catalog["Product Catalog Management"]
-        CompetitorUI["Competitor Price Intelligence"]
-        DemandUI["Demand Signals & Heatmap"]
-        ForecastUI["Prophet 30-Day Inventory Forecasts"]
-        RecsUI["AI Recommendations & PDF Export"]
-        SimUI["What-If Scenario Simulator"]
-        ChatUI["Conversational RAG Copilot"]
-        ABUI["A/B Elasticity Testing"]
-        ChannelUI["Multi-Channel Mapping"]
-        AlertUI["Priority Alert Inbox"]
-    end
+[![1. Overall System Architecture Diagram](docs/diagrams/01_overall_system_architecture.png)](docs/diagrams/01_overall_system_architecture.png)
 
-    subgraph GatewayLayer ["2. API Gateway Tier (Node.js 20 + Express 4)"]
-        SecMiddleware["Defensive Middleware: Helmet, CORS, RateLimiter, MongoSanitize, XSS-Clean"]
-        AuthService["JWT Verify & Bcrypt Password Hashing"]
-        RouteHandlers["REST Controllers: Products, Competitors, Demand, Forecast, AI, Chat, Alerts"]
-        Scheduler["Node-Cron Daemon & Event Dispatcher"]
-        QueueService["BullMQ Job Producers (Redis-Backed Async Worker Queue)"]
-    end
-
-    subgraph AIEngineLayer ["3. AI Intelligence Tier (Python 3.12 + FastAPI)"]
-        LangGraphAgent["LangGraph Competitor Intelligence Agent"]
-        PricingOptimizer["Binary Search Profit Maximizer & Bayesian Elasticity"]
-        ProphetForecaster["Facebook Prophet Time-Series Forecaster"]
-        RAGCopilot["4-Tier Cognitive Memory RAG Engine"]
-        ScraperEngine["Distributed Scrapers: Rainforest API + BeautifulSoup"]
-        DemandAggregator["Environmental Telemetry Signal Aggregator"]
-    end
-
-    subgraph DataLayer ["4. Data & Persistence Layer"]
-        MongoDB[("MongoDB Atlas (12 Collections)")]
-        RedisCache[("Redis 7 (In-Memory Metrics & BullMQ)")]
-        ChromaStore[("ChromaDB Vector Store (Semantic & Episodic)")]
-    end
-
-    subgraph ExternalServices ["5. External Services & Providers"]
-        AmazonAPI["Amazon Marketplace (Rainforest API)"]
-        FlipkartWeb["Flipkart Marketplace (BS4 Scraper)"]
-        GeminiLLM["Google Gemini 2.5 Flash LLM"]
-        OpenRouterLLM["OpenRouter Fallback (NVIDIA Nemotron 70B)"]
-        TrendsAPI["Google Trends Telemetry"]
-        WeatherAPI["OpenWeatherMap API"]
-        EventsAPI["Eventbrite / Local Events API"]
-        SendGridAPI["SendGrid Email Service"]
-        OAuthProvider["Google OAuth 2.0 Service"]
-    end
-
-    ClientLayer -->|"HTTPS / JWT Bearer"| SecMiddleware
-    SecMiddleware --> RouteHandlers
-    RouteHandlers --> AuthService
-    RouteHandlers -->|"Read/Write Operations"| MongoDB
-    RouteHandlers -->|"Cache Lookups & Task Enqueue"| RedisCache
-    RouteHandlers -->|"Async AI Task Delegation"| QueueService
-    QueueService -->|"HTTP / JSON Payload"| AIEngineLayer
-    RouteHandlers -->|"Sync Proxy / Fast Execution"| AIEngineLayer
-    Scheduler -->|"Scheduled Triggers"| RouteHandlers
-
-    AIEngineLayer -->|"Embeddings & Semantic Search"| ChromaStore
-    AIEngineLayer -->|"Scrape Competitors"| AmazonAPI
-    AIEngineLayer -->|"Scrape Competitors"| FlipkartWeb
-    AIEngineLayer -->|"Primary Inferences"| GeminiLLM
-    AIEngineLayer -->|"Failover Inferences"| OpenRouterLLM
-    AIEngineLayer -->|"Search Volume Telemetry"| TrendsAPI
-    AIEngineLayer -->|"Weather Factor Multiplier"| WeatherAPI
-    AIEngineLayer -->|"Local Events Density"| EventsAPI
-    RouteHandlers -->|"Email Notifications"| SendGridAPI
-    AuthService -->|"Token Verification"| OAuthProvider
-```
+*Figure 1: Overall System Architecture Diagram — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 *Companion High-Resolution Visual Architecture Map:*
 ![System Architecture](client/public/diagrams/Architecture.png)
@@ -398,59 +328,9 @@ flowchart TB
 
 The System Block Diagram models the modular hardware and software subsystems of PricePilot AI, formalizing communication interfaces, transport protocols, and component boundaries between client presentation, gateway orchestration, intelligence compute, and data persistence.
 
-```mermaid
-flowchart LR
-    subgraph UI_Block ["Presentation Subsystem (Client)"]
-        direction TB
-        B1["Page Views & UI Shell"]
-        B2["Recharts SVG Analytics"]
-        B3["State & Theme Contexts"]
-        B4["Axios HTTP Interceptors"]
-    end
+[![2. System Block Diagram](docs/diagrams/02_system_block_diagram.png)](docs/diagrams/02_system_block_diagram.png)
 
-    subgraph GW_Block ["Gateway Subsystem (Express / Node.js)"]
-        direction TB
-        B5["Security & Rate Limiting"]
-        B6["JWT Session Controller"]
-        B7["Domain Route Handlers"]
-        B8["BullMQ Task Orchestrator"]
-        B9["Cron Alert Dispatcher"]
-    end
-
-    subgraph AI_Block ["Intelligence Subsystem (FastAPI / Python)"]
-        direction TB
-        B10["LangGraph Swarm Agent"]
-        B11["Econometric Pricing Engine"]
-        B12["Prophet Forecast Engine"]
-        B13["RAG 4-Tier Memory Controller"]
-        B14["Dual-LLM Failover Arbiter"]
-    end
-
-    subgraph DB_Block ["Data Subsystem (Storage)"]
-        direction TB
-        B15["MongoDB Document Store"]
-        B16["Redis Memory Cache & Queue"]
-        B17["ChromaDB Vector Store"]
-    end
-
-    subgraph EXT_Block ["External Integration Subsystem"]
-        direction TB
-        B18["Marketplace APIs (Amazon/Flipkart)"]
-        B19["LLM APIs (Gemini/OpenRouter)"]
-        B20["Telemetry APIs (Trends/Weather)"]
-        B21["Notification APIs (SendGrid/OAuth)"]
-    end
-
-    UI_Block <-->|"JSON over HTTPS"| GW_Block
-    GW_Block <-->|"Internal REST RPC"| AI_Block
-    GW_Block <-->|"Mongoose ODM / TCP"| B15
-    GW_Block <-->|"Redis Protocol / Port 6379"| B16
-    AI_Block <-->|"Vector Query / Index"| B17
-    AI_Block <-->|"HTTP Scraping"| B18
-    AI_Block <-->|"Inference Streams"| B19
-    AI_Block <-->|"Telemetry Ingestion"| B20
-    GW_Block <-->|"SMTP / OAuth Callbacks"| B21
-```
+*Figure 2: System Block Diagram — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
@@ -458,55 +338,9 @@ flowchart LR
 
 This flowchart outlines the end-to-end operational execution path of PricePilot AI. It demonstrates how merchant interactions trigger autonomous multi-agent scrapers, telemetry aggregations, Bayesian forecasting, price optimization, scenario simulations, and automated multi-channel synchronization.
 
-```mermaid
-flowchart TD
-    Start(["Merchant Accesses Platform"]) --> AuthCheck{"Authenticated Session?"}
-    AuthCheck -- "No" --> Login["Sign In via Google OAuth 2.0 or Email/Password"]
-    Login --> VerifyJWT["Generate Salted JWT Bearer Token"]
-    VerifyJWT --> DashView["Load Executive Dashboard"]
-    AuthCheck -- "Yes" --> DashView
+[![3. Main System Workflow Flowchart](docs/diagrams/03_main_system_workflow.png)](docs/diagrams/03_main_system_workflow.png)
 
-    DashView --> IngestChoice{"Catalog Populated?"}
-    IngestChoice -- "No" --> AddProd["Add Products (Manual, CSV Bulk Import, or Channel Sync)"]
-    AddProd --> CatalogSaved["Persist SKU, COGS, Min Margin in MongoDB"]
-    IngestChoice -- "Yes" --> TriggerSync["Autonomous Background Sync (Node-Cron & BullMQ)"]
-    CatalogSaved --> TriggerSync
-
-    TriggerSync --> Parallel1["Competitor Agent (LangGraph)"]
-    TriggerSync --> Parallel2["Demand Telemetry Collector"]
-    TriggerSync --> Parallel3["Historical Sales Ingestion"]
-
-    Parallel1 --> CompData["Scrape Amazon & Flipkart Rivals -> Normalize Prices"]
-    Parallel2 --> DemandScore["Compute 0-100 Composite Demand Score (Trends, Weather, Events, News)"]
-    Parallel3 --> SalesVol["Aggregate 30-Day Velocity & Order Trends"]
-
-    CompData & DemandScore & SalesVol --> OptimizationEngine["Pricing Engine & What-If Optimizer"]
-
-    OptimizationEngine --> ProphetStep["Prophet Bayesian Forecast: 30-Day Demand & Reorder Point"]
-    OptimizationEngine --> ElasticityStep["Estimate Price Elasticity & Binary Search Max Profit P*"]
-
-    ProphetStep --> GenForecasts["Store InventoryForecast & Reorder Alerts"]
-    ElasticityStep --> GenRecs["Generate PricingRecommendations with Explainable AI Narrative"]
-
-    GenForecasts & GenRecs --> MerchantReview{"Merchant Decision Gate"}
-
-    MerchantReview -- "Accept Recommendation" --> ApplyPrice["Commit Price to Product Catalog"]
-    MerchantReview -- "Simulate What-If" --> RunSim["Adjust Target Margin & Counter-Moves in Simulator"]
-    MerchantReview -- "Launch A/B Test" --> RunAB["Deploy Split-Test Variant A vs B (Thompson Sampling)"]
-    MerchantReview -- "Consult Copilot" --> RunRAG["Ask Conversational AI Copilot (RAG Memory Context)"]
-    MerchantReview -- "Dismiss / Ignore" --> LogFeedback["Log Merchant Reason to Procedural Memory"]
-
-    RunSim --> ApplyPrice
-    RunAB --> CollectAB["Track Views, Conversions, and Revenue per Variant"]
-    CollectAB --> WinnerFound{"Statistical Significance Reached?"}
-    WinnerFound -- "Yes" --> ApplyPrice
-    WinnerFound -- "No" --> CollectAB
-    RunRAG --> MerchantReview
-
-    ApplyPrice --> MultiChannelSync["Sync Across Sales Channels (Amazon, Flipkart, Shopify)"]
-    MultiChannelSync --> AuditNotify["Dispatch Alert Inbox Event & SendGrid Digest"]
-    AuditNotify --> EndState(["Continuous Autonomous Monitoring Loop"])
-```
+*Figure 3: Main System Workflow Flowchart — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 *User Journey Sequence Diagram:*
 ![Sequence Diagram](client/public/diagrams/Sequence_diagram.png)
@@ -517,74 +351,9 @@ flowchart TD
 
 The UML Use Case Diagram documents the functional requirements and interaction boundaries between human users (Store Owner / Merchant), background autonomous workers (AI Autonomous Agent), external system actors (Marketplaces & Telemetry APIs), and platform administrators.
 
-```mermaid
-flowchart TD
-    subgraph Actors ["Platform Actors"]
-        Merchant(("E-Commerce Merchant
-/ Store Owner"))
-        AIAgent(("AI Autonomous Agent
-(System Worker)"))
-        Marketplaces(("Marketplace Competitors
-& External APIs"))
-        Admin(("System Administrator"))
-    end
+[![4. Use Case Diagram](docs/diagrams/04_use_case_diagram.png)](docs/diagrams/04_use_case_diagram.png)
 
-    subgraph UseCases ["PricePilot AI Use Case System Boundary"]
-        UC1["UC-01: Authenticate & Manage Store Profile"]
-        UC2["UC-02: Manage Product Catalog & Cost Bounds"]
-        UC3["UC-03: Track Live Competitor Benchmark Prices"]
-        UC4["UC-04: Ingest & Monitor Multi-Signal Demand Heatmap"]
-        UC5["UC-05: Generate 30-Day Prophet Demand Forecasts"]
-        UC6["UC-06: Evaluate AI Pricing Recommendations & XAI"]
-        UC7["UC-07: Simulate Pricing Scenarios (What-If Sandbox)"]
-        UC8["UC-08: Execute Price Elasticity A/B Split Testing"]
-        UC9["UC-09: Interact with Conversational RAG Copilot"]
-        UC10["UC-10: Synchronize Prices Across Sales Channels"]
-        UC11["UC-11: Prioritize & Review Critical Alerts"]
-        UC12["UC-12: Export Presentation-Ready Executive PDF Reports"]
-        UC13["UC-13: Submit Bug Reports & Platform Telemetry"]
-        UC14["UC-14: Scrape Marketplaces & Filter Self-Brand"]
-        UC15["UC-15: Manage Rate Limits & Platform Health"]
-    end
-
-    Merchant --> UC1
-    Merchant --> UC2
-    Merchant --> UC3
-    Merchant --> UC4
-    Merchant --> UC5
-    Merchant --> UC6
-    Merchant --> UC7
-    Merchant --> UC8
-    Merchant --> UC9
-    Merchant --> UC10
-    Merchant --> UC11
-    Merchant --> UC12
-    Merchant --> UC13
-
-    AIAgent --> UC3
-    AIAgent --> UC4
-    AIAgent --> UC5
-    AIAgent --> UC6
-    AIAgent --> UC10
-    AIAgent --> UC11
-    AIAgent --> UC14
-
-    Marketplaces --> UC3
-    Marketplaces --> UC4
-    Marketplaces --> UC10
-    Marketplaces --> UC14
-
-    Admin --> UC15
-    Admin --> UC11
-
-    UC6 -.->|"«include»"| UC12
-    UC6 -.->|"«extend»"| UC7
-    UC7 -.->|"«extend»"| UC10
-    UC6 -.->|"«extend»"| UC8
-    UC9 -.->|"«extend»"| UC7
-    UC3 -.->|"«include»"| UC14
-    UC5 -.->|"«extend»"| UC11
-```
+*Figure 4: Use Case Diagram — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
@@ -592,82 +361,9 @@ flowchart TD
 
 The Level 1 Data Flow Diagram traces the transformation and flow of data across 10 operational processes, 10 persistent storage stores, and 5 external entities in the PricePilot AI platform.
 
-```mermaid
-flowchart TD
-    subgraph Entities ["External Entities"]
-        UserEntity["E-Commerce Merchant (Browser Client)"]
-        ScrapeTargets["Marketplaces (Amazon & Flipkart)"]
-        EnvAPIs["Environmental APIs (Trends, Weather, Events, News)"]
-        LLMProviders["LLM Providers (Google Gemini & OpenRouter)"]
-        SalesChannels["Multi-Channel Marketplaces (Shopify, Amazon, Flipkart)"]
-    end
+[![5. Data Flow Diagram (DFD)](docs/diagrams/05_data_flow_diagram_dfd.png)](docs/diagrams/05_data_flow_diagram_dfd.png)
 
-    subgraph Processes ["Core System Processes (Level 1 DFD)"]
-        P1["P1.0: User Authentication & Profile Tokenization"]
-        P2["P2.0: Catalog Management & Inventory Ledger"]
-        P3["P3.0: Autonomous Competitor Scraping & Normalization"]
-        P4["P4.0: Environmental Demand Telemetry Ingestion"]
-        P5["P5.0: Bayesian Time-Series Demand Forecasting"]
-        P6["P6.0: Price Elasticity Modeling & Profit Maximization"]
-        P7["P7.0: Interactive What-If Scenario Simulation"]
-        P8["P8.0: 4-Tier Memory RAG Copilot & Query Processing"]
-        P9["P9.0: Multi-Channel Price & Stock Synchronization"]
-        P10["P10.0: Alert Prioritization & Event Dispatcher"]
-    end
-
-    subgraph DataStores ["Data Stores"]
-        DS1[("D1: Users Collection")]
-        DS2[("D2: Products Collection")]
-        DS3[("D3: CompetitorPrices Collection")]
-        DS4[("D4: DemandSignals Collection")]
-        DS5[("D5: InventoryForecasts Collection")]
-        DS6[("D6: PricingRecommendations Collection")]
-        DS7[("D7: ABTests Collection")]
-        DS8[("D8: ChromaDB Vector Store")]
-        DS9[("D9: Alerts Collection")]
-        DS10[("D10: Redis Cache & Queues")]
-    end
-
-    UserEntity -->|"Login Credentials"| P1
-    P1 -->|"Session JWT"| UserEntity
-    P1 <-->|"Read/Write User Record"| DS1
-
-    UserEntity -->|"Product Specs, COGS, Stock"| P2
-    P2 <-->|"Catalog CRUD"| DS2
-
-    P2 -->|"Trigger Product Scrape Job"| DS10
-    DS10 -->|"Dispatched Job"| P3
-    P3 -->|"HTTP Scrape Requests"| ScrapeTargets
-    ScrapeTargets -->|"Raw Product & Price HTML/JSON"| P3
-    P3 -->|"Normalized Competitor Records"| DS3
-
-    EnvAPIs -->|"Trends, Weather, Events Telemetry"| P4
-    P4 -->|"Composite Demand Score (0-100)"| DS4
-
-    DS2 & DS4 -->|"Historical Volume & Seasonality"| P5
-    P5 -->|"30-Day Demand Predictions & Reorder Qty"| DS5
-
-    DS2 & DS3 & DS4 -->|"Cost, Rival Prices, Demand"| P6
-    P6 <-->|"LLM Narrative Prompting"| LLMProviders
-    P6 -->|"AI Pricing Recommendations"| DS6
-
-    UserEntity -->|"Proposed Price & Counter-Move Sliders"| P7
-    DS2 & DS3 & DS4 -->|"Live Elasticity Curves"| P7
-    P7 -->|"Simulated Margin & Verdict Badges"| UserEntity
-
-    UserEntity -->|"Chat Query & @Product Tags"| P8
-    P8 <-->|"Top-k Semantic & Episodic Retrieval"| DS8
-    P8 <-->|"Synthesize Reasoning"| LLMProviders
-    P8 -->|"Copilot Response & What-If Action Cards"| UserEntity
-
-    UserEntity -->|"Apply Price Change"| P9
-    P9 -->|"API Price Push"| SalesChannels
-    P9 -->|"Update Current Price & Sync Timestamp"| DS2
-
-    DS3 & DS5 -->|"Undercut & Stockout Triggers"| P10
-    P10 -->|"Alert Documents"| DS9
-    P10 -->|"In-App Notification & Email"| UserEntity
-```
+*Figure 5: Data Flow Diagram (DFD) — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 *Companion Detailed DFD Diagram:*
 ![Data Flow Diagram](client/public/diagrams/Data%20Flow%20Diagram.png)
@@ -678,44 +374,9 @@ flowchart TD
 
 This StateGraph execution pipeline details how `competitor_agent.py` sanitizes input tokens, enforces strict anti-self-brand guardrails, prompts high-reasoning LLMs for direct rival identification, concurrently crawls Amazon and Flipkart, normalizes multi-currency prices, and calculates market price gravity.
 
-```mermaid
-flowchart TD
-    Start(["Input: Target Product from Catalog"]) --> S1["Node 1: Brand Sanitizer
-Strip store tokens, quantity suffixes, promo tags via regex"]
-    S1 --> S2["Node 2: Generic Type Extractor
-Extract product archetype (e.g. 'Wireless Earbuds', 'Edp Perfume')"]
-    S2 --> S3["Node 3: Category Taxonomy Classifier
-Map to standard category (Electronics, Fragrance, Fashion, Home)"]
-    S3 --> S4["Node 4: Anti-Self-Brand Filter Guardrail
-Inject seller's own brand into strict negative exclusion filter"]
-    S4 --> S5["Node 5: LLM Rival Brand Discovery
-Prompt Nemotron/Gemini to identify 4-5 direct tier-1 market rivals"]
-    S5 --> S6["Node 6: Search Query Matrix Generator
-Formulate combinations: [Rival Brand] + [Generic Type] + [Key Spec]"]
-    
-    S6 --> S7{"Concurrent Scraper Dispatch"}
-    S7 -->|"Rainforest API"| ScrapeAmazon["Amazon Marketplace Scraper
-Extract ASIN, Title, Price, Prime, Stock"]
-    S7 -->|"BeautifulSoup4"| ScrapeFlipkart["Flipkart Marketplace Scraper
-Extract FSN, Title, Price, Rating, Stock"]
+[![6. Competitor Intelligence Agent Workflow](docs/diagrams/06_competitor_intelligence_agent.png)](docs/diagrams/06_competitor_intelligence_agent.png)
 
-    ScrapeAmazon & ScrapeFlipkart --> S8["Node 7: Normalizer & Outlier Truncation
-Strip currency symbols, convert to INR, clip IQR price outliers"]
-    S8 --> S9["Node 8: Brand-Matching Verification
-Enforce Title Similarity > 0.65 & ensure zero self-brand pollution"]
-    
-    S9 --> S10["Node 9: Market Gravity Calculator
-Compute Median, Min, Max, Price Delta (ΔP), Stock Status"]
-    S10 --> S11["Node 10: XAI Market Insight Narrative
-Generate plain-English competitive stance narrative"]
-    
-    S11 --> SaveDB[("Persist to CompetitorPrices Collection")]
-    SaveDB --> TriggerAlert{"Price Undercut Detected?"}
-    TriggerAlert -- "Yes" --> DispatchAlert["Dispatch High-Severity Competitor Undercut Alert"]
-    TriggerAlert -- "No" --> FeedOptimizer["Deliver Competitor Telemetry to Pricing Engine"]
-    DispatchAlert --> FeedOptimizer
-    FeedOptimizer --> EndState(["Agent Execution Terminated Successfully"])
-```
+*Figure 6: Competitor Intelligence Agent Workflow — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
@@ -723,64 +384,9 @@ Generate plain-English competitive stance narrative"]
 
 This diagram models the mathematical optimization pipeline powering the Pricing Engine and the interactive What-If Simulator (`WhatIfSimulator.jsx`). It covers dynamic price elasticity adjustment ($\epsilon$), binary search convergence on maximum gross profit ($P^*$), simulation slider calculation, and strategic verdict classification.
 
-```mermaid
-flowchart TD
-    Start(["Input: Product SKU, Current Price P0, COGS, Stock"]) --> Step1["Load Telemetry: Competitor Median Pc, Demand Multiplier Dm"]
-    
-    subgraph ElasticityPhase ["Phase 1: Dynamic Price Elasticity Estimation"]
-        E1["Base Category Elasticity: ε0 (e.g., -1.8 for Electronics)"]
-        E2["Competitor Price Ratio Modifier: α * (P0 - Pc) / Pc"]
-        E3["Demand Momentum Multiplier: β * (Dm - 0.5)"]
-        E4["Adjusted Dynamic Elasticity: ε_adj = ε0 * (1 + Modifier) * (1 - Momentum)"]
-        E1 & E2 & E3 --> E4
-    end
+[![7. AI Pricing and What-If Simulation Workflow](docs/diagrams/07_ai_pricing_what_if_simulation.png)](docs/diagrams/07_ai_pricing_what_if_simulation.png)
 
-    Step1 --> ElasticityPhase
-
-    subgraph OptimizationPhase ["Phase 2: Binary Search Gross Profit Maximizer"]
-        O1["Define Margin Bounds: P_floor = COGS / (1 - MinMargin), P_ceil = COGS * (1 + MaxMarkup)"]
-        O2["Binary Search Iteration over [P_floor, P_ceil]"]
-        O3["Demand Response Function: Q(P) = Q0 * (1 - ε_adj * (P - P0) / P0)"]
-        O4["Objective: Maximize Expected Gross Profit = (P - COGS) * Q(P)"]
-        O5["Convergence Check: Search delta < 0.01 tolerance"]
-        O1 --> O2 --> O3 --> O4 --> O5
-        O5 -- "Not Converged" --> O2
-        O5 -- "Optimal Price Located" --> P_star["Optimal AI Recommended Price: P*"]
-    end
-
-    ElasticityPhase --> OptimizationPhase
-
-    subgraph SimulationPhase ["Phase 3: Interactive What-If Simulator Sandbox"]
-        S1["Merchant Inputs: Target Price Slider, Competitor Counter-Move, Demand Multiplier"]
-        S2["Calculate Expected Demand Delta: ΔQ (%)"]
-        S3["Calculate Expected Revenue Delta: ΔRevenue (%)"]
-        S4["Calculate Expected Gross Profit Delta: ΔProfit (₹ and %)"]
-        S5["Calculate Proposed Margin Health: Proposed Margin (%) vs Min Margin Floor"]
-        S6["Generate 20-Point Profit Frontier Curve & Sensitivity Matrix"]
-        S1 --> S2 --> S3 --> S4 --> S5 --> S6
-    end
-
-    OptimizationPhase --> SimulationPhase
-
-    subgraph VerdictPhase ["Phase 4: Strategic Verdict Classification"]
-        V_Check{"Evaluate Simulation Metrics"}
-        V_Check -- "ΔProfit > 0 AND Margin Rises" --> V1["Verdict: MARGIN MAXIMIZER
-Safely increases unit margin with minimal volume penalty"]
-        V_Check -- "ΔQ > 0 AND Revenue Rises" --> V2["Verdict: MARKET SHARE GRAB
-Aggressively undercuts to capture market volume"]
-        V_Check -- "Margin < MinMargin Floor OR ΔProfit < 0" --> V3["Verdict: MARGIN RISK
-Warns merchant: proposed price erodes profitability"]
-        V_Check -- "Price >> Pc AND ΔQ < -20%" --> V4["Verdict: VOLUME LOSS RISK
-Warns merchant: excessive markup causes demand collapse"]
-    end
-
-    SimulationPhase --> VerdictPhase
-
-    VerdictPhase --> ActionGate{"Merchant Action Decision"}
-    ActionGate -- "Commit Changes" --> CommitPrice["Apply New Price to Catalog & Sync to Amazon/Flipkart/Shopify"]
-    ActionGate -- "Deploy A/B Experiment" --> LaunchAB["Initialize 50/50 Split Test (Control vs Variant)"]
-    ActionGate -- "Discard / Reset" --> ResetSim["Revert Sliders to Current Baseline"]
-```
+*Figure 7: AI Pricing and What-If Simulation Workflow — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
@@ -788,82 +394,9 @@ Warns merchant: excessive markup causes demand collapse"]
 
 This diagram captures the Bayesian time-series demand forecasting architecture. It maps the ingestion of four external telemetry streams (Google Trends, OpenWeatherMap, Eventbrite, NewsAPI Sentiment) into a 0–100 Composite Demand Score, decomposing seasonality and holiday regressors via Facebook Prophet, calculating stock depletion runway, and raising automated reorder alerts.
 
-```mermaid
-flowchart TD
-    subgraph DataSources ["External & Internal Data Signals"]
-        SalesHistory[("Internal Daily Sales History (DailySalesMetric Collection)")]
-        GoogleTrends["Google Trends API
-Search Volume Index (Weight: 40%)"]
-        WeatherAPI["OpenWeatherMap API
-Temperature & Rain Factor (Weight: 20%)"]
-        EventsAPI["Eventbrite / Local Events API
-Festivals & Holidays (Weight: 20%)"]
-        NewsAPI["NewsAPI + Sentiment NLP
-Market News Polarity (Weight: 20%)"]
-    end
+[![8. Demand Forecasting Workflow](docs/diagrams/08_demand_forecasting_workflow.png)](docs/diagrams/08_demand_forecasting_workflow.png)
 
-    subgraph SignalProcessing ["Signal Normalization & Fusion"]
-        NormTrends["Normalize Search Interest to 0-100"]
-        NormWeather["Map Weather to 0-100: (Factor + 1) * 50"]
-        NormEvents["Map Events to 0-100: (Factor + 1) * 50"]
-        NormNews["Map News Sentiment to 0-100: (Factor + 1) * 50"]
-        WeightedSum["Composite Demand Score Calculation:
-Score = 0.40*Trends + 0.20*Weather + 0.20*Events + 0.20*News"]
-        
-        GoogleTrends --> NormTrends
-        WeatherAPI --> NormWeather
-        EventsAPI --> NormEvents
-        NewsAPI --> NormNews
-        NormTrends & NormWeather & NormEvents & NormNews --> WeightedSum
-    end
-
-    subgraph ModelSelection ["Model Dispatch & Ingestion Gate"]
-        CheckHistory{"Sample History Length N"}
-        CheckHistory -- "N >= 30 Days" --> ProphetPath["Ingest into Facebook Prophet Bayesian Additive Model"]
-        CheckHistory -- "N < 30 Days" --> FallbackPath["Statistical Fallback: Holt-Winters Exponential Smoothing / SMA"]
-    end
-
-    SalesHistory --> CheckHistory
-    WeightedSum --> ProphetPath
-
-    subgraph ProphetDecomposition ["Prophet Bayesian Time-Series Architecture"]
-        Comp1["Additive Trend g(t): Piecewise Linear Growth with Automatic Changepoint Detection"]
-        Comp2["Seasonality s(t): Fourier Series Decomposition (Weekly Order 3, Monthly Cycles)"]
-        Comp3["Holiday Effects h(t): Calendar Matrix (Diwali, Prime Day, New Year, Black Friday)"]
-        Comp4["External Regressor x(t): Injected Daily Composite Demand Score"]
-        CombineFormula["Equation: y(t) = g(t) + s(t) + h(t) + β*x(t) + ε_t"]
-
-        Comp1 & Comp2 & Comp3 & Comp4 --> CombineFormula
-    end
-
-    ProphetPath --> ProphetDecomposition
-
-    subgraph ForecastOutput ["Horizon Projections & Inventory Intelligence"]
-        DailyForecast["Generate 30-Day Daily Projections (Point Estimates y_hat)"]
-        ConfidenceBands["Compute Bayesian Posterior Uncertainty Intervals (70% and 95% Confidence)"]
-        DepletionRate["Calculate Daily Stock Depletion Rate: Stock(t) = CurrentStock - Sum(y_hat)"]
-        StockoutRunway["Stockout Runway: Days Until Stock(t) <= 0"]
-        ReorderPoint["Calculate Optimal Reorder Quantity:
-Reorder = (DailyDemand * LeadTime) + SafetyStock - CurrentStock"]
-
-        CombineFormula --> DailyForecast
-        FallbackPath --> DailyForecast
-        DailyForecast --> ConfidenceBands --> DepletionRate --> StockoutRunway --> ReorderPoint
-    end
-
-    subgraph Persistence ["Persistence & Alerts"]
-        SaveForecast[("Persist to InventoryForecasts Collection")]
-        CheckRunway{"Runway <= LeadTime + 7 Days?"}
-        TriggerAlert["Dispatch High-Severity Stockout Warning Alert"]
-        RenderUI["Render 30-Day Forecast & Confidence Area Chart on Recharts"]
-
-        ReorderPoint --> SaveForecast
-        SaveForecast --> CheckRunway
-        CheckRunway -- "Yes" --> TriggerAlert
-        CheckRunway -- "No" --> RenderUI
-        TriggerAlert --> RenderUI
-    end
-```
+*Figure 8: Demand Forecasting Workflow — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
@@ -871,62 +404,9 @@ Reorder = (DailyDemand * LeadTime) + SafetyStock - CurrentStock"]
 
 This diagram outlines the 4-Tier Cognitive Memory RAG Copilot architecture (`chat_service.py`), showing how user queries, `/slash` commands, and inline `@Product` chips are fused with Ephemeral Working Memory, ChromaDB Semantic Memory, and ChromaDB Episodic Memory before routing through a resilient dual-tier LLM arbiter (Google Gemini 2.5 Flash with OpenRouter Nemotron 70B failover).
 
-```mermaid
-flowchart TD
-    subgraph UserInterface ["Merchant Chat Interface (Client)"]
-        UserQuery["Merchant Enters Prompt in Chat Copilot Drawer or Workspace"]
-        SlashCmds["Slash Commands: /what-if, /explain-simply, /analyze-competitors, /demand-signals"]
-        ProductChips["Inline @Product Tagging: SKU, Stock, Margin, BaseCost Injection"]
-        UserQuery --> SlashCmds & ProductChips
-    end
+[![9. RAG Conversational AI Workflow](docs/diagrams/09_rag_conversational_ai_workflow.png)](docs/diagrams/09_rag_conversational_ai_workflow.png)
 
-    subgraph WorkingMemory ["Tier 1: Ephemeral Working Memory (Context RAM)"]
-        PersonaDirective["System Persona: Expert E-Commerce Pricing Strategist & Econometrician"]
-        SessionHistory["Sliding Window Session History (Last 6 Conversational Turns)"]
-        LiveCatalogContext["Active Product Catalog Telemetry (Real-Time Price, Cost, Stock, Competitors)"]
-        AssembleWorking["Working Memory Context Assembler"]
-        
-        SlashCmds & ProductChips --> AssembleWorking
-        PersonaDirective & SessionHistory & LiveCatalogContext --> AssembleWorking
-    end
-
-    subgraph VectorMemory ["Tiers 2 & 3: Durable Vector Stores (ChromaDB)"]
-        QueryEmbedding["Generate Dense Query Embedding Vector (Cosine Similarity Search)"]
-        SemanticStore[("Tier 2: Semantic Memory Collection
-Catalog Specs, Pricing Rules, Return Policies, Margin Floors")]
-        EpisodicStore[("Tier 3: Episodic Memory Collection
-Historical Chat Dialogues, User Decisions, Feedback Ratings")]
-        
-        AssembleWorking --> QueryEmbedding
-        QueryEmbedding --> SemanticStore & EpisodicStore
-        SemanticStore -->|"Top-k Relevant Specs"| ContextFusion["Prompt & Context Synthesizer"]
-        EpisodicStore -->|"Top-k Historical Insights"| ContextFusion
-    end
-
-    subgraph ModelRouting ["Multi-Tier Resilient LLM Router"]
-        ContextFusion --> RouteArbiter{"Primary Engine Available?"}
-        RouteArbiter -- "Healthy" --> PrimaryLLM["Primary: Google Gemini 2.5 Flash
-1M Context Window, Low Latency"]
-        RouteArbiter -- "Rate Limit (429) / Quota (503)" --> FallbackLLM["Fallback: OpenRouter API
-NVIDIA Nemotron 70B / Qwen 2.5 72B"]
-        PrimaryLLM -- "API Error" --> FallbackLLM
-        FallbackLLM -- "API Error" --> SafetyNet["Safety Net: Deterministic Catalog Heuristic Engine"]
-    end
-
-    subgraph OutputGeneration ["Response Synthesis & Executable Artifacts"]
-        PrimaryLLM & FallbackLLM & SafetyNet --> SynthesizeReply["Synthesize Structured Markdown Response"]
-        SynthesizeReply --> ExtractCards{"Contains What-If Actionable Parameters?"}
-        ExtractCards -- "Yes" --> WhatIfCard["Generate Executable What-If Scenario Card with Preset Sliders"]
-        ExtractCards -- "No" --> PlainResponse["Render Conversational Advice & Plain-English XAI Narrative"]
-    end
-
-    subgraph MemoryPersistence ["Tier 4: Context Retention & Learning Loop"]
-        WhatIfCard & PlainResponse --> StreamUI["Stream Rich Response to React Frontend"]
-        StreamUI --> AsyncPersist["Async Fire-and-Forget Persistence"]
-        AsyncPersist --> SaveEpisodic[("Append Turn to ChromaDB Episodic Memory Collection")]
-        AsyncPersist --> SaveChatDoc[("Save Message to MongoDB Chat Collection")]
-    end
-```
+*Figure 9: RAG Conversational AI Workflow — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 *Companion Memory Architecture Model:*
 ![Chatbot Architecture](client/public/diagrams/Chatbot_architecture.png)
@@ -937,177 +417,9 @@ NVIDIA Nemotron 70B / Qwen 2.5 72B"]
 
 The Entity-Relationship (ER) diagram documents the production MongoDB Atlas database design across all 12 core Mongoose collections, detailing foreign key ObjectIds, 1:N and 1:1 cardinalities, index structures, and data types.
 
-```mermaid
-erDiagram
-    USER ||--o{ PRODUCT : "owns catalog (1:N)"
-    USER ||--o{ ALERT : "receives (1:N)"
-    USER ||--o{ PRICING_RECOMMENDATION : "receives (1:N)"
-    USER ||--o{ INVENTORY_FORECAST : "views (1:N)"
-    USER ||--o{ AB_TEST : "conducts (1:N)"
-    USER ||--o{ CHAT_SESSION : "creates (1:N)"
-    USER ||--o{ PLATFORM_FEEDBACK : "submits (1:N)"
+[![10. Database Design / Collection Relationship Diagram](docs/diagrams/10_database_er_diagram.png)](docs/diagrams/10_database_er_diagram.png)
 
-    PRODUCT ||--o{ COMPETITOR_PRICE : "tracked_against (1:N)"
-    PRODUCT ||--o{ DEMAND_SIGNAL : "evaluates (1:N)"
-    PRODUCT ||--o{ PRICING_RECOMMENDATION : "generates (1:N)"
-    PRODUCT ||--o{ INVENTORY_FORECAST : "projects (1:N)"
-    PRODUCT ||--o{ DAILY_SALES_METRIC : "records (1:N)"
-    PRODUCT ||--o{ AB_TEST : "experiments_on (1:N)"
-    PRODUCT ||--o{ PRODUCT_MAPPING : "maps_to_channels (1:N)"
-    PRODUCT ||--o{ ALERT : "triggers (1:N)"
-
-    PRICING_RECOMMENDATION ||--o| AB_TEST : "validates (1:1)"
-
-    USER {
-        ObjectId _id PK
-        string name
-        string email UK
-        string password
-        string role "admin | user"
-        string storeName
-        object preferences "theme, currency, margin floors"
-        object onboarding "completed, channels, goals"
-        date createdAt
-        date updatedAt
-    }
-
-    PRODUCT {
-        ObjectId _id PK
-        ObjectId userId FK
-        string name
-        string sku UK
-        string category
-        number baseCost "COGS"
-        number currentPrice
-        number minMargin "Default 0.10"
-        number stockLevel
-        number reorderThreshold
-        number safetyBuffer
-        object productLinks "amazon, flipkart, meesho, shopify"
-        object externalIds "shopifyId, amazonAsin, flipkartFsn"
-        object salesVelocity "avgHourlySalesRate, peakRate"
-        date lastSyncedAt
-        boolean syncEnabled
-        date createdAt
-    }
-
-    COMPETITOR_PRICE {
-        ObjectId _id PK
-        ObjectId productId FK
-        string competitorName "Amazon | Flipkart | Meesho"
-        string productName
-        number competitorPrice
-        string competitorUrl
-        boolean inStock
-        date timestamp
-    }
-
-    DEMAND_SIGNAL {
-        ObjectId _id PK
-        ObjectId productId FK
-        number searchTrendScore "0 to 100"
-        number weatherFactor "-1 to 1"
-        number eventFactor "-1 to 1"
-        number socialSentimentScore "-1 to 1"
-        number compositeDemandScore "0 to 100"
-        date timestamp
-    }
-
-    PRICING_RECOMMENDATION {
-        ObjectId _id PK
-        ObjectId productId FK
-        ObjectId userId FK
-        number recommendedPrice
-        number currentPrice
-        string reason
-        number expectedRevenueImpact "%"
-        number confidenceScore "0 to 1"
-        string status "pending | accepted | rejected | in_testing"
-        number elasticityUsed
-        string insight
-        date appliedAt
-        date timestamp
-    }
-
-    INVENTORY_FORECAST {
-        ObjectId _id PK
-        ObjectId productId FK
-        ObjectId userId FK
-        number predictedDemand
-        number recommendedStockIncrease
-        number currentStock
-        number forecastRange "days (e.g. 30)"
-        number confidenceScore "0 to 1"
-        string reason
-        date timestamp
-    }
-
-    AB_TEST {
-        ObjectId _id PK
-        ObjectId productId FK
-        ObjectId userId FK
-        ObjectId recommendationId FK
-        object variantA "price, label: control"
-        object variantB "price, label: ai_recommended"
-        string status "active | completed | paused"
-        object results "views, conversions, revenue for A and B"
-        string winner "A | B | tie"
-        number confidenceLevel "Statistical significance %"
-        date startDate
-        date endDate
-    }
-
-    ALERT {
-        ObjectId _id PK
-        ObjectId productId FK
-        ObjectId userId FK
-        string type "price_drop | stockout_risk | competitor_undercut"
-        string severity "low | medium | high | critical"
-        string title
-        string message
-        boolean read
-        boolean actionTaken
-        object metadata
-        date timestamp
-    }
-
-    PRODUCT_MAPPING {
-        ObjectId _id PK
-        ObjectId productId FK
-        string channel "shopify | amazon | flipkart"
-        string channelProductId
-        string channelSku
-        boolean isSynced
-        date lastSyncedAt
-    }
-
-    DAILY_SALES_METRIC {
-        ObjectId _id PK
-        ObjectId productId FK
-        date date
-        number unitsSold
-        number revenue
-        number avgSellingPrice
-    }
-
-    CHAT_SESSION {
-        ObjectId _id PK
-        ObjectId userId FK
-        array messages
-        ObjectId activeProductContext FK
-        date timestamp
-    }
-
-    PLATFORM_FEEDBACK {
-        ObjectId _id PK
-        ObjectId userId FK
-        string type "bug | feature | general"
-        number rating
-        string comment
-        object systemTelemetry
-        date createdAt
-    }
-```
+*Figure 10: Database Design / Collection Relationship Diagram — Hand-Drawn Whiteboard Architectural Blueprint (Click to view full resolution)*
 
 ---
 
