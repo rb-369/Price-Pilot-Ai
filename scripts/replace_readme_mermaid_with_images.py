@@ -63,3 +63,4 @@ with open(readme_path, 'w', encoding='utf-8') as f:
     f.write(new_text)
 
 print("Successfully replaced all 10 Mermaid blocks with Excalidraw diagram image embeds in README.md!")
+
