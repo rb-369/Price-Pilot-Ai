@@ -127,6 +127,24 @@ export default function DemandSignals() {
     return { ...sw, value: displayVal };
   }) : [], [latestSignal]);
 
+  const finalDemandScore = useMemo(() => {
+    if (latestSignal && typeof latestSignal.compositeDemandScore === 'number') {
+      const s = latestSignal.compositeDemandScore;
+      return s <= 1 && s > 0 ? Math.round(s * 100) : Math.round(s);
+    }
+    if (selectedProductData) {
+      const s = selectedProductData.latestScore ?? selectedProductData.demand ?? 0;
+      return s <= 1 && s > 0 ? Math.round(s * 100) : Math.round(s);
+    }
+    return 0;
+  }, [latestSignal, selectedProductData]);
+
+  const selectedBadge = useMemo(() => {
+    if (finalDemandScore > 0) return getDemandBadge(finalDemandScore);
+    if (selectedProductData) return getDemandBadge(selectedProductData.demand);
+    return null;
+  }, [finalDemandScore, selectedProductData]);
+
   // ─── Handlers ───
   const handleExport = () => {
     const exportData = signals.map(s => ({
@@ -156,7 +174,6 @@ export default function DemandSignals() {
     </div>
   );
 
-  const selectedBadge = selectedProductData ? getDemandBadge(selectedProductData.demand) : null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -383,12 +400,18 @@ export default function DemandSignals() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Signal Dimension Breakdown</h3>
                   {selectedBadge && (
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                      style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
-                    >
-                      {selectedBadge.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-baseline gap-1 px-2.5 py-0.5 rounded-lg bg-surface border border-border text-[11px]">
+                        <span className="text-text-muted font-medium">Final Score:</span>
+                        <span className="font-extrabold text-sm" style={{ color: selectedBadge.color }}>{finalDemandScore}</span>
+                      </div>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
+                      >
+                        {selectedBadge.label}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <div className="chart-container" style={{ width: '100%', height: 280 }}>
@@ -441,6 +464,35 @@ export default function DemandSignals() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Final Demand Score */}
+                    <div className="pt-2.5 mt-2.5 border-t border-border/70">
+                      <div className="flex justify-between items-center text-xs mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-text font-bold">Final Demand Score</span>
+                          {selectedBadge && (
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                              style={{ background: selectedBadge.bg, color: selectedBadge.textColor, border: `1px solid ${selectedBadge.border}` }}
+                            >
+                              {selectedBadge.label}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ color: selectedBadge?.color || '#A85A3C' }} className="font-extrabold text-sm">
+                          {finalDemandScore}
+                        </span>
+                      </div>
+                      <div className="signal-meter">
+                        <div
+                          className="fill"
+                          style={{
+                            width: `${Math.min(finalDemandScore, 100)}%`,
+                            background: `linear-gradient(90deg, ${selectedBadge?.color || '#A85A3C'}88, ${selectedBadge?.color || '#A85A3C'})`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -506,8 +558,21 @@ export default function DemandSignals() {
                   <span>{sw.label} × {sw.weight.toFixed(2)}</span>
                 </div>
               ))}
-              <div className="pt-2 mt-2 border-t border-border font-bold text-text">
-                = Composite Demand Score
+              <div className="pt-2 mt-2 border-t border-border font-bold text-text flex items-center justify-between">
+                <span>= Composite Demand Score</span>
+                <div className="flex items-center gap-2">
+                  {selectedBadge && (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                      style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
+                    >
+                      {selectedBadge.label}
+                    </span>
+                  )}
+                  <span className="text-sm font-extrabold" style={{ color: selectedBadge?.color || '#A85A3C' }}>
+                    {finalDemandScore || '—'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
