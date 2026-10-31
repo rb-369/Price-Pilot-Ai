@@ -82,3 +82,7 @@ ai-service/.coverage
 ai-service/evaluation_reports/*
 
 .impeccable/*
+
+# Test data files - never push to git
+*.csv
+test_data/
