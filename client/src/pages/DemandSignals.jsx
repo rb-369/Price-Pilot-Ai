@@ -51,6 +51,7 @@ export default function DemandSignals() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productSignals, setProductSignals] = useState([]);
+  const [latestScoreOverrides, setLatestScoreOverrides] = useState({});
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -61,6 +62,19 @@ export default function DemandSignals() {
     Promise.all([
       getAllDemandSignals().then(r => setSignals(r.data)).catch(() => { throw new Error(); }),
       getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error(); }),
+      selectedProduct
+        ? getDemandSignals(selectedProduct)
+            .then(r => {
+              const list = r.data || [];
+              setProductSignals(list);
+              if (list.length > 0 && typeof list[0].compositeDemandScore === 'number') {
+                const raw = list[0].compositeDemandScore;
+                const score = raw <= 1 && raw > 0 ? Math.round(raw * 100) : Math.round(raw);
+                setLatestScoreOverrides(prev => ({ ...prev, [selectedProduct]: score }));
+              }
+            })
+            .catch(() => {})
+        : Promise.resolve(),
     ]).catch(() => setError(true)).finally(() => setLoading(false));
   };
 
@@ -70,35 +84,60 @@ export default function DemandSignals() {
 
   useEffect(() => {
     if (selectedProduct) {
-      getDemandSignals(selectedProduct).then(r => setProductSignals(r.data)).catch(() => {});
+      getDemandSignals(selectedProduct)
+        .then(r => {
+          const list = r.data || [];
+          setProductSignals(list);
+          if (list.length > 0 && typeof list[0].compositeDemandScore === 'number') {
+            const raw = list[0].compositeDemandScore;
+            const score = raw <= 1 && raw > 0 ? Math.round(raw * 100) : Math.round(raw);
+            setLatestScoreOverrides(prev => ({
+              ...prev,
+              [selectedProduct]: score,
+            }));
+          }
+        })
+        .catch(() => {});
     }
   }, [selectedProduct]);
 
   // ─── Derived data ───
-  const kpis = useMemo(() => {
-    if (!signals.length) return { avgScore: 72, productCount: products.length || 24, highCount: 8 };
-    const avgScore = Math.round((signals.reduce((sum, s) => sum + (s.avgDemandScore || 0), 0) / signals.length) * 100);
-    const highCount = signals.filter(s => (s.avgDemandScore || 0) > 0.7).length;
-    return { avgScore, productCount: products.length, highCount };
-  }, [signals, products]);
-
   const heatmapData = useMemo(() => signals.map(s => {
-    const demandScore = Math.round((s.avgDemandScore || 0) * 100);
+    const prodId = s.product?._id || s._id;
+    // Check if we have an explicit fresh override for this product
+    const overrideScore = latestScoreOverrides[prodId] ?? (s.product?._id ? latestScoreOverrides[s.product._id] : undefined);
+
+    // Prefer latest recorded composite demand score from s.latestSignal over historical average
+    const rawLatest = s.latestSignal?.compositeDemandScore;
+    const computedLatest = rawLatest != null
+      ? (rawLatest <= 1 && rawLatest > 0 ? Math.round(rawLatest * 100) : Math.round(rawLatest))
+      : (s.avgDemandScore != null ? Math.round(s.avgDemandScore * 100) : 50);
+
+    const demandScore = overrideScore ?? computedLatest;
+
     return {
-      id: s.product?._id || s._id,
-      productId: s.product?._id,
+      id: prodId,
+      productId: s.product?._id || s._id,
       name: s.product?.name?.split(' ').slice(0, 2).join(' ') || 'Unknown',
       fullName: s.product?.name || 'Unknown Product',
       category: s.product?.category || 'General',
       demand: demandScore,
-      latestScore: Math.round((s.latestSignal?.compositeDemandScore || 0) * 100),
+      latestScore: demandScore,
+      avgDemandScore: Math.round((s.avgDemandScore || 0) * 100),
       trend: s.latestSignal?.searchTrendScore || 0,
       weather: normaliseFactor(s.latestSignal?.weatherFactor),
       event: normaliseFactor(s.latestSignal?.eventFactor),
       sentiment: normaliseFactor(s.latestSignal?.socialSentimentScore),
       searchTrendScore: Math.round(s.latestSignal?.searchTrendScore || 0),
     };
-  }), [signals]);
+  }), [signals, latestScoreOverrides]);
+
+  const kpis = useMemo(() => {
+    if (!heatmapData.length) return { avgScore: 72, productCount: products.length || 24, highCount: 8 };
+    const avgScore = Math.round(heatmapData.reduce((sum, item) => sum + (item.demand || 0), 0) / heatmapData.length);
+    const highCount = heatmapData.filter(item => (item.demand || 0) >= 70).length;
+    return { avgScore, productCount: products.length || heatmapData.length, highCount };
+  }, [heatmapData, products]);
 
   const selectedProductData = useMemo(() => {
     if (!selectedProduct) return null;
@@ -133,8 +172,7 @@ export default function DemandSignals() {
       return s <= 1 && s > 0 ? Math.round(s * 100) : Math.round(s);
     }
     if (selectedProductData) {
-      const s = selectedProductData.latestScore ?? selectedProductData.demand ?? 0;
-      return s <= 1 && s > 0 ? Math.round(s * 100) : Math.round(s);
+      return selectedProductData.demand || 0;
     }
     return 0;
   }, [latestSignal, selectedProductData]);
