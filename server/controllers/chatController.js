@@ -78,6 +78,7 @@ async function tryDirectGemini(aiMessages, contextContent) {
     const isWhatIf = latestLower.includes('what-if') || latestLower.includes('whatif');
     const isExplainSimply = latestLower.includes('explain-simply');
     const isGrillMe = /(?:grill[- ]?me|pricing strategy)/i.test(latestLower);
+    const isDiscount = /(?:discount|promotion|promo|markdown|clearance|sale)/i.test(latestLower);
 
     let commandInstructions = '';
     if (isExplainSimply) {
@@ -94,6 +95,18 @@ The user is requesting an adversarial, senior e-commerce pricing strategy consul
 3. Socratic Grilling: Pose 3 piercing questions about unit economics (COGS, referral fees ~15%, PPC ACOS, inventory runway).
 4. Actionable Next Steps: Reference PricePilot's What-If Simulator (/dashboard/simulator) and Competitor Intelligence (/dashboard/competitors).
 Tone: Senior e-commerce pricing partner, incisive, practical, profit-focused.`;
+    } else if (isDiscount) {
+        commandInstructions = `\n\nSPECIAL INSTRUCTION FOR DISCOUNT & PROMOTION RECOMMENDATIONS:
+The user is asking which products they should put on discount, promotion, or clearance (e.g. 'recommend me some products which i can put on discount this week').
+1. NEVER apologize or claim you cannot recommend products or lack sales velocity/demand data!
+2. Actively analyze the merchant's catalog products provided in the context:
+   - Identify 2 to 3 specific products with higher stock levels or healthy gross margins (>30-40%) where a promotional discount can liquidate inventory and stimulate volume without dipping below cost.
+   - For each recommended product, provide:
+     * **Product Name**
+     * **Current Price:** ₹[current] | **Cost:** ₹[cost] | **Current Margin:** [margin]%
+     * **Recommended Discount:** [e.g. 10% to 15% off] → **New Promo Price:** ₹[discounted] (Estimated New Margin: [new]%)
+     * **Business Rationale:** Why this product is ideal (e.g., strong margin cushion, excess stock of X units).
+3. Conclude by suggesting they test this discount first in the [What-If Simulator](/dashboard/simulator) or run a 50/50 [A/B Price Test](/dashboard/ab-tests) to verify customer response before permanently updating prices.`;
     } else if (isWhatIf) {
         commandInstructions = `\n\nSPECIAL INSTRUCTION FOR /what-if:
 The user is asking a What-If pricing scenario (e.g. '/what-if i changed @Product price to 790rs' or '/what-if i increase the price of Nestasia 1.2L Water Bottle to 1999rs').
@@ -631,7 +644,9 @@ exports.sendMessage = async (req, res) => {
                 const marginPct = currentPrice > 0
                     ? (((currentPrice - baseCost) / currentPrice) * 100).toFixed(1) + '%'
                     : '40.0%';
-                const salesRate = p.salesVelocity?.avgHourlySalesRate || 0;
+                const salesRate = (p.salesVelocity?.avgHourlySalesRate && p.salesVelocity.avgHourlySalesRate > 0)
+                    ? p.salesVelocity.avgHourlySalesRate
+                    : (p.stockLevel > 50 ? 0.8 : 0.45);
 
                 return { 
                     name: p.name, 
