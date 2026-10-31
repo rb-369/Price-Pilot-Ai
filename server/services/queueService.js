@@ -16,8 +16,7 @@ const forecastQueue = new Queue('forecastQueue', { connection: redisClient });
 const RECOMMENDATION_JOB_PREFIX = 'rec_';
 const FORECAST_JOB_PREFIX = 'fc_';
 
-const recommendationWorker = new Worker('recommendationQueue', async job => {
-    const { productId } = job.data;
+async function processRecommendationJob(productId) {
     const product = await Product.findById(productId);
     if (!product) throw new Error('Product not found');
 
@@ -200,10 +199,13 @@ const recommendationWorker = new Worker('recommendationQueue', async job => {
     });
 
     return saved;
+}
+
+const recommendationWorker = new Worker('recommendationQueue', async job => {
+    return await processRecommendationJob(job.data.productId);
 }, { connection: redisClient });
 
-const forecastWorker = new Worker('forecastQueue', async job => {
-    const { productId, forecastDays } = job.data;
+async function processForecastJob(productId, forecastDays = 30) {
     const product = await Product.findById(productId);
     if (!product) throw new Error('Product not found');
 
@@ -247,7 +249,25 @@ const forecastWorker = new Worker('forecastQueue', async job => {
     });
 
     return saved;
+}
+
+const forecastWorker = new Worker('forecastQueue', async job => {
+    return await processForecastJob(job.data.productId, job.data.forecastDays);
 }, { connection: redisClient });
+
+recommendationWorker.on('error', (err) => {
+    if (!global.__lastWorkerErrorLog || Date.now() - global.__lastWorkerErrorLog > 60000) {
+        console.warn('⚠️  recommendationWorker Redis warning:', err.message);
+        global.__lastWorkerErrorLog = Date.now();
+    }
+});
+
+forecastWorker.on('error', (err) => {
+    if (!global.__lastFcWorkerErrorLog || Date.now() - global.__lastFcWorkerErrorLog > 60000) {
+        console.warn('⚠️  forecastWorker Redis warning:', err.message);
+        global.__lastFcWorkerErrorLog = Date.now();
+    }
+});
 
 recommendationWorker.on('failed', (job, err) => {
     console.error(`Recommendation Job ${job.id} failed:`, err.message);
@@ -261,5 +281,7 @@ module.exports = {
     recommendationQueue,
     forecastQueue,
     RECOMMENDATION_JOB_PREFIX,
-    FORECAST_JOB_PREFIX
+    FORECAST_JOB_PREFIX,
+    processRecommendationJob,
+    processForecastJob
 };
