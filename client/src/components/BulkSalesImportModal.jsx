@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import api, { bulkImportProducts } from '../api';
@@ -164,12 +165,12 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fade-in" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
       
-      <div className="relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-light">
+      <div className="relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[85vh] my-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-light shrink-0">
           <div>
             <h2 className="text-xl font-bold text-text" id="modal-title">Import Sales Data</h2>
             <p className="text-sm text-text-muted mt-1">Upload a CSV or Excel file. Our AI will automatically map the columns.</p>
@@ -519,5 +520,6 @@ export default function BulkSalesImportModal({ onClose, onSuccess }) {
         </div>
       </div>
     </div>
+    , document.body
   );
 }

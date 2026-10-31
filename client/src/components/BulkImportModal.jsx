@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { bulkImportProducts } from '../api';
 import toast from 'react-hot-toast';
 import { FiX, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle, FiDownload } from 'react-icons/fi';
@@ -86,9 +87,9 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
     handleTextChange(sampleCSV);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md animate-fadeIn overflow-y-auto">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl my-auto">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-lighter">
@@ -247,5 +248,6 @@ Stainless Water Bottle 1L,SWB-1L-03,General,300,799,100,20`;
         </div>
       </div>
     </div>
+    , document.body
   );
 }
