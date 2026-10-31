@@ -146,15 +146,44 @@ exports.checkJobStatus = async (req, res) => {
             
             if (state === 'completed') {
                 let result = job.returnvalue;
-                // Populate productId if it's a PricingRecommendation or InventoryForecast
-                if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX) && result && result._id) {
-                    const PricingRecommendation = require('../models/PricingRecommendation');
-                    result = await PricingRecommendation.findById(result._id).populate('productId', 'name sku currentPrice baseCost stockLevel');
-                } else if (jobId.startsWith(FORECAST_JOB_PREFIX) && result && result._id) {
-                    const InventoryForecast = require('../models/InventoryForecast');
-                    result = await InventoryForecast.findById(result._id).populate('productId', 'name sku stockLevel reorderThreshold');
+                try {
+                    if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX) && result && (result._id || result.id)) {
+                        const targetId = result._id || result.id;
+                        const PricingRecommendation = require('../models/PricingRecommendation');
+                        const populated = await PricingRecommendation.findById(targetId).populate('productId', 'name sku currentPrice baseCost stockLevel');
+                        if (populated) result = populated;
+                    } else if (jobId.startsWith(FORECAST_JOB_PREFIX) && result && (result._id || result.id)) {
+                        const targetId = result._id || result.id;
+                        const InventoryForecast = require('../models/InventoryForecast');
+                        const populated = await InventoryForecast.findById(targetId).populate('productId', 'name sku stockLevel reorderThreshold');
+                        if (populated) result = populated;
+                    }
+                } catch (popErr) {
+                    console.warn('Populate failed in checkJobStatus:', popErr.message);
                 }
-                return res.json({ status: state, result });
+
+                // If result is still null or missing, attempt DB fallback lookup
+                if (!result) {
+                    if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
+                        const productId = jobId.replace(RECOMMENDATION_JOB_PREFIX, '').split('_')[0];
+                        const PricingRecommendation = require('../models/PricingRecommendation');
+                        result = await PricingRecommendation.findOne({ productId })
+                            .sort({ timestamp: -1 })
+                            .populate('productId', 'name sku currentPrice baseCost stockLevel');
+                    } else if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
+                        const productId = jobId.replace(FORECAST_JOB_PREFIX, '').split('_')[0];
+                        const InventoryForecast = require('../models/InventoryForecast');
+                        result = await InventoryForecast.findOne({ productId })
+                            .sort({ timestamp: -1 })
+                            .populate('productId', 'name sku stockLevel reorderThreshold');
+                    }
+                }
+
+                if (result) {
+                    return res.json({ status: state, result });
+                }
+                // If job is reported completed in BullMQ but returnvalue/DB is still propagating, don't return null result
+                return res.json({ status: 'active' });
             } else if (state === 'failed') {
                 return res.json({ status: state, error: job.failedReason });
             } else {

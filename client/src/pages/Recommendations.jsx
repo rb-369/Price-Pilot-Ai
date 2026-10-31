@@ -154,8 +154,14 @@ export default function Recommendations() {
             const statusRes = await getJobStatus(jobId);
             if (statusRes.data.status === 'completed') {
               clearInterval(poll);
-              setRecommendations(prev => [statusRes.data.result, ...prev]);
-              toast.success('Recommendation generated!');
+              if (statusRes.data.result && typeof statusRes.data.result === 'object') {
+                const newRec = statusRes.data.result;
+                setRecommendations(prev => [newRec, ...prev.filter(r => r && r._id !== newRec._id)]);
+                toast.success('Recommendation generated!');
+              } else {
+                fetchData();
+                toast.success('Recommendation generated!');
+              }
               setGenerating(null);
             } else if (statusRes.data.status === 'failed') {
               clearInterval(poll);
@@ -169,7 +175,11 @@ export default function Recommendations() {
           }
         }, 2000);
       } else {
-        setRecommendations(prev => [res.data, ...prev]);
+        if (res.data && typeof res.data === 'object' && res.data._id) {
+          setRecommendations(prev => [res.data, ...prev.filter(r => r && r._id !== res.data._id)]);
+        } else {
+          fetchData();
+        }
         toast.success('Recommendation generated!');
         setGenerating(null);
       }
