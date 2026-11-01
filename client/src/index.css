@@ -107,6 +107,7 @@ h3,
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -117,6 +118,7 @@ h3,
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -128,6 +130,7 @@ h3,
     opacity: 0;
     transform: translateX(-16px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -135,9 +138,12 @@ h3,
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px) scale(1);
   }
+
   50% {
     transform: translateY(-16px) scale(1.03);
   }
@@ -147,15 +153,19 @@ h3,
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(168, 90, 60, 0.2);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(168, 90, 60, 0.4);
   }
@@ -165,9 +175,11 @@ h3,
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -202,6 +214,7 @@ h3,
 
 /* ─── Reduced Motion ─── */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -212,12 +225,29 @@ h3,
   }
 }
 
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
-.stagger-6 { animation-delay: 0.3s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+
+.stagger-6 {
+  animation-delay: 0.3s;
+}
 
 /* ─── Base Styles ─── */
 html.dark body {
@@ -517,6 +547,7 @@ html:not(.dark) select option {
   color: #2F6C45;
   border: 1px solid rgba(51, 113, 74, 0.25);
 }
+
 html.dark .badge-success {
   background: rgba(120, 176, 139, 0.15);
   color: #78B08B;
@@ -528,6 +559,7 @@ html.dark .badge-success {
   color: #8D5414;
   border: 1px solid rgba(148, 91, 24, 0.25);
 }
+
 html.dark .badge-warning {
   background: rgba(232, 176, 82, 0.15);
   color: #E8B052;
@@ -539,6 +571,7 @@ html.dark .badge-warning {
   color: #B12B1E;
   border: 1px solid rgba(186, 46, 32, 0.25);
 }
+
 html.dark .badge-danger {
   background: rgba(240, 104, 90, 0.15);
   color: #F0685A;
@@ -550,6 +583,7 @@ html.dark .badge-danger {
   color: #9E5135;
   border: 1px solid rgba(168, 90, 60, 0.25);
 }
+
 html.dark .badge-info {
   background: rgba(201, 123, 89, 0.16);
   color: #D48868;
@@ -561,6 +595,7 @@ html.dark .badge-info {
   color: #8C6624;
   border: 1px solid rgba(196, 155, 85, 0.25);
 }
+
 html.dark .badge-brass {
   background: rgba(212, 163, 89, 0.16);
   color: #DFC085;
@@ -574,7 +609,10 @@ html.dark .badge-brass {
   color: var(--pp-text);
 }
 
-button, .btn-primary, .btn-secondary, [role="button"] {
+button,
+.btn-primary,
+.btn-secondary,
+[role="button"] {
   -webkit-text-fill-color: currentColor;
 }
 
@@ -803,14 +841,14 @@ html:not(.dark) .auth-bg {
 
 /* ─── Atmospheric Grid ─── */
 .bg-grid-dark {
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 :root.light .bg-grid-dark {
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(168, 90, 60, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(168, 90, 60, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -861,45 +899,60 @@ html.light .progress-bar {
 
 /* ─── PricePilot 3-Bar Chart Loader Animation ─── */
 @keyframes pricepilot-bar-1 {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scaleY(0.30);
   }
+
   25% {
     transform: scaleY(0.80);
   }
+
   50% {
     transform: scaleY(0.45);
   }
+
   75% {
     transform: scaleY(0.95);
   }
 }
 
 @keyframes pricepilot-bar-2 {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scaleY(0.75);
   }
+
   25% {
     transform: scaleY(0.40);
   }
+
   50% {
     transform: scaleY(0.95);
   }
+
   75% {
     transform: scaleY(0.55);
   }
 }
 
 @keyframes pricepilot-bar-3 {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scaleY(0.50);
   }
+
   25% {
     transform: scaleY(0.95);
   }
+
   50% {
     transform: scaleY(0.30);
   }
+
   75% {
     transform: scaleY(0.70);
   }
@@ -924,17 +977,21 @@ html.light .progress-bar {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .pricepilot-chart-bar-1,
   .pricepilot-chart-bar-2,
   .pricepilot-chart-bar-3 {
     animation: none !important;
   }
+
   .pricepilot-chart-bar-1 {
     transform: scaleY(0.45) !important;
   }
+
   .pricepilot-chart-bar-2 {
     transform: scaleY(0.85) !important;
   }
+
   .pricepilot-chart-bar-3 {
     transform: scaleY(0.60) !important;
   }
@@ -942,7 +999,11 @@ html.light .progress-bar {
 
 /* ─── Mobile Utilities ─── */
 @media (max-width: 768px) {
-  nav a, nav button, .btn-primary, .btn-secondary {
+
+  nav a,
+  nav button,
+  .btn-primary,
+  .btn-secondary {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
@@ -954,6 +1015,7 @@ html.light .progress-bar {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar,
 .scrollbar-hide {
   -ms-overflow-style: none;

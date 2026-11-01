@@ -23,6 +23,7 @@
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.13.0",
+    "react-use-measure": "^2.1.7",
     "recharts": "^3.7.0",
     "tailwind-merge": "^3.6.0"
   },

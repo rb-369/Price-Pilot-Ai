@@ -11,13 +11,15 @@ import {
     HiOutlineCheckCircle,
     HiOutlineArrowRight
 } from 'react-icons/hi';
-import { SiShopify, SiStripe, SiWoocommerce, SiAmazon } from 'react-icons/si';
+import { SiShopify, SiStripe, SiWoocommerce, SiAmazon, SiFlipkart } from 'react-icons/si';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import newLightLogo from '../assets/new_light_logo.png';
 import newDarkLogo from '../assets/new_dark_logo.png';
 import ThemeToggle from '../components/ThemeToggle';
 import HeroDashboard from '../components/HeroDashboard';
 import StackingCards from '../components/ui/stacking-card';
+import TestimonialsCard from '../components/ui/testimonials-card';
+import InfiniteSlider from '../components/ui/infinite-slider';
 import { warmupAIService } from '../utils/aiWarmup';
 
 const faqCategories = ['All Questions', 'Pricing & AI', 'Security & Privacy', 'Integrations'];
@@ -48,12 +50,12 @@ const TypewriterEffect = ({ text }) => {
 const teamMembers = [
     {
         name: 'Aryan Desale',
-        role: 'Full-Stack & Backend Systems Lead',
+        role: 'Frontend Development and Design Lead',
         linkedin: 'https://www.linkedin.com/in/aryan-desale-46603a27a/',
     },
     {
         name: 'Rudra Babar',
-        role: 'AI / Machine Learning & Architecture Lead',
+        role: 'Backend System and AI/ML Lead',
         linkedin: 'https://www.linkedin.com/in/rudrababar/',
     },
 ];
@@ -96,11 +98,40 @@ const faqData = [
     },
 ];
 
+const MyntraIcon = ({ className = "w-6 h-6" }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M4.5 17.5c-1.38 0-2.5-1.12-2.5-2.5 0-.58.2-1.12.55-1.55L7.2 5.5h2.5l-3.2 5.6c.5.55 1.25.9 2.05.9 1.38 0 2.5-1.12 2.5-2.5 0-.25-.04-.5-.1-.72L12 6.8l1.05 1.98c-.06.22-.1.47-.1.72 0 1.38 1.12 2.5 2.5 2.5.8 0 1.55-.35 2.05-.9L14.3 5.5h2.5l4.65 7.95c.35.43.55.97.55 1.55 0 1.38-1.12 2.5-2.5 2.5-1.08 0-2-.68-2.35-1.65l-2.65-4.85-2.5 4.5c-.8 1.4-2.25 2.4-3.9 2.5-1.15 0-2.15-.55-2.8-1.4l-1.3 2.3c-.45.7-1.2 1.1-2 1.1z" />
+    </svg>
+);
+
+const SnapdealIcon = ({ className = "w-6 h-6" }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M12 2L3.5 6.5v11L12 22l8.5-4.5v-11L12 2zm0 2.4l6.2 3.3-3.2 1.7-6.2-3.3 3.2-1.7zm-6.5 4.6l6 3.2v7l-6-3.2V9zm13 7l-6 3.2v-7l6-3.2v7z" />
+    </svg>
+);
+
+const MeeshoIcon = ({ className = "w-6 h-6" }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 14h-2v-4.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V16h-2v-4.5c0-.83-.67-1.5-1.5-1.5S7 10.67 7 11.5V16H5V9h2v1.1c.58-.73 1.46-1.1 2.5-1.1 1.05 0 1.95.42 2.5 1.15.55-.73 1.45-1.15 2.5-1.15 1.66 0 3 1.34 3 3V16z" />
+    </svg>
+);
+
+const BewakoofIcon = ({ className = "w-6 h-6" }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-3.5 6h4.5c1.38 0 2.5 1.12 2.5 2.5 0 .86-.44 1.62-1.11 2.06.94.46 1.61 1.4 1.61 2.5 0 1.62-1.32 2.94-2.94 2.94H8.5V8zm2 2v2.5h2.5c.69 0 1.25-.56 1.25-1.25S13.69 10 13 10h-2.5zm0 4.5V16H13c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2.5z" />
+    </svg>
+);
+
 const integrationLogos = [
     { name: 'Shopify', icon: SiShopify },
     { name: 'Stripe', icon: SiStripe },
     { name: 'WooCommerce', icon: SiWoocommerce },
     { name: 'Amazon', icon: SiAmazon },
+    { name: 'Flipkart', icon: SiFlipkart },
+    { name: 'Myntra', icon: MyntraIcon },
+    { name: 'Snapdeal', icon: SnapdealIcon },
+    { name: 'Meesho', icon: MeeshoIcon },
+    { name: 'Bewakoof', icon: BewakoofIcon },
 ];
 
 const FaqAccordionItem = memo(function FaqAccordionItem({ faq, isOpen, onClick }) {
@@ -193,6 +224,41 @@ export default function Landing() {
             metric: '< 150ms Sync',
             link: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
             color: '#261C16',
+        },
+    ];
+
+    const researchPolicyItems = [
+        {
+            id: 'safety',
+            title: 'Core Principles on Algorithmic Pricing Safety',
+            category: 'Announcements',
+            badge: 'Safety First',
+            description: 'Establishing deterministic guardrails, kill-switch boundaries, and margin floors to protect brand equity across volatile marketplace dynamics.',
+            date: 'Policy Brief #01',
+        },
+        {
+            id: 'anti-collusion',
+            title: 'PricePilot Responsible Scaling and Anti-Collusion Policy',
+            category: 'Alignment Science',
+            badge: 'Market Ethics',
+            description: 'Rigorous algorithmic guarantees ensuring decentralized price optimization without anti-competitive signals, unfair coordination, or cartel behavior.',
+            date: 'Policy Brief #02',
+        },
+        {
+            id: 'elasticity',
+            title: 'PricePilot Academy: Elasticity Math and Prophet Forecasting',
+            category: 'Education',
+            badge: 'Methodology',
+            description: 'Deep mathematical foundations of dynamic cross-price elasticity, Bayesian forecasting, and demand curve shifts during high-velocity promotional periods.',
+            date: 'Policy Brief #03',
+        },
+        {
+            id: 'macro-index',
+            title: 'Quarterly E-Commerce Macroeconomic Index',
+            category: 'Market Research',
+            badge: 'Data Report',
+            description: 'Empirical cross-retail telemetry analyzing consumer price tolerance, competitor response velocity, and profit maximization vectors.',
+            date: 'Policy Brief #04',
         },
     ];
 
@@ -325,22 +391,27 @@ export default function Landing() {
                 </section>
 
                 {/* Social Proof & Integration Logo Bar */}
-                <section className="py-8 border-y border-[#3D1F12]/10 dark:border-[#4A3930] bg-[#3D1F12]/5 dark:bg-white/5 mb-24 relative transition-colors duration-300">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 px-4">
-                        <span className="text-xs font-semibold text-[#3D1F12]/60 dark:text-[#A99D91] uppercase tracking-wider text-center md:text-left">
+                <section className="py-7 border-y border-[#3D1F12]/10 dark:border-[#4A3930] bg-[#3D1F12]/5 dark:bg-white/5 mb-24 relative transition-colors duration-300 overflow-hidden">
+                    <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6 px-4">
+                        <span className="text-xs font-semibold text-[#3D1F12]/60 dark:text-[#A99D91] uppercase tracking-wider text-center lg:text-left shrink-0">
                             Seamless 2-Way Sync Across Modern Commerce Platforms
                         </span>
 
-                        <div className="flex items-center gap-8 sm:gap-12 flex-wrap justify-center opacity-85 hover:opacity-100 transition-opacity">
-                            {integrationLogos.map((item) => {
-                                const IconComponent = item.icon;
-                                return (
-                                    <div key={item.name} className="flex items-center gap-2 text-[#3D1F12]/75 hover:text-[#3D1F12] dark:text-[#F0EEE6]/75 dark:hover:text-[#F0EEE6] transition-colors">
-                                        <IconComponent className="w-6 h-6" />
-                                        <span className="text-sm font-semibold tracking-wide">{item.name}</span>
-                                    </div>
-                                );
-                            })}
+                        <div className="w-full lg:max-w-3xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                            <InfiniteSlider gap={36} duration={28} durationOnHover={55}>
+                                {integrationLogos.map((item) => {
+                                    const IconComponent = item.icon;
+                                    return (
+                                        <div
+                                            key={item.name}
+                                            className="flex items-center gap-2.5 text-[#3D1F12]/75 hover:text-[#3D1F12] dark:text-[#F0EEE6]/75 dark:hover:text-[#F0EEE6] transition-colors shrink-0 px-2 cursor-default select-none"
+                                        >
+                                            <IconComponent className="w-6 h-6 shrink-0" />
+                                            <span className="text-sm font-semibold tracking-wide whitespace-nowrap">{item.name}</span>
+                                        </div>
+                                    );
+                                })}
+                            </InfiniteSlider>
                         </div>
                     </div>
                 </section>
@@ -488,40 +559,27 @@ export default function Landing() {
 
                 {/* Research & Economic Insights */}
                 <section className="max-w-7xl w-full mx-auto mb-28 border-t border-[#3D1F12]/15 dark:border-[#4A3930] pt-16 transition-colors duration-300">
-                    <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
-                        <div>
-                            <span className="text-xs font-bold font-mono text-[#3D1F12] dark:text-[#A99D91] uppercase tracking-widest block mb-2">
-                                Research and Policy
-                            </span>
-                            <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] leading-snug">
-                                Building autonomous pricing algorithms for sustainable long-term profitability.
-                            </h3>
-                            <p className="text-[#3D1F12]/75 text-sm mt-4 leading-relaxed max-w-md">
-                                Read our foundational research on algorithmic price elasticity, model interpretability, and market fairness guidelines.
-                            </p>
-                        </div>
+                    <div className="flex flex-col items-center justify-center text-center max-w-3xl mx-auto mb-10">
+                        <span className="text-xs font-bold font-mono text-[#3D1F12] dark:text-[#A99D91] uppercase tracking-widest block mb-2">
+                            Research and Policy
+                        </span>
+                        <h3 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#3D1F12] dark:text-[#F0EEE6] leading-snug">
+                            Building autonomous pricing algorithms for sustainable long-term profitability.
+                        </h3>
+                        <p className="text-[#3D1F12]/75 dark:text-[#A99D91] text-sm sm:text-base mt-3 leading-relaxed max-w-xl mx-auto">
+                            Read our foundational research on algorithmic price elasticity, model interpretability, and market fairness guidelines.
+                        </p>
+                    </div>
 
-                        <div className="space-y-3">
-                            {[
-                                { title: 'Core Principles on Algorithmic Pricing Safety', category: 'Announcements' },
-                                { title: 'PricePilot Responsible Scaling and Anti-Collusion Policy', category: 'Alignment Science' },
-                                { title: 'PricePilot Academy: Elasticity Math and Prophet Forecasting', category: 'Education' },
-                                { title: 'Quarterly E-Commerce Macroeconomic Index', category: 'Market Research' },
-                            ].map((item, idx) => (
-                                <div
-                                    key={idx}
-                                    className="p-4 rounded-xl border border-[#3D1F12]/15 dark:border-[#4A3930] bg-white/80 dark:bg-[#2D211B] hover:bg-white dark:hover:bg-[#352720] hover:border-[#3D1F12]/40 dark:hover:border-[#A85A3C]/50 transition-all flex items-center justify-between group cursor-pointer shadow-sm"
-                                >
-                                    <div>
-                                        <h4 className="text-sm font-semibold text-[#3D1F12] dark:text-[#F0EEE6] group-hover:text-[#3D1F12] dark:group-hover:text-[#F0EEE6] transition-colors">
-                                            {item.title}
-                                        </h4>
-                                        <span className="text-xs text-[#3D1F12]/60 dark:text-[#A99D91] mt-0.5 block">{item.category}</span>
-                                    </div>
-                                    <span className="text-[#3D1F12]/50 dark:text-[#F0EEE6]/50 group-hover:text-[#3D1F12] dark:group-hover:text-[#F0EEE6] transition-colors text-sm">→</span>
-                                </div>
-                            ))}
-                        </div>
+                    <div className="w-full flex justify-center items-center">
+                        <TestimonialsCard
+                            items={researchPolicyItems}
+                            autoPlay={true}
+                            autoPlayInterval={4000}
+                            showNavigation={true}
+                            showCounter={true}
+                            width={420}
+                        />
                     </div>
                 </section>
 

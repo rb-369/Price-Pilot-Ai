@@ -329,20 +329,20 @@ PricePilot AI solves these challenges with automated, intelligent, and _explaina
 
 ```
 ecom-ai-project/
-├── client/                          # React Frontend (Vite + Tailwind CSS 4)
+├── client/                            # React Frontend (Vite + Tailwind CSS 4)
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── index.js             # Centralized Axios API client
-│   │   ├── assets/                  # new_dark_logo.png, new_light_logo.png, SVGs
+│   │   │   └── index.js               # Centralized Axios API client
+│   │   ├── assets/                    # new_dark_logo.png, new_light_logo.png, SVGs
 │   │   ├── components/
-│   │   │   ├── Layout.jsx           # App shell with desktop & mobile nav
-│   │   │   ├── Sidebar.jsx          # Collapsible desktop navigation
-│   │   │   ├── Header.jsx           # Top bar with Cmd+K search & sync state
-│   │   │   ├── MobileBottomNav.jsx  # Mobile thumb-zone navigation bar
-│   │   │   ├── MobileHeroCards.jsx  # Mobile horizontal KPI carousel
-│   │   │   ├── MobileSearchModal.jsx# Universal Cmd+K quick search modal
-│   │   │   ├── ChatWidget.jsx       # Floating AI copilot drawer
-│   │   │   ├── ChatbotAiAvatar.jsx  # Vector SVG chatbot identity
+│   │   │   ├── Layout.jsx             # App shell with desktop & mobile nav
+│   │   │   ├── Sidebar.jsx            # Collapsible desktop navigation
+│   │   │   ├── Header.jsx             # Top bar with Cmd+K search & sync state
+│   │   │   ├── MobileBottomNav.jsx    # Mobile thumb-zone navigation bar
+│   │   │   ├── MobileHeroCards.jsx    # Mobile horizontal KPI carousel
+│   │   │   ├── MobileSearchModal.jsx  # Universal Cmd+K quick search modal
+│   │   │   ├── ChatWidget.jsx         # Floating AI copilot drawer
+│   │   │   ├── ChatbotAiAvatar.jsx    # Vector SVG chatbot identity
 │   │   │   ├── PricePilotChartLoader.jsx # Universal 3-bar animated loader
 │   │   │   ├── Animated404.jsx      # Interactive 404 bar graph illustration
 │   │   │   ├── ExplainabilityPanel.jsx # AI decision explanation UI
