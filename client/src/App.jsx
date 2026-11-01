@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
@@ -126,6 +127,7 @@ export default function App() {
         <CurrencyProvider>
           <BrowserRouter>
             <AuthProvider>
+              <NotificationProvider>
               <Toaster position="top-right" toastOptions={{
                 style: {
                   background: 'var(--pp-surface)',
@@ -140,6 +142,7 @@ export default function App() {
               <RouteErrorBoundary>
                 <AppRoutes />
               </RouteErrorBoundary>
+            </NotificationProvider>
             </AuthProvider>
           </BrowserRouter>
         </CurrencyProvider>

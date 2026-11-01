@@ -2,10 +2,17 @@ import { useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import SlidableNotificationToast from '../components/SlidableNotificationToast';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 
 export default function useRealTimeUpdates() {
     const { token, user } = useAuth();
+    const { isMuted } = useNotification();
     const eventSourceRef = useRef(null);
+    const isMutedRef = useRef(isMuted);
+
+    useEffect(() => {
+        isMutedRef.current = isMuted;
+    }, [isMuted]);
 
     useEffect(() => {
         const authToken = token || localStorage.getItem('token');
@@ -29,6 +36,12 @@ export default function useRealTimeUpdates() {
                         return;
                     }
                     if (data.type === 'ping') {
+                        return;
+                    }
+
+                    // Check if on-screen notifications are muted / Do Not Disturb is enabled
+                    const currentMuted = isMutedRef.current || localStorage.getItem('pricepilot_mute_notifications') === 'true';
+                    if (currentMuted) {
                         return;
                     }
 

@@ -124,18 +124,18 @@ export default function Recommendations() {
     const pId = typeof rec.productId === 'object' ? rec.productId?._id : rec.productId;
     const matched = products.find(p => String(p._id) === String(pId));
     const name =
-      (typeof rec.productId === 'object' && rec.productId?.name) ||
+      (rec.productId && typeof rec.productId === 'object' && rec.productId?.name) ||
       matched?.name ||
       rec.productName ||
       rec.product?.name ||
       'Product';
     const sku =
-      (typeof rec.productId === 'object' && rec.productId?.sku) ||
+      (rec.productId && typeof rec.productId === 'object' && rec.productId?.sku) ||
       matched?.sku ||
       '—';
     const currentPrice =
       rec.currentPrice ??
-      (typeof rec.productId === 'object' ? rec.productId?.currentPrice : null) ??
+      (rec.productId && typeof rec.productId === 'object' ? rec.productId?.currentPrice : null) ??
       matched?.currentPrice ??
       0;
     return { name, sku, currentPrice };

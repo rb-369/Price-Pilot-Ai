@@ -121,10 +121,10 @@ export default function Forecasts() {
 
   const getProductDetails = (f) => {
     if (!f) return { name: 'Unknown Product', currentStock: 0 };
-    const pId = typeof f.productId === 'object' ? f.productId?._id : f.productId;
+    const pId = (f.productId && typeof f.productId === 'object') ? f.productId?._id : f.productId;
     const matched = products.find(p => String(p._id) === String(pId));
     const name =
-      (typeof f.productId === 'object' && f.productId?.name) ||
+      (f.productId && typeof f.productId === 'object' && f.productId?.name) ||
       matched?.name ||
       f.productName ||
       f.product?.name ||
@@ -132,7 +132,7 @@ export default function Forecasts() {
       'Product';
     const currentStock =
       f.currentStock ??
-      (typeof f.productId === 'object' ? f.productId?.stockLevel : null) ??
+      (f.productId && typeof f.productId === 'object' ? f.productId?.stockLevel : null) ??
       matched?.stockLevel ??
       0;
     return { name, currentStock };
