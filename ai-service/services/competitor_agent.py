@@ -85,16 +85,14 @@ async def _extract_with_openrouter(prompt: str) -> Optional[Dict]:
     if not api_key:
         return None
 
-    # Top active free models on OpenRouter
+    # Top active free models on OpenRouter (openrouter/free dynamically routes to best available free pool)
     candidate_models = [
-        "poolside/laguna-s-2.1:free",
-        "nvidia/nemotron-3.5-lightning:free",
-        "nvidia/nemotron-3-super-120b-a12b:free",
-        "nvidia/nemotron-3-ultra-550b-a55b:free",
-        "google/gemma-4-31b-it:free",
-        "liquid/lfm-2.5-2.6b:free",
-        "poolside/laguna-xs-2.1:free",
         "openrouter/free",
+        "google/gemini-2.0-flash-lite-preview:001",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "qwen/qwen-2.5-72b-instruct:free",
+        "google/gemma-4-31b-it:free",
+        "nvidia/nemotron-3.5-lightning:free",
     ]
 
     headers = {
