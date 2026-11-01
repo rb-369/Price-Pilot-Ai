@@ -29,6 +29,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import gc
+
+@app.middleware("http")
+async def memory_cleanup_middleware(request, call_next):
+    try:
+        response = await call_next(request)
+        return response
+    finally:
+        gc.collect()
+
 app.include_router(forecast_router, prefix="/api", tags=["Forecasting"])
 app.include_router(optimize_router, prefix="/api", tags=["Optimization"])
 app.include_router(insights_router, prefix="/api", tags=["Insights"])

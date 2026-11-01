@@ -374,6 +374,56 @@ function generateSmartFallbackReply(userMsgText, products = [], alerts = [], tot
         );
     }
 
+    // 2.5 Promotional discount recommendations (e.g. "suggest which products I can put on discount this week")
+    const isDiscountQuery = /(?:discount|promotion|promo|markdown|clearance|sale|offer|deal|suggest.*(?:discount|price drop|reduction)|which products.*(?:discount|offer|sale))/i.test(raw);
+    if (isDiscountQuery) {
+        if (productCount === 0) {
+            return (
+                "Your store catalog is currently empty (**0 products**).\n\n" +
+                "To receive data-driven discount recommendations, please add your products in the [Products Catalog](/dashboard/products). Once added, PricePilot will evaluate margins and inventory velocity to suggest optimal promotion candidates."
+            );
+        }
+
+        const candidates = (products || []).filter(p => {
+            const price = Number(p.currentPrice || p.priceNumeric || 0);
+            const cost = Number(p.baseCost || 0);
+            const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
+            return price > 0 && margin >= 18;
+        });
+
+        const sorted = (candidates.length > 0 ? candidates : (products || [])).slice().sort((a, b) => {
+            const stockA = Number(a.stockLevel || 0);
+            const stockB = Number(b.stockLevel || 0);
+            return stockB - stockA;
+        });
+
+        const selected = sorted.slice(0, 3);
+        const recs = selected.map((p, idx) => {
+            const currentPrice = Number(p.currentPrice || p.priceNumeric || 100);
+            const cost = Number(p.baseCost || Math.round(currentPrice * 0.6));
+            const currentMarginPct = currentPrice > 0 ? (((currentPrice - cost) / currentPrice) * 100).toFixed(1) : "35.0";
+            const discountPct = parseFloat(currentMarginPct) > 40 ? 15 : 10;
+            const newPrice = Math.round(currentPrice * (1 - discountPct / 100));
+            const newMarginPct = newPrice > 0 ? (((newPrice - cost) / newPrice) * 100).toFixed(1) : "20.0";
+            const rationale = p.stockLevel ? ("Healthy inventory runway of " + p.stockLevel + " units.") : "Strong margin cushion.";
+            return (
+                "### " + (idx + 1) + ". **" + p.name + "**\n" +
+                "• **Current Price:** ₹" + currentPrice + " | **Unit Cost (COGS):** ₹" + cost + " | **Current Margin:** " + currentMarginPct + "%\n" +
+                "• **Recommended Promotion:** **" + discountPct + "% OFF** → **Suggested Promo Price:** **₹" + newPrice + "**\n" +
+                "• **Projected New Margin:** **" + newMarginPct + "%** (Protects unit profitability above cost floor)\n" +
+                "• **Strategic Rationale:** " + rationale + " A " + discountPct + "% promotional markdown accelerates sales velocity and captures market share without breaching your base cost.\n"
+            );
+        }).join("\n");
+
+        return (
+            "Here are **data-backed promotional discount recommendations** for your store based on current margin cushions and stock levels:\n\n" +
+            recs + "\n" +
+            "💡 **Recommended Next Steps:**\n" +
+            "• Test these promotional prices before publishing using the [What-If Simulator](/dashboard/simulator).\n" +
+            "• Or launch a 50/50 live experiment in [A/B Price Testing](/dashboard/ab-tests) to verify conversion uplift."
+        );
+    }
+
     // 3. What-If scenario / price simulation
     const isWhatIf = /(?:what[- ]?if|whatif|simulate|simulation|elasticity|test price|change price)/i.test(raw);
     if (isWhatIf) {

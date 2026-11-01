@@ -164,33 +164,54 @@ def forecast_demand(
     forecast_values: List[float]
     model_used: str
 
-    try:
-        import pandas as pd
-        df = _build_prophet_dataframe(demand_history)
+    import os
+    import gc
 
-        if len(df) < 3:
-            raise ValueError("Too few unique dates for Prophet.")
+    # On memory-constrained cloud hosts (e.g. Render 512MB RAM free tier), default to Holt-Winters to eliminate Stan C++ OOM crashes
+    is_render_or_low_mem = (
+        os.getenv("LOW_MEMORY_MODE", "false").lower() in ("true", "1") or
+        os.getenv("RENDER") is not None or
+        os.getenv("USE_LIGHTWEIGHT_FORECAST", "true").lower() in ("true", "1")
+    )
+    force_prophet = os.getenv("FORCE_PROPHET", "false").lower() in ("true", "1")
 
-        forecast_values = _forecast_with_prophet(df, forecast_days)
-        model_used = "prophet"
-
-    except ImportError:
-        # Prophet not installed
+    if is_render_or_low_mem and not force_prophet:
         try:
             forecast_values = _forecast_with_holtwinters(scores_array, forecast_days)
             model_used = "holt_winters"
         except Exception:
             forecast_values = _forecast_moving_average(scores_array, forecast_days)
             model_used = "moving_average"
-
-    except Exception as e:
-        print(f"[Forecasting] Prophet failed ({e}), falling back to Holt-Winters.")
+    else:
         try:
-            forecast_values = _forecast_with_holtwinters(scores_array, forecast_days)
-            model_used = "holt_winters"
-        except Exception:
-            forecast_values = _forecast_moving_average(scores_array, forecast_days)
-            model_used = "moving_average"
+            import pandas as pd
+            df = _build_prophet_dataframe(demand_history)
+
+            if len(df) < 3:
+                raise ValueError("Too few unique dates for Prophet.")
+
+            forecast_values = _forecast_with_prophet(df, forecast_days)
+            model_used = "prophet"
+
+        except ImportError:
+            # Prophet not installed
+            try:
+                forecast_values = _forecast_with_holtwinters(scores_array, forecast_days)
+                model_used = "holt_winters"
+            except Exception:
+                forecast_values = _forecast_moving_average(scores_array, forecast_days)
+                model_used = "moving_average"
+
+        except Exception as e:
+            print(f"[Forecasting] Prophet failed ({e}), falling back to Holt-Winters.")
+            try:
+                forecast_values = _forecast_with_holtwinters(scores_array, forecast_days)
+                model_used = "holt_winters"
+            except Exception:
+                forecast_values = _forecast_moving_average(scores_array, forecast_days)
+                model_used = "moving_average"
+        finally:
+            gc.collect()
 
     # ── Trend analysis ───────────────────────────────────────────────────────
     avg_forecast = float(np.mean(forecast_values))
