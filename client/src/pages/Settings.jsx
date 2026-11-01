@@ -105,6 +105,7 @@ export default function Settings() {
     const { user, activeProfile, updateUser, switchProfile, completeOnboarding } = useAuth();
     const { theme, setTheme } = useTheme();
     const { currency, setCurrency, currencies } = useCurrency();
+    const { isMuted, toggleMute } = useNotification();
 
     const [activeTab, setActiveTab] = useState('profiles'); // 'profiles', 'strategy-goals', 'general', 'appearance', 'ai-rules', 'notifications', 'security'
     const [saving, setSaving] = useState(false);
