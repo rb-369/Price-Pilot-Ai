@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
         emailNotifications: { type: Boolean, default: true },
         priceDropAlerts: { type: Boolean, default: true },
         weeklyDigest: { type: Boolean, default: true },
+        muteNotifications: { type: Boolean, default: false },
     },
     onboarding: {
         completed: { type: Boolean, default: false },

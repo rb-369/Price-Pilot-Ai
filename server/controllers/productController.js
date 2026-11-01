@@ -173,6 +173,14 @@ const cleanBrandName = (str) => {
     if (b.toLowerCase().endsWith(' store')) {
         b = b.slice(0, -6).trim();
     }
+    // Block hex color codes (e.g. #3BD091 from CSS / styling tokens)
+    if (/^#[0-9a-fA-F]{3,8}$/.test(b)) {
+        return '';
+    }
+    // Block generic placeholder or retailer names from becoming the brand
+    if (/^(online|online shopping|online shopping india|flipkart|amazon|snapdeal|meesho|shopping|product|imported product)$/i.test(b)) {
+        return '';
+    }
     if (b.length > 0 && (b === b.toLowerCase() || b === b.toUpperCase())) {
         b = b.charAt(0).toUpperCase() + b.slice(1).toLowerCase();
     }
@@ -187,7 +195,10 @@ const generateSensibleShortName = (rawTitle, detectedBrand = '', category = '') 
     let title = rawTitle
         .replace(/\s*:\s*Amazon\.in.*$/i, '')
         .replace(/\s*-\s*Amazon\.in.*$/i, '')
+        .replace(/\s*-\s*Buy\s+.*$/i, '')
+        .replace(/\s*:\s*Buy\s+.*$/i, '')
         .replace(/\s*\|\s*Flipkart.*$/i, '')
+        .replace(/\s*\|\s*Snapdeal.*$/i, '')
         .replace(/\bVisit the\s+[^,()]+\s+Store\b/gi, '')
         .trim();
 
@@ -203,7 +214,7 @@ const generateSensibleShortName = (rawTitle, detectedBrand = '', category = '') 
         'Smart Watch', 'Smartwatch', 'Fitness Tracker', 'Fitness Band',
         'TWS Earbuds', 'Wireless Earbuds', 'Earbuds', 'Noise Cancelling Headphones', 'Over-Ear Headphones', 'On-Ear Headphones', 'Headphones', 'Earphones', 'Neckband', 'Soundbar', 'Bluetooth Speaker', 'Speaker',
         'Stainless Steel Water Bottle', 'Thermosteel Flask', 'Water Bottle', 'Insulated Flask', 'Flask',
-        'Running Shoes', 'Walking Shoes', 'Sneakers', 'Shoes', 'Sandals', 'Slippers',
+        'Slip-On Running Shoes', 'Slip On Running Shoes', 'Running Shoes', 'Walking Shoes', 'Sports Shoes', 'Sport Shoes', 'Casual Shoes', 'Sneakers', 'Shoes', 'Sandals', 'Slippers',
         'Office Chair', 'Gaming Chair', 'Backpack', 'Luggage Trolley', 'Suitcase'
     ];
 
@@ -325,26 +336,86 @@ exports.extractUrlMetadata = async (req, res) => {
         let amazonAsin = null;
         let flipkartFsn = null;
 
-        // Follow redirects to resolve short links like amzn.in/d/..., amzn.to/..., bit.ly/...
+        // Follow redirects to resolve short links like amzn.in/d/..., amzn.to/..., dl.flipkart.com/s/..., fkrt.it/..., bit.ly/...
         let finalUrl = url;
         let html = '';
+        let discoveredProductUrl = '';
 
-        try {
-            const fetchRes = await fetch(url, {
-                method: 'GET',
-                redirect: 'follow',
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8',
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
+        if (/dl\.flipkart\.com|fkrt\.it|fkrt\.co|flipkart\.com/i.test(url)) {
+            let hopUrl = url;
+            for (let hop = 0; hop < 6; hop++) {
+                try {
+                    const hopRes = await fetch(hopUrl, {
+                        method: 'GET',
+                        redirect: 'manual',
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                            'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8'
+                        }
+                    });
+                    const loc = hopRes.headers.get('location');
+                    if (loc) {
+                        let nextUrl = new URL(loc, hopUrl).href;
+                        if (nextUrl.includes('/p/') || nextUrl.includes('pid=')) {
+                            discoveredProductUrl = nextUrl.replace('dl.flipkart.com/dl/', 'www.flipkart.com/');
+                        }
+                        if (nextUrl.includes('dl.flipkart.com/dl/')) {
+                            nextUrl = nextUrl.replace('dl.flipkart.com/dl/', 'www.flipkart.com/');
+                        }
+                        if (/^https?:\/\/(www\.)?flipkart\.com\/?(\?.*)?$/i.test(nextUrl) && discoveredProductUrl) {
+                            hopUrl = discoveredProductUrl;
+                            break;
+                        }
+                        hopUrl = nextUrl;
+                    } else {
+                        finalUrl = hopUrl;
+                        html = await hopRes.text();
+                        break;
+                    }
+                } catch (e) {
+                    break;
                 }
-            });
-            finalUrl = fetchRes.url || url;
-            html = await fetchRes.text();
-        } catch (fetchErr) {
-            console.warn('[URL Extraction] Fetch error, using original URL:', fetchErr.message);
+            }
+            if (!html && (discoveredProductUrl || hopUrl)) {
+                finalUrl = discoveredProductUrl || hopUrl;
+                try {
+                    const pageRes = await fetch(finalUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                            'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8'
+                        }
+                    });
+                    if (pageRes.ok) {
+                        html = await pageRes.text();
+                    }
+                } catch (e) {
+                    console.warn('[URL Extraction] Flipkart fetch error:', e.message);
+                }
+            }
+        } else {
+            try {
+                const fetchRes = await fetch(url, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'en-IN,en-US;q=0.9,en;q=0.8',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                finalUrl = fetchRes.url || url;
+                html = await fetchRes.text();
+            } catch (fetchErr) {
+                console.warn('[URL Extraction] Fetch error, using original URL:', fetchErr.message);
+            }
+        }
+
+        if (finalUrl.includes('dl.flipkart.com/dl/')) {
+            finalUrl = finalUrl.replace('dl.flipkart.com/dl/', 'www.flipkart.com/');
         }
 
         const lowercaseFinalUrl = finalUrl.toLowerCase();
@@ -359,9 +430,14 @@ exports.extractUrlMetadata = async (req, res) => {
                               html.match(/data-asin=["']([A-Z0-9]{10})["']/i) ||
                               html.match(/name=["']ASIN["']\s+value=["']([A-Z0-9]{10})["']/i);
             if (asinMatch) amazonAsin = asinMatch[1];
-        } else if (lowercaseFinalUrl.includes('flipkart')) {
+        } else if (lowercaseFinalUrl.includes('flipkart') || lowercaseOriginalUrl.includes('flipkart') || lowercaseOriginalUrl.includes('fkrt.')) {
             platform = 'flipkart';
-            const fsnMatch = finalUrl.match(/pid=([A-Z0-9]{16})/i) || finalUrl.match(/\/p\/itm([a-z0-9]+)/i);
+            const fsnMatch = finalUrl.match(/pid=([A-Z0-9]{16})/i) ||
+                             url.match(/pid=([A-Z0-9]{16})/i) ||
+                             (discoveredProductUrl && discoveredProductUrl.match(/pid=([A-Z0-9]{16})/i)) ||
+                             finalUrl.match(/\/p\/(itm[a-z0-9]+)/i) ||
+                             url.match(/\/p\/(itm[a-z0-9]+)/i) ||
+                             (discoveredProductUrl && discoveredProductUrl.match(/\/p\/(itm[a-z0-9]+)/i));
             if (fsnMatch) flipkartFsn = fsnMatch[1];
         } else if (lowercaseFinalUrl.includes('shopify') || lowercaseFinalUrl.includes('myshopify')) {
             platform = 'shopify';
@@ -391,6 +467,12 @@ exports.extractUrlMetadata = async (req, res) => {
 
         const cleanText = (str) => {
             if (!str) return '';
+            if (typeof str !== 'string') {
+                if (typeof str === 'object') {
+                    return cleanText(str.value || str.text || str.description || '');
+                }
+                return String(str);
+            }
             return str
                 .replace(/<[^>]+>/g, '')
                 .replace(/&amp;/g, '&')
@@ -512,6 +594,43 @@ exports.extractUrlMetadata = async (req, res) => {
             }
         }
 
+        // Tier 2.5: OpenSERP Backup (When SerpAPI limits/credits are exhausted)
+        if (platform === 'amazon' && amazonAsin && (!metadata.currentPrice || !metadata.fullName)) {
+            try {
+                const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+                const openSerpRes = await fetch(`${aiServiceUrl}/api/scrape/openserp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: `${amazonAsin} amazon.in`, engine: 'google', limit: 3 }),
+                    signal: AbortSignal.timeout(6000)
+                }).catch(() => null);
+
+                if (openSerpRes && openSerpRes.ok) {
+                    const openSerpData = await openSerpRes.json();
+                    const items = openSerpData?.results || [];
+                    if (items.length > 0) {
+                        const top = items[0];
+                        if (!metadata.fullName && top.title) {
+                            metadata.fullName = cleanText(top.title).replace(/\s*:\s*Amazon\.in.*$/i, '').replace(/\s*-\s*Amazon\.in.*$/i, '').trim();
+                            metadata.source = metadata.source || 'openserp';
+                        }
+                        if (!metadata.currentPrice && (top.snippet || top.title)) {
+                            const priceMatch = (top.snippet + ' ' + top.title).match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{1,2})?)/i);
+                            if (priceMatch) {
+                                const parsed = parseFloat(priceMatch[1].replace(/,/g, ''));
+                                if (!isNaN(parsed) && parsed > 0) {
+                                    metadata.currentPrice = parsed;
+                                    metadata.source = metadata.source || 'openserp';
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (openSerpErr) {
+                console.warn('[URL Extraction] OpenSERP backup lookup failed:', openSerpErr.message);
+            }
+        }
+
         // Tier 3: Direct Amazon Search AJAX (Direct live search tile — bypasses bot challenges without API keys)
         if (platform === 'amazon' && amazonAsin && !metadata.currentPrice) {
             try {
@@ -598,6 +717,44 @@ exports.extractUrlMetadata = async (req, res) => {
             }
         }
 
+        // Tier 4.5: Flipkart Hydration State Parsing (window.__INITIAL_STATE__)
+        if (platform === 'flipkart' && html) {
+            try {
+                const stateMatch = html.match(/window\.__INITIAL_STATE__\s*=\s*({[\s\S]*?});<\/script>/);
+                if (stateMatch && stateMatch[1]) {
+                    const state = JSON.parse(stateMatch[1]);
+                    const schemas = state.multiWidgetState?.pageDataResponse?.seoData?.schema || [];
+                    const prodSchema = Array.isArray(schemas) ? schemas.find(s => s['@type'] === 'Product' || s.name) : schemas;
+                    if (prodSchema) {
+                        if (prodSchema.name && !metadata.fullName) {
+                            metadata.fullName = cleanText(prodSchema.name);
+                        }
+                        if (prodSchema.brand?.name && !metadata.brand) {
+                            metadata.brand = cleanBrandName(prodSchema.brand.name);
+                        }
+                        if (prodSchema.offers?.price && (!metadata.currentPrice || metadata.currentPrice <= 0)) {
+                            const pVal = Number(prodSchema.offers.price);
+                            if (!isNaN(pVal) && pVal > 0) metadata.currentPrice = pVal;
+                        }
+                        if (prodSchema.image && !metadata.imageUrl) {
+                            metadata.imageUrl = Array.isArray(prodSchema.image) ? prodSchema.image[0] : prodSchema.image;
+                        }
+                        if (prodSchema.description && !metadata.description) {
+                            metadata.description = cleanText(prodSchema.description).slice(0, 350);
+                        }
+                        if (prodSchema.category && metadata.category === 'General') {
+                            const cat = prodSchema.category.toLowerCase();
+                            if (/shoe|footwear|sneaker|sandal/.test(cat)) metadata.category = 'Footwear';
+                            else if (/cloth|apparel|shirt|pant/.test(cat)) metadata.category = 'Apparel';
+                            else if (/electronic|phone|laptop/.test(cat)) metadata.category = 'Electronics';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('[URL Extraction] Flipkart INITIAL_STATE parse failed:', err.message);
+            }
+        }
+
         // Tier 5: Direct HTML Parsing
         if (html) {
             // 1. Full Title / Product Name
@@ -610,8 +767,19 @@ exports.extractUrlMetadata = async (req, res) => {
 
                 if (titleMatch && titleMatch[1]) {
                     let rawTitle = cleanText(titleMatch[1]);
-                    rawTitle = rawTitle.replace(/\s*:\s*Amazon\.in.*$/i, '').replace(/\s*-\s*Amazon\.in.*$/i, '').replace(/\s*\|\s*Flipkart.*$/i, '').trim();
-                    if (rawTitle && !rawTitle.toLowerCase().includes('validatecaptcha') && rawTitle.toLowerCase() !== 'amazon.in') {
+                    rawTitle = rawTitle
+                        .replace(/\s*:\s*Amazon\.in.*$/i, '')
+                        .replace(/\s*-\s*Amazon\.in.*$/i, '')
+                        .replace(/\s*-\s*Buy\s+.*$/i, '')
+                        .replace(/\s*:\s*Buy\s+.*$/i, '')
+                        .replace(/\s*\|\s*Flipkart.*$/i, '')
+                        .replace(/\s*\|\s*Snapdeal.*$/i, '')
+                        .trim();
+
+                    const isGenericMarketplace = /^(online shopping india|buy mobiles|explore plus|flipkart\.com|amazon\.in|welcome to amazon)$/i.test(rawTitle) ||
+                                                 /online shopping india\s*\|\s*buy mobiles/i.test(rawTitle);
+
+                    if (rawTitle && !rawTitle.toLowerCase().includes('validatecaptcha') && !isGenericMarketplace) {
                         metadata.fullName = rawTitle;
                     }
                 }
@@ -639,16 +807,22 @@ exports.extractUrlMetadata = async (req, res) => {
 
             // 3. Price Extraction
             if (!metadata.currentPrice) {
+                const fkFinalPriceMatch = html.match(/"finalPrice":\s*(\d+)/i) ||
+                                          html.match(/"specialPrice":\s*(\d+)/i) ||
+                                          html.match(/"price":\s*(\d+)/i);
                 const offscreenMatch = html.match(/class=["'][^"']*a-offscreen[^"']*["'][^>]*>\s*(?:₹|Rs\.?|INR|\$)?\s*([\d,]+(?:\.\d{2})?)/i);
                 const wholeMatch = html.match(/class=["'][^"']*a-price-whole[^"']*["'][^>]*>\s*([\d,]+)/i);
                 const fkPriceMatch = html.match(/class=["'][^"']*(?:_30jeq3|Nx9bqj|_16Jk6d)[^"']*["'][^>]*>\s*(?:₹|Rs\.?|INR|\$)?\s*([\d,]+)/i);
+
                 const apexMatch = html.match(/class=["'][^"']*apexPriceToPay[^"']*["'][^>]*>[\s\S]*?(?:₹|Rs\.?|INR|\$)?\s*([\d,]+(?:\.\d{2})?)/i);
                 const metaPrice = html.match(/<meta\s+property=["'](?:og:price:amount|product:price:amount)["']\s+content=["']([\d.]+)/i);
                 const jsonPriceMatch = html.match(/"priceAmount"\s*:\s*([\d.]+)/i) ||
                                        html.match(/"displayPrice"\s*:\s*["'](?:₹|Rs\.?)?\s*([\d,]+)/i);
                 const generalPrice = html.match(/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{2})?)/i);
 
-                if (offscreenMatch && parseFloat(offscreenMatch[1].replace(/,/g, '')) > 0) {
+                if (fkFinalPriceMatch && parseFloat(fkFinalPriceMatch[1]) > 0) {
+                    metadata.currentPrice = parseFloat(fkFinalPriceMatch[1]);
+                } else if (offscreenMatch && parseFloat(offscreenMatch[1].replace(/,/g, '')) > 0) {
                     metadata.currentPrice = parseFloat(offscreenMatch[1].replace(/,/g, ''));
                 } else if (wholeMatch && parseFloat(wholeMatch[1].replace(/,/g, '')) > 0) {
                     metadata.currentPrice = parseFloat(wholeMatch[1].replace(/,/g, ''));
@@ -666,35 +840,30 @@ exports.extractUrlMetadata = async (req, res) => {
             }
 
             // 4. Brand
-            const bylineMatch = html.match(/id=["']bylineInfo["'][^>]*>([\s\S]*?)<\/a>/i) ||
-                                html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
-                                html.match(/["']brand["']\s*:\s*["']?([^"'}]+)/i);
+            if (!metadata.brand) {
+                const bylineMatch = html.match(/id=["']bylineInfo["'][^>]*>([\s\S]*?)<\/a>/i) ||
+                                    html.match(/<meta\s+property=["']og:brand["']\s+content=["']([^"']+)["']/i) ||
+                                    html.match(/["']brand["']\s*:\s*\{\s*["']name["']\s*:\s*["']([^"']+)["']/i);
 
-            if (bylineMatch && bylineMatch[1]) {
-                const cleanBrand = cleanBrandName(cleanText(bylineMatch[1]));
-                if (cleanBrand.length > 0 && cleanBrand.length < 40) metadata.brand = cleanBrand;
+                if (bylineMatch && bylineMatch[1]) {
+                    const cleanBrand = cleanBrandName(cleanText(bylineMatch[1]));
+                    if (cleanBrand.length > 0 && cleanBrand.length < 40) metadata.brand = cleanBrand;
+                }
             }
 
+            // Fallback: extract leading word if brand wasn't found in metadata; Competitor AI Agent performs full intelligence
             if (!metadata.brand && metadata.fullName) {
-                const knownBrands = [
-                    'DERMATOUCH', 'THE DERMA CO', 'DOT & KEY', 'AQUALOGICA', 'MINIMALIST', 'DR. SHETH',
-                    'MAMAEARTH', 'CETAPHIL', 'NEUTROGENA', 'LOTUS HERBALS', 'LOTUS', 'PLUM', 'BIOTIQUE',
-                    'LOREAL', 'GARNIER', 'NIVEA', 'PONDS', 'OLAY', 'LAKME', 'MAYBELLINE', 'BBLUNT',
-                    'TRESEMME', 'DOVE', 'BOROSIL', 'CELLO', 'HAWKINS', 'PIGEON', 'BUTTERFLY', 'WONDERCHEF',
-                    'KENT', 'LIFELONG', 'REDMI', 'XIAOMI', 'ASUS', 'APPLE', 'DELL', 'HP', 'LENOVO',
-                    'SAMSUNG', 'SONY', 'MILTON', 'PEXPO', 'BOAT', 'NIKE', 'ADIDAS', 'PUMA', 'LOGITECH',
-                    'ONEPLUS', 'REALME', 'POCO', 'NOISE', 'FIRE-BOLTT', 'ZEBRONICS', 'CROMPTON', 'BAJAJ',
-                    'PHILIPS', 'STANLEY', 'PRESTIGE', 'GODREJ', 'WHIRLPOOL', 'LG', 'VOLTAS', 'DAIKIN'
-                ];
-                const upperName = metadata.fullName.toUpperCase();
-                const matched = knownBrands.find(b => upperName.includes(b));
-                if (matched) {
-                    metadata.brand = matched.charAt(0) + matched.slice(1).toLowerCase();
-                } else {
-                    const firstWord = metadata.fullName.split(' ')[0];
-                    if (firstWord && firstWord.length >= 3 && /^[A-Za-z0-9]+$/.test(firstWord)) {
-                        metadata.brand = firstWord;
-                    }
+                const firstWord = metadata.fullName.split(' ')[0];
+                if (firstWord && firstWord.length >= 2 && /^[A-Za-z0-9]+$/.test(firstWord) && !['ONLINE', 'SHOPPING', 'INDIA', 'PRODUCT', 'ITEM'].includes(firstWord.toUpperCase())) {
+                    metadata.brand = firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+                }
+            }
+
+            // Model number detection
+            if (!metadata.modelNumber && metadata.fullName) {
+                const modelMatch = metadata.fullName.match(/\b([A-Z0-9]+-[0-9A-Z]+(?:-[0-9A-Z]+)?)\b/i);
+                if (modelMatch) {
+                    metadata.modelNumber = modelMatch[1].toUpperCase();
                 }
             }
 
@@ -749,13 +918,22 @@ exports.extractUrlMetadata = async (req, res) => {
         }
 
         // Fallback title / slug resolution if fullName is still missing
-        if (!metadata.fullName && finalUrl) {
-            const slugMatch = finalUrl.match(/amazon\.[a-z.]+\/([^/]+)\/dp\//i) ||
-                              finalUrl.match(/flipkart\.com\/([^/]+)\/p\//i) ||
-                              finalUrl.match(/\/products\/([^/?#]+)/i);
+        if (!metadata.fullName && (finalUrl || discoveredProductUrl || url)) {
+            const u = discoveredProductUrl || finalUrl || url;
+            const slugMatch = u.match(/amazon\.[a-z.]+\/([^/]+)\/dp\//i) ||
+                              u.match(/flipkart\.com\/([^/]+)\/p\//i) ||
+                              u.match(/\/dl\/([^/]+)\/p\//i) ||
+                              u.match(/\/products\/([^/?#]+)/i);
             if (slugMatch && slugMatch[1]) {
                 const cleanSlug = decodeURIComponent(slugMatch[1]).replace(/[-_]/g, ' ').trim();
-                metadata.fullName = cleanSlug;
+                metadata.fullName = cleanSlug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                if (!metadata.category || metadata.category === 'General') {
+                    if (/shoe|footwear|sneaker|sandal|running|walker|slip-on/i.test(cleanSlug)) metadata.category = 'Footwear';
+                }
+                if (!metadata.brand) {
+                    const firstWord = metadata.fullName.split(' ')[0];
+                    if (firstWord && !['Online', 'Shopping', 'India'].includes(firstWord)) metadata.brand = firstWord;
+                }
             } else {
                 metadata.fullName = amazonAsin ? `Amazon Product (${amazonAsin})` : (flipkartFsn ? `Flipkart Product (${flipkartFsn})` : 'Imported Product');
             }

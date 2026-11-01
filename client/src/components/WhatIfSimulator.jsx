@@ -120,8 +120,16 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays]);
 
+    // Track pending launch event if products are still fetching
+    const pendingLaunchRef = useRef(null);
+    const isExecutingLaunchRef = useRef(false);
+
     // When active product changes, sync base price & cogs without auto-simulating
     useEffect(() => {
+        if (isExecutingLaunchRef.current) {
+            // Preserve targetPrice and simulation when launching from Chat
+            return;
+        }
         if (activeProduct) {
             const price = typeof activeProduct.currentPrice === 'number' ? Math.round(activeProduct.currentPrice * 100) / 100 : 100;
             const cost = typeof activeProduct.baseCost === 'number'
@@ -134,10 +142,8 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
         }
     }, [activeProduct]);
 
-    // Track pending launch event if products are still fetching
-    const pendingLaunchRef = useRef(null);
-
     const executeLaunch = useCallback((detail, prodList) => {
+        isExecutingLaunchRef.current = true;
         const { productQuery, priceChange: newPrice } = detail || {};
         let matched = findBestProductMatch(productQuery, prodList);
         
@@ -160,9 +166,9 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
             : cogs;
         setCogs(calculatedCogs);
 
-        // Scroll to simulator section
+        // Scroll to simulator section if embedded in a larger page
         const elem = document.getElementById('what-if-simulator-section');
-        if (elem) {
+        if (elem && typeof window !== 'undefined' && window.location.pathname !== '/dashboard/simulator') {
             elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
@@ -176,8 +182,42 @@ export default function WhatIfSimulator({ initialProductId = null, onPriceCommit
                 demandMultiplier,
                 timeHorizonDays
             });
-        }, 250);
+            setTimeout(() => {
+                isExecutingLaunchRef.current = false;
+            }, 600);
+        }, 200);
     }, [findBestProductMatch, selectedProductId, targetPrice, cogs, competitorStrategy, demandMultiplier, timeHorizonDays, handleRunSimulation]);
+
+    // Check for pending launch payload in sessionStorage or URL query params on mount
+    useEffect(() => {
+        let launchDetail = null;
+        try {
+            const saved = sessionStorage.getItem('pending_what_if_payload');
+            if (saved) {
+                sessionStorage.removeItem('pending_what_if_payload');
+                launchDetail = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn('Could not read pending_what_if_payload from sessionStorage', e);
+        }
+
+        if (!launchDetail && typeof window !== 'undefined' && window.location.search) {
+            const params = new URLSearchParams(window.location.search);
+            const productQuery = params.get('product') || params.get('productId');
+            const priceChange = params.get('price') || params.get('targetPrice');
+            if (productQuery || priceChange) {
+                launchDetail = { productQuery, priceChange };
+            }
+        }
+
+        if (launchDetail) {
+            if (products.length > 0) {
+                executeLaunch(launchDetail, products);
+            } else {
+                pendingLaunchRef.current = launchDetail;
+            }
+        }
+    }, [products, executeLaunch]);
 
     // Handle launch when products finish loading
     useEffect(() => {

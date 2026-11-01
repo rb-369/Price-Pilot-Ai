@@ -85,13 +85,14 @@ async def _extract_with_openrouter(prompt: str) -> Optional[Dict]:
     if not api_key:
         return None
 
-    # Top free models on OpenRouter prioritizing NVIDIA Nemotron
+    # Top active free models on OpenRouter (openrouter/free dynamically routes to best available free pool)
     candidate_models = [
-        "nvidia/nemotron-3-super-120b-a12b:free",
-        "nvidia/nemotron-3-ultra-550b-a55b:free",
-        "nvidia/nemotron-3.5-lightning:free",
-        "qwen/qwen3.8-27b:free",
         "openrouter/free",
+        "google/gemini-2.0-flash-lite-preview:001",
+        "meta-llama/llama-3.3-70b-instruct:free",
+        "qwen/qwen-2.5-72b-instruct:free",
+        "google/gemma-4-31b-it:free",
+        "nvidia/nemotron-3.5-lightning:free",
     ]
 
     headers = {
@@ -136,34 +137,42 @@ async def _extract_with_openrouter(prompt: str) -> Optional[Dict]:
 
 
 async def _extract_with_gemini(prompt: str) -> Optional[Dict]:
-    """Fallback to Google Gemini if OpenRouter is unreachable."""
-    api_key = (
-        os.getenv("LLM_API_KEY", "").strip()
-        or os.getenv("GEMINI_API_KEY", "").strip()
-        or os.getenv("CHATBOT_API_KEY", "").strip()
-    )
-    if not api_key:
+    """Fallback to Google Gemini if OpenRouter is unreachable, testing all configured keys."""
+    raw_keys = [
+        os.getenv("LLM_API_KEY", "").strip(),
+        os.getenv("GEMINI_API_KEY", "").strip(),
+        os.getenv("CHATBOT_API_KEY", "").strip(),
+    ]
+    candidate_keys = [k for k in raw_keys if k and not k.startswith("sk-or-") and not k.startswith("AQ.")]
+    candidate_keys = list(dict.fromkeys(candidate_keys))
+    candidate_keys.sort(key=lambda k: 0 if k.startswith("AIzaSy") else 1)
+
+    if not candidate_keys:
         return None
 
     try:
         from google import genai
 
-        client = genai.Client(api_key=api_key)
-        for model in ["gemini-2.5-flash", "gemini-flash-latest"]:
+        for api_key in candidate_keys:
             try:
-                print(f"[CompetitorAgent] Attempting Gemini fallback model '{model}'...")
-                resp = await client.aio.models.generate_content(
-                    model=model,
-                    contents=f"{SYSTEM_PROMPT}\n\nProduct Information:\n{prompt}",
-                    config={"response_mime_type": "application/json"},
-                )
-                if resp.text:
-                    parsed = json.loads(resp.text)
-                    parsed["_agent"] = f"gemini/{model}"
-                    print(f"[CompetitorAgent] Successfully extracted intelligence via Gemini ({model})")
-                    return parsed
-            except Exception as e:
-                print(f"[CompetitorAgent] Gemini model '{model}' failed: {e}")
+                client = genai.Client(api_key=api_key)
+                for model in ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
+                    try:
+                        print(f"[CompetitorAgent] Attempting Gemini fallback model '{model}'...")
+                        resp = await client.aio.models.generate_content(
+                            model=model,
+                            contents=f"{SYSTEM_PROMPT}\n\nProduct Information:\n{prompt}",
+                            config={"response_mime_type": "application/json"},
+                        )
+                        if resp.text:
+                            parsed = json.loads(resp.text)
+                            parsed["_agent"] = f"gemini/{model}"
+                            print(f"[CompetitorAgent] Successfully extracted intelligence via Gemini ({model})")
+                            return parsed
+                    except Exception as e:
+                        print(f"[CompetitorAgent] Gemini model '{model}' failed: {e}")
+            except Exception as client_err:
+                print(f"[CompetitorAgent] Gemini client creation failed with key: {client_err}")
     except Exception as e:
         print(f"[CompetitorAgent] Gemini client error: {e}")
 

@@ -80,10 +80,36 @@ export default function Recommendations() {
   const fetchData = () => {
     setLoading(true);
     setError(false);
-    Promise.all([
-      getRecommendations().then(r => setRecommendations(r.data.data || r.data)).catch(() => { throw new Error('Failed recs'); }),
-      getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error('Failed prods'); }),
-    ]).catch(() => setError(true)).finally(() => setLoading(false));
+    Promise.allSettled([
+      getRecommendations(),
+      getProducts(),
+    ]).then(([recsRes, prodsRes]) => {
+      let recsList = [];
+      let prodsList = [];
+
+      if (recsRes.status === 'fulfilled') {
+        const raw = recsRes.value?.data;
+        const list = raw?.data || raw;
+        recsList = Array.isArray(list) ? list : [];
+      }
+
+      if (prodsRes.status === 'fulfilled') {
+        const raw = prodsRes.value?.data;
+        const list = raw?.data || raw;
+        prodsList = Array.isArray(list) ? list : [];
+      }
+
+      setRecommendations(recsList);
+      setProducts(prodsList);
+
+      if (recsRes.status === 'rejected' && prodsRes.status === 'rejected') {
+        setError(true);
+      }
+    }).catch(() => {
+      setError(true);
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -98,18 +124,18 @@ export default function Recommendations() {
     const pId = typeof rec.productId === 'object' ? rec.productId?._id : rec.productId;
     const matched = products.find(p => String(p._id) === String(pId));
     const name =
-      (typeof rec.productId === 'object' && rec.productId?.name) ||
+      (rec.productId && typeof rec.productId === 'object' && rec.productId?.name) ||
       matched?.name ||
       rec.productName ||
       rec.product?.name ||
       'Product';
     const sku =
-      (typeof rec.productId === 'object' && rec.productId?.sku) ||
+      (rec.productId && typeof rec.productId === 'object' && rec.productId?.sku) ||
       matched?.sku ||
       '—';
     const currentPrice =
       rec.currentPrice ??
-      (typeof rec.productId === 'object' ? rec.productId?.currentPrice : null) ??
+      (rec.productId && typeof rec.productId === 'object' ? rec.productId?.currentPrice : null) ??
       matched?.currentPrice ??
       0;
     return { name, sku, currentPrice };
@@ -128,8 +154,14 @@ export default function Recommendations() {
             const statusRes = await getJobStatus(jobId);
             if (statusRes.data.status === 'completed') {
               clearInterval(poll);
-              setRecommendations(prev => [statusRes.data.result, ...prev]);
-              toast.success('Recommendation generated!');
+              if (statusRes.data.result && typeof statusRes.data.result === 'object') {
+                const newRec = statusRes.data.result;
+                setRecommendations(prev => [newRec, ...prev.filter(r => r && r._id !== newRec._id)]);
+                toast.success('Recommendation generated!');
+              } else {
+                fetchData();
+                toast.success('Recommendation generated!');
+              }
               setGenerating(null);
             } else if (statusRes.data.status === 'failed') {
               clearInterval(poll);
@@ -143,7 +175,11 @@ export default function Recommendations() {
           }
         }, 2000);
       } else {
-        setRecommendations(prev => [res.data, ...prev]);
+        if (res.data && typeof res.data === 'object' && res.data._id) {
+          setRecommendations(prev => [res.data, ...prev.filter(r => r && r._id !== res.data._id)]);
+        } else {
+          fetchData();
+        }
         toast.success('Recommendation generated!');
         setGenerating(null);
       }

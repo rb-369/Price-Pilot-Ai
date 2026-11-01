@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed/seed.js",
     "start:prod": "node server.js",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",

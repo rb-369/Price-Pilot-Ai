@@ -61,6 +61,7 @@ export default function SlidableNotificationToast({
     duration = 6000 
 }) {
     const navigate = useNavigate();
+    const { toggleMute } = useNotification();
     const [dragX, setDragX] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
@@ -188,10 +189,19 @@ export default function SlidableNotificationToast({
                     )}
                 </div>
 
-                <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono hidden sm:inline">
-                        Swipe to dismiss
-                    </span>
+                <div className="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMute(true);
+                        }}
+                        className="px-1.5 py-0.5 rounded text-[10px] font-semibold text-text-muted hover:text-amber-500 hover:bg-amber-500/10 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Mute all on-screen popups (Do Not Disturb)"
+                    >
+                        <HiOutlineBellSlash size={12} />
+                        <span className="hidden xs:inline">Mute popups</span>
+                    </button>
                     <button
                         type="button"
                         onClick={(e) => {

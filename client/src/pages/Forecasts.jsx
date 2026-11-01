@@ -32,10 +32,36 @@ export default function Forecasts() {
   const fetchData = () => {
     setLoading(true);
     setError(false);
-    Promise.all([
-      getForecasts().then(r => setForecasts(r.data.data || r.data)).catch(() => { throw new Error(); }),
-      getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error(); }),
-    ]).catch(() => setError(true)).finally(() => setLoading(false));
+    Promise.allSettled([
+      getForecasts(),
+      getProducts(),
+    ]).then(([forecastsRes, prodsRes]) => {
+      let forecastsList = [];
+      let prodsList = [];
+
+      if (forecastsRes.status === 'fulfilled') {
+        const raw = forecastsRes.value?.data;
+        const list = raw?.data || raw;
+        forecastsList = Array.isArray(list) ? list : [];
+      }
+
+      if (prodsRes.status === 'fulfilled') {
+        const raw = prodsRes.value?.data;
+        const list = raw?.data || raw;
+        prodsList = Array.isArray(list) ? list : [];
+      }
+
+      setForecasts(forecastsList);
+      setProducts(prodsList);
+
+      if (forecastsRes.status === 'rejected' && prodsRes.status === 'rejected') {
+        setError(true);
+      }
+    }).catch(() => {
+      setError(true);
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -58,8 +84,14 @@ export default function Forecasts() {
             const statusRes = await getJobStatus(jobId);
             if (statusRes.data.status === 'completed') {
               clearInterval(poll);
-              setForecasts(prev => [statusRes.data.result, ...prev]);
-              toast.success('AI Forecast generated!');
+              if (statusRes.data.result && typeof statusRes.data.result === 'object') {
+                const newFc = statusRes.data.result;
+                setForecasts(prev => [newFc, ...prev.filter(f => f && f._id !== newFc._id)]);
+                toast.success('AI Forecast generated!');
+              } else {
+                fetchData();
+                toast.success('AI Forecast generated!');
+              }
               setGenerating(null);
             } else if (statusRes.data.status === 'failed') {
               clearInterval(poll);
@@ -73,7 +105,11 @@ export default function Forecasts() {
           }
         }, 2000);
       } else {
-        setForecasts(prev => [res.data, ...prev]);
+        if (res.data && typeof res.data === 'object' && res.data._id) {
+          setForecasts(prev => [res.data, ...prev.filter(f => f && f._id !== res.data._id)]);
+        } else {
+          fetchData();
+        }
         toast.success('Forecast generated!');
         setGenerating(null);
       }
@@ -84,10 +120,11 @@ export default function Forecasts() {
   };
 
   const getProductDetails = (f) => {
-    const pId = typeof f.productId === 'object' ? f.productId?._id : f.productId;
+    if (!f) return { name: 'Unknown Product', currentStock: 0 };
+    const pId = (f.productId && typeof f.productId === 'object') ? f.productId?._id : f.productId;
     const matched = products.find(p => String(p._id) === String(pId));
     const name =
-      (typeof f.productId === 'object' && f.productId?.name) ||
+      (f.productId && typeof f.productId === 'object' && f.productId?.name) ||
       matched?.name ||
       f.productName ||
       f.product?.name ||
@@ -95,14 +132,15 @@ export default function Forecasts() {
       'Product';
     const currentStock =
       f.currentStock ??
-      (typeof f.productId === 'object' ? f.productId?.stockLevel : null) ??
+      (f.productId && typeof f.productId === 'object' ? f.productId?.stockLevel : null) ??
       matched?.stockLevel ??
       0;
     return { name, currentStock };
   };
 
   const handleExport = () => {
-    const exportData = forecasts.map(f => {
+    const valid = (forecasts || []).filter(Boolean);
+    const exportData = valid.map(f => {
       const { name, currentStock } = getProductDetails(f);
       return {
         Product: name,
@@ -119,16 +157,17 @@ export default function Forecasts() {
 
   // ─── Analytics KPIs ───
   const kpis = useMemo(() => {
-    if (!forecasts.length) return { total: 0, atRisk: 0, avgConfidence: 0, totalReorder: 0 };
-    const atRisk = forecasts.filter(f => {
+    const valid = (forecasts || []).filter(Boolean);
+    if (!valid.length) return { total: 0, atRisk: 0, avgConfidence: 0, totalReorder: 0 };
+    const atRisk = valid.filter(f => {
       const { currentStock } = getProductDetails(f);
       return f.predictedDemand > currentStock;
     }).length;
     const avgConfidence = Math.round(
-      (forecasts.reduce((sum, f) => sum + (f.confidenceScore || 0.85), 0) / forecasts.length) * 100
+      (valid.reduce((sum, f) => sum + (f.confidenceScore || 0.85), 0) / valid.length) * 100
     );
-    const totalReorder = forecasts.reduce((sum, f) => sum + (f.recommendedStockIncrease || 0), 0);
-    return { total: forecasts.length, atRisk, avgConfidence, totalReorder };
+    const totalReorder = valid.reduce((sum, f) => sum + (f.recommendedStockIncrease || 0), 0);
+    return { total: valid.length, atRisk, avgConfidence, totalReorder };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forecasts, products]);
 
@@ -362,7 +401,7 @@ export default function Forecasts() {
 
           {/* ── Forecast Cards Grid ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {forecasts.map((f, i) => {
+            {forecasts.filter(Boolean).map((f, i) => {
               const { name: productName, currentStock } = getProductDetails(f);
               const demandPct = currentStock > 0 ? Math.round((f.predictedDemand / currentStock) * 100) : 100;
               const isRisk = f.predictedDemand > currentStock;
@@ -490,7 +529,7 @@ export default function Forecasts() {
             })}
           </div>
 
-          {forecasts.length === 0 && (
+          {forecasts.filter(Boolean).length === 0 && (
             <div className="glass-card p-12 text-center text-text-muted animate-slide-up">
               <HiOutlineTrendingUp className="w-12 h-12 mx-auto mb-3 opacity-40 text-primary" />
               <h3 className="text-lg font-semibold text-text mb-1">No Forecasts Generated Yet</h3>

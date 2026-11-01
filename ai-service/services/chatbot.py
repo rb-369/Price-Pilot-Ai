@@ -3,6 +3,8 @@ Conversational AI Chatbot Service
 Uses LangChain RAG with ChromaDB, Gemini as primary LLM, and OpenRouter as fallback.
 """
 import os
+import re
+import json
 import asyncio
 import hashlib
 from typing import List, Dict, Optional, Any
@@ -123,6 +125,13 @@ CRITICAL OPERATING INSTRUCTIONS FOR THE CHATBOT:
 5. PRODUCT MATCHING: When a user mentions a product (e.g., @"Product Name"), locate it in the context by name to pull its exact currentPrice, baseCost, marginPercent, stockLevel, and salesVelocity.
 6. WHAT-IF SCENARIOS: When a user asks a What-If question, calculate the margin change and sales volume impact using economic elasticity, and follow the special What-If format with the redirect payload.
 7. TONE: Professional, analytical, proactive, and concise. Format responses with clean Markdown, bold headers, and bullet points.
+8. USER CONTEXT & EMPTY CATALOG: Each merchant has their own private store and catalog. All store data provided below belongs strictly to this user. If the merchant has 0 products in their catalog, you MUST accurately inform them that their catalog currently has 0 products. NEVER invent, hallucinate, or assume any products, prices, margins, or SKUs. Guide them to add their first product in [Products Catalog](/dashboard/products).
+9. DISCOUNT & PROMOTION RECOMMENDATIONS: When a user asks which products they should put on discount, promotional sale, or clearance:
+   - NEVER apologize or state that you lack data or that sales velocity is 0.
+   - Actively evaluate their catalog products provided in the context: look at stockLevel, baseCost, currentPrice, and marginPercent.
+   - Select 2 to 3 specific products from their catalog with higher stock levels or healthy margins (>30-40%) where a discount will not breach their baseCost.
+   - Provide concrete recommendations with product names, current prices, suggested discount percentages (e.g. 10-15%), new prices, and resulting margins.
+   - Recommend testing them in [What-If Simulator](/dashboard/simulator) or running an [A/B Price Test](/dashboard/ab-tests).
 
 --- 
 Context Information below is automatically retrieved from the PricePilot real-time database and vector memory:
@@ -138,12 +147,13 @@ class WorkingMemory:
         self.messages = messages
         self.context_data = context_data
 
-        user_id = self.context_data.get('userId', 'global') if self.context_data else 'global'
-        self.user_id = user_id
+        raw_uid = str(self.context_data.get('userId') or 'global') if self.context_data else 'global'
+        clean_uid = re.sub(r'[^a-zA-Z0-9_]', '_', raw_uid)[:45]
+        self.user_id = clean_uid
 
-        # We initialized these explicitly in each method where they are needed rather than keeping them open all the time
-        self._collection_name_semantic = f"semantic_memory_{user_id}"
-        self._collection_name_episodic = f"episodic_memory_{user_id}"
+        # Isolate semantic and episodic vector memory per authenticated user
+        self._collection_name_semantic = f"sem_mem_{clean_uid}"
+        self._collection_name_episodic = f"epi_mem_{clean_uid}"
 
     async def build_context_string(self, latest_query: str) -> str:
         context_parts = []
@@ -152,6 +162,21 @@ class WorkingMemory:
         if self.context_data:
             import json
             context_parts.append("### Real-time Request Context:\n" + json.dumps(self.context_data, indent=2))
+            
+            total_prods = self.context_data.get('totalProducts')
+            if total_prods is None:
+                total_prods = len(self.context_data.get('products', []))
+            
+            if total_prods == 0:
+                context_parts.append(
+                    "### Merchant Store Context:\n"
+                    "- Catalog Status: Empty (0 products in store).\n"
+                    "- Active Alerts: 0.\n"
+                    "- IMPORTANT: This merchant currently has 0 products in their store. "
+                    "If they ask how many products they have, what products they have, or ask about their inventory, "
+                    "you MUST accurately inform them that their catalog currently has 0 products, and guide them to add their first product in [Products Catalog](/dashboard/products). "
+                    "DO NOT invent, hallucinate, or mention any demo products."
+                )
 
         # 2. RAG from Semantic Memory (Durable facts & rules)
         try:
@@ -230,9 +255,12 @@ async def _call_openrouter_direct(
             formatted_messages.append({"role": role, "content": str(content_val)})
 
     models_to_try = [
-        "meta-llama/llama-3.3-70b-instruct:free",
+        "poolside/laguna-s-2.1:free",
+        "nvidia/nemotron-3.5-lightning:free",
         "google/gemma-4-31b-it:free",
-        "mistralai/mistral-small-3.2-24b-instruct:free",
+        "liquid/lfm-2.5-2.6b:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "poolside/laguna-xs-2.1:free",
         "openrouter/free"
     ]
 
@@ -262,6 +290,229 @@ async def _call_openrouter_direct(
     return None
 
 
+def _generate_catalog_fallback_reply(latest_query: str, context_data: Optional[Dict]) -> Optional[str]:
+    """
+    Deterministic intelligent responder for catalog, inventory, and store operations
+    when external cloud LLMs (Gemini / OpenRouter) hit temporary rate limits or quota ceilings.
+    """
+    if not latest_query:
+        return None
+
+    raw = latest_query.lower().strip()
+    ctx = context_data if isinstance(context_data, dict) else {}
+    products = ctx.get("products", [])
+    alerts = ctx.get("alerts", [])
+    total_prods = ctx.get("totalProducts")
+    if total_prods is None:
+        total_prods = len(products)
+
+    # 0. Grill-Me Strategy Session & Pricing Strategy Consultations
+    is_grill_me = bool(re.search(r'\b(?:grill[- ]?me|pricing strategy|pricing approach|price strategy|pricing model|what strategy|which strategy|strategy for|best strategy)\b', raw))
+    if is_grill_me:
+        if total_prods == 0 and not re.search(r'@"?([^"\n\r?]+)"?', latest_query):
+            return (
+                "### 🥊 PricePilot AI Strategy Session\n\n"
+                "Your store catalog is currently empty (**0 products**).\n\n"
+                "To run a dynamic pricing strategy session, first add your products in [Products Catalog](/dashboard/products) or specify a SKU (e.g. `@\"Smart Watch\"`)."
+            )
+
+        target_product = None
+        product_name = ""
+
+        tagged_match = re.search(r'@"?([^"\n\r?]+)"?', latest_query)
+        if tagged_match:
+            product_name = tagged_match.group(1).strip()
+        else:
+            for_match = re.search(r'(?:for|on|about)\s+([A-Za-z0-9\s&+\-.]+?)(?:\?|$|\n|,\s*which|\s+to|\s+at)', latest_query, re.IGNORECASE)
+            if for_match:
+                product_name = re.sub(r'^(?:the|my|a)\s+', '', for_match.group(1).strip(), flags=re.IGNORECASE)
+
+        if products:
+            if product_name:
+                target_product = next((p for p in products if p.get("name") and product_name.lower() in p.get("name", "").lower()), None)
+            if not target_product and not product_name and len(products) == 1:
+                target_product = products[0]
+                product_name = target_product.get("name", "")
+
+        display_name = (target_product.get("name") if target_product else None) or product_name or "Your Catalog Products"
+        current_pr = target_product.get("currentPrice", f"₹{target_product.get('priceNumeric', 0)}") if target_product else "Market Parity"
+        cost_pr = target_product.get("baseCost", "Estimated COGS") if target_product else "Estimated COGS"
+        margin_str = f"{target_product.get('marginPercent')}%" if target_product and target_product.get("marginPercent") else "40–50%"
+        stock_str = f"{target_product.get('stockLevel')} units" if target_product and target_product.get("stockLevel") is not None else "Active Inventory"
+
+        metrics_line = f"• **Current Metrics:** Price: {current_pr} | Cost: {cost_pr} | Margin: {margin_str} | Stock: {stock_str}\n\n" if target_product else "\n"
+
+        return (
+            f"### 🥊 PricePilot AI Grill-Me Session: Dynamic Pricing Strategy\n\n"
+            f"**Target SKU:** **{display_name}**\n"
+            f"{metrics_line}"
+            f"#### 🏛️ 1. Executive Strategy Verdict: Value-Based Skimming & Margin Defense\n"
+            f"In e-commerce marketplaces (Amazon, Flipkart, D2C), **under-pricing is a fatal trap**. "
+            f"Dropping price to chase volume in competitive categories destroys the 40–50% gross margin required to fund Amazon Sponsored Products (PPC) and absorb marketplace commissions (~15% referral fee + closing fees + FBA pick & pack). "
+            f"Instead, use **Value-Based Margin Defense with Tiered Bundles**.\n\n"
+            f"#### 🎯 2. The 3-Pillar Execution Blueprint\n"
+            f"1. **Protect the Margin Floor:** Never drop below a 35% net margin floor. If raw material or marketplace fees rise, let competitors engage in a margin-killing price war while you capture high-intent brand buyers.\n"
+            f"2. **Virtual Bundling over Direct Discounting:** Rather than cutting single-unit price by 15%, sell a Duo-Pack or cross-sell with a complementary item (e.g., moisturizer + cleanser). This lifts Average Order Value (AOV) and lowers per-unit shipping overhead.\n"
+            f"3. **Elasticity-Gated Surge Pricing:** When direct rivals go out of stock or experience logistics delays, leverage PricePilot to automatically raise price by 3–6% to capture surge profit.\n\n"
+            f"#### ❓ 3 Questions to Grill Your Current Setup\n"
+            f"1. **What is your true Net Landed Margin after Amazon Fees?**\n"
+            f"   *If your gross margin is below 40%, Amazon PPC ad spend (15–25% ACOS) will turn this item into an unprofitable cash drain.*\n"
+            f"2. **What is your Buy Box win rate against category benchmarks?**\n"
+            f"   *Are you losing sales due to price, or due to slower fulfillment (Non-Prime vs Prime) or review count? Price cannot compensate for social proof.*\n"
+            f"3. **Can your inventory sustain a promotional spike?**\n"
+            f"   *If a discount triples sales velocity, do you have enough stock runway in [Inventory Forecasts](/dashboard/forecasts) to avoid stockout ranking penalties?*\n\n"
+            f"#### 🚀 Next Actions in PricePilot AI\n"
+            f"• Run margin simulations in the [What-If Simulator](/dashboard/simulator) before touching live prices.\n"
+            f"• Track competing brand price spreads in [Competitor Analysis](/dashboard/competitors).\n"
+            f"• Review AI-optimized price adjustments in [AI Recommendations](/dashboard/recommendations)."
+        )
+
+    # 0.1 Plain English explanation
+    if bool(re.search(r'\b(?:explain[- ]simply)\b', raw)):
+        return (
+            "### 💡 Plain-English Summary for Sellers\n\n"
+            "1. **Profit Impact:** Pricing optimization isn't about selling for the cheapest price; it's about making the most total profit in INR (₹) after all product costs, shipping, and marketplace fees.\n"
+            "2. **Action to Take:** Check your [AI Recommendations](/dashboard/recommendations) to see which items have high profit potential, and use the [What-If Simulator](/dashboard/simulator) to test new prices before publishing them live."
+        )
+
+    # 1. Product Count / Number of products (e.g. "so how many products do i have?", "total products")
+    is_count_query = (
+        bool(re.search(r'\bhow many (?:products|items|skus|goods)\b', raw)) or
+        bool(re.search(r'\b(?:product|item|sku)\s+count\b', raw)) or
+        bool(re.search(r'\btotal (?:number of )?(?:products|items|skus)\b', raw)) or
+        bool(re.search(r'\bnumber of (?:products|items|skus)\b', raw))
+    )
+    if is_count_query:
+        if total_prods == 0:
+            return (
+                "You currently have **0 products** in your catalog.\n\n"
+                "To get started, navigate to [Products Catalog](/dashboard/products) and click **'+ Add Product'** "
+                "or import your catalog using **'Import CSV'**."
+            )
+        lines = []
+        for p in products[:6]:
+            p_name = p.get("name", "Product")
+            p_price = p.get("currentPrice", f"₹{p.get('priceNumeric', 0)}")
+            p_stock = p.get("stockLevel", 0)
+            p_margin = p.get("marginPercent", "N/A")
+            lines.append(f"• **{p_name}** — Price: {p_price} | Stock: {p_stock} units | Margin: {p_margin}")
+        
+        extra = f"\n*...and {total_prods - len(lines)} more products.*" if total_prods > len(lines) else ""
+        alert_str = f"\n\n🔔 You also have **{len(alerts)} active alerts** requiring your attention in the [Alerts Center](/dashboard/alerts)." if alerts else ""
+        return (
+            f"You currently have **{total_prods} active products** in your catalog.\n\n"
+            f"**Catalog Highlights:**\n"
+            + "\n".join(lines)
+            + extra
+            + alert_str
+            + "\n\nYou can review complete inventory details or adjust pricing in your [Products Catalog](/dashboard/products)."
+        )
+
+    # 2. View / List Catalog & Inventory (e.g. "what products do i have?", "show catalog", "list products")
+    is_catalog_list_query = (
+        bool(re.search(r'\b(?:what|show|list|view|display|check|see)\s+(?:all\s+|my\s+)?(?:products|catalog|inventory|items|skus)\b', raw)) or
+        raw in ["products", "catalog", "inventory", "my products", "/products"]
+    )
+    if is_catalog_list_query:
+        if total_prods == 0:
+            return (
+                "Your catalog is currently empty (0 products).\n\n"
+                "Add your first product in [Products Catalog](/dashboard/products) or upload an inventory spreadsheet via **Import CSV**."
+            )
+        lines = []
+        for p in products[:8]:
+            p_name = p.get("name", "Product")
+            p_price = p.get("currentPrice", f"₹{p.get('priceNumeric', 0)}")
+            p_stock = p.get("stockLevel", 0)
+            p_cost = p.get("baseCost", "N/A")
+            p_margin = p.get("marginPercent", "N/A")
+            lines.append(f"• **{p_name}** — Selling: {p_price} | Cost: {p_cost} | Margin: {p_margin} | Stock: {p_stock}")
+        extra = f"\n*...plus {total_prods - len(lines)} additional products.*" if total_prods > len(lines) else ""
+        return (
+            f"### Store Catalog Overview ({total_prods} products)\n\n"
+            + "\n".join(lines)
+            + extra
+            + "\n\nVisit [Products Catalog](/dashboard/products) to edit SKUs, costs, or sync live marketplace pricing."
+        )
+
+    # 3. Low stock / stockout queries
+    is_stock_query = bool(re.search(r'\b(?:low stock|out of stock|stockout|reorder|restock|depleted|low on stock)\b', raw))
+    if is_stock_query:
+        if total_prods == 0:
+            return (
+                "Your store catalog is currently empty (0 products).\n\n"
+                "Once you add products in [Products Catalog](/dashboard/products), PricePilot AI will forecast demand and alert you when stock levels run low."
+            )
+        low_stock_items = [p for p in products if isinstance(p.get("stockLevel"), (int, float)) and p.get("stockLevel") <= 15]
+        if not low_stock_items:
+            return (
+                f"✅ **Healthy Inventory:** None of your {total_prods} products are currently critically low on stock!\n\n"
+                "You can inspect 30-day demand trajectories and forecasted depletion dates under [Inventory Forecasts](/dashboard/forecasts)."
+            )
+        lines = [f"• **{p.get('name')}**: Only **{p.get('stockLevel', 0)} units** remaining (Selling at {p.get('currentPrice')})" for p in low_stock_items[:6]]
+        return (
+            f"⚠️ **Low Stock Alert:** The following {len(low_stock_items)} product(s) are running low:\n\n"
+            + "\n".join(lines)
+            + "\n\nHead over to [Inventory Forecasts](/dashboard/forecasts) to view automated reorder suggestions and projected stockout dates."
+        )
+
+    # 4. Alerts inquiry
+    is_alert_query = bool(re.search(r'\b(?:alerts?|notifications?|warnings?)\b', raw))
+    if is_alert_query:
+        if not alerts:
+            return (
+                "✅ You currently have **0 active alerts**. All pricing floors, competitor spreads, and stock levels are stable!\n\n"
+                "Check the [Alerts Center](/dashboard/alerts) anytime to manage your notification thresholds."
+            )
+        lines = [f"• **[{a.get('type', 'Alert').upper()}] {a.get('title', 'Notice')}**: {a.get('message', '')}" for a in alerts[:5]]
+        return (
+            f"🔔 **Active Alerts ({len(alerts)}):**\n\n"
+            + "\n".join(lines)
+            + "\n\nReview or resolve these under the [Alerts Center](/dashboard/alerts)."
+        )
+
+    # 5. Matching a specific product by name
+    for p in products:
+        p_name = p.get("name", "")
+        if p_name and p_name.lower() in raw:
+            return (
+                f"📦 **Product Details: {p_name}**\n"
+                f"- **Selling Price:** {p.get('currentPrice', 'N/A')}\n"
+                f"- **Cost Price (COGS):** {p.get('baseCost', 'N/A')}\n"
+                f"- **Gross Margin:** {p.get('marginPercent', 'N/A')}\n"
+                f"- **Stock Level:** {p.get('stockLevel', 0)} units\n"
+                f"- **Sales Velocity:** {p.get('salesVelocity', 0)} units/hr\n\n"
+                f"You can simulate a price change using `/what-if @\"{p_name}\" to [new price]` "
+                f"or edit listing details in [Products Catalog](/dashboard/products)."
+            )
+
+    # 6. Onboarding / Offline sales
+    is_adding_or_offline = bool(re.search(r'\b(?:how (?:to|do i|can i) add|add (?:my )?product|offline|physical (?:store|shop|sales)|retail|not (?:selling )?online|upload (?:csv|catalog)|import (?:products|catalog))\b', raw))
+    if is_adding_or_offline:
+        return (
+            "### Managing Products & Offline Sales in PricePilot AI\n\n"
+            "You can use PricePilot AI for both offline retail stores and online channels:\n\n"
+            "1. **Add Items**: Go to [Products Catalog](/dashboard/products) and click **'+ Add Product'** or use **'Import CSV'**.\n"
+            "2. **Marketplace Links**: Amazon and Flipkart URLs are completely optional. Offline stores can leave them blank.\n"
+            "3. **Track & Optimize**: Keep inventory updated to run AI restock predictions in [Inventory Forecasts](/dashboard/forecasts) and test margins in the [What-If Simulator](/dashboard/simulator)."
+        )
+
+    # 7. Fallback when AI rate-limited: provide graceful store summary instead of dead-end 429
+    if products or alerts:
+        lines = [f"• **{p.get('name')}** ({p.get('currentPrice', '₹0')}, Stock: {p.get('stockLevel', 0)})" for p in products[:4]]
+        return (
+            "⚠️ **Live Store Mode (Cloud AI Rate-Limited):**\n\n"
+            f"External AI models have temporarily reached their free-tier quota ceiling. While they refresh, here is your store snapshot:\n\n"
+            f"- **Total Products in Catalog:** {total_prods}\n"
+            f"- **Active Alerts:** {len(alerts)}\n\n"
+            "**Catalog Highlights:**\n"
+            + "\n".join(lines) + "\n\n"
+            "You can ask me questions about your **products**, **stock counts**, **alerts**, or run pricing simulations using `/what-if`."
+        )
+
+    return None
+
+
 async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     """
     Main entry point for Chatbot with RAG & Agentic Tool Invocation.
@@ -271,44 +522,54 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
     latest_query = memory.get_latest_query()
 
     context_str = await memory.build_context_string(latest_query)
-    # Combine API keys for fallback safety
-    gemini_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("CHATBOT_API_KEY", "")
+    # Collect all available Gemini keys (prioritizing standard AIzaSy keys)
+    raw_gemini_keys = [
+        os.getenv("LLM_API_KEY", "").strip(),
+        os.getenv("GEMINI_API_KEY", "").strip(),
+        os.getenv("CHATBOT_API_KEY", "").strip(),
+    ]
+    valid_gemini_keys = [k for k in raw_gemini_keys if k and not k.startswith("sk-or-") and not k.startswith("AQ.")]
+    valid_gemini_keys = list(dict.fromkeys(valid_gemini_keys))
+    valid_gemini_keys.sort(key=lambda k: 0 if k.startswith("AIzaSy") else 1)
+
     openrouter_key = (
         os.getenv("OPENROUTER_API_KEY", "").strip() or 
-        os.getenv("OPEN_ROUTER_API_KEY", "").strip() or 
-        (gemini_key.strip() if gemini_key.strip().startswith("sk-or-") else "")
+        os.getenv("OPEN_ROUTER_API_KEY", "").strip()
     )
     if not openrouter_key:
-        print("[Chatbot] Notice: OPENROUTER_API_KEY is not configured in environment variables.")
+        for k in raw_gemini_keys:
+            if k.startswith("sk-or-"):
+                openrouter_key = k
+                break
 
     try:
-        if gemini_key and not gemini_key.startswith("sk-or-"):
-            primary_llm = ChatGoogleGenerativeAI(
-                model="gemini-flash-latest",
-                google_api_key=gemini_key,
-                max_retries=1,
-            )
-            secondary_llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
-                google_api_key=gemini_key,
-                max_retries=1,
-            )
-        else:
-            primary_llm = None
-            secondary_llm = None
-        
-        fallbacks = []
-        if secondary_llm:
-            fallbacks.append(secondary_llm)
-        
+        candidate_llms = []
+        for g_key in valid_gemini_keys:
+            for m_name in [
+                "gemini-2.0-flash",
+                "gemini-2.5-flash",
+                "gemini-1.5-flash",
+                "gemini-flash-latest",
+            ]:
+                candidate_llms.append(
+                    ChatGoogleGenerativeAI(
+                        model=m_name,
+                        google_api_key=g_key,
+                        max_retries=1,
+                    )
+                )
+
         if openrouter_key:
             for openrouter_model in [
-                "meta-llama/llama-3.3-70b-instruct:free",
+                "poolside/laguna-s-2.1:free",
+                "nvidia/nemotron-3.5-lightning:free",
                 "google/gemma-4-31b-it:free",
-                "mistralai/mistral-small-3.2-24b-instruct:free",
+                "liquid/lfm-2.5-2.6b:free",
+                "nvidia/nemotron-3-super-120b-a12b:free",
+                "poolside/laguna-xs-2.1:free",
                 "openrouter/free"
             ]:
-                fallbacks.append(
+                candidate_llms.append(
                     ChatOpenAI(
                         model=openrouter_model,
                         base_url="https://openrouter.ai/api/v1",
@@ -316,22 +577,34 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                         max_retries=1,
                     )
                 )
-            
-        if primary_llm and fallbacks:
+
+        if not candidate_llms:
+            # Check deterministic fallback if no keys configured
+            cat_reply = _generate_catalog_fallback_reply(latest_query, context_data)
+            if cat_reply:
+                return cat_reply
+            return "Oops! No AI keys are configured for the chatbot. Please add CHATBOT_API_KEY or OPENROUTER_API_KEY to your environment variables."
+
+        primary_llm = candidate_llms[0]
+        fallbacks = candidate_llms[1:]
+        if fallbacks:
             llm = primary_llm.with_fallbacks(fallbacks)
-        elif primary_llm:
-            llm = primary_llm
-        elif fallbacks:
-            llm = fallbacks[0].with_fallbacks(fallbacks[1:]) if len(fallbacks) > 1 else fallbacks[0]
         else:
-            return "Oops! No AI keys are configured for the chatbot. Please add LLM_API_KEY or OPENROUTER_API_KEY to your environment variables."
+            llm = primary_llm
         
         # 4. Setup Tools
         tools = []
         tavily_key = os.getenv("TAVILY_API_KEY")
         if tavily_key:
-            from langchain_community.tools.tavily_search import TavilySearchResults
-            tools.append(TavilySearchResults(max_results=3))
+            try:
+                from langchain_tavily import TavilySearch
+                tools.append(TavilySearch(max_results=3))
+            except ImportError:
+                from langchain_community.tools.tavily_search import TavilySearchResults
+                tools.append(TavilySearchResults(max_results=3))
+    
+
+
         
         if not tools:
             from langchain_core.tools import tool
@@ -341,10 +614,11 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return "Web search is currently disabled."
             tools.append(dummy_search)
 
-        # Special handling for slash commands: /explain-simply and /what-if
+        # Special handling for slash commands: /explain-simply, /what-if, /grill-me
         latest_lower = latest_query.lower().strip()
         is_explain_simply = 'explain-simply' in latest_lower
         is_what_if = 'what-if' in latest_lower or 'whatif' in latest_lower
+        is_grill_me = 'grill-me' in latest_lower or 'grill me' in latest_lower or 'pricing strategy' in latest_lower
 
         command_instructions = ""
         if is_explain_simply:
@@ -354,6 +628,16 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 "1. Focus on what this means for their net profit (in ₹ INR).\n"
                 "2. Focus on what exact practical action the seller should take.\n"
                 "DO NOT use jargon like elasticity, variance, regression, or logit."
+            )
+        elif is_grill_me:
+            command_instructions = (
+                "\n\nSPECIAL INSTRUCTION FOR /grill-me & PRICING STRATEGY:\n"
+                "The user is requesting an adversarial, senior e-commerce pricing strategy consultation (Grill-Me session).\n"
+                "1. Executive Verdict: Recommend Value-Based Margin Defense or Tiered Bundling. Strongly warn against reckless price wars that destroy gross margins required for Amazon PPC (Sponsored Products).\n"
+                "2. Strategy Pillars: Define clear margin floor rules (min 35-45% net contribution), bundle recommendations, and elasticity surge triggers.\n"
+                "3. Socratic Grilling: Pose 3 piercing questions about unit economics (COGS, referral fees ~15%, PPC ACOS, inventory runway).\n"
+                "4. Actionable Next Steps: Reference PricePilot's What-If Simulator (/dashboard/simulator) and Competitor Intelligence (/dashboard/competitors).\n"
+                "Tone: Senior e-commerce pricing partner, incisive, practical, profit-focused."
             )
         elif is_what_if:
             command_instructions = (
@@ -523,6 +807,12 @@ async def chat_with_ai(messages: List[Dict], context_data: Dict = None) -> str:
                 return fallback_resp
             except Exception as fb_err:
                 print(f"Fallback what-if calculation error: {fb_err}")
+
+        # Check deterministic intelligent catalog fallback before returning generic rate-limit / quota error
+        catalog_reply = _generate_catalog_fallback_reply(latest_query, context_data)
+        if catalog_reply:
+            memory.save_episodic_interaction(latest_query, catalog_reply)
+            return catalog_reply
 
         if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
             return "⚠️ **AI Quota Reached:** The AI model is temporarily rate-limited. Please retry in 30 seconds."

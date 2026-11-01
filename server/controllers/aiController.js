@@ -4,10 +4,11 @@ const CompetitorPrice = require('../models/CompetitorPrice');
 const DemandSignal = require('../models/DemandSignal');
 const PricingRecommendation = require('../models/PricingRecommendation');
 const InventoryForecast = require('../models/InventoryForecast');
+const Alert = require('../models/Alert');
 const AI_URL = (process.env.AI_SERVICE_URL || 'http://localhost:8000').replace(/\/+$/, '');
 const FeedbackLog = require('../models/FeedbackLog');
 const redisClient = require('../config/redis');
-const { recommendationQueue, forecastQueue, RECOMMENDATION_JOB_PREFIX, FORECAST_JOB_PREFIX } = require('../services/queueService');
+const { recommendationQueue, forecastQueue, RECOMMENDATION_JOB_PREFIX, FORECAST_JOB_PREFIX, processRecommendationJob, processForecastJob } = require('../services/queueService');
 
 
 exports.getRecommendations = async (req, res) => {
@@ -46,8 +47,17 @@ exports.generateRecommendation = async (req, res) => {
     try {
         const { productId } = req.params;
         const jobId = `${RECOMMENDATION_JOB_PREFIX}${productId}_${Date.now()}`;
-        const job = await recommendationQueue.add('generateRecommendation', { productId }, { jobId });
-        res.json({ jobId: job.id, status: 'queued', message: 'Recommendation generation queued.' });
+        try {
+            const job = await recommendationQueue.add('generateRecommendation', { productId }, { jobId });
+            return res.json({ jobId: job.id, status: 'queued', message: 'Recommendation generation queued.' });
+        } catch (queueErr) {
+            console.warn('⚠️ Redis queue unavailable or quota exceeded, running recommendation directly:', queueErr.message);
+            // Run asynchronously in process so client request does not hang or fail
+            processRecommendationJob(productId).catch(err => {
+                console.error('Direct recommendation processing error:', err.message);
+            });
+            return res.json({ jobId, status: 'queued', message: 'Recommendation generation initiated.' });
+        }
     } catch (error) {
         console.error('AI recommendation queue error:', error.message);
         res.status(500).json({ message: 'Failed to queue recommendation', error: error.message });
@@ -91,8 +101,17 @@ exports.generateForecast = async (req, res) => {
         const { productId } = req.params;
         const forecastDays = req.body.forecastDays || 30;
         const jobId = `${FORECAST_JOB_PREFIX}${productId}_${Date.now()}`;
-        const job = await forecastQueue.add('generateForecast', { productId, forecastDays }, { jobId });
-        res.json({ jobId: job.id, status: 'queued', message: 'Forecast generation queued.' });
+        try {
+            const job = await forecastQueue.add('generateForecast', { productId, forecastDays }, { jobId });
+            return res.json({ jobId: job.id, status: 'queued', message: 'Forecast generation queued.' });
+        } catch (queueErr) {
+            console.warn('⚠️ Redis queue unavailable or quota exceeded, running forecast directly:', queueErr.message);
+            // Run asynchronously in process so client request does not hang or fail
+            processForecastJob(productId, forecastDays).catch(err => {
+                console.error('Direct forecast processing error:', err.message);
+            });
+            return res.json({ jobId, status: 'queued', message: 'Forecast generation initiated.' });
+        }
     } catch (error) {
         console.error('AI forecast queue error:', error.message);
         res.status(500).json({ message: 'Failed to queue forecast', error: error.message });
@@ -104,41 +123,96 @@ exports.checkJobStatus = async (req, res) => {
         const { jobId } = req.params;
 
         // Route to correct queue based on job ID prefix
-        let job;
-        if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
-            job = await forecastQueue.getJob(jobId);
-        } else if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
-            job = await recommendationQueue.getJob(jobId);
-        } else {
-            // Fallback: try both queues (backward compat with old numeric IDs)
-            job = await recommendationQueue.getJob(jobId);
-            if (!job) {
+        let job = null;
+        try {
+            if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
                 job = await forecastQueue.getJob(jobId);
+            } else if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
+                job = await recommendationQueue.getJob(jobId);
+            } else {
+                // Fallback: try both queues (backward compat with old numeric IDs)
+                job = await recommendationQueue.getJob(jobId);
+                if (!job) {
+                    job = await forecastQueue.getJob(jobId);
+                }
+            }
+        } catch (queueErr) {
+            // If Redis is down/quota exceeded, proceed to direct DB lookup
+            job = null;
+        }
+
+        if (job) {
+            const state = await job.getState();
+            
+            if (state === 'completed') {
+                let result = job.returnvalue;
+                try {
+                    if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX) && result && (result._id || result.id)) {
+                        const targetId = result._id || result.id;
+                        const PricingRecommendation = require('../models/PricingRecommendation');
+                        const populated = await PricingRecommendation.findById(targetId).populate('productId', 'name sku currentPrice baseCost stockLevel');
+                        if (populated) result = populated;
+                    } else if (jobId.startsWith(FORECAST_JOB_PREFIX) && result && (result._id || result.id)) {
+                        const targetId = result._id || result.id;
+                        const InventoryForecast = require('../models/InventoryForecast');
+                        const populated = await InventoryForecast.findById(targetId).populate('productId', 'name sku stockLevel reorderThreshold');
+                        if (populated) result = populated;
+                    }
+                } catch (popErr) {
+                    console.warn('Populate failed in checkJobStatus:', popErr.message);
+                }
+
+                // If result is still null or missing, attempt DB fallback lookup
+                if (!result) {
+                    if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
+                        const productId = jobId.replace(RECOMMENDATION_JOB_PREFIX, '').split('_')[0];
+                        const PricingRecommendation = require('../models/PricingRecommendation');
+                        result = await PricingRecommendation.findOne({ productId })
+                            .sort({ timestamp: -1 })
+                            .populate('productId', 'name sku currentPrice baseCost stockLevel');
+                    } else if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
+                        const productId = jobId.replace(FORECAST_JOB_PREFIX, '').split('_')[0];
+                        const InventoryForecast = require('../models/InventoryForecast');
+                        result = await InventoryForecast.findOne({ productId })
+                            .sort({ timestamp: -1 })
+                            .populate('productId', 'name sku stockLevel reorderThreshold');
+                    }
+                }
+
+                if (result) {
+                    return res.json({ status: state, result });
+                }
+                // If job is reported completed in BullMQ but returnvalue/DB is still propagating, don't return null result
+                return res.json({ status: 'active' });
+            } else if (state === 'failed') {
+                return res.json({ status: state, error: job.failedReason });
+            } else {
+                return res.json({ status: state });
             }
         }
 
-        if (!job) {
-            return res.status(404).json({ message: 'Job not found' });
+        // Direct DB fallback lookup if Redis job is missing or processed directly without BullMQ
+        if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX)) {
+            const productId = jobId.replace(RECOMMENDATION_JOB_PREFIX, '').split('_')[0];
+            const PricingRecommendation = require('../models/PricingRecommendation');
+            const recentRec = await PricingRecommendation.findOne({ productId })
+                .sort({ timestamp: -1 })
+                .populate('productId', 'name sku currentPrice baseCost stockLevel');
+            if (recentRec && (Date.now() - new Date(recentRec.timestamp).getTime() < 600000)) {
+                return res.json({ status: 'completed', result: recentRec });
+            }
+        } else if (jobId.startsWith(FORECAST_JOB_PREFIX)) {
+            const productId = jobId.replace(FORECAST_JOB_PREFIX, '').split('_')[0];
+            const InventoryForecast = require('../models/InventoryForecast');
+            const recentFc = await InventoryForecast.findOne({ productId })
+                .sort({ timestamp: -1 })
+                .populate('productId', 'name sku stockLevel reorderThreshold');
+            if (recentFc && (Date.now() - new Date(recentFc.timestamp).getTime() < 600000)) {
+                return res.json({ status: 'completed', result: recentFc });
+            }
         }
 
-        const state = await job.getState();
-        
-        if (state === 'completed') {
-            let result = job.returnvalue;
-            // Populate productId if it's a PricingRecommendation or InventoryForecast
-            if (jobId.startsWith(RECOMMENDATION_JOB_PREFIX) && result && result._id) {
-                const PricingRecommendation = require('../models/PricingRecommendation');
-                result = await PricingRecommendation.findById(result._id).populate('productId', 'name sku currentPrice baseCost stockLevel');
-            } else if (jobId.startsWith(FORECAST_JOB_PREFIX) && result && result._id) {
-                const InventoryForecast = require('../models/InventoryForecast');
-                result = await InventoryForecast.findById(result._id).populate('productId', 'name sku stockLevel reorderThreshold');
-            }
-            return res.json({ status: state, result });
-        } else if (state === 'failed') {
-            return res.json({ status: state, error: job.failedReason });
-        } else {
-            return res.json({ status: state });
-        }
+        return res.status(404).json({ message: 'Job not found or expired' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -335,7 +409,7 @@ exports.revertRecommendation = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
     try {
         const cacheKey = `dashboard_stats_${req.user._id}`;
-        const cachedData = await redisClient.get(cacheKey);
+        const cachedData = await redisClient.safeGet(cacheKey);
         
         if (cachedData) {
             return res.json(JSON.parse(cachedData));
@@ -440,7 +514,7 @@ exports.getDashboardStats = async (req, res) => {
             }
         };
 
-        await redisClient.setex(cacheKey, 300, JSON.stringify(responseData)); // Cache for 5 minutes
+        await redisClient.safeSetEx(cacheKey, 300, JSON.stringify(responseData)); // Cache for 5 minutes
 
         res.json(responseData);
     } catch (error) {
@@ -456,6 +530,7 @@ exports.chat = async (req, res) => {
         const { messages } = req.body;
         
         // Gather context for the chatbot (RAG)
+        const totalUserProducts = await Product.countDocuments({ userId: req.user._id });
         const products = await Product.find({ userId: req.user._id }).limit(20);
         // Only active/critical alerts
         const alerts = await Alert.find({ userId: req.user._id, status: 'active' }).limit(10);
@@ -463,6 +538,8 @@ exports.chat = async (req, res) => {
         const payload = {
             messages,
             context: {
+                userId: String(req.user._id),
+                totalProducts: totalUserProducts,
                 products: products.map(p => ({ name: p.name, currentPrice: p.currentPrice, stockLevel: p.stockLevel })),
                 alerts: alerts.map(a => ({ type: a.type, title: a.title, message: a.message }))
             }
@@ -514,7 +591,7 @@ exports.getChartData = async (req, res) => {
         const days = Math.min(90, Math.max(7, parseInt(req.query.days) || 30));
         
         const cacheKey = `chart_data_${req.user._id}_${days}`;
-        const cachedData = await redisClient.get(cacheKey);
+        const cachedData = await redisClient.safeGet(cacheKey);
         
         if (cachedData) {
             return res.json(JSON.parse(cachedData));
@@ -631,7 +708,7 @@ exports.getChartData = async (req, res) => {
                 };
             });
 
-        await redisClient.setex(cacheKey, 300, JSON.stringify(chartData)); // Cache for 5 minutes
+        await redisClient.safeSetEx(cacheKey, 300, JSON.stringify(chartData)); // Cache for 5 minutes
 
         res.json(chartData);
     } catch (error) {

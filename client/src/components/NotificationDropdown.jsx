@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAlerts, markAlertRead, markAllAlertsRead } from '../api';
 import toast from 'react-hot-toast';
+import { HiOutlineBellSlash } from 'react-icons/hi2';
+import { useNotification } from '../context/NotificationContext';
 import { 
     HiOutlineBell, 
     HiOutlineCheck, 
@@ -39,6 +41,7 @@ export default function NotificationDropdown() {
     const [filter, setFilter] = useState('all');
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const { isMuted, toggleMute } = useNotification();
 
     const fetchAlerts = async () => {
         try {
@@ -122,7 +125,7 @@ export default function NotificationDropdown() {
                 aria-label="Notifications"
                 title="Notifications & Alerts"
             >
-                <HiOutlineBell size={19} />
+                {isMuted ? <HiOutlineBellSlash size={19} className="text-amber-500" /> : <HiOutlineBell size={19} />}
                 {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white shadow-md animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
@@ -146,17 +149,49 @@ export default function NotificationDropdown() {
                                 </span>
                             )}
                         </div>
-                        {unreadCount > 0 && (
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
-                                onClick={handleMarkAllRead}
-                                className="text-xs text-primary hover:text-primary-dark flex items-center gap-1 font-medium cursor-pointer transition-colors"
+                                onClick={() => toggleMute()}
+                                className={`px-2 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                                    isMuted
+                                        ? 'bg-amber-500/15 border-amber-500/30 text-amber-500 hover:bg-amber-500/25'
+                                        : 'bg-[#FBF8F1] hover:bg-[#F7F3EB] border-[#D8D0C0] text-[#5E5149] dark:bg-[#30231D] dark:border-[#594239] dark:text-[#C0B3A9]'
+                                }`}
+                                title={isMuted ? 'Unmute on-screen notifications' : 'Mute on-screen notifications (Do Not Disturb)'}
                             >
-                                <HiOutlineCheck size={14} />
-                                Mark all read
+                                {isMuted ? <HiOutlineBellSlash size={13} /> : <HiOutlineBell size={13} />}
+                                <span>{isMuted ? 'Muted' : 'Mute'}</span>
                             </button>
-                        )}
+                            {unreadCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleMarkAllRead}
+                                    className="text-xs text-primary hover:text-primary-dark flex items-center gap-1 font-medium cursor-pointer transition-colors"
+                                >
+                                    <HiOutlineCheck size={14} />
+                                    Mark all read
+                                </button>
+                            )}
+                        </div>
                     </div>
+
+                    {/* DND Mute Status Banner */}
+                    {isMuted && (
+                        <div className="mx-3 mt-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-600 dark:text-amber-400 text-xs flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                                <HiOutlineBellSlash size={15} className="shrink-0" />
+                                <span className="text-[11px] font-medium leading-tight truncate">Popups muted (DND). Alerts arrive here silently.</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => toggleMute(false)}
+                                className="text-[11px] font-bold underline hover:opacity-80 cursor-pointer shrink-0"
+                            >
+                                Unmute
+                            </button>
+                        </div>
+                    )}
 
                     {/* Filter tabs */}
                     <div className="px-4 py-2 border-b border-[#D8D0C0] dark:border-[#594239] bg-[#F7F3EB] dark:bg-[#30231D] flex items-center gap-2 text-xs">

@@ -51,6 +51,7 @@ export default function DemandSignals() {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productSignals, setProductSignals] = useState([]);
+  const [latestScoreOverrides, setLatestScoreOverrides] = useState({});
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -61,6 +62,19 @@ export default function DemandSignals() {
     Promise.all([
       getAllDemandSignals().then(r => setSignals(r.data)).catch(() => { throw new Error(); }),
       getProducts().then(r => setProducts(r.data.data || r.data)).catch(() => { throw new Error(); }),
+      selectedProduct
+        ? getDemandSignals(selectedProduct)
+            .then(r => {
+              const list = r.data || [];
+              setProductSignals(list);
+              if (list.length > 0 && typeof list[0].compositeDemandScore === 'number') {
+                const raw = list[0].compositeDemandScore;
+                const score = raw <= 1 && raw > 0 ? Math.round(raw * 100) : Math.round(raw);
+                setLatestScoreOverrides(prev => ({ ...prev, [selectedProduct]: score }));
+              }
+            })
+            .catch(() => {})
+        : Promise.resolve(),
     ]).catch(() => setError(true)).finally(() => setLoading(false));
   };
 
@@ -70,35 +84,60 @@ export default function DemandSignals() {
 
   useEffect(() => {
     if (selectedProduct) {
-      getDemandSignals(selectedProduct).then(r => setProductSignals(r.data)).catch(() => {});
+      getDemandSignals(selectedProduct)
+        .then(r => {
+          const list = r.data || [];
+          setProductSignals(list);
+          if (list.length > 0 && typeof list[0].compositeDemandScore === 'number') {
+            const raw = list[0].compositeDemandScore;
+            const score = raw <= 1 && raw > 0 ? Math.round(raw * 100) : Math.round(raw);
+            setLatestScoreOverrides(prev => ({
+              ...prev,
+              [selectedProduct]: score,
+            }));
+          }
+        })
+        .catch(() => {});
     }
   }, [selectedProduct]);
 
   // ─── Derived data ───
-  const kpis = useMemo(() => {
-    if (!signals.length) return { avgScore: 72, productCount: products.length || 24, highCount: 8 };
-    const avgScore = Math.round((signals.reduce((sum, s) => sum + (s.avgDemandScore || 0), 0) / signals.length) * 100);
-    const highCount = signals.filter(s => (s.avgDemandScore || 0) > 0.7).length;
-    return { avgScore, productCount: products.length, highCount };
-  }, [signals, products]);
-
   const heatmapData = useMemo(() => signals.map(s => {
-    const demandScore = Math.round((s.avgDemandScore || 0) * 100);
+    const prodId = s.product?._id || s._id;
+    // Check if we have an explicit fresh override for this product
+    const overrideScore = latestScoreOverrides[prodId] ?? (s.product?._id ? latestScoreOverrides[s.product._id] : undefined);
+
+    // Prefer latest recorded composite demand score from s.latestSignal over historical average
+    const rawLatest = s.latestSignal?.compositeDemandScore;
+    const computedLatest = rawLatest != null
+      ? (rawLatest <= 1 && rawLatest > 0 ? Math.round(rawLatest * 100) : Math.round(rawLatest))
+      : (s.avgDemandScore != null ? Math.round(s.avgDemandScore * 100) : 50);
+
+    const demandScore = overrideScore ?? computedLatest;
+
     return {
-      id: s.product?._id || s._id,
-      productId: s.product?._id,
+      id: prodId,
+      productId: s.product?._id || s._id,
       name: s.product?.name?.split(' ').slice(0, 2).join(' ') || 'Unknown',
       fullName: s.product?.name || 'Unknown Product',
       category: s.product?.category || 'General',
       demand: demandScore,
-      latestScore: Math.round((s.latestSignal?.compositeDemandScore || 0) * 100),
+      latestScore: demandScore,
+      avgDemandScore: Math.round((s.avgDemandScore || 0) * 100),
       trend: s.latestSignal?.searchTrendScore || 0,
       weather: normaliseFactor(s.latestSignal?.weatherFactor),
       event: normaliseFactor(s.latestSignal?.eventFactor),
       sentiment: normaliseFactor(s.latestSignal?.socialSentimentScore),
       searchTrendScore: Math.round(s.latestSignal?.searchTrendScore || 0),
     };
-  }), [signals]);
+  }), [signals, latestScoreOverrides]);
+
+  const kpis = useMemo(() => {
+    if (!heatmapData.length) return { avgScore: 72, productCount: products.length || 24, highCount: 8 };
+    const avgScore = Math.round(heatmapData.reduce((sum, item) => sum + (item.demand || 0), 0) / heatmapData.length);
+    const highCount = heatmapData.filter(item => (item.demand || 0) >= 70).length;
+    return { avgScore, productCount: products.length || heatmapData.length, highCount };
+  }, [heatmapData, products]);
 
   const selectedProductData = useMemo(() => {
     if (!selectedProduct) return null;
@@ -126,6 +165,23 @@ export default function DemandSignals() {
     const displayVal = sw.key === 'searchTrendScore' ? Math.round(raw || 0) : normaliseFactor(raw);
     return { ...sw, value: displayVal };
   }) : [], [latestSignal]);
+
+  const finalDemandScore = useMemo(() => {
+    if (latestSignal && typeof latestSignal.compositeDemandScore === 'number') {
+      const s = latestSignal.compositeDemandScore;
+      return s <= 1 && s > 0 ? Math.round(s * 100) : Math.round(s);
+    }
+    if (selectedProductData) {
+      return selectedProductData.demand || 0;
+    }
+    return 0;
+  }, [latestSignal, selectedProductData]);
+
+  const selectedBadge = useMemo(() => {
+    if (finalDemandScore > 0) return getDemandBadge(finalDemandScore);
+    if (selectedProductData) return getDemandBadge(selectedProductData.demand);
+    return null;
+  }, [finalDemandScore, selectedProductData]);
 
   // ─── Handlers ───
   const handleExport = () => {
@@ -156,7 +212,6 @@ export default function DemandSignals() {
     </div>
   );
 
-  const selectedBadge = selectedProductData ? getDemandBadge(selectedProductData.demand) : null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -383,12 +438,18 @@ export default function DemandSignals() {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Signal Dimension Breakdown</h3>
                   {selectedBadge && (
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                      style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
-                    >
-                      {selectedBadge.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-baseline gap-1 px-2.5 py-0.5 rounded-lg bg-surface border border-border text-[11px]">
+                        <span className="text-text-muted font-medium">Final Score:</span>
+                        <span className="font-extrabold text-sm" style={{ color: selectedBadge.color }}>{finalDemandScore}</span>
+                      </div>
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
+                      >
+                        {selectedBadge.label}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <div className="chart-container" style={{ width: '100%', height: 280 }}>
@@ -441,6 +502,35 @@ export default function DemandSignals() {
                         </div>
                       </div>
                     ))}
+
+                    {/* Final Demand Score */}
+                    <div className="pt-2.5 mt-2.5 border-t border-border/70">
+                      <div className="flex justify-between items-center text-xs mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-text font-bold">Final Demand Score</span>
+                          {selectedBadge && (
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                              style={{ background: selectedBadge.bg, color: selectedBadge.textColor, border: `1px solid ${selectedBadge.border}` }}
+                            >
+                              {selectedBadge.label}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ color: selectedBadge?.color || '#A85A3C' }} className="font-extrabold text-sm">
+                          {finalDemandScore}
+                        </span>
+                      </div>
+                      <div className="signal-meter">
+                        <div
+                          className="fill"
+                          style={{
+                            width: `${Math.min(finalDemandScore, 100)}%`,
+                            background: `linear-gradient(90deg, ${selectedBadge?.color || '#A85A3C'}88, ${selectedBadge?.color || '#A85A3C'})`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -506,8 +596,21 @@ export default function DemandSignals() {
                   <span>{sw.label} × {sw.weight.toFixed(2)}</span>
                 </div>
               ))}
-              <div className="pt-2 mt-2 border-t border-border font-bold text-text">
-                = Composite Demand Score
+              <div className="pt-2 mt-2 border-t border-border font-bold text-text flex items-center justify-between">
+                <span>= Composite Demand Score</span>
+                <div className="flex items-center gap-2">
+                  {selectedBadge && (
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                      style={{ background: selectedBadge.bg, color: selectedBadge.textColor }}
+                    >
+                      {selectedBadge.label}
+                    </span>
+                  )}
+                  <span className="text-sm font-extrabold" style={{ color: selectedBadge?.color || '#A85A3C' }}>
+                    {finalDemandScore || '—'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

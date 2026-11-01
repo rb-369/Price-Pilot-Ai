@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { HiOutlineBell, HiOutlineBellSlash } from 'react-icons/hi2';
+import { useNotification } from '../context/NotificationContext';
 import { 
     HiOutlineMenu, 
     HiOutlineChatAlt, 
@@ -36,6 +38,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { isMuted, toggleMute } = useNotification();
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [reportOpen, setReportOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -147,6 +150,9 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
                             <span className="hidden md:inline max-w-[100px] truncate text-text font-medium">
                                 {user?.name?.split(' ')[0] || 'Merchant'}
                             </span>
+                            {isMuted && (
+                                <span className="flex h-2 w-2 rounded-full bg-amber-500 ring-2 ring-[#FBF8F1] dark:ring-[#30231D]" title="Do Not Disturb: Screen popups muted" />
+                            )}
                         </button>
 
                         {userMenuOpen && (
@@ -157,6 +163,38 @@ export default function Header({ sidebarOpen, setSidebarOpen, isDesktop }) {
                                 <div className="px-3 py-2 border-b border-[#D8D0C0] dark:border-[#594239]">
                                     <p className="text-xs font-bold text-text truncate">{user?.name || 'Merchant'}</p>
                                     <p className="text-[11px] text-text-muted truncate">{user?.email}</p>
+                                </div>
+                                <div className="px-3 py-2 border-b border-[#D8D0C0] dark:border-[#594239] flex items-center justify-between gap-2 bg-[#FBF8F1]/60 dark:bg-[#251B15]/60">
+                                    <div className="min-w-0 flex items-center gap-1.5">
+                                        {isMuted ? (
+                                            <HiOutlineBellSlash className="text-amber-500 shrink-0" size={15} />
+                                        ) : (
+                                            <HiOutlineBell className="text-primary shrink-0" size={15} />
+                                        )}
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-semibold text-text truncate">Screen Alerts</p>
+                                            <p className="text-[9px] text-text-muted truncate">{isMuted ? 'Muted (DND)' : 'Live Popups On'}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleMute();
+                                        }}
+                                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                            isMuted ? 'bg-amber-500' : 'bg-[#D8D0C0] dark:bg-[#594239]'
+                                        }`}
+                                        title={isMuted ? 'Unmute on-screen notifications' : 'Mute on-screen notifications'}
+                                        role="switch"
+                                        aria-checked={isMuted}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                isMuted ? 'translate-x-4' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
                                 </div>
                                 <button
                                     type="button"

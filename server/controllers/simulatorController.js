@@ -112,14 +112,109 @@ exports.runSimulation = async (req, res) => {
             const isSevereHike = simTargetPrice > basePrice * 1.5;
             const undercutRisk = isSevereHike ? Math.min(99.0, 80.0 + (pRatio - 1.5) * 15.0) : (simTargetPrice > basePrice ? 45.0 : 15.0);
 
+            const baselineRev = basePrice * baselineVol;
+            const baselineProf = (basePrice - unitCogs) * baselineVol;
+            const revenueUplift = simRev - baselineRev;
+            const profitUplift = simProf - baselineProf;
+            const revenueUpliftPct = baselineRev > 0 ? (revenueUplift / baselineRev) * 100 : 0;
+            const profitUpliftPct = baselineProf > 0 ? (profitUplift / baselineProf) * 100 : 0;
+            const volumeChangePct = baselineVol > 0 ? ((simVol - baselineVol) / baselineVol) * 100 : 0;
+            const breakevenVolume = (simTargetPrice - unitCogs) > 0 ? Math.round(baselineProf / (simTargetPrice - unitCogs)) : 0;
+
+            let verdictLabel = "HOLD / NEUTRAL";
+            let verdictType = "warning";
+            let verdictSummary = "Proposed price shows minimal impact on net profitability.";
+
+            if (profitUplift > 0 && profitUpliftPct >= 5) {
+                verdictLabel = "FAVORABLE HIKE";
+                verdictType = "positive";
+                verdictSummary = `Projected profit increase of +${profitUpliftPct.toFixed(1)}% (+₹${Math.round(profitUplift).toLocaleString()}) despite volume change.`;
+            } else if (profitUplift < 0 && profitUpliftPct <= -5) {
+                verdictLabel = "MARGIN RISK";
+                verdictType = "negative";
+                verdictSummary = `Projected profit decline of ${profitUpliftPct.toFixed(1)}% (-₹${Math.round(Math.abs(profitUplift)).toLocaleString()}). Consider a lower price shift.`;
+            } else if (simTargetPrice < basePrice && revenueUplift > 0) {
+                verdictLabel = "VOLUME PUSH";
+                verdictType = "positive";
+                verdictSummary = `Lower price stimulates demand (+${Math.round(volumeChangePct)}% volume), driving revenue growth.`;
+            }
+
+            // Generate sensitivity curve across 25 price intervals (matching Python service)
+            const sensitivityCurve = [];
+            let bestPrice = basePrice;
+            let maxProfit = -Infinity;
+            const stepCount = 25;
+            const minP = Math.max(Math.round(unitCogs * 1.02), Math.round(basePrice * 0.6));
+            const maxP = Math.round(basePrice * 1.6);
+            const stepSize = Math.max(1, (maxP - minP) / (stepCount - 1));
+
+            for (let i = 0; i < stepCount; i++) {
+                const p = Math.round((minP + i * stepSize) * 100) / 100;
+                const ratio = p / (basePrice || 1);
+                let sf = Math.pow(ratio, -1.2) * demandMultiplier;
+                if (ratio > 3.0) sf = Math.max(0.0001, sf * (3.0 / ratio));
+                else if (ratio > 1.5) sf = Math.max(0.005, sf);
+                else sf = Math.max(0.02, sf);
+                const stepVol = baselineVol * sf;
+                const stepRev = Math.round(p * stepVol * 100) / 100;
+                const stepProf = Math.round((p - unitCogs) * stepVol * 100) / 100;
+                sensitivityCurve.push({
+                    price: p,
+                    volume: Math.round(stepVol),
+                    revenue: stepRev,
+                    profit: stepProf,
+                    marginPct: p > 0 ? Math.round(((p - unitCogs) / p) * 1000) / 10 : 0
+                });
+                if (stepProf > maxProfit) {
+                    maxProfit = stepProf;
+                    bestPrice = p;
+                }
+            }
+
+            const presets = {
+                maximize_margin: {
+                    name: "Maximize Profit Margin (P*)",
+                    targetPrice: bestPrice,
+                    cogs: unitCogs,
+                    competitorStrategy: "neutral",
+                    demandMultiplier: demandMultiplier
+                },
+                market_growth: {
+                    name: "Market Share Growth (-8%)",
+                    targetPrice: Math.max(Math.round(unitCogs * 1.05), Math.round(basePrice * 0.92)),
+                    cogs: unitCogs,
+                    competitorStrategy: "follower",
+                    demandMultiplier: Math.min(2.0, demandMultiplier * 1.1)
+                },
+                defend_undercut: {
+                    name: "Defend Undercut Match",
+                    targetPrice: Math.max(Math.round(unitCogs * 1.02), Math.round(basePrice * 0.95)),
+                    cogs: unitCogs,
+                    competitorStrategy: "aggressive",
+                    demandMultiplier: demandMultiplier
+                },
+                inflation_passthrough: {
+                    name: "Cost Passthrough (+10%)",
+                    targetPrice: Math.round(basePrice * 1.1),
+                    cogs: Math.round(unitCogs * 1.08),
+                    competitorStrategy: "neutral",
+                    demandMultiplier: demandMultiplier
+                }
+            };
+
             return res.json({
                 product: productObj,
                 simulationParams: payload,
+                aiVerdict: {
+                    label: verdictLabel,
+                    type: verdictType,
+                    summary: verdictSummary
+                },
                 baseline: {
                     price: basePrice,
                     volume: Math.round(baselineVol),
-                    revenue: Math.round(basePrice * baselineVol),
-                    profit: Math.round((basePrice - unitCogs) * baselineVol),
+                    revenue: Math.round(baselineRev),
+                    profit: Math.round(baselineProf),
                     marginPct: Math.round(((basePrice - unitCogs) / basePrice) * 100)
                 },
                 simulated: {
@@ -128,7 +223,7 @@ exports.runSimulation = async (req, res) => {
                     predictedRevenue: Math.round(simRev),
                     predictedProfit: Math.round(simProf),
                     marginPct: Math.round(((simTargetPrice - unitCogs) / simTargetPrice) * 100),
-                    undercutRisk: 25.0,
+                    undercutRisk: Math.round(undercutRisk),
                     effectiveElasticity: -1.2,
                     confidenceBounds: {
                         revenueP10: Math.round(simRev * 0.85),
@@ -138,12 +233,27 @@ exports.runSimulation = async (req, res) => {
                     }
                 },
                 deltas: {
-                    revenueUplift: Math.round(simRev - basePrice * baselineVol),
-                    profitUplift: Math.round(simProf - (basePrice - unitCogs) * baselineVol)
+                    revenueUplift: Math.round(revenueUplift),
+                    revenueUpliftPct: Math.round(revenueUpliftPct * 10) / 10,
+                    profitUplift: Math.round(profitUplift),
+                    profitUpliftPct: Math.round(profitUpliftPct * 10) / 10,
+                    volumeChangePct: Math.round(volumeChangePct * 10) / 10,
+                    breakevenVolume: breakevenVolume
                 },
-                optimalPricePoint: { price: Math.round(basePrice * 1.05), maxProfit: Math.round(simProf * 1.1) },
-                competitorSummary: { average: basePrice, min: basePrice * 0.9, max: basePrice * 1.1, count: 2 },
-                presets: {}
+                optimalPricePoint: { price: bestPrice, maxProfit: Math.round(maxProfit) },
+                competitorSummary: {
+                    average: competitorPrices.length ? Math.round(competitorPrices.reduce((a, b) => a + b.price, 0) / competitorPrices.length) : basePrice,
+                    min: competitorPrices.length ? Math.min(...competitorPrices.map(c => c.price)) : Math.round(basePrice * 0.9),
+                    max: competitorPrices.length ? Math.max(...competitorPrices.map(c => c.price)) : Math.round(basePrice * 1.1),
+                    count: competitorPrices.length
+                },
+                elasticityModel: {
+                    baseElasticity: -1.2,
+                    effectiveElasticity: -1.2,
+                    source: "node_engine_fallback"
+                },
+                sensitivityCurve: sensitivityCurve,
+                presets: presets
             });
         }
     } catch (error) {

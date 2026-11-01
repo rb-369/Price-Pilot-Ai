@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useNotification } from '../context/NotificationContext';
 import { updateProfile, changePassword } from '../api';
 import toast from 'react-hot-toast';
 import {
@@ -33,6 +34,7 @@ import {
     HiOutlineShoppingBag,
     HiOutlineGlobeAlt
 } from 'react-icons/hi';
+import { HiOutlineBellSlash } from 'react-icons/hi2';
 import { SiGoogle, SiShopify, SiAmazon, SiWoocommerce } from 'react-icons/si';
 import ConfirmModal from '../components/ConfirmModal';
 import UserAvatar from '../components/UserAvatar';
@@ -139,6 +141,7 @@ export default function Settings() {
         emailNotifications: true,
         priceDropAlerts: true,
         weeklyDigest: true,
+        muteNotifications: false,
     });
 
     // Multi-profile state
@@ -936,6 +939,55 @@ export default function Settings() {
                             </div>
                         </form>
                     </div>
+
+                    {/* On-Screen Alerts / Do Not Disturb Card inside Account & Profile */}
+                    <div className="glass-card p-6 sm:p-8 rounded-2xl border border-border/60">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3.5">
+                                <div className={`p-3 rounded-2xl shrink-0 transition-colors ${
+                                    isMuted ? 'bg-amber-500/15 text-amber-500 border border-amber-500/30' : 'bg-primary/10 text-primary border border-primary/20'
+                                }`}>
+                                    {isMuted ? <HiOutlineBellSlash className="w-6 h-6" /> : <HiOutlineBell className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2.5 flex-wrap">
+                                        <h3 className="text-base font-bold text-text">On-Screen Alert Banners</h3>
+                                        <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                                            isMuted
+                                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+                                        }`}>
+                                            {isMuted ? 'MUTED (DND ACTIVE)' : 'POPUPS ACTIVE'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-text-muted mt-1 leading-relaxed max-w-xl">
+                                        {isMuted
+                                            ? 'Real-time alert toasts are currently silenced. All pricing anomalies, competitor surges, and demand warnings are logged quietly in your notification bell.'
+                                            : 'Floating alert toasts pop up on your screen in real time when price adjustments, competitor drops, or system signals occur.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const next = !isMuted;
+                                    toggleMute(next);
+                                    const updated = { ...preferences, muteNotifications: next };
+                                    setPreferences(updated);
+                                    handleSavePreferences(updated);
+                                }}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 ${
+                                    isMuted
+                                        ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20'
+                                        : 'bg-surface hover:bg-surface-elevated border border-border text-text hover:border-primary/40'
+                                }`}
+                            >
+                                {isMuted ? <HiOutlineBellSlash className="w-4 h-4" /> : <HiOutlineBell className="w-4 h-4" />}
+                                <span>{isMuted ? 'Turn Off Mute' : 'Mute Screen Alerts'}</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -1134,6 +1186,57 @@ export default function Settings() {
             {/* TAB 5: Notifications & Alerts */}
             {activeTab === 'notifications' && (
                 <div className="max-w-3xl space-y-6 animate-fade-in">
+                    {/* Master On-Screen Popup Mute / Do Not Disturb Banner */}
+                    <div className={`p-5 sm:p-6 rounded-2xl border transition-all ${
+                        isMuted
+                            ? 'bg-amber-500/10 border-amber-500/30'
+                            : 'glass-card border-border/70'
+                    }`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-start gap-3.5">
+                                <div className={`p-3 rounded-2xl shrink-0 transition-colors ${
+                                    isMuted ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'bg-primary/10 text-primary border border-primary/20'
+                                }`}>
+                                    {isMuted ? <HiOutlineBellSlash className="w-6 h-6" /> : <HiOutlineBell className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2.5 flex-wrap">
+                                        <h3 className="text-base font-bold text-text">Mute On-Screen Popups (Do Not Disturb)</h3>
+                                        <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                                            isMuted
+                                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+                                        }`}>
+                                            {isMuted ? 'MUTED' : 'POPUPS ACTIVE'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-text-muted mt-1 leading-relaxed max-w-xl">
+                                        Temporarily prevent floating toast banners from continuously appearing across the screen while browsing or editing. Notifications are still safely stored in your database and viewable via the top navigation bell.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const next = !isMuted;
+                                    toggleMute(next);
+                                    const updated = { ...preferences, muteNotifications: next };
+                                    setPreferences(updated);
+                                    handleSavePreferences(updated);
+                                }}
+                                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 ${
+                                    isMuted
+                                        ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-500/20'
+                                        : 'bg-surface hover:bg-surface-elevated border border-border text-text hover:border-primary/40'
+                                }`}
+                            >
+                                {isMuted ? <HiOutlineBellSlash className="w-4 h-4" /> : <HiOutlineBell className="w-4 h-4" />}
+                                <span>{isMuted ? 'Unmute Popups' : 'Mute Popups'}</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <div className="glass-card p-6 sm:p-8 rounded-2xl border border-border/60 space-y-5">
                         <div>
                             <h2 className="text-lg font-bold text-text mb-1">Notification Preferences</h2>
@@ -1156,6 +1259,11 @@ export default function Settings() {
                                     key: 'weeklyDigest',
                                     title: 'Weekly AI Executive Revenue Report',
                                     desc: 'Receive an automated summary of revenue gained via price optimizations.',
+                                },
+                                {
+                                    key: 'muteNotifications',
+                                    title: 'Mute On-Screen Live Alert Banners',
+                                    desc: 'Suppress floating toast alerts across all tabs while keeping database logs and bell badges intact.',
                                 },
                             ].map((item) => (
                                 <div key={item.key} className="flex items-center justify-between p-4 rounded-xl bg-surface-lighter/50 border border-border/60">
