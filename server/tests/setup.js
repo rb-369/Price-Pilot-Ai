@@ -26,6 +26,9 @@ module.exports.connect = async () => {
         instance: {
             launchTimeout: 60000,
         },
+        binary: {
+            version: '7.0.24'
+        },
     });
     const uri = mongoServer.getUri();
 
